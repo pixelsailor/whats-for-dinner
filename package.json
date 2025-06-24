@@ -15,6 +15,11 @@
 		"test:unit": "vitest",
 		"test": "npm run test:unit -- --run"
 	},
+	"dependencies": {
+		"@supabase/supabase-js": "^2.50.0",
+		"bits-ui": "^2.8.8",
+		"openai": "^5.7.0"
+	},
 	"devDependencies": {
 		"@eslint/compat": "^1.2.5",
 		"@eslint/js": "^9.18.0",

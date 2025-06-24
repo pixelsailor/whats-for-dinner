@@ -26,7 +26,7 @@ export async function getRecipeSuggestions(input: string) {
 
 	try {
 		const response = await openai.chat.completions.create({
-			model: 'gpt-4o',
+			model: 'gpt-4.1-mini',
 			messages,
 			temperature: 0.7
 		});
@@ -36,4 +36,30 @@ export async function getRecipeSuggestions(input: string) {
 		console.error('OpenAI API error:', error);
 		throw error;
 	}
+}
+
+export async function getFullRecipe(title: string) {
+  const messages: ChatCompletionMessageParam[] = [
+    {
+      role: 'system',
+      content: 'Return a full recipe with ingredients, instructions, and description for the given title.'
+    },
+    {
+      role: 'user',
+      content: `Recipe title: ${title}`
+    }
+  ];
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4.1-mini',
+      messages
+    });
+  
+    return response.choices[0].message.content || 'No response received.';
+  }
+  catch (error) {
+    console.error('OpenAI API error:', error);
+    throw error;
+  }
 }

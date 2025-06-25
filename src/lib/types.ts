@@ -11,5 +11,7 @@ export type FullRecipe = {
 	title: string;
 	description: string;
 	ingredients: string[];
-	instructions: string;
+	instructions: string[];
+  estimated_time: string;
+  tags: string[];
 };

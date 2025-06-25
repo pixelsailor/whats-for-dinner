@@ -1,4 +1,5 @@
 import { VITE_OPENAI_API_KEY } from '$env/static/private';
+import type { FullRecipe } from '$lib/types';
 import { OpenAI } from 'openai/client.js';
 import type { ChatCompletionMessageParam } from 'openai/resources';
 
@@ -38,15 +39,24 @@ export async function getRecipeSuggestions(input: string) {
 	}
 }
 
-export async function getFullRecipe(title: string) {
+export async function getFullRecipe(title: string): Promise<FullRecipe> {
   const messages: ChatCompletionMessageParam[] = [
     {
       role: 'system',
-      content: 'Return a full recipe with ingredients, instructions, and description for the given title.'
+      content: `You are a helpful meal assistant. Respond ONLY with valid JSON following this format:
+      
+      {
+        "title": "string",
+        "description": "string",
+        "ingredients": ["string", ...],
+        "instructions": ["string", ...],
+        "estimated_time": "string",
+        "tags": ["string", ...]
+      }`
     },
     {
       role: 'user',
-      content: `Recipe title: ${title}`
+      content: `Give me the full recipe for, "${title}"`
     }
   ];
 
@@ -56,10 +66,11 @@ export async function getFullRecipe(title: string) {
       messages
     });
   
-    return response.choices[0].message.content || 'No response received.';
+    // return response.choices[0].message.content || 'No response received.';
+    return JSON.parse(response.choices[0].message.content ?? '{}.');
   }
-  catch (error) {
-    console.error('OpenAI API error:', error);
-    throw error;
+  catch (err) {
+    console.error('OpenAI API error:', err);
+    throw err;
   }
 }

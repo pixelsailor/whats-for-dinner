@@ -33,7 +33,10 @@
 			if (res.success) {
 				app.fullRecipes.set(recipe.title, res.data);
 				app.view = 'detail';
-			}
+			} else {
+        app.error = typeof res.error !== 'string' ? res.error.message : res.error;
+        app.view = 'error';
+      }
 		});
 	}
 
@@ -144,6 +147,12 @@
   {:else}
     <p>Loading recipe...</p>
   {/if}
+{:else if app.view === 'error'}
+	<div class="error">
+		<p class="font-bold my-4">Ah donkeyspittle! There was a problem.</p>
+		<p>{app.error}</p>
+    <button onclick={backToSuggestions}>Back to suggestions</button>
+	</div>
 {/if}
 
 {#if form?.error}

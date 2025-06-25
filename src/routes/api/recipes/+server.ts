@@ -1,4 +1,4 @@
-import { json, type RequestHandler } from '@sveltejs/kit';
+import { fail, json, type RequestHandler } from '@sveltejs/kit';
 import { getFullRecipe, getRecipeSuggestions } from '$lib/server/openai';
 
 export const POST: RequestHandler = async ({ request }) => {
@@ -22,7 +22,12 @@ export const POST: RequestHandler = async ({ request }) => {
 			default:
 				return json({ error: 'Unknown action' }, { status: 400 });
 		}
-		return json({ success: true, data: JSON.parse(response) });
+		
+		if (response) {
+			return json({ success: true, data: JSON.parse(response) });
+		} else {
+			return json({ error: 'Invalid response from AI' }, { status: 502 });
+		}
 	} catch (error) {
 		console.error('API Error:', error);
 		return json(

@@ -6,7 +6,7 @@ const openai = new OpenAI({
 	apiKey: VITE_OPENAI_API_KEY
 });
 
-export async function getRecipeSuggestions(input: string): Promise<string> {
+export async function getRecipeSuggestions(input: string): Promise<string|undefined> {
 	const messages: ChatCompletionMessageParam[] = [
 		{
 			role: 'system',
@@ -31,14 +31,14 @@ export async function getRecipeSuggestions(input: string): Promise<string> {
 			temperature: 0.7
 		});
 
-		return response.choices[0].message.content || 'No response received.';
+		return response.choices[0].message.content || undefined;
 	} catch (error) {
 		console.error('OpenAI API error:', error);
 		throw error;
 	}
 }
 
-export async function getFullRecipe(title: string): Promise<string> {
+export async function getFullRecipe(title: string): Promise<string|undefined> {
   const messages: ChatCompletionMessageParam[] = [
     {
       role: 'system',
@@ -65,8 +65,7 @@ export async function getFullRecipe(title: string): Promise<string> {
       messages
     });
   
-    return response.choices[0].message.content || 'No response received.';
-    // return JSON.parse(response.choices[0].message.content ?? '{}.');
+    return response.choices[0].message.content ?? undefined;
   }
   catch (err) {
     console.error('OpenAI API error:', err);

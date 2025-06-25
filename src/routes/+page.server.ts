@@ -7,13 +7,22 @@ export const actions: Actions = {
 		const data = await request.formData();
 		const message = sanitizePromptInput(data.get('input') as string);
 
+    if (!message) {
+      return fail(400, { error: 'A query is required', message });
+    }
+
 		try {
 			const response = await getRecipeSuggestions(message.trim());
-			return {
-				success: true,
-				response: JSON.parse(response),
-				message
-			};
+      if (response) {
+        return {
+          success: true,
+          response: JSON.parse(response),
+          message
+        };
+      } else {
+        return fail(502, { error: 'Invalid response from AI', message });
+      }
+			
 		} catch (error) {
 			console.error('Network error:', error);
 

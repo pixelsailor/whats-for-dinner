@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { recipesApiPostHandler } from '$lib/api';
 	import type { FullRecipe, RecipeSummary } from '$lib/types';
 
 	let { data, form } = $props();
@@ -10,26 +11,12 @@
 		view: 'idle',
 		suggestions: [] as RecipeSummary[],
 		selected: null as RecipeSummary | null,
-		fullRecipes: new Map<string, FullRecipe>()
+		fullRecipes: new Map<string, FullRecipe>(),
+    error: ''
 	});
 
 	let loading = $state(false);
   let fullRecipe = $derived(app.selected ? app.fullRecipes.get(app.selected.title) : undefined);
-
-	async function postApi<T>(
-		action: string,
-		data: any
-	): Promise<{ success?: boolean; error?: string; data: T; message?: string }> {
-		const response = await fetch('/api/recipes', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({ action, ...data })
-		});
-
-		return response.json();
-	}
 
 	function selectRecipe(recipe: RecipeSummary) {
 		app.selected = recipe;
@@ -42,7 +29,7 @@
 
 		app.view = 'loading';
 
-		postApi<FullRecipe>('detail', recipe).then((res) => {
+		recipesApiPostHandler<FullRecipe>('detail', recipe).then((res) => {
 			if (res.success) {
 				app.fullRecipes.set(recipe.title, res.data);
 				app.view = 'detail';

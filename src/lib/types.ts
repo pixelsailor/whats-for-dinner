@@ -15,3 +15,9 @@ export type FullRecipe = {
   estimated_time: string;
   tags: string[];
 };
+
+export type ApiResponse<T> = {
+	success: boolean;
+	data: T;
+	message: string;
+}

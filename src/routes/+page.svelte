@@ -88,7 +88,7 @@
 		use:enhance={({ formElement, formData, action, cancel, submitter }) => {
 			loading = true;
 			return async ({ result, update }) => {
-        console.log('form result', result);
+        // console.log('form result', result);
         loading = false;
         app.lastInput = app.input;
         app.view = 'suggestions';
@@ -121,7 +121,7 @@
 	<div class="response">
 		<h2 class="my-4">Here are some ideas:</h2>
 		<ul class="my-4">
-			{#each form.response as suggestion}
+			{#each form.data as suggestion}
 				<li class="h-18">
 					<button
 						class="h-full w-full overflow-hidden py-2 text-left"

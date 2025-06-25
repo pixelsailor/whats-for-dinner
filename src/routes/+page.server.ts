@@ -16,7 +16,7 @@ export const actions: Actions = {
       if (response) {
         return {
           success: true,
-          response: JSON.parse(response),
+          data: JSON.parse(response),
           message
         };
       } else {

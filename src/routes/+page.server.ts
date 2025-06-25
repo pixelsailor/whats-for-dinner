@@ -1,10 +1,11 @@
-import { getRecipeSuggestions } from '$lib/server/openai';
 import { fail, type Actions } from '@sveltejs/kit';
+import { getRecipeSuggestions } from '$lib/server/openai';
+import { sanitizePromptInput } from '$lib/utils';
 
 export const actions: Actions = {
 	default: async ({ request }) => {
 		const data = await request.formData();
-		const message = data.get('input') as string;
+		const message = sanitizePromptInput(data.get('input') as string);
 
 		try {
 			const response = await getRecipeSuggestions(message.trim());

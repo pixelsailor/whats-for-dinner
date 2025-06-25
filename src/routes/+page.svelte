@@ -13,11 +13,9 @@
 		fullRecipes: new Map<string, FullRecipe>()
 	});
 
-	let request = $state('');
 	let loading = $state(false);
   let fullRecipe = $derived(app.selected ? app.fullRecipes.get(app.selected.title) : undefined);
 
-	// type PostApiResponse = { success?: boolean; error?: string; response: T, message?: string };
 	async function postApi<T>(
 		action: string,
 		data: any
@@ -33,7 +31,7 @@
 		return response.json();
 	}
 
-	async function selectRecipe(recipe: RecipeSummary) {
+	function selectRecipe(recipe: RecipeSummary) {
 		app.selected = recipe;
 
 		// Already fetched? Use cache
@@ -52,19 +50,33 @@
 		});
 	}
 
-  async function getSuggestions(getMore = false) {
-    
-  }
+  // function getSuggestions(getMore = false) {
+  //   if (!app.input.trim()) return;
+  //   app.view = 'loading';
+
+  //   // Avoid duplicate requests
+  //   if (app.suggestions.length > 0 && app.lastInput == app.input) {
+  //     app.view = 'suggestions';
+  //     return;
+  //   }
+
+  //   if (getMore) {
+  //     app.input += ' give me more ideas';
+  //     app.suggestions = [];
+  //   }
+
+  //   postApi<RecipeSummary[]>('suggestions', app.input).then((res) => {
+  //     if (res.success) {
+  //       app.suggestions = res.data;
+  //       app.lastInput = app.input;
+  //       app.view = 'suggestions';
+  //     }
+  //   })
+  // }
 
   function backToSuggestions() {
     app.view = 'suggestions';
     app.selected = null;
-  }
-
-  function requestMoreSuggestions() {
-    app.input += ' give me more ideas';
-    app.suggestions = [];
-    // fetchSuggestions();
   }
 </script>
 
@@ -84,15 +96,25 @@
 			};
 		}}
 	>
-		<input type="text" name="request" bind:value={request} class="w-full rounded border p-2" />
+		<input type="text" name="input" bind:value={app.input} class="w-full rounded border p-2" />
 		<button
 			class="rounded bg-green-600 px-4 py-2 text-white"
 			type="submit"
-			disabled={loading || !request.trim()}
+			disabled={loading || !app.input.trim()}
 		>
 			{loading ? 'Thinking...' : 'Get ideas'}
 		</button>
 	</form>
+	<!-- <form>
+		<input type="text" name="request" bind:value={app.input} class="w-full rounded border p-2" />
+		<button
+			class="rounded bg-green-600 px-4 py-2 text-white"
+			onclick={() => getSuggestions()}
+			disabled={!app.input.trim()}
+		>
+			Get ideas
+		</button>
+	</form> -->
 {:else if app.view === 'loading'}
   <p>Loading...</p>
 {:else if app.view === 'suggestions' && form}
@@ -111,7 +133,7 @@
 				</li>
 			{/each}
 		</ul>
-    <button onclick={requestMoreSuggestions}>Give me more ideas</button>
+    <!-- <button onclick={() => getSuggestions(true)}>Give me more ideas</button> -->
 	</div>
 {:else if app.view === 'detail'}
 	<div>

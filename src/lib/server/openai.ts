@@ -1,5 +1,4 @@
 import { VITE_OPENAI_API_KEY } from '$env/static/private';
-import type { FullRecipe } from '$lib/types';
 import { OpenAI } from 'openai/client.js';
 import type { ChatCompletionMessageParam } from 'openai/resources';
 
@@ -7,7 +6,7 @@ const openai = new OpenAI({
 	apiKey: VITE_OPENAI_API_KEY
 });
 
-export async function getRecipeSuggestions(input: string) {
+export async function getRecipeSuggestions(input: string): Promise<string> {
 	const messages: ChatCompletionMessageParam[] = [
 		{
 			role: 'system',
@@ -27,7 +26,7 @@ export async function getRecipeSuggestions(input: string) {
 
 	try {
 		const response = await openai.chat.completions.create({
-			model: 'gpt-4.1-mini',
+			model: 'gpt-4.1-nano',
 			messages,
 			temperature: 0.7
 		});
@@ -39,7 +38,7 @@ export async function getRecipeSuggestions(input: string) {
 	}
 }
 
-export async function getFullRecipe(title: string): Promise<FullRecipe> {
+export async function getFullRecipe(title: string): Promise<string> {
   const messages: ChatCompletionMessageParam[] = [
     {
       role: 'system',
@@ -62,12 +61,12 @@ export async function getFullRecipe(title: string): Promise<FullRecipe> {
 
   try {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4.1-mini',
+      model: 'gpt-4.1-nano',
       messages
     });
   
-    // return response.choices[0].message.content || 'No response received.';
-    return JSON.parse(response.choices[0].message.content ?? '{}.');
+    return response.choices[0].message.content || 'No response received.';
+    // return JSON.parse(response.choices[0].message.content ?? '{}.');
   }
   catch (err) {
     console.error('OpenAI API error:', err);

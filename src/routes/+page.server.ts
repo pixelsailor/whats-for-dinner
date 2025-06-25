@@ -4,7 +4,7 @@ import { fail, type Actions } from '@sveltejs/kit';
 export const actions: Actions = {
 	default: async ({ request }) => {
 		const data = await request.formData();
-		const message = data.get('request') as string;
+		const message = data.get('input') as string;
 
 		try {
 			const response = await getRecipeSuggestions(message.trim());

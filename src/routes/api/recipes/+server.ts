@@ -3,7 +3,7 @@ import { getFullRecipe, getRecipeSuggestions } from '$lib/server/openai';
 
 export const POST: RequestHandler = async ({ request }) => {
 	try {
-		const { action, ...input } = await request.json();
+		const { action, input } = await request.json();
 
 		let response: string | undefined;
 

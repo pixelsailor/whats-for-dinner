@@ -1,5 +1,7 @@
 node_modules
 
+/static/svg
+
 # Output
 .output
 .vercel

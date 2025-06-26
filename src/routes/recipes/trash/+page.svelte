@@ -7,12 +7,18 @@
 	import { List, ListItem } from '$lib/ui/List';
 	import BackIcon from '$lib/ui/Icons/BackIcon.svelte';
 
+	  let alert = $state({
+    type: '' as 'info' | 'warn' | 'danger' | 'success' | 'error',
+    message: ''
+  });
+
 	async function restoreRecipe(id: string) {
     try {
       await db.recipes.update(id, { archived: false });
-      // archived = archived.filter(r => r.id !== id);
     } catch (err) {
-
+			console.error(err);
+			alert.type = 'error';
+			alert.message = 'There was a problem trying to restore the recipe.'
     }
 	}
 </script>

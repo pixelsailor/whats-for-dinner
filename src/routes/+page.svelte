@@ -1,10 +1,12 @@
 <script lang="ts">
+	import { Toolbar } from 'bits-ui';
+	import { onMount } from 'svelte';
   import { v4 as uuid } from 'uuid';
 	import { enhance } from '$app/forms';
 	import { recipesApiPostHandler } from '$lib/api';
 	import { db } from '$lib/db.js';
 	import type { FullRecipe, RecipeSummary } from '$lib/types';
-	import { onMount } from 'svelte';
+	import ListItemButton from '$lib/ui/ListItemButton.svelte';
 
 	let { data, form } = $props();
 
@@ -67,6 +69,7 @@
       if (!recipebookTitles.includes(title)) {
         await db.recipes.put({
           ...recipe,
+          short_description: app.selected?.short_description || recipe.description,
           id: uuid(),
           created_at: Date.now()
         });
@@ -121,6 +124,14 @@
   });
 </script>
 
+<header>
+  <Toolbar.Root>
+    <Toolbar.Link href="/recipes">
+      <span>My Recipe Book</span>
+    </Toolbar.Link>
+  </Toolbar.Root>
+</header>
+<main>
 {#if app.view === 'idle'}
 	<h1 class="my-4 text-2xl font-bold">What are you hungry for?</h1>
 
@@ -163,15 +174,10 @@
 		<h2 class="my-4">Here are some ideas:</h2>
 		<ul class="my-4">
 			{#each form.data as suggestion}
-				<li class="h-18">
-					<button
-						class="h-full w-full overflow-hidden py-2 text-left"
-						onclick={() => selectRecipe(suggestion)}
-					>
-						<p class="font-bold">{suggestion.title}</p>
-						<p class="text-sm">{suggestion.short_description}</p>
-					</button>
-				</li>
+        <ListItemButton size="three-line" onClick={() => selectRecipe(suggestion)}>
+          <p class="font-bold">{suggestion.title}</p>
+          <p class="text-sm">{suggestion.short_description}</p>
+        </ListItemButton>
 			{/each}
 		</ul>
     <!-- <button onclick={() => getSuggestions(true)}>Give me more ideas</button> -->
@@ -232,3 +238,5 @@
 		<p>{form.error}</p>
 	</div>
 {/if}
+</main>
+<footer></footer>

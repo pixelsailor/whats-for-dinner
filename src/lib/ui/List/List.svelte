@@ -13,6 +13,6 @@
 	let listElement = $derived(type === 'ordered' ? 'ol' : 'ul');
 </script>
 
-<svelte:element this={listElement} class="my-1" {...props}>
+<svelte:element this={listElement} class="pxl-list my-1" {...props}>
 	{@render children()}
 </svelte:element>

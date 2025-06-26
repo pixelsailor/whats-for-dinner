@@ -19,7 +19,7 @@
 
 <header>
 	<Toolbar.Root>
-		<Toolbar.Link href="/">
+		<Toolbar.Link href="/recipes">
 			<BackIcon size="xs"/>
 		</Toolbar.Link>
 	</Toolbar.Root>

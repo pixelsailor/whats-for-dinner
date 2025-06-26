@@ -8,7 +8,7 @@
 
 <li
 	class={[
-		'pxl--listitem flex flex-row flex-nowrap',
+		'pxl-listitem flex flex-row flex-nowrap',
 		{ 'h-18': size === 'two-line' },
 		{ 'h-22': size === 'three-line' }
 	]}

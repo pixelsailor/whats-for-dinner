@@ -13,9 +13,9 @@
 <a
 	{href}
 	class={[
-		'flex h-full w-full flex-row py-2',
-		{ 'content-center': size === 'two-line' },
-		{ 'content-start': size === 'three-line' }
+		'pxl-listitem__link flex h-full w-full flex-row',
+		{ 'place-content-center': size === 'two-line' },
+		{ 'place-content-start': size === 'three-line' }
 	]}
 	{...props}
 >

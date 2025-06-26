@@ -1,5 +1,7 @@
 export type ViewState = 'idle' | 'suggestions' | 'detail' | 'error' | 'loading';
 
+export type IconSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+
 export type ApiResponse<T> = {
 	success: boolean;
 	data: T;

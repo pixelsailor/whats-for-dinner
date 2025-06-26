@@ -1,5 +1,6 @@
 <script lang="ts">
-	import IconRoot, { type IconSize } from './IconRoot.svelte';
+	import type { IconSize } from '$lib/types';
+	import IconRoot from './IconRoot.svelte';
 
 	let { size }: { size?: IconSize | number } = $props();
 </script>

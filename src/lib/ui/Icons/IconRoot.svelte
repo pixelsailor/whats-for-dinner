@@ -1,12 +1,10 @@
-<script module>
-  export type IconSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-</script>
-
 <script lang="ts">
+	import type { IconSize } from '$lib/types';
+
 	let { children, ...props } = $props();
 
 	let iconSize = $derived.by(() => {
-    const { size } = props;
+		const { size } = props;
 		if (!size) return '100%';
 
 		if (typeof size === 'string') {

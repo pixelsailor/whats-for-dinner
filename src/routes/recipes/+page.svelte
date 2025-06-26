@@ -7,9 +7,20 @@
 	import IconButton from '$lib/ui/IconButton.svelte';
 	import TrashIcon from '$lib/ui/Icons/TrashIcon.svelte';
 
+  let alert = $state({
+    type: '' as 'info' | 'warn' | 'danger' | 'success' | 'error',
+    message: ''
+  });
+
   async function deleteRecipe(id: string) {
     if (confirm('Delete this recipe?')) {
-      await db.recipes.delete(id);
+      try {
+        await db.recipes.update(id, { archived: true });
+      } catch (err) {
+        alert.type = 'error';
+        alert.message = 'Failed to delete recipe';
+        console.error(err);
+      }
     }
   }
 </script>
@@ -19,6 +30,9 @@
 		<Toolbar.Link href="/">
 			<span>Back</span>
 		</Toolbar.Link>
+    <Toolbar.Link href="/recipes/trash">
+      <span>Trash bin</span>
+    </Toolbar.Link>
 	</Toolbar.Root>
 </header>
 <main>

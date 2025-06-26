@@ -4,11 +4,22 @@ import { db } from '$lib/db';
 import type { SavedRecipe } from '$lib/types';
 
 export const savedRecipes = readable<SavedRecipe[]>([], (recipes) => {
-	const subscription = liveQuery(async() => db.recipes.toArray()).subscribe(recipes);
+	const subscription = liveQuery(async () => {
+		const all = await db.recipes.toArray();
+		return all.filter((r) => !r.archived);
+	}).subscribe(recipes);
 	return () => subscription.unsubscribe();
 });
 
 // Get a single recipe
 export async function getSavedRecipe(id: string) {
-  return await db.recipes.get(id);
+	return await db.recipes.get(id);
 }
+
+export const archivedRecipes = readable<SavedRecipe[]>([], (recipes) => {
+	const subscription = liveQuery(async () => {
+		const all = await db.recipes.toArray();
+		return all.filter((r) => r.archived);
+	}).subscribe(recipes);
+	return () => subscription.unsubscribe();
+});

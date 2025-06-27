@@ -4,11 +4,14 @@
 
 	import { db } from '$lib/db';
 	import { savedRecipes } from '$lib/stores/recipes';
+  import Button from '$lib/ui/Button/Button.svelte'
 	import { List, ListItem } from '$lib/ui/List';
 	import IconButton from '$lib/ui/IconButton.svelte';
 	import TrashIcon from '$lib/ui/Icons/TrashIcon.svelte';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
 	import { slide } from 'svelte/transition';
+	import BackIcon from '$lib/ui/Icons/BackIcon.svelte';
+	import { AppBar } from '$lib/ui/AppBar';
 
 	async function deleteRecipe(id: string, title: string) {
 		// if (confirm('Delete this recipe?')) {
@@ -35,23 +38,24 @@
 	}
 </script>
 
-<header>
-	<Toolbar.Root>
-		<Toolbar.Link href="/">
-			<span>Back</span>
-		</Toolbar.Link>
-		<Toolbar.Link href="/recipes/trash">
-			<span>Trash bin</span>
-		</Toolbar.Link>
-	</Toolbar.Root>
-</header>
+<AppBar.Root>
+  <Button title="Back" href="/" size="xs" icon>
+    <BackIcon />
+  </Button>
+  <AppBar.Text primary="My Recipe Book" />
+  <AppBar.End>
+    <Button title="Trash bin" href="/recipes/trash" size="xs" icon>
+      <TrashIcon />
+    </Button>
+  </AppBar.End>
+</AppBar.Root>
 <main>
-	<h1 class="m-4 text-2xl font-bold">My Recipe Book</h1>
 	{#if $savedRecipes.length === 0}
 		<p>You haven't saved any recipes yet.</p>
 	{:else if $savedRecipes.length > 0}
 		<List size="three-line">
 			{#each $savedRecipes as recipe}
+        <hr class="border-gray-200">
 				<ListItem.Root>
 					<ListItem.Link href="/recipes/{recipe.id}">
 						<ListItem.Text primary={recipe.title} secondary={recipe.short_description} />

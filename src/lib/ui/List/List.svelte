@@ -6,7 +6,7 @@
 		size?: 'two-line' | 'three-line';
 		type?: 'ordered' | 'unordered';
 	};
-	let { size = 'two-line', type = 'unordered', children, ...props }: ListProps = $props();
+	let { size, type = 'unordered', children, ...props }: ListProps = $props();
 
 	setContext('pxl-list', size);
 

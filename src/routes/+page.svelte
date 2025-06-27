@@ -1,14 +1,22 @@
 <script lang="ts">
-	import { Toolbar } from 'bits-ui';
-	import { onMount } from 'svelte';
+	import { getContext, onMount } from 'svelte';
   import { v4 as uuid } from 'uuid';
 	import { enhance } from '$app/forms';
 	import { recipesApiPostHandler } from '$lib/api';
 	import { db } from '$lib/db.js';
 	import type { FullRecipe, RecipeSummary } from '$lib/types';
 	import ListItemButton from '$lib/ui/ListItemButton.svelte';
+	import { AppBar } from '$lib/ui/AppBar/index.js';
+	import Button from '$lib/ui/Button/Button.svelte';
+	import BackIcon from '$lib/ui/Icons/BackIcon.svelte';
+	import MenuIcon from '$lib/ui/Icons/MenuIcon.svelte';
+	import TrashIcon from '$lib/ui/Icons/TrashIcon.svelte';
+
+  const vp = getContext<any>('viewport');
 
 	let { data, form } = $props();
+
+  let layout = $derived(vp.layout);
 
 	let app = $state({
 		input: '',
@@ -117,6 +125,10 @@
     app.selected = null;
   }
 
+  function toggleMenu() {
+    vp.nav = vp.nav === 'expanded' ? 'collapsed' : 'expanded';
+  }
+
   // Create a list of titles to reference to avoid adding duplicates
   onMount(async () => {
     const all = await db.recipes.toArray();
@@ -124,14 +136,18 @@
   });
 </script>
 
-<header>
-  <Toolbar.Root>
-    <Toolbar.Link href="/recipes">
-      <span>My Recipe Book</span>
-    </Toolbar.Link>
-  </Toolbar.Root>
-</header>
-<main>
+<AppBar.Root>
+  <Button onClick={toggleMenu} label="Menu" size="xs" icon>
+    <MenuIcon />
+  </Button>
+  <!-- <AppBar.Text primary="My Recipe Book" /> -->
+  <AppBar.End>
+    <Button title="Trash bin" href="/recipes/trash" size="xs" icon>
+      <TrashIcon />
+    </Button>
+  </AppBar.End>
+</AppBar.Root>
+<main class="px-4 lg:px-8">
 {#if app.view === 'idle'}
 	<h1 class="my-4 text-2xl font-bold">What are you hungry for?</h1>
 

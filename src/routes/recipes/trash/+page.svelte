@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Toolbar } from 'bits-ui';
+	
 	import { db } from '$lib/db';
   import { archivedRecipes } from '$lib/stores/recipes';
 	import IconButton from '$lib/ui/IconButton.svelte';
@@ -14,7 +15,7 @@
 
 	async function restoreRecipe(id: string) {
     try {
-      await db.recipes.update(id, { archived: false });
+      await db.recipes.update(id, { archived: undefined });
     } catch (err) {
 			console.error(err);
 			alert.type = 'error';
@@ -39,7 +40,7 @@
         <ListItem.Root>
           <ListItem.Text primary={recipe.title} />
           <ListItem.SecondaryAction>
-            <IconButton onClick={() => restoreRecipe(recipe.id)} size="xs">
+            <IconButton title="Restore" onClick={() => restoreRecipe(recipe.id)} size="xs">
               <RevertIcon />
             </IconButton>
           </ListItem.SecondaryAction>

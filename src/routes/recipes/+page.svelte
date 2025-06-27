@@ -57,7 +57,7 @@
 						<ListItem.Text primary={recipe.title} secondary={recipe.short_description} />
 					</ListItem.Link>
 					<ListItem.SecondaryAction>
-						<IconButton onClick={() => deleteRecipe(recipe.id, recipe.title)} size="xs">
+						<IconButton title="Delete recipe" onClick={() => deleteRecipe(recipe.id, recipe.title)} size="xs">
 							<TrashIcon />
 						</IconButton>
 					</ListItem.SecondaryAction>

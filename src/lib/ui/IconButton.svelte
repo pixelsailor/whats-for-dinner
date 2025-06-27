@@ -3,13 +3,14 @@
 	import type { MouseEventHandler } from 'svelte/elements';
 
 	type IconButtonProps = {
+		title: string;
 		size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 		onClick: MouseEventHandler<HTMLButtonElement>;
 		children: any;
 		[x: string]: any;
 	};
 
-	let { size = 'sm', onClick, children, ...props }: IconButtonProps = $props();
+	let { title, size = 'sm', onClick, children, ...props }: IconButtonProps = $props();
 
 	let iconSize = $derived.by(() => {
     const sizes = {
@@ -35,9 +36,7 @@
 	<span class="icon-button__icon" style:width={iconSize} style:height={iconSize}>
 		{@render children()}
 	</span>
-	{#if props.label}
-		<span class="sr-only">{props.label}</span>
-	{/if}
+	<span class="sr-only">{title}</span>
 </button>
 
 <style>

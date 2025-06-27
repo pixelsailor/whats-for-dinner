@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { BUTTON_MIN_TARGET_HEIGHT } from '$lib/constants';
+	import { BUTTON_MIN_TARGET_HEIGHT_TW } from '$lib/constants';
 	import type { MouseEventHandler } from 'svelte/elements';
 
 	type IconButtonProps = {
@@ -26,8 +26,8 @@
 
 <button
 	class={['button icon-button', props.class]}
-	style:min-width={`${BUTTON_MIN_TARGET_HEIGHT / 4}rem`}
-	style:height={`${BUTTON_MIN_TARGET_HEIGHT / 4}rem`}
+	style:min-width={`${BUTTON_MIN_TARGET_HEIGHT_TW / 4}rem`}
+	style:height={`${BUTTON_MIN_TARGET_HEIGHT_TW / 4}rem`}
 	style={props.style}
 	onclick={onClick}
 	disabled={props.disabled}

@@ -12,17 +12,20 @@
 
 	async function deleteRecipe(id: string, title: string) {
 		// if (confirm('Delete this recipe?')) {
+    const deletedAt = Date.now();
+
 		try {
-			await db.recipes.update(id, { archived: true });
+			await db.recipes.update(id, { archived: deletedAt });
 
 			toast.success(`"${title}" deleted`, {
 				action: {
 					label: 'Undo',
 					onClick: async () => {
-						await db.recipes.update(id, { archived: false });
+						await db.recipes.update(id, { archived: undefined });
 						toast.success(`"${title}" restored`);
 					}
-				}
+				},
+        duration: 5000
 			});
 		} catch (err) {
 			toast.error('Failed to delete recipe');

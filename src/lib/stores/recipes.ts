@@ -19,7 +19,12 @@ export async function getSavedRecipe(id: string) {
 export const archivedRecipes = readable<SavedRecipe[]>([], (recipes) => {
 	const subscription = liveQuery(async () => {
 		const all = await db.recipes.toArray();
-		return all.filter((r) => r.archived);
+		const archived = all.filter((r) => r.archived);
+		if (archived.length > 0) {
+			return archived.sort((a, b) => b.archived! - a.archived!);
+		} else {
+			return archived;
+		}
 	}).subscribe(recipes);
 	return () => subscription.unsubscribe();
 });

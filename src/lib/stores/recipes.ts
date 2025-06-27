@@ -28,3 +28,11 @@ export const archivedRecipes = readable<SavedRecipe[]>([], (recipes) => {
 	}).subscribe(recipes);
 	return () => subscription.unsubscribe();
 });
+
+export const recentlyOpened = readable<SavedRecipe[]>([], (recipes) => {
+	const subscription = liveQuery(async () => {
+		const all = await db.recipes.toArray();
+		return all.filter((r) => !r.archived).sort((a, b) => b.last_opened - a.last_opened).slice(0, 9);
+	}).subscribe(recipes);
+	return () => subscription.unsubscribe();
+})

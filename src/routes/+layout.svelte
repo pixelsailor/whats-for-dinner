@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { setContext } from 'svelte';
+	import { onMount, setContext } from 'svelte';
 	import { Toaster } from 'svelte-sonner';
 
 	import { MIN_DESKTOP_SIZE } from '$lib/constants';
-	import { savedRecipes } from '$lib/stores/recipes';
+	import { recentlyOpened } from '$lib/stores/recipes';
 	import { List, ListItem } from '$lib/ui/List';
 	import { AppBar } from '$lib/ui/AppBar';
 	import Button from '$lib/ui/Button/Button.svelte';
@@ -89,11 +89,11 @@
 	<div class="px-4 mt-8">
 		<span class="text-sm font-bold text-gray-500">Recent recipes</span>
 	</div>
-	{#if $savedRecipes.length === 0}
+	{#if $recentlyOpened.length === 0}
 		<p>Your recently viewed recipes will appear.</p>
-	{:else if $savedRecipes.length > 0}
+	{:else if $recentlyOpened.length > 0}
 		<List>
-			{#each $savedRecipes as recipe}
+			{#each $recentlyOpened as recipe}
 				<ListItem.Root>
 					<ListItem.Link href="/recipes/{recipe.id}">
 						{recipe.title}

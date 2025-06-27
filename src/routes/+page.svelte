@@ -75,11 +75,13 @@
 
     try {
       if (!recipebookTitles.includes(title)) {
+        const now = Date.now();
         await db.recipes.put({
           ...recipe,
           short_description: app.selected?.short_description || recipe.description,
           id: uuid(),
-          created_at: Date.now()
+          created_at: now,
+          last_opened: now
         });
         recipebookTitles.push(recipe.title);
         app.saveStatus = 'saved';

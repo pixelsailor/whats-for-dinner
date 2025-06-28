@@ -86,7 +86,7 @@
 			{/each}
 		</ol>
 		<div class="absolute right-0 bottom-0 left-0">
-			<div class="prompt-bar mx-auto my-4 w-lg p-2 rounded-lg bg-gray-50 shadow-md">
+			<div class="prompt-bar mx-auto my-4 w-lg p-2 rounded-lg bg-gray-50 dark:bg-gray-900 shadow-md">
 				<form
 					class="flex flex-row gap-2 w-full"
 					method="POST"
@@ -117,7 +117,7 @@
 					}}
 				>
 					<input
-						class="grow rounded border border-gray-400 bg-white p-1"
+						class="grow rounded border border-gray-400 bg-white dark:bg-gray-800 dark:borer-gray-900 p-1"
 						type="text"
 						name="input"
 						bind:value={promptInput}

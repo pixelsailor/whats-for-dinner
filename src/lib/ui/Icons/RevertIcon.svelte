@@ -13,6 +13,7 @@
 			viewBox="0 0 16 16"
 			xmlns="http://www.w3.org/2000/svg"
 			style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;"
+			fill="currentColor"
 		>
 			<g transform="matrix(1.06464,0,0,1.05263,-0.0646388,0.10529)">
 				<path

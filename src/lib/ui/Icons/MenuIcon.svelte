@@ -16,6 +16,7 @@
 			xmlns:xlink="http://www.w3.org/1999/xlink"
 			xml:space="preserve"
 			style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;"
+			fill="currentColor"
 		>
 			<g transform="matrix(1.07692,0,0,1.11111,-0.0769231,-0.333333)">
 				<path

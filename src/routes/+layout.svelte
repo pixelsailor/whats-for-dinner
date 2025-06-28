@@ -106,7 +106,7 @@
 
 <svelte:window bind:innerWidth={vp.width}/>
 
-<div class="flex flex-nowrap h-full w-full flex-row overflow-x-hidden">
+<div class="flex flex-nowrap h-full w-full flex-row overflow-x-hidden bg-gray-50 dark:bg-black dark:text-gray-100">
 	{#if vp.layout === 'mobile--expanded'}
 		<!-- Layout when mobile sidenav is expanded -->
 		<div class="sidebar fixed inset-0 z-10 backdrop-blur-md">
@@ -136,7 +136,7 @@
 		</div>
 	{:else}
 		<!-- Standard desktop Layout with sidenav expanded -->
-		<div class="h-full w-2xs min-h-screen bg-gray-100 border-r border-gray-200 flex-none">
+		<div class="h-full w-2xs min-h-screen bg-gray-100 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex-none">
 			{@render sidenav()}
 		</div>
 	{/if}

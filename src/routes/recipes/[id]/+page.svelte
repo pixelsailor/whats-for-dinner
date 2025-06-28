@@ -44,20 +44,19 @@
 			});
 	});
 
-	async function saveModifiedRecipe(original: SavedRecipe, updated: Partial<SavedRecipe>) {
-    console.log(original, updated);
-    
+	async function saveModifiedRecipe(original: SavedRecipe, updated: SavedRecipe) {
 		await db.recipes.update(original.id, { is_current: false });
 
 		const version = original.version + 1;
+		const now = Date.now();
 		const newRecipe: SavedRecipe = {
-			...original,
 			...updated,
 			id: uuid(),
 			version,
 			parent_id: original.parent_id ?? original.id,
 			is_current: true,
-			created_at: Date.now()
+			created_at: now,
+			last_opened: now
 		};
 
 		await db.recipes.put(newRecipe);

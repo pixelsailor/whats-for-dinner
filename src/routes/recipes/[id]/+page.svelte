@@ -1,12 +1,33 @@
 <script lang="ts">
+  import { v4 as uuid } from 'uuid';
+
 	import { page } from '$app/state';
 	import { db } from '$lib/db';
 	import { getSavedRecipe } from '$lib/stores/recipes';
+	import type { SavedRecipe } from '$lib/types';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
 
 	const id = $derived(page.params.id);
 
   let idRef = $state<HTMLElement>(); // Used to capture the resolved recipe.id
+
+  async function saveModifieRecipe(original: SavedRecipe, updated: Partial<SavedRecipe>) {
+    await db.recipes.update(original.id, { is_current: false });
+
+    const version = original.version + 1;
+    const newRecipe: SavedRecipe = {
+      ...original,
+      ...updated,
+      id: uuid(),
+      version,
+      parent_id: original.parent_id ?? original.id,
+      is_current: true,
+      created_at: Date.now()
+    };
+
+    await db.recipes.put(newRecipe);
+    return newRecipe;
+  }
 
   $effect(() => {
     if (idRef && idRef.textContent) {

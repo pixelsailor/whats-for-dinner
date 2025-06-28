@@ -30,6 +30,9 @@ export type SavedRecipe = FullRecipe & {
 	created_at: number;
 	archived?: number;
 	last_opened: number;
+	version: number;
+	parent_id?: string;
+	is_current: boolean;
 }
 
 export type PantryItem = {

@@ -81,7 +81,9 @@
           short_description: app.selected?.short_description || recipe.description,
           id: uuid(),
           created_at: now,
-          last_opened: now
+          last_opened: now,
+          version: 1,
+          is_current: true,
         });
         recipebookTitles.push(recipe.title);
         app.saveStatus = 'saved';

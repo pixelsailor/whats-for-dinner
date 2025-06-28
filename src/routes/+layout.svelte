@@ -141,12 +141,12 @@
 		</div>
 	{/if}
 	
-	<div class="main-content w-full">
+	<div class="main-content relative w-full">
 		{@render children()}
 	</div>
 </div>
 
-<Toaster />
+<Toaster position={vp.device === 'mobile' ? 'top-center' : 'top-right'} />
 
 <style>
 	.sidebar {

@@ -3,7 +3,7 @@
 	import { v4 as uuid } from 'uuid';
 
 	import { enhance } from '$app/forms';
-	import { page, updated } from '$app/state';
+	import { page } from '$app/state';
 	import { db } from '$lib/db';
 	import { getSavedRecipe } from '$lib/stores/recipes';
 	import type { SavedRecipe, ViewState } from '$lib/types';
@@ -12,7 +12,6 @@
 
 	const id = $derived(page.params.id);
 
-  let promptForm = $state<HTMLFormElement>();
 	let promptInput = $state<string>();
 
 	let app = $state({
@@ -45,7 +44,9 @@
 			});
 	});
 
-	async function saveModifieRecipe(original: SavedRecipe, updated: Partial<SavedRecipe>) {
+	async function saveModifiedRecipe(original: SavedRecipe, updated: Partial<SavedRecipe>) {
+    console.log(original, updated);
+    
 		await db.recipes.update(original.id, { is_current: false });
 
 		const version = original.version + 1;
@@ -84,31 +85,40 @@
 				<li>{step}</li>
 			{/each}
 		</ol>
+    <div class="absolute bottom-0 left-0 right-0">
+      <div class="prompt-bar mx-auto max-w-md w-fit bg-gray-50 rounded-lg shadow-md my-4">
+        <form class="flex flex-row gap-2 p-2" method="POST" use:enhance={() => {
+          waiting = true;
+          return async ({ result, update }) => {
+            // result: { status: number; type: string; data: SavedRecipe }
+            if (result.type === 'success' && result.data) {
+              // clone the snapshot to avoid "DataCloneError" in `saveModifiedRecipe()`
+              const original = structuredClone($state.snapshot(recipe)) as SavedRecipe;
+
+              recipe = result.data as SavedRecipe;
+              toast.success(`"${recipe.title}" has unsaved changes`, {
+                duration: Number.POSITIVE_INFINITY,
+                action: {
+                  label: 'Save changes',
+                  onClick: () => saveModifiedRecipe(original, structuredClone($state.snapshot(recipe!))),
+                }
+              });
+            } else {
+              console.error(result);
+              toast.error(`The request failed`);
+            }
+            await update()
+            waiting = false;
+          }
+        }}>
+          <input class="border rounded border-gray-400 bg-white w-full" type="text" name="input" bind:value={promptInput} />
+          <input type="hidden" name="recipe" bind:value={recipeJson} disabled={waiting} />
+          <Button type="submit" label="Submit request">Submit</Button>
+        </form>
+      </div>
+    </div>
 	{:else}
 		<h1>Ah, donkeyspittle!</h1>
 		<p>A recipe matching the provided ID could not be found.</p>
 	{/if}
 </article>
-<div class="fixed bottom-0 w-full">
-	<div class="container prompt-bar mx-auto max-w-md w-fit bg-gray-50 rounded-lg shadow-md my-4">
-    <form class="flex flex-row gap-2 p-2" method="POST" use:enhance={() => {
-      waiting = true;
-      return async ({ result, update }) => {
-        // result: { status: number; type: string; data: SavedRecipe }
-        if (result.type === 'success' && result.data) {
-          recipe = result.data as SavedRecipe;
-          toast.success(`"${recipe.title}" updated`);
-        } else {
-          console.error(result);
-          toast.error(`The request failed`);
-        }
-        await update()
-        waiting = false;
-      }
-    }}>
-      <input class="border rounded border-gray-400 bg-white" type="text" name="input" bind:value={promptInput} />
-      <input type="hidden" name="recipe" bind:value={recipeJson} disabled={waiting} />
-      <Button type="submit" label="Submit request">Submit</Button>
-    </form>
-	</div>
-</div>

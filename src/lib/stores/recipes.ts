@@ -6,7 +6,7 @@ import type { SavedRecipe } from '$lib/types';
 export const savedRecipes = readable<SavedRecipe[]>([], (recipes) => {
 	const subscription = liveQuery(async () => {
 		const all = await db.recipes.toArray();
-		return all.filter((r) => !r.archived);
+		return all.filter((r) => !r.archived && r.is_current);
 	}).subscribe(recipes);
 	return () => subscription.unsubscribe();
 });
@@ -19,7 +19,7 @@ export async function getSavedRecipe(id: string) {
 export const archivedRecipes = readable<SavedRecipe[]>([], (recipes) => {
 	const subscription = liveQuery(async () => {
 		const all = await db.recipes.toArray();
-		const archived = all.filter((r) => r.archived);
+		const archived = all.filter((r) => r.archived && r.is_current);
 		if (archived.length > 0) {
 			return archived.sort((a, b) => b.archived! - a.archived!);
 		} else {
@@ -32,7 +32,7 @@ export const archivedRecipes = readable<SavedRecipe[]>([], (recipes) => {
 export const recentlyOpened = readable<SavedRecipe[]>([], (recipes) => {
 	const subscription = liveQuery(async () => {
 		const all = await db.recipes.toArray();
-		return all.filter((r) => !r.archived).sort((a, b) => b.last_opened - a.last_opened).slice(0, 9);
+		return all.filter((r) => !r.archived && r.is_current).sort((a, b) => b.last_opened - a.last_opened).slice(0, 9);
 	}).subscribe(recipes);
 	return () => subscription.unsubscribe();
 })

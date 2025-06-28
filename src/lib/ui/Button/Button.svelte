@@ -69,14 +69,14 @@
 </script>
 
 {#snippet Base()}
-	<span
-			class="pxl-button__content"
-			style:height={`${dims[0]}rem`}
-			style:padding={`0 ${dims[1]}rem`}
-			style:gap={`${dims[2]}rem`}
-		>
-			{@render children()}
-		</span>
+	<div
+		class="pxl-button__content flex flex-row place-items-center"
+		style:height={`${dims[0]}rem`}
+		style:padding={`0 ${dims[1]}rem`}
+		style:gap={`${dims[2]}rem`}
+	>
+		{@render children()}
+	</div>
 {/snippet}
 
 {#snippet Icon()}
@@ -111,7 +111,7 @@
 		{title}
 		type={type || 'button'}
 		aria-label={label}
-		class={['pxl-button', {'justify-center': icon}, props.class]}
+		class={['pxl-button hover:cursor-pointer', {'justify-center': icon}, props.class]}
 		style:min-width={`${BUTTON_MIN_TARGET_HEIGHT_DPI / spacing}rem`}
 		style:min-height={`${BUTTON_MIN_TARGET_HEIGHT_DPI / spacing}rem`}
 		{disabled}
@@ -129,9 +129,5 @@
 	.pxl-button {
 		display: flex;
 		place-items: center;
-	}
-	.pxl-button__content {
-		display: flex;
-		flex-direction: row;
 	}
 </style>

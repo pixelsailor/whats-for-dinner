@@ -16,15 +16,16 @@
 
 	let app = $state({
 		view: 'loading' as ViewState,
-		error: '',
+		error: ''
 	});
-	
-  let recipe = $state<SavedRecipe>();
 
-  let recipeJson = $derived(recipe ? JSON.stringify(recipe) : '');
+	let recipe = $state<SavedRecipe>();
 
-  // Waiting for a response to an OpenAI request
-  let waiting = $state(false);
+	// Responsible for passing the recipe to the FormData
+	let recipeJson = $derived(recipe ? JSON.stringify(recipe) : '');
+
+	// Waiting for a response to an OpenAI request
+	let waiting = $state(false);
 
 	$effect(() => {
 		getSavedRecipe(id)
@@ -36,7 +37,7 @@
 				}
 				recipe = response;
 				app.view = 'idle';
-        db.recipes.update(id, { last_opened: Date.now() });
+				db.recipes.update(id, { last_opened: Date.now() });
 			})
 			.catch((err) => {
 				app.error = err.message;
@@ -84,38 +85,49 @@
 				<li>{step}</li>
 			{/each}
 		</ol>
-    <div class="absolute bottom-0 left-0 right-0">
-      <div class="prompt-bar mx-auto max-w-md w-fit bg-gray-50 rounded-lg shadow-md my-4">
-        <form class="flex flex-row gap-2 p-2" method="POST" use:enhance={() => {
-          waiting = true;
-          return async ({ result, update }) => {
-            // result: { status: number; type: string; data: SavedRecipe }
-            if (result.type === 'success' && result.data) {
-              // clone the snapshot to avoid "DataCloneError" in `saveModifiedRecipe()`
-              const original = structuredClone($state.snapshot(recipe)) as SavedRecipe;
+		<div class="absolute right-0 bottom-0 left-0">
+			<div class="prompt-bar mx-auto my-4 w-lg p-2 rounded-lg bg-gray-50 shadow-md">
+				<form
+					class="flex flex-row gap-2 w-full"
+					method="POST"
+					use:enhance={() => {
+						waiting = true;
+						return async ({ result, update }) => {
+							// result: { status: number; type: string; data: SavedRecipe }
+							if (result.type === 'success' && result.data) {
+								// clone the snapshot to avoid "DataCloneError" in `saveModifiedRecipe()`
+								const original = structuredClone($state.snapshot(recipe)) as SavedRecipe;
 
-              recipe = result.data as SavedRecipe;
-              toast.success(`"${recipe.title}" has unsaved changes`, {
-                duration: Number.POSITIVE_INFINITY,
-                action: {
-                  label: 'Save changes',
-                  onClick: () => saveModifiedRecipe(original, structuredClone($state.snapshot(recipe!))),
-                }
-              });
-            } else {
-              console.error(result);
-              toast.error(`The request failed`);
-            }
-            await update()
-            waiting = false;
-          }
-        }}>
-          <input class="border rounded border-gray-400 bg-white w-full" type="text" name="input" bind:value={promptInput} />
-          <input type="hidden" name="recipe" bind:value={recipeJson} disabled={waiting} />
-          <Button type="submit" label="Submit request">Submit</Button>
-        </form>
-      </div>
-    </div>
+								recipe = result.data as SavedRecipe;
+								toast.success(`"${recipe.title}" has unsaved changes`, {
+									duration: Number.POSITIVE_INFINITY,
+									action: {
+										label: 'Save changes',
+										onClick: () =>
+											saveModifiedRecipe(original, structuredClone($state.snapshot(recipe!)))
+									}
+								});
+							} else {
+								console.error(result);
+								toast.error(`The request failed`);
+							}
+							await update();
+							waiting = false;
+						};
+					}}
+				>
+					<input
+						class="grow rounded border border-gray-400 bg-white p-1"
+						type="text"
+						name="input"
+						bind:value={promptInput}
+						placeholder="Would you like to make any changes?"
+					/>
+					<input type="hidden" name="recipe" bind:value={recipeJson} />
+					<Button type="submit" label="Submit request" disabled={waiting}>Submit</Button>
+				</form>
+			</div>
+		</div>
 	{:else}
 		<h1>Ah, donkeyspittle!</h1>
 		<p>A recipe matching the provided ID could not be found.</p>

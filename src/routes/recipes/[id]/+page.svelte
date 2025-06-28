@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { getContext } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import { v4 as uuid } from 'uuid';
 
@@ -9,6 +10,12 @@
 	import type { SavedRecipe, ViewState } from '$lib/types';
 	import Button from '$lib/ui/Button/Button.svelte';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
+	import { AppBar } from '$lib/ui/AppBar';
+	import BackIcon from '$lib/ui/Icons/BackIcon.svelte';
+	import TrashIcon from '$lib/ui/Icons/TrashIcon.svelte';
+	import PageHeader from '$lib/ui/PageHeader.svelte';
+
+	const vp: any = getContext('viewport');
 
 	const id = $derived(page.params.id);
 
@@ -26,6 +33,11 @@
 
 	// Waiting for a response to an OpenAI request
 	let waiting = $state(false);
+
+	let left = $derived.by(() => {
+		if (vp.device === 'mobile') return '0';
+		return vp.nav === 'expanded' ? 'calc(18rem + 1px)' : 'calc(3.5rem + 1px)';
+	});
 
 	$effect(() => {
 		getSavedRecipe(id)
@@ -65,14 +77,26 @@
 	}
 </script>
 
-<header></header>
-<article class="px-4 pb-32">
+<PageHeader>
+	<AppBar.Root>
+		<Button title="Back" href="/recipes" size="xs" icon>
+			<BackIcon />
+		</Button>
+		<AppBar.Text primary={recipe?.title || ''} />
+		<AppBar.End>
+			<Button title="Trash bin" href="/recipes/trash" size="xs" icon>
+				<TrashIcon />
+			</Button>
+		</AppBar.End>
+	</AppBar.Root>
+</PageHeader>
+<article class="mx-auto max-w-5xl px-4 py-24">
 	{#if app.view === 'loading'}
 		<div class="absolute inset-0 grid place-content-center">
 			<ProgressSpinner size="lg" />
 		</div>
 	{:else if app.view === 'idle' && recipe}
-		<h1 class="my-4 text-xl font-bold">{recipe.title}</h1>
+		<h1 class="text-xl font-bold">{recipe.title}</h1>
 		<p class="my-4 italic">{recipe.description}</p>
 		<p><span class="font-bold">Time:</span> {recipe.estimated_time}</p>
 		<ul class="my-4 ml-6 list-disc">
@@ -85,8 +109,8 @@
 				<li>{step}</li>
 			{/each}
 		</ol>
-		<div class="absolute right-0 bottom-0 left-0">
-			<div class="prompt-bar mx-auto my-4 w-lg p-2 rounded-lg bg-gray-50 dark:bg-gray-900 shadow-md">
+		<div class="fixed right-0 bottom-0" style:left>
+			<div class="prompt-bar mx-auto my-4 max-w-xl p-2 rounded-lg bg-gray-50 dark:bg-gray-900 shadow-md">
 				<form
 					class="flex flex-row gap-2 w-full"
 					method="POST"

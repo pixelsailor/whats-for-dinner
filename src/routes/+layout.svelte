@@ -12,13 +12,17 @@
 	import CollapseSidenavIcon from '$lib/ui/Icons/CollapseSidenavIcon.svelte';
 	import '../app.css';
 
-	type Layout = 'mobile--collapsed' | 'mobile--expanded' | 'desktop--collapsed' | 'desktop--expanded';
+	type Layout =
+		| 'mobile--collapsed'
+		| 'mobile--expanded'
+		| 'desktop--collapsed'
+		| 'desktop--expanded';
 
 	let { children } = $props();
 
 	class Viewport {
 		#width = $state(0);
-		#device = $state<'desktop' | 'mobile'>('desktop')
+		#device = $state<'desktop' | 'mobile'>('desktop');
 		#nav = $state<'collapsed' | 'expanded'>('expanded');
 		#layout = $state<Layout>('desktop--expanded');
 
@@ -38,7 +42,7 @@
 			this.nav = val === 'mobile' ? 'collapsed' : 'expanded';
 			// this.#setLayout();
 		}
-		
+
 		get nav() {
 			return this.#nav;
 		}
@@ -86,7 +90,7 @@
 			</ListItem.Link>
 		</ListItem.Root>
 	</List>
-	<div class="px-4 mt-8">
+	<div class="mt-8 px-4">
 		<span class="text-sm font-bold text-gray-500">Recent recipes</span>
 	</div>
 	{#if $recentlyOpened.length === 0}
@@ -104,13 +108,15 @@
 	{/if}
 {/snippet}
 
-<svelte:window bind:innerWidth={vp.width}/>
+<svelte:window bind:innerWidth={vp.width} />
 
-<div class="flex flex-nowrap h-full w-full flex-row overflow-x-hidden bg-gray-50 dark:bg-black dark:text-gray-100">
+<div
+	class="flex h-full w-full flex-row flex-nowrap overflow-x-hidden"
+>
 	{#if vp.layout === 'mobile--expanded'}
 		<!-- Layout when mobile sidenav is expanded -->
 		<div class="sidebar fixed inset-0 z-10 backdrop-blur-md">
-			<div class="w-2xs h-full bg-white shadow-md">
+			<div class="h-full w-2xs bg-white shadow-md">
 				{@render sidenav()}
 			</div>
 		</div>
@@ -118,7 +124,9 @@
 		<!-- Layout when mobile sidenav is collapsed/hidden -->
 	{:else if vp.layout === 'desktop--collapsed'}
 		<!-- Layout when desktop sidenav is minimized -->
-		<div class="h-full w-min min-h-screen bg-gray-100 border-r border-gray-200 flex-none">
+		<div
+			class="fixed h-full min-h-screen w-min flex-none border-r border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-900"
+		>
 			<AppBar.Root>
 				<AppBar.Start>
 					<Button size="xs" onClick={toggleSidenav} label="Toggle side-nav" icon>
@@ -136,12 +144,16 @@
 		</div>
 	{:else}
 		<!-- Standard desktop Layout with sidenav expanded -->
-		<div class="h-full w-2xs min-h-screen bg-gray-100 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex-none">
+		<div
+			class="fixed h-full min-h-screen w-2xs flex-none border-r border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-900"
+		>
 			{@render sidenav()}
 		</div>
 	{/if}
-	
-	<div class="main-content relative w-full">
+
+	<div class={['main-content h-full min-h-screen relative w-full', {'ml-72': vp.layout === 'desktop--expanded'}]}
+		style:margin-left={vp.layout === 'desktop--collapsed' ? 'calc(3.5rem + 1px)' : ''}
+	>
 		{@render children()}
 	</div>
 </div>

@@ -9,16 +9,18 @@
 		cue?: 'elevated' | 'filled' | 'tonal' | 'outlined' | 'text';
 		disabled?: boolean;
 		icon?: boolean;
+		onClick?: MouseEventHandler<HTMLButtonElement>;
 		size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 		shape?: 'round' | 'square';
 		title?: string;
-		type?: 'default' | 'toggle';
+		toggle?: boolean;
+		type?: 'button' | 'submit' | 'reset';
 		sx?: string;
 	};
 
 	type ButtonProps =
-		| (BaseProps & { label: string; onClick: MouseEventHandler<HTMLButtonElement>; href?: never })
-		| (BaseProps & { href: string; label?: string; onClick?: never });
+		| (BaseProps & { label: string; href?: never })
+		| (BaseProps & { href: string; label?: string; onClick?: never; type?: never; });
 
 	let {
 		children,
@@ -31,7 +33,7 @@
 		size = 'sm',
 		shape = 'square',
 		title,
-		type = 'default',
+		type = 'button',
 		sx,
 		...props
 	}: ButtonProps = $props();
@@ -107,6 +109,7 @@
 		onclick={onClick}
 		tabindex="0"
 		{title}
+		type={type || 'button'}
 		aria-label={label}
 		class={['pxl-button', {'justify-center': icon}, props.class]}
 		style:min-width={`${BUTTON_MIN_TARGET_HEIGHT_DPI / spacing}rem`}

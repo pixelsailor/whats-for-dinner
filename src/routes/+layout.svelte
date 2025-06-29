@@ -145,7 +145,7 @@
 	{:else}
 		<!-- Standard desktop Layout with sidenav expanded -->
 		<div
-			class="fixed h-full min-h-screen w-2xs flex-none border-r border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-900"
+			class="fixed h-full min-h-screen w-2xs flex-none border-r border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-900 shadow-xs"
 		>
 			{@render sidenav()}
 		</div>

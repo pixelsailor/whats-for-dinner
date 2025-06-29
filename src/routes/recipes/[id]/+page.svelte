@@ -14,6 +14,7 @@
 	import BackIcon from '$lib/ui/Icons/BackIcon.svelte';
 	import TrashIcon from '$lib/ui/Icons/TrashIcon.svelte';
 	import PageHeader from '$lib/ui/PageHeader.svelte';
+	import Prompt from '$lib/ui/Prompt.svelte';
 
 	const vp: any = getContext('viewport');
 
@@ -116,8 +117,8 @@
 				<li>{step}</li>
 			{/each}
 		</ol>
-		<div class="fixed right-0 bottom-0" style:left>
-			<div class="prompt-bar mx-auto my-4 max-w-xl p-2 rounded-lg bg-gray-50 dark:bg-gray-900 shadow-md">
+		<div class="fixed right-0 bottom-0 px-4" style:left>
+			<Prompt>
 				<form
 					class="flex flex-row gap-2 w-full"
 					method="POST"
@@ -148,16 +149,16 @@
 					}}
 				>
 					<input
-						class="grow rounded border border-gray-400 bg-white dark:bg-gray-800 dark:borer-gray-900 p-1"
+						class="grow p-1"
 						type="text"
 						name="input"
 						bind:value={promptInput}
 						placeholder="Would you like to make any changes?"
 					/>
 					<input type="hidden" name="recipe" bind:value={recipeJson} />
-					<Button type="submit" label="Submit request" disabled={waiting}>Submit</Button>
+					<Button type="submit" label="Submit request" disabled={waiting || !promptInput?.trim()}>{waiting ? 'Thinking...' : 'Submit'}</Button>
 				</form>
-			</div>
+			</Prompt>
 		</div>
 	{:else}
 		<h1>Ah, donkeyspittle!</h1>

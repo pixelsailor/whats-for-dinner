@@ -11,6 +11,7 @@
 	import BackIcon from '$lib/ui/Icons/BackIcon.svelte';
 	import MenuIcon from '$lib/ui/Icons/MenuIcon.svelte';
 	import TrashIcon from '$lib/ui/Icons/TrashIcon.svelte';
+	import Prompt from '$lib/ui/Prompt.svelte';
 
   const vp = getContext<any>('viewport');
 
@@ -40,6 +41,8 @@
   let recipebookTitles = $state<string[]>([]);
 
   let isSavedRecipe = $derived(app.selected ? recipebookTitles.includes(app.selected.title) : false);
+
+  let promptPlaceholder = $state('');
 
 	function selectRecipe(recipe: RecipeSummary) {
 		app.selected = recipe;
@@ -133,10 +136,24 @@
     vp.nav = vp.nav === 'expanded' ? 'collapsed' : 'expanded';
   }
 
+  function getRandomPromptMessage() {
+    const messages = [
+      `How can I help?`,
+      `What'll it be tonight?`,
+      `What are you in the mood for?`,
+      `If you could dine anywhere in the world right now, where would that be?`,
+      `Ready for something new?`,
+    ];
+    const max = messages.length;
+    return messages[Math.floor(Math.random() * max)];
+  }
+
   // Create a list of titles to reference to avoid adding duplicates
   onMount(async () => {
     const all = await db.recipes.toArray();
     recipebookTitles = all.map((recipe) => recipe.title);
+
+    promptPlaceholder = getRandomPromptMessage();
   });
 </script>
 
@@ -151,42 +168,46 @@
     </Button>
   </AppBar.End>
 </AppBar.Root>
-<main class="px-4 lg:px-8">
+<main class="mx-auto max-w-5xl px-4 py-24">
 {#if app.view === 'idle'}
-	<h1 class="my-4 text-2xl font-bold">What are you hungry for?</h1>
-
-	<form
-		method="POST"
-		use:enhance={({ formElement, formData, action, cancel, submitter }) => {
-			loading = true;
-			return async ({ result, update }) => {
-        // console.log('form result', result);
-        loading = false;
-        app.lastInput = app.input;
-        app.view = 'suggestions';
-				await update();
-			};
-		}}
-	>
-		<input type="text" name="input" bind:value={app.input} class="w-full rounded border p-2" />
-		<button
-			class="rounded bg-green-600 px-4 py-2 text-white"
-			type="submit"
-			disabled={loading || !app.input.trim()}
-		>
-			{loading ? 'Thinking...' : 'Get ideas'}
-		</button>
-	</form>
-	<!-- <form>
-		<input type="text" name="request" bind:value={app.input} class="w-full rounded border p-2" />
-		<button
-			class="rounded bg-green-600 px-4 py-2 text-white"
-			onclick={() => getSuggestions()}
-			disabled={!app.input.trim()}
-		>
-			Get ideas
-		</button>
-	</form> -->
+	<div class="mx-auto max-w-3xl">
+    <h1 class="my-4 text-2xl font-bold text-center">What are you hungry for?</h1>
+      <Prompt>
+        <form
+          class="flex flex-row gap-2 w-full"
+          method="POST"
+          use:enhance={({ formElement, formData, action, cancel, submitter }) => {
+            loading = true;
+            return async ({ result, update }) => {
+              // console.log('form result', result);
+              loading = false;
+              app.lastInput = app.input;
+              app.view = 'suggestions';
+              await update();
+            };
+          }}
+        >
+          <input
+            class="grow p-1"
+            type="text"
+            name="input"
+            bind:value={app.input}
+            placeholder={promptPlaceholder}
+          />
+          <Button type="submit" label="Submit request" disabled={loading || !app.input.trim()}>{loading ? 'Thinking...' : 'Get ideas'}</Button>
+        </form>
+      </Prompt>
+    <!-- <form>
+      <input type="text" name="request" bind:value={app.input} class="w-full rounded border p-2" />
+      <button
+        class="rounded bg-green-600 px-4 py-2 text-white"
+        onclick={() => getSuggestions()}
+        disabled={!app.input.trim()}
+      >
+        Get ideas
+      </button>
+    </form> -->
+  </div>
 {:else if app.view === 'loading'}
   <p>Loading...</p>
 {:else if app.view === 'suggestions' && form}

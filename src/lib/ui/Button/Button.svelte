@@ -106,16 +106,16 @@
 	</a>
 {:else}
 	<button
+		{...props}
 		onclick={onClick}
 		tabindex="0"
 		{title}
 		type={type || 'button'}
 		aria-label={label}
-		class={['pxl-button hover:cursor-pointer', {'justify-center': icon}, props.class]}
+		class={['pxl-button hover:cursor-pointer hover:bg-gray-200 hover:dark:bg-gray-700', {'justify-center': icon}, props.class]}
 		style:min-width={`${BUTTON_MIN_TARGET_HEIGHT_DPI / spacing}rem`}
 		style:min-height={`${BUTTON_MIN_TARGET_HEIGHT_DPI / spacing}rem`}
 		{disabled}
-		{...props}
 	>
 		{#if icon}
 			{@render Icon()}
@@ -129,5 +129,9 @@
 	.pxl-button {
 		display: flex;
 		place-items: center;
+		border-radius: 0.25rem;
+	}
+	.pxl-button:hover {
+		opacity: 0.8;
 	}
 </style>

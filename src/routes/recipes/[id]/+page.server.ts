@@ -1,6 +1,6 @@
 import { fail, type Actions } from '@sveltejs/kit';
-import { requestRecipeModifications } from '$lib/server/openai';
-import { sanitizePromptInput } from '$lib/utils';
+import { askCookingQuestion, requestRecipeModifications } from '$lib/server/openai';
+import { isModificationRequest, sanitizePromptInput } from '$lib/utils';
 
 export const actions: Actions = {
   default: async ({ request }) => {
@@ -15,10 +15,13 @@ export const actions: Actions = {
       return fail(400, { error: `The recipe was not provided.`});
     }
 
+    const queryFn = isModificationRequest(message) ? requestRecipeModifications : askCookingQuestion;
+
     try {
-      const response = await requestRecipeModifications(recipe, message.trim());
+      const response = await queryFn(message.trim(), recipe);
       if (response) {
-        return JSON.parse(response);
+        const [ type, message ] = response;
+        return { type, message };
       } else {
         return fail(502, { error: 'Invalid response from AI', message });
       }

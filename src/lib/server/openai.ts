@@ -1,4 +1,5 @@
 import { VITE_OPENAI_API_KEY } from '$env/static/private';
+import type { FullRecipe } from '$lib/types';
 import { OpenAI } from 'openai/client.js';
 import type { ChatCompletionMessageParam } from 'openai/resources';
 
@@ -75,7 +76,7 @@ export async function getFullRecipe(title: string): Promise<string|undefined> {
   }
 }
 
-export async function requestRecipeModifications(recipe: string, input: string) {
+export async function requestRecipeModifications(input: string, recipe: string): Promise<['recipe', string]> {
   const messages: ChatCompletionMessageParam[] = [
     {
       role: 'system',
@@ -115,9 +116,44 @@ Here is the user's modification request:
       temperature: 0.7
     });
 
-    return response.choices[0].message.content ?? undefined;
+    return ['recipe', response.choices[0].message.content ?? `I wasn't able to complete that request.`];
   } catch (err) {
     console.error('OpenAI API error:', err);
     throw err;
   }
+}
+
+export async function askCookingQuestion(question: string, recipeJson: string): Promise<['conversation', string]> {
+  const recipe = JSON.parse(recipeJson) as FullRecipe;
+  const prompt = `
+You are an helpful, experienced culinary assistant helping a user working on a recipe.
+When they ask a question, consider the recipe they provide and answer with helpful, conversational cooking advice.
+Do not reformat or alter the recipe in any way or return code blocks or JSON.
+Keep responses concise, friendly, and informative.
+`
+  const input = `
+This is the recipe I'm working with:
+## ${recipe.title}
+
+**Description:** ${recipe.description}
+
+**Ingredients:**
+- ${recipe.ingredients.join('\n- ')}
+
+**Instructions:**
+1. ${recipe.instructions.join('\n1. ')}
+
+Now, here is my question:
+${question}
+`
+  const response = await openai.chat.completions.create({
+    model,
+    messages: [
+      { role: 'system', content: prompt },
+      { role: 'user', content: input }
+    ],
+    temperature: 0.7
+  });
+
+  return ['conversation', response.choices[0].message.content ?? `Sorry, I can't answer that right now.`];
 }

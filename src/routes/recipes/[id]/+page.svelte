@@ -96,6 +96,13 @@
 			<ProgressSpinner size="lg" />
 		</div>
 	{:else if app.view === 'idle' && recipe}
+		<ul class="inline-flex gap-1">
+			{#each recipe.tags as tag}
+				<li>
+					<span class="tag text-sm">{tag}</span>
+				</li>
+			{/each}
+		</ul>
 		<h1 class="text-xl font-bold">{recipe.title}</h1>
 		<p class="my-4 italic">{recipe.description}</p>
 		<p><span class="font-bold">Time:</span> {recipe.estimated_time}</p>

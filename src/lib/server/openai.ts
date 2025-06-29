@@ -12,7 +12,7 @@ export async function getRecipeSuggestions(input: string): Promise<string|undefi
 	const messages: ChatCompletionMessageParam[] = [
 		{
 			role: 'system',
-			content: `You are a meal planner. Response with a JSON array of 3-5 meal ideas based on the users's input. Each item should include:
+			content: `You are a meal planner. Response with a JSON array of 5-10 meal ideas based on the users's input. Each item should include:
       - title (string)
       - short_description (string)
       - estimated_time (e.g., "30 min")

@@ -63,13 +63,24 @@ Respond ONLY with valid JSON in the following format:
   "notes": "markdown string (optional, DO NOT wrap with code blocks)"
 }
 
-Guidelines:
-- Respond ONLY with valid JSON — do not include explanations, formatting instructions, or code fences.
-- Use clean, readable markdown for the 'ingredients', 'instructions', and 'notes' fields.
-- DO NOT wrap any property values in triple backticks or HTML tags.
-- DO NOT use response object property names as markdown headers e.g., "# Ingredients."
+Formatting Guidelines:
+- Use clean, readable Markdown **within** the 'ingredients', 'instructions', and 'notes' strings.
+- For ingredients:
+  - Use a standard markdown list: each line begins with a dash (-), followed by a space.
+  - Do NOT use bullet characters (•) or other list symbols.
+  - Optional: You may use subheadings like "### For the Sauce" to divide ingredients into groups.
+- For instructions:
+  - Use a numbered list in Markdown format (e.g., "1. Step").
+  - Optional: You may use subheadings like "### For the Sauce" to divide steps into sections.
+  - Do NOT use headers like "# Instructions" — assume field labels are provided by the UI.
+- For notes:
+  - Use regular paragraph formatting or a markdown list.
+- DO NOT wrap any markdown with triple backticks or code blocks.
+- DO NOT return any extra text — respond with pure JSON only.
 - If a field is unknown or not needed, omit it.
 - DO NOT include any emojis or non-ASCII characters.
+
+Keep your formatting consistent and minimal.
 `
     },
     {

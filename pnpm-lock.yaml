@@ -17,6 +17,9 @@ importers:
       bits-ui:
         specifier: ^2.8.8
         version: 2.8.8(@internationalized/date@3.8.2)(svelte@5.34.7)
+      carbon-icons-svelte:
+        specifier: ^13.4.0
+        version: 13.4.0
       dexie:
         specifier: ^4.0.11
         version: 4.0.11
@@ -855,6 +858,9 @@ packages:
   callsites@3.1.0:
     resolution: {integrity: sha512-P8BjAsXvZS+VIDUI11hHCQEv74YT67YUi5JJFNWIqL235sBmjX4+qx9Muvls5ivyNENctx46xQLQ3aTuE7ssaQ==}
     engines: {node: '>=6'}
+
+  carbon-icons-svelte@13.4.0:
+    resolution: {integrity: sha512-7HvWR9w3B1DelPxazVAz5uOH5OPK/ZGGmL69xVINRicXxpNHL7X6ucdeXjA4YT7viQbWbqiqEuG84GyVqTfa4A==}
 
   chai@5.2.0:
     resolution: {integrity: sha512-mCuXncKXk5iCLhfhwTc0izo0gtEmpz5CtG2y8GiOINBlMVS6v8TMRc5TaLWKS6692m9+dVVfzgeVxR5UxWHTYw==}
@@ -2555,6 +2561,8 @@ snapshots:
   cac@6.7.14: {}
 
   callsites@3.1.0: {}
+
+  carbon-icons-svelte@13.4.0: {}
 
   chai@5.2.0:
     dependencies:

@@ -51,21 +51,25 @@ Respond ONLY with valid JSON in the following format:
 {
   "title": "string",
   "description": "string",
-  "ingredients": "markdown",
-  "instructions": "markdown",
+  "ingredients": "markdown string (DO NOT wrap with triple backticks or code blocks)",
+  "instructions": "markdown string (DO NOT wrap with triple backticks or code blocks)",
   "tags": ["string", ...],
   "yield": "e.g. 'Serves 4'",
   "time": {
-      "prep": "string (to include time marinating or chilling)",
+      "prep": "string (can include time marinating or chilling)",
       "cook": "string",
       "total": "string"
   },
-  "notes": "markdown string (optional)"
+  "notes": "markdown string (optional, DO NOT wrap with code blocks)"
 }
-  
-Do not return anything except valid JSON.
-If a field is unknown or not needed, omit it.
-Use clean, readable markdown where applicable. Do not use emojis.
+
+Guidelines:
+- Respond ONLY with valid JSON — do not include explanations, formatting instructions, or code fences.
+- Use clean, readable markdown for the 'ingredients', 'instructions', and 'notes' fields.
+- DO NOT wrap any property values in triple backticks or HTML tags.
+- DO NOT use response object property names as markdown headers e.g., "# Ingredients."
+- If a field is unknown or not needed, omit it.
+- DO NOT include any emojis or non-ASCII characters.
 `
     },
     {

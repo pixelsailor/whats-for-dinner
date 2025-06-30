@@ -10,6 +10,7 @@
 	import Button from '$lib/ui/Button/Button.svelte';
 	import BackIcon from '$lib/ui/Icons/BackIcon.svelte';
 	import Prompt from '$lib/ui/Prompt.svelte';
+	import SvelteMarkdown from '@humanspeak/svelte-markdown';
 
 	const vp = getContext<any>('viewport');
 
@@ -30,6 +31,13 @@
 
 	let loading = $state(false);
 	let fullRecipe = $derived(app.selected ? app.fullRecipes.get(app.selected.title) : undefined);
+
+  let recipeTime = $derived.by(() => {
+		if (fullRecipe?.time) {
+			return new Map(Object.entries(fullRecipe.time));
+		}
+		return undefined;
+	});
 
 	let alert = $state({
 		type: '' as 'info' | 'warn' | 'danger' | 'success' | 'error',
@@ -147,7 +155,7 @@
 <main class="mx-auto max-w-5xl px-4 py-24">
 	{#if app.view === 'idle'}
 		<div class="mx-auto max-w-3xl">
-			<h1 class="my-4 text-center text-2xl font-bold">What are you hungry for?</h1>
+			<h1 class="my-4 text-center fluid-heading-06">What's for Dinner?</h1>
 			<Prompt>
 				<form
 					class="flex w-full flex-row gap-2"
@@ -199,17 +207,27 @@
 		<h1 class="my-2 text-lg font-bold">{app.selected?.title}</h1>
 		{#if fullRecipe}
 			<p class="my-4 italic">{fullRecipe.description}</p>
-			<p><span class="font-bold">Time:</span> {fullRecipe.estimated_time}</p>
-			<ul class="my-4">
-				{#each fullRecipe.ingredients as item}
-					<li>{item}</li>
-				{/each}
-			</ul>
-			<ol class="my-4">
-				{#each fullRecipe.instructions as step}
-					<li>{step}</li>
-				{/each}
-			</ol>
+      {#if recipeTime}
+        <ul class="my-2">
+          {#each recipeTime as time}
+            <li class="my-1"><span class="font-bold">{time[0]} time:</span> <span>{time[1]}</span></li>
+          {/each}
+        </ul>
+      {:else}
+        <p><span class="font-bold">Time:</span> {fullRecipe.estimated_time}</p>
+      {/if}
+      <div class="ingredients my-4">
+        <h3 class="font-bold my-2">Ingredients:</h3>
+        <div class="ingredients__content markdown">
+          <SvelteMarkdown source={fullRecipe.ingredients} />
+        </div>
+      </div>
+      <div class="instructions my-4">
+        <h3 class="font-bold my-2">Preparation:</h3>
+        <div class="instructions__content markdown">
+          <SvelteMarkdown source={fullRecipe.instructions} />
+        </div>
+      </div>
 			<div class="my-8">
 				<button
 					class={[

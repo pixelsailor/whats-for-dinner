@@ -45,16 +45,28 @@ export async function getFullRecipe(title: string): Promise<string|undefined> {
   const messages: ChatCompletionMessageParam[] = [
     {
       role: 'system',
-      content: `You are a helpful meal assistant. Respond ONLY with valid JSON following this format:
+      content: `You are an expert culinary assistant.
+Respond ONLY with valid JSON in the following format:
       
 {
   "title": "string",
   "description": "string",
-  "ingredients": ["string", ...],
-  "instructions": ["string", ...],
-  "estimated_time": "string",
-  "tags": ["string", ...]
-}`
+  "ingredients": "markdown",
+  "instructions": "markdown",
+  "tags": ["string", ...],
+  "yield": "e.g. 'Serves 4'",
+  "time": {
+      "prep": "string (to include time marinating or chilling)",
+      "cook": "string",
+      "total": "string"
+  },
+  "notes": "markdown string (optional)"
+}
+  
+Do not return anything except valid JSON.
+If a field is unknown or not needed, omit it.
+Use clean, readable markdown where applicable. Do not use emojis.
+`
     },
     {
       role: 'user',
@@ -86,15 +98,21 @@ You must respond ONLY with a full updated version of the recipe in JSON format t
 {
   "title": "string",
   "description": "string",
-  "ingredients": ["list of strings"],
-  "instructions": ["list of strings"],
-  "estimated_time": "string",
-  "tags": ["optional string tags"],
-  "notes": ["optional string notes"]
+  "ingredients": "markdown",
+  "instructions": "markdown",
+  "tags": ["string", ...],
+  "yield": "e.g. 'Serves 4'",
+  "time": {
+      "prep": "string (to include time marinating or chilling)",
+      "cook": "string",
+      "total": "string"
+  },
+  "notes": "markdown string (optional)"
 }
 
 Only return valid JSON — do not include any commentary, code blocks, or explanations.
 If a field was not changed, preserve the original values.
+Use clean, readable markdown where applicable. Do not use emojis.
 Ensure the JSON is valid and parseable.
 `
     },
@@ -138,10 +156,10 @@ This is the recipe I'm working with:
 **Description:** ${recipe.description}
 
 **Ingredients:**
-- ${recipe.ingredients.join('\n- ')}
+${recipe.ingredients}
 
 **Instructions:**
-1. ${recipe.instructions.join('\n1. ')}
+${recipe.instructions}
 
 Now, here is my question:
 ${question}

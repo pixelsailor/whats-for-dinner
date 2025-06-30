@@ -42,6 +42,13 @@
 	// Responsible for passing the recipe to the FormData
 	let recipeJson = $derived(recipe ? JSON.stringify(recipe) : '');
 
+	let recipeTime = $derived.by(() => {
+		if (recipe?.time) {
+			return new Map(Object.entries(recipe.time));
+		}
+		return undefined;
+	});
+
 	// Waiting for a response to an OpenAI request
 	let waiting = $state(false);
 
@@ -150,35 +157,44 @@
 			<ProgressSpinner size="lg" />
 		</div>
 	{:else if app.view === 'idle' && recipe}
-		<ul class="inline-flex gap-1">
+		<ul class="inline-flex gap-2 mb-4">
 			{#each recipe.tags as tag}
 				<li>
-					<span class="tag text-sm">{tag}</span>
+					<span class="tag label px-1 border rounded bg-gray-200 dark:bg-gray-600">{tag}</span>
 				</li>
 			{/each}
 		</ul>
-		<h1 class="text-xl font-bold">{recipe.title}</h1>
+		<h1 class="fluid-heading-05">{recipe.title}</h1>
 		<p class="my-4 italic">{recipe.description}</p>
-		<p><span class="font-bold">Time:</span> {recipe.estimated_time}</p>
-		<h3 class="font-bold my-2">Ingredients:</h3>
-		<ul class="my-4 ml-6 list-disc">
-			{#each recipe.ingredients as item}
-				<li>{item}</li>
-			{/each}
-		</ul>
-		<h3 class="font-bold my-2">Preparation:</h3>
-		<ol class="my-4 ml-6 list-decimal">
-			{#each recipe.instructions as step}
-				<li>{step}</li>
-			{/each}
-		</ol>
-		{#if recipe.notes?.length}
-			<h3 class="font-bold my-2">Notes:</h3>
-			<ul>
-				{#each recipe.notes as note}
-					<li>{note}</li>
+		<p class="my-4">{recipe.yield}</p>
+		{#if recipeTime}
+			<ul class="my-2">
+				{#each recipeTime as time}
+					<li class="my-1"><span class="heading">{time[0]} time:</span> <span>{time[1]}</span></li>
 				{/each}
 			</ul>
+		{:else}
+			<p><span class="heading">Time:</span> {recipe.estimated_time}</p>
+		{/if}
+		<div class="ingredients my-8">
+			<h2 class="fluid-heading-03 my-2">Ingredients:</h2>
+			<div class="ingredients__content markdown">
+				<SvelteMarkdown source={recipe.ingredients} />
+			</div>
+		</div>
+		<div class="instructions my-8">
+			<h2 class="fluid-heading-03 my-2">Preparation:</h2>
+			<div class="instructions__content markdown">
+				<SvelteMarkdown source={recipe.instructions} />
+			</div>
+		</div>
+		{#if recipe.notes?.length}
+			<div class="notes my-8">
+				<h2 class="fluid-heading-03 my-2">Notes:</h2>
+				<div class="notes__content markdown">
+					<SvelteMarkdown source={recipe.notes} />
+				</div>
+			</div>
 		{/if}
 		<div class="fixed right-0 bottom-0 px-4" style:left bind:this={promptRef}>
 			<Prompt>

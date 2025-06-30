@@ -18,10 +18,18 @@ export type RecipeSummary = {
 export type FullRecipe = {
 	title: string;
 	description: string;
-	ingredients: string[];
-	instructions: string[];
-  estimated_time: string;
+	ingredients: string; // markdown
+	instructions: string; // markdown
+	estimated_time?: string; // deprecated
+  time: {
+		prep: string;
+		cook: string;
+		total: string;
+		chill?: string;
+	}
   tags: string[];
+	yield: string;
+	notes?: string; // markdown
 };
 
 export type SavedRecipe = FullRecipe & {
@@ -33,7 +41,6 @@ export type SavedRecipe = FullRecipe & {
 	version: number;
 	parent_id?: string;
 	is_current: boolean;
-	notes?: string[]
 }
 
 export type PantryItem = {

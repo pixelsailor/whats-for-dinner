@@ -9,6 +9,7 @@
 		cue?: 'elevated' | 'filled' | 'tonal' | 'outlined' | 'text';
 		disabled?: boolean;
 		icon?: boolean;
+		primary?: boolean;
 		onClick?: MouseEventHandler<HTMLButtonElement>;
 		size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 		shape?: 'round' | 'square';
@@ -20,7 +21,7 @@
 
 	type ButtonProps =
 		| (BaseProps & { label: string; href?: never })
-		| (BaseProps & { href: string; label?: string; onClick?: never; type?: never; });
+		| (BaseProps & { href: string; label?: string; onClick?: never; type?: never });
 
 	let {
 		children,
@@ -28,6 +29,7 @@
 		disabled,
 		href,
 		icon,
+		primary = false,
 		label,
 		onClick,
 		size = 'sm',
@@ -57,20 +59,40 @@
 	});
 
 	let iconSize = $derived.by(() => {
-    const sizes = {
-      xs: 16,
-      sm: 20,
-      md: 24,
-      lg: 32,
-      xl: 40
-    };
-    return `${sizes[size]}px`;
+		const sizes = {
+			xs: 16,
+			sm: 20,
+			md: 24,
+			lg: 32,
+			xl: 40
+		};
+		return `${sizes[size]}px`;
+	});
+
+	let cueClasses = $derived.by(() => {
+		if (icon) return;
+
+		let rules = {
+			elevated: '',
+			filled: primary ? 'bg-indigo-300' : 'group-hover:bg-gray-200 group-hover:dark:bg-gray-700',
+			tonal: '',
+			outlined: primary
+				? 'border border-indigo-700'
+				: 'border border-gray-500 group-hover:bg-gray-300',
+			text: primary
+				? 'text-indigo-700'
+				: 'text-inherit group-hover:bg-gray-200 group-hover:dark:bg-gray-700'
+		};
+		return !cue ? rules['text'] : rules[cue];
 	});
 </script>
 
 {#snippet Base()}
 	<div
-		class="pxl-button__content flex flex-row place-items-center body-compact"
+		class={[
+			`pxl-button__content body-compact flex flex-row place-items-center rounded`,
+			cueClasses
+		]}
 		style:height={`${dims[0]}rem`}
 		style:padding={`0 ${dims[1]}rem`}
 		style:gap={`${dims[2]}rem`}
@@ -80,23 +102,24 @@
 {/snippet}
 
 {#snippet Icon()}
-	<span
-			class="pxl-button__icon flex"
-			style:width={iconSize}
-			style:height={iconSize}
-		>
-			{@render children()}
-		</span>
+	<span class="pxl-button__icon flex" style:width={iconSize} style:height={iconSize}>
+		{@render children()}
+	</span>
 {/snippet}
 
 {#if listElement === 'a'}
 	<a
+		{...props}
 		{href}
 		tabindex="0"
-		class={['pxl-button', {'justify-center items-center': icon}, props.class]}
+		class={[
+			'pxl-button',
+			{ 'items-center justify-center': icon },
+			{ 'justify-center rounded hover:bg-gray-200 hover:dark:bg-gray-700': icon },
+			props.class
+		]}
 		style:min-width={`${BUTTON_MIN_TARGET_HEIGHT_DPI / spacing}rem`}
 		style:min-height={`${BUTTON_MIN_TARGET_HEIGHT_DPI / spacing}rem`}
-		{...props}
 	>
 		{#if icon}
 			{@render Icon()}
@@ -112,7 +135,11 @@
 		{title}
 		type={type || 'button'}
 		aria-label={label}
-		class={['pxl-button hover:cursor-pointer hover:bg-gray-200 hover:dark:bg-gray-700', {'justify-center': icon}, props.class]}
+		class={[
+			'pxl-button group hover:cursor-pointer',
+			{ 'justify-center rounded hover:bg-gray-200 hover:dark:bg-gray-700': icon },
+			props.class
+		]}
 		style:min-width={`${BUTTON_MIN_TARGET_HEIGHT_DPI / spacing}rem`}
 		style:min-height={`${BUTTON_MIN_TARGET_HEIGHT_DPI / spacing}rem`}
 		{disabled}
@@ -129,7 +156,6 @@
 	.pxl-button {
 		display: flex;
 		place-items: center;
-		border-radius: 0.25rem;
 	}
 	.pxl-button:hover {
 		opacity: 0.8;

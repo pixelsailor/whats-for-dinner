@@ -10,8 +10,9 @@
 	import Button from '$lib/ui/Button/Button.svelte';
 	import BackIcon from '$lib/ui/Icons/BackIcon.svelte';
 	import Prompt from '$lib/ui/Prompt.svelte';
-	import SvelteMarkdown from '@humanspeak/svelte-markdown';
 	import Recipe from '$lib/ui/Recipe.svelte';
+	import PageHeader from '$lib/ui/PageHeader.svelte';
+	import BookmarkIcon from '$lib/ui/Icons/BookmarkIcon.svelte';
 
 	const vp = getContext<any>('viewport');
 
@@ -142,17 +143,26 @@
 	});
 </script>
 
-<AppBar.Root>
-	{#if app.view === 'suggestions'}
-		<Button href="/" size="xs" icon>
-			<BackIcon />
-		</Button>
-	{:else if app.view === 'detail'}
-		<Button onClick={backToSuggestions} label="Back to suggestions" size="xs" icon>
-			<BackIcon />
-		</Button>
-	{/if}
-</AppBar.Root>
+<PageHeader>
+	<AppBar.Root>
+		{#if app.view === 'suggestions'}
+			<Button href="/" size="xs" icon>
+				<BackIcon />
+			</Button>
+			<AppBar.Text primary="Suggested Recipes" />
+		{:else if app.view === 'detail' && fullRecipe}
+			<Button onClick={backToSuggestions} label="Back to recipe suggestions" size="xs" icon>
+				<BackIcon />
+			</Button>
+			<AppBar.Text primary={fullRecipe?.title || ''} />
+			<AppBar.End>
+				<Button onClick={() => saveRecipe(fullRecipe?.title!)} label="Save recipe" size="xs" icon>
+					<BookmarkIcon />
+				</Button>
+			</AppBar.End>
+		{/if}
+	</AppBar.Root>
+</PageHeader>
 <main class="mx-auto max-w-5xl px-4 py-24">
 	{#if app.view === 'idle'}
 		<div class="mx-auto max-w-3xl">
@@ -179,7 +189,7 @@
 						bind:value={app.input}
 						placeholder={promptPlaceholder}
 					/>
-					<Button type="submit" label="Submit request" disabled={loading || !app.input.trim()}
+					<Button type="submit" class="-mr-1" label="Submit request" disabled={loading || !app.input.trim()}
 						>{loading ? 'Thinking...' : 'Get ideas'}</Button
 					>
 				</form>
@@ -189,7 +199,7 @@
 		<p>Loading...</p>
 	{:else if app.view === 'suggestions' && form}
 		<div class="response">
-			<h2 class="my-4">Here are some ideas:</h2>
+			<h2 class="my-4 fluid-header-04">Here are some ideas:</h2>
 			<ul class="my-4">
 				{#each form.data as suggestion}
 					<ListItemButton size="three-line" onClick={() => selectRecipe(suggestion)}>
@@ -201,32 +211,32 @@
 			<!-- <button onclick={() => getSuggestions(true)}>Give me more ideas</button> -->
 		</div>
 	{:else if app.view === 'detail'}
-		<div>
-			<button onclick={backToSuggestions}>Back to suggestions</button>
+		<div class="mb-8">
+			<Button onClick={backToSuggestions} label="Go back to recipe suggetions" size="xs">
+				<BackIcon />
+				Back to suggestions
+			</Button>
 		</div>
 
-		<h1 class="my-2 text-lg font-bold">{app.selected?.title}</h1>
 		{#if fullRecipe}
 			<Recipe recipe={fullRecipe} />
 			<div class="my-8">
-				<button
-					class={[
-						'mt-4 rounded px-4 py-2 text-white',
-						{ 'bg-green-600': app.saveStatus === 'saved' },
-						{ 'bg-gray-600': app.saveStatus === 'saving' },
-						{ 'bg-blue-600': app.saveStatus === 'idle' }
-					]}
+				<Button
+					cue="outlined"
+					size="xs"
 					disabled={app.saveStatus === 'saving' || isSavedRecipe}
-					onclick={() => saveRecipe(fullRecipe.title)}
+					label="Save to My Recipes"
+					onClick={() => saveRecipe(fullRecipe.title)}
 				>
 					{#if app.saveStatus === 'saving'}
 						Saving...
 					{:else if app.saveStatus === 'saved' || isSavedRecipe}
 						Saved
 					{:else}
-						Add to my recipe book
+						<BookmarkIcon size='xs' />
+						Save to My Recipes
 					{/if}
-				</button>
+				</Button>
 			</div>
 		{:else}
 			<p>Loading recipe...</p>

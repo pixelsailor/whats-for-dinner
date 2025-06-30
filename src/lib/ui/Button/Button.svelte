@@ -70,7 +70,7 @@
 
 {#snippet Base()}
 	<div
-		class="pxl-button__content flex flex-row place-items-center"
+		class="pxl-button__content flex flex-row place-items-center body-compact"
 		style:height={`${dims[0]}rem`}
 		style:padding={`0 ${dims[1]}rem`}
 		style:gap={`${dims[2]}rem`}

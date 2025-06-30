@@ -84,6 +84,12 @@
 	</AppBar.Root>
 	<List>
 		<ListItem.Root>
+			<ListItem.Link href="/">
+				<RecipesIcon size="xs" />
+				New Suggestions
+			</ListItem.Link>
+		</ListItem.Root>
+		<ListItem.Root>
 			<ListItem.Link href="/recipes">
 				<RecipesIcon size="xs" />
 				My Recipes
@@ -91,7 +97,7 @@
 		</ListItem.Root>
 	</List>
 	<div class="mt-8 px-4">
-		<span class="text-sm font-bold text-gray-500">Recent recipes</span>
+		<span class="heading-compact text-gray-500">Recent recipes</span>
 	</div>
 	{#if $recentlyOpened.length === 0}
 		<p>Your recently viewed recipes will appear.</p>
@@ -136,6 +142,11 @@
 			</AppBar.Root>
 			<List>
 				<ListItem.Root>
+					<ListItem.Link href="/">
+						<RecipesIcon size="xs" />
+					</ListItem.Link>
+				</ListItem.Root>
+				<ListItem.Root>
 					<ListItem.Link href="/recipes">
 						<RecipesIcon size="xs" />
 					</ListItem.Link>
@@ -151,7 +162,7 @@
 		</div>
 	{/if}
 
-	<div class={['main-content h-full min-h-screen relative w-full', {'ml-72': vp.layout === 'desktop--expanded'}]}
+	<div class={['main-content body h-full min-h-screen relative w-full', {'ml-72': vp.layout === 'desktop--expanded'}]}
 		style:margin-left={vp.layout === 'desktop--collapsed' ? 'calc(3.5rem + 1px)' : ''}
 	>
 		{@render children()}

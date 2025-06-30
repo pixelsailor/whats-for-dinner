@@ -11,6 +11,7 @@
 	import BackIcon from '$lib/ui/Icons/BackIcon.svelte';
 	import Prompt from '$lib/ui/Prompt.svelte';
 	import SvelteMarkdown from '@humanspeak/svelte-markdown';
+	import Recipe from '$lib/ui/Recipe.svelte';
 
 	const vp = getContext<any>('viewport');
 
@@ -206,28 +207,7 @@
 
 		<h1 class="my-2 text-lg font-bold">{app.selected?.title}</h1>
 		{#if fullRecipe}
-			<p class="my-4 italic">{fullRecipe.description}</p>
-      {#if recipeTime}
-        <ul class="my-2">
-          {#each recipeTime as time}
-            <li class="my-1"><span class="font-bold">{time[0]} time:</span> <span>{time[1]}</span></li>
-          {/each}
-        </ul>
-      {:else}
-        <p><span class="font-bold">Time:</span> {fullRecipe.estimated_time}</p>
-      {/if}
-      <div class="ingredients my-4">
-        <h3 class="font-bold my-2">Ingredients:</h3>
-        <div class="ingredients__content markdown">
-          <SvelteMarkdown source={fullRecipe.ingredients} />
-        </div>
-      </div>
-      <div class="instructions my-4">
-        <h3 class="font-bold my-2">Preparation:</h3>
-        <div class="instructions__content markdown">
-          <SvelteMarkdown source={fullRecipe.instructions} />
-        </div>
-      </div>
+			<Recipe recipe={fullRecipe} />
 			<div class="my-8">
 				<button
 					class={[

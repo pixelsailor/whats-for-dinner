@@ -19,6 +19,7 @@
 	import Prompt from '$lib/ui/Prompt.svelte';
 	import IconButton from '$lib/ui/IconButton.svelte';
 	import CloseIcon from '$lib/ui/Icons/CloseIcon.svelte';
+	import Recipe from '$lib/ui/Recipe.svelte';
 
 	const vp: any = getContext('viewport');
 
@@ -98,6 +99,7 @@
 
 				try {
 					recipe = JSON.parse(message) as SavedRecipe;
+					toast.dismiss();
 					toast.success(`"${recipe.title}" has unsaved changes`, {
 						duration: Number.POSITIVE_INFINITY,
 						action: {
@@ -157,7 +159,8 @@
 			<ProgressSpinner size="lg" />
 		</div>
 	{:else if app.view === 'idle' && recipe}
-		<ul class="inline-flex gap-2 mb-4">
+		<Recipe recipe={recipe} />
+		<!-- <ul class="inline-flex gap-2 mb-4">
 			{#each recipe.tags as tag}
 				<li>
 					<span class="tag label px-1 border rounded bg-gray-200 dark:bg-gray-600">{tag}</span>
@@ -195,12 +198,12 @@
 					<SvelteMarkdown source={recipe.notes} />
 				</div>
 			</div>
-		{/if}
+		{/if} -->
 		<div class="fixed right-0 bottom-0 px-4" style:left bind:this={promptRef}>
 			<Prompt>
 				{#if conversationMsg}
 					<div class="flex flex-row gap-2 items-start" transition:slide={{ duration: 500, axis: 'y' }}>
-						<div class="conversation text-sm mb-4 self-center">
+						<div class="markdown text-sm mb-4 self-center">
 							<SvelteMarkdown source={conversationMsg} />
 						</div>
 						<Button onClick={() => conversationMsg = ''} label="Close" size='xs' icon class="-m-2">
@@ -233,7 +236,7 @@
 	{/if}
 </article>
 
-<style>
+<!-- <style>
 	:global(.conversation) {
 		& {
 			p, ul, li {
@@ -249,4 +252,4 @@
 			margin: .25rem 0;
 		}
 	}
-</style>
+</style> -->

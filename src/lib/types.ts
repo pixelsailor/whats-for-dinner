@@ -15,6 +15,11 @@ export type RecipeSummary = {
 	tags: string[];
 };
 
+export type Suggestion = RecipeSummary & {
+	id: string;
+	created_at: number;
+}
+
 export type FullRecipe = {
 	title: string;
 	description: string;

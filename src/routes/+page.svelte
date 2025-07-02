@@ -1,24 +1,24 @@
 <script lang="ts">
 	import { getContext, onMount } from 'svelte';
-	import { v4 as uuid } from 'uuid';
 	import { enhance } from '$app/forms';
 	import { recipesApiPostHandler } from '$lib/api';
-	import { db } from '$lib/db.js';
-	import type { FullRecipe, RecipeSummary } from '$lib/types';
+	import type { RecipeSummary, Viewport } from '$lib/types';
 	import ListItemButton from '$lib/ui/ListItemButton.svelte';
 	import { AppBar } from '$lib/ui/AppBar/index.js';
 	import Button from '$lib/ui/Button/Button.svelte';
 	import BackIcon from '$lib/ui/Icons/BackIcon.svelte';
 	import Prompt from '$lib/ui/Prompt.svelte';
-	import Recipe from '$lib/ui/Recipe.svelte';
 	import PageHeader from '$lib/ui/PageHeader.svelte';
-	import BookmarkIcon from '$lib/ui/Icons/BookmarkIcon.svelte';
+	import { saveSuggestions, suggestionMap } from '$lib/stores/suggestions';
+	import { goto } from '$app/navigation';
+	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
 
-	const vp = getContext<any>('viewport');
+	const vp = getContext<Viewport>('viewport');
 
-	let { data, form } = $props();
-
-	let layout = $derived(vp.layout);
+	let left = $derived.by(() => {
+		if (vp.device === 'mobile') return '0';
+		return vp.nav === 'expanded' ? 'calc(18rem + 1px)' : 'calc(3.5rem + 1px)';
+	});
 
 	let app = $state({
 		input: '',
@@ -26,101 +26,18 @@
 		view: 'idle' as 'idle' | 'detail' | 'suggestions' | 'loading' | 'error',
 		suggestions: [] as RecipeSummary[],
 		selected: null as RecipeSummary | null,
-		fullRecipes: new Map<string, FullRecipe>(),
 		error: '',
-		saveStatus: 'idle' as 'idle' | 'saving' | 'saved' | 'error'
+		saveStatus: 'idle' as 'idle' | 'saving' | 'saved' | 'error',
 	});
 
-	let loading = $state(false);
-	let fullRecipe = $derived(app.selected ? app.fullRecipes.get(app.selected.title) : undefined);
-
-  let recipeTime = $derived.by(() => {
-		if (fullRecipe?.time) {
-			return new Map(Object.entries(fullRecipe.time));
-		}
-		return undefined;
-	});
-
-	let alert = $state({
-		type: '' as 'info' | 'warn' | 'danger' | 'success' | 'error',
-		message: ''
-	});
-
-	let recipebookTitles = $state<string[]>([]);
-
-	let isSavedRecipe = $derived(
-		app.selected ? recipebookTitles.includes(app.selected.title) : false
-	);
+	// Show request status without changing app.view
+	let waiting = $state(false);
 
 	let promptPlaceholder = $state('');
 
-	function selectRecipe(recipe: RecipeSummary) {
-		app.selected = recipe;
-
-		// Already fetched? Use cache
-		if (app.fullRecipes.has(recipe.title)) {
-			app.view = 'detail';
-			return;
-		}
-
-		app.view = 'loading';
-
-		recipesApiPostHandler<FullRecipe>('detail', recipe).then((res) => {
-			if (res.success) {
-				app.fullRecipes.set(recipe.title, res.data);
-				app.view = 'detail';
-			} else {
-				app.error = typeof res.error !== 'string' ? res.error.message : res.error;
-				app.view = 'error';
-			}
-		});
-	}
-
-	/**
-	 * Save to the User's recipe book
-	 * @param title - Title of the recipe
-	 */
-	async function saveRecipe(title: string) {
-		const recipe = fullRecipe || app.fullRecipes.get(title);
-		if (!recipe) return;
-
-		app.saveStatus = 'saving';
-
-		try {
-			if (!recipebookTitles.includes(title)) {
-				const now = Date.now();
-				await db.recipes.put({
-					...recipe,
-					short_description: app.selected?.short_description || recipe.description,
-					id: uuid(),
-					created_at: now,
-					last_opened: now,
-					version: 1,
-					is_current: true
-				});
-				recipebookTitles.push(recipe.title);
-				app.saveStatus = 'saved';
-			} else {
-				app.saveStatus = 'idle';
-				alert.type = 'warn';
-				alert.message = 'Recipe already saved';
-			}
-		} catch (err) {
-			console.error('Save failed', err);
-			app.saveStatus = 'error';
-			alert.type = 'error';
-			alert.message = 'Failed to save recipe';
-		}
-	}
-
-	function backToSuggestions() {
-		app.view = 'suggestions';
-		app.selected = null;
-	}
-
-	function toggleMenu() {
-		vp.nav = vp.nav === 'expanded' ? 'collapsed' : 'expanded';
-	}
+	onMount(async () => {
+		promptPlaceholder = getRandomPromptMessage();
+	});
 
 	function getRandomPromptMessage() {
 		const messages = [
@@ -134,50 +51,83 @@
 		return messages[Math.floor(Math.random() * max)];
 	}
 
-	// Create a list of titles to reference to avoid adding duplicates
-	onMount(async () => {
-		const all = await db.recipes.toArray();
-		recipebookTitles = all.map((recipe) => recipe.title);
+	function selectRecipe(recipe: RecipeSummary) {
+		suggestionMap.update((map) => new Map(map).set(recipe.title, recipe));
+		goto(`/recipes/new?title=${encodeURIComponent(recipe.title)}`);
+	}
 
-		promptPlaceholder = getRandomPromptMessage();
-	});
+	// Reusable function to fetch suggestions (can use API or direct server call)
+	async function fetchSuggestions(input: string): Promise<RecipeSummary[] | null> {
+		waiting = true;
+		try {
+			// Option 1: Use the API handler (preferred for SSR compatibility)
+			const res = await recipesApiPostHandler<RecipeSummary[]>('suggestions', input);
+			
+			if (res.success) {
+				await saveSuggestions(res.data);
+				return res.data;
+			} else {
+				// alert.type = 'error';
+				// alert.message = (typeof res.error === 'string') ? (res.error) : res.error.message || 'Unknown error';
+				return null;
+			}
+		} catch (err) {
+			// alert.type = 'error';
+			// alert.message = 'Failed to fetch suggestions';
+			return null;
+		} finally {
+			waiting = false;
+		}
+	}
+
+	// Programmatic function to get suggestions
+	async function getSuggestions(getMore: boolean = false) {
+		if (!app.input.trim() && !getMore) return;
+		const suggestions = await fetchSuggestions(getMore ? app.lastInput : app.input.trim());
+		if (suggestions) {
+			app.suggestions = [...app.suggestions, ...suggestions];
+			app.view = 'suggestions';
+			app.lastInput = app.input;
+		}
+	}
 </script>
 
-<PageHeader>
-	<AppBar.Root>
-		{#if app.view === 'suggestions'}
+{#if app.view === 'suggestions'}
+	<PageHeader>
+		<AppBar.Root>
 			<Button href="/" size="xs" icon>
 				<BackIcon />
 			</Button>
 			<AppBar.Text primary="Suggested Recipes" />
-		{:else if app.view === 'detail' && fullRecipe}
-			<Button onClick={backToSuggestions} label="Back to recipe suggestions" size="xs" icon>
-				<BackIcon />
-			</Button>
-			<AppBar.Text primary={fullRecipe?.title || ''} />
-			<AppBar.End>
-				<Button onClick={() => saveRecipe(fullRecipe?.title!)} label="Save recipe" size="xs" icon>
-					<BookmarkIcon />
-				</Button>
-			</AppBar.End>
-		{/if}
-	</AppBar.Root>
-</PageHeader>
-<main class="mx-auto max-w-5xl px-4 py-24">
-	{#if app.view === 'idle'}
-		<div class="mx-auto max-w-3xl">
+		</AppBar.Root>
+	</PageHeader>
+{/if}
+
+<main class="flex items-center h-screen mx-auto max-w-5xl px-4 py-24" style:height={app.view === 'suggestions' ? 'auto' : ''}>
+	{#if app.view === 'loading'}
+		<div class="absolute inset-0 grid place-content-center">
+			<ProgressSpinner size="lg" />
+		</div>
+	{:else if app.view === 'idle'}
+		<div class="mx-auto max-w-3xl w-full">
 			<h1 class="my-4 text-center fluid-heading-06">What's for Dinner?</h1>
 			<Prompt>
 				<form
 					class="flex w-full flex-row gap-2"
 					method="POST"
 					use:enhance={({ formElement, formData, action, cancel, submitter }) => {
-						loading = true;
+						waiting = true;
 						return async ({ result, update }) => {
-							// console.log('form result', result);
-							loading = false;
-							app.lastInput = app.input;
-							app.view = 'suggestions';
+							waiting = false;
+							if (result?.type === 'success' && Array.isArray(result.data)) {
+								app.suggestions = result.data;
+								app.view = 'suggestions';
+								app.lastInput = app.input;
+								saveSuggestions(result.data);
+							} else if (result?.type === 'failure') {
+								app.error = (result.data?.error as string) || 'Unknown error';
+								app.view = 'error';
+							}
 							await update();
 						};
 					}}
@@ -189,70 +139,34 @@
 						bind:value={app.input}
 						placeholder={promptPlaceholder}
 					/>
-					<Button type="submit" class="-mr-1" label="Submit request" disabled={loading || !app.input.trim()}
-						>{loading ? 'Thinking...' : 'Get ideas'}</Button
-					>
+					<Button type="submit" class="-mr-1" label="Submit request" disabled={waiting || !app.input.trim()}>
+						{waiting ? 'Thinking...' : 'Get ideas'}
+					</Button>
 				</form>
+				<!-- Uncomment to use programmatic suggestions -->
+				<!-- <button onclick={getSuggestions}>Show me some more ideas</button> -->
 			</Prompt>
 		</div>
-	{:else if app.view === 'loading'}
-		<p>Loading...</p>
-	{:else if app.view === 'suggestions' && form}
+	{:else if app.view === 'suggestions' && app.suggestions}
 		<div class="response">
-			<h2 class="my-4 fluid-header-04">Here are some ideas:</h2>
+			<h2 class="my-4 fluid-heading-05">Here are some ideas for, <span class="italic">"{app.lastInput}"</span>:</h2>
 			<ul class="my-4">
-				{#each form.data as suggestion}
+				{#each app.suggestions as suggestion}
 					<ListItemButton size="three-line" onClick={() => selectRecipe(suggestion)}>
 						<p class="font-bold">{suggestion.title}</p>
 						<p class="text-sm">{suggestion.short_description}</p>
 					</ListItemButton>
 				{/each}
 			</ul>
-			<!-- <button onclick={() => getSuggestions(true)}>Give me more ideas</button> -->
-		</div>
-	{:else if app.view === 'detail'}
-		<div class="mb-8">
-			<Button onClick={backToSuggestions} label="Go back to recipe suggetions" size="xs">
-				<BackIcon />
-				Back to suggestions
+			<Button onClick={() => getSuggestions(true)} label="Get more suggestions">
+				Show me some more ideas
 			</Button>
 		</div>
-
-		{#if fullRecipe}
-			<Recipe recipe={fullRecipe} />
-			<div class="my-8">
-				<Button
-					cue="outlined"
-					size="xs"
-					disabled={app.saveStatus === 'saving' || isSavedRecipe}
-					label="Save to My Recipes"
-					onClick={() => saveRecipe(fullRecipe.title)}
-				>
-					{#if app.saveStatus === 'saving'}
-						Saving...
-					{:else if app.saveStatus === 'saved' || isSavedRecipe}
-						Saved
-					{:else}
-						<BookmarkIcon size='xs' />
-						Save to My Recipes
-					{/if}
-				</Button>
-			</div>
-		{:else}
-			<p>Loading recipe...</p>
-		{/if}
 	{:else if app.view === 'error'}
 		<div class="error">
 			<p class="my-4 font-bold">Ah donkeyspittle! There was a problem.</p>
+			<p class="my-4">Refresh the browser and try again.</p>
 			<p>{app.error}</p>
-			<button onclick={backToSuggestions}>Back to suggestions</button>
-		</div>
-	{/if}
-
-	{#if form?.error}
-		<div class="error">
-			<h2>Error:</h2>
-			<p>{form.error}</p>
 		</div>
 	{/if}
 </main>

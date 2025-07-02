@@ -14,11 +14,7 @@ export const actions: Actions = {
 		try {
 			const response = await getRecipeSuggestions(message.trim());
       if (response) {
-        return {
-          success: true,
-          data: JSON.parse(response),
-          message
-        };
+				return JSON.parse(response);
       } else {
         return fail(502, { error: 'Invalid response from AI', message });
       }

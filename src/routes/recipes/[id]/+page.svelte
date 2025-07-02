@@ -43,13 +43,6 @@
 	// Responsible for passing the recipe to the FormData
 	let recipeJson = $derived(recipe ? JSON.stringify(recipe) : '');
 
-	let recipeTime = $derived.by(() => {
-		if (recipe?.time) {
-			return new Map(Object.entries(recipe.time));
-		}
-		return undefined;
-	});
-
 	// Waiting for a response to an OpenAI request
 	let waiting = $state(false);
 
@@ -192,7 +185,9 @@
 			</Prompt>
 		</div>
 	{:else}
-		<h1>Ah, donkeyspittle!</h1>
-		<p>A recipe matching the provided ID could not be found.</p>
+		<div class="mx-auto w-full max-w-3xl h-max grid place-content-center">
+			<h1 class="fluid-heading-05 my-8">Ah donkey-spittle! There was a problem.</h1>
+			<p class="flex items-center gap-3">A recipe matching the provided ID could not be found.</p>
+		</div>
 	{/if}
 </article>

@@ -15,11 +15,6 @@
 
 	const vp = getContext<Viewport>('viewport');
 
-	let left = $derived.by(() => {
-		if (vp.device === 'mobile') return '0';
-		return vp.nav === 'expanded' ? 'calc(18rem + 1px)' : 'calc(3.5rem + 1px)';
-	});
-
 	let app = $state({
 		input: '',
 		lastInput: '',
@@ -31,7 +26,7 @@
 	});
 
 	// Show request status without changing app.view
-	let waiting = $state(false);
+	let working = $state(false);
 
 	let promptPlaceholder = $state('');
 
@@ -51,48 +46,21 @@
 		return messages[Math.floor(Math.random() * max)];
 	}
 
-	function selectRecipe(recipe: RecipeSummary) {
-		suggestionMap.update((map) => new Map(map).set(recipe.title, recipe));
-		goto(`/recipes/new?title=${encodeURIComponent(recipe.title)}`);
-	}
+	/**
+	 * Handles prompt form, sending input value as URL params
+	 * @param e
+	 */
+	function getSuggestions(e: Event) {
+		e.preventDefault();
+		if (!app.input.trim()) return;
 
-	// Reusable function to fetch suggestions (can use API or direct server call)
-	async function fetchSuggestions(input: string): Promise<RecipeSummary[] | null> {
-		waiting = true;
-		try {
-			// Option 1: Use the API handler (preferred for SSR compatibility)
-			const res = await recipesApiPostHandler<RecipeSummary[]>('suggestions', input);
-			
-			if (res.success) {
-				await saveSuggestions(res.data);
-				return res.data;
-			} else {
-				// alert.type = 'error';
-				// alert.message = (typeof res.error === 'string') ? (res.error) : res.error.message || 'Unknown error';
-				return null;
-			}
-		} catch (err) {
-			// alert.type = 'error';
-			// alert.message = 'Failed to fetch suggestions';
-			return null;
-		} finally {
-			waiting = false;
-		}
-	}
-
-	// Programmatic function to get suggestions
-	async function getSuggestions(getMore: boolean = false) {
-		if (!app.input.trim() && !getMore) return;
-		const suggestions = await fetchSuggestions(getMore ? app.lastInput : app.input.trim());
-		if (suggestions) {
-			app.suggestions = [...app.suggestions, ...suggestions];
-			app.view = 'suggestions';
-			app.lastInput = app.input;
-		}
+		working = true;
+		const prompt = encodeURIComponent(app.input);
+		goto(`/suggestions?prompt=${prompt}`);
 	}
 </script>
 
-{#if app.view === 'suggestions'}
+<!-- {#if app.view === 'suggestions'}
 	<PageHeader>
 		<AppBar.Root>
 			<Button href="/" size="xs" icon>
@@ -101,7 +69,7 @@
 			<AppBar.Text primary="Suggested Recipes" />
 		</AppBar.Root>
 	</PageHeader>
-{/if}
+{/if} -->
 
 <main class="flex items-center h-screen mx-auto max-w-5xl px-4 py-24" style:height={app.view === 'suggestions' ? 'auto' : ''}>
 	{#if app.view === 'loading'}
@@ -114,23 +82,7 @@
 			<Prompt>
 				<form
 					class="flex w-full flex-row gap-2"
-					method="POST"
-					use:enhance={({ formElement, formData, action, cancel, submitter }) => {
-						waiting = true;
-						return async ({ result, update }) => {
-							waiting = false;
-							if (result?.type === 'success' && Array.isArray(result.data)) {
-								app.suggestions = result.data;
-								app.view = 'suggestions';
-								app.lastInput = app.input;
-								saveSuggestions(result.data);
-							} else if (result?.type === 'failure') {
-								app.error = (result.data?.error as string) || 'Unknown error';
-								app.view = 'error';
-							}
-							await update();
-						};
-					}}
+					onsubmit={getSuggestions}
 				>
 					<input
 						class="grow p-1"
@@ -138,29 +90,13 @@
 						name="input"
 						bind:value={app.input}
 						placeholder={promptPlaceholder}
+						disabled={working}
 					/>
-					<Button type="submit" class="-mr-1" label="Submit request" disabled={waiting || !app.input.trim()}>
-						{waiting ? 'Thinking...' : 'Get ideas'}
+					<Button type="submit" class="-mr-1" label="Submit request" disabled={working || !app.input.trim()}>
+						{working ? 'Thinking...' : 'Get ideas'}
 					</Button>
 				</form>
-				<!-- Uncomment to use programmatic suggestions -->
-				<!-- <button onclick={getSuggestions}>Show me some more ideas</button> -->
 			</Prompt>
-		</div>
-	{:else if app.view === 'suggestions' && app.suggestions}
-		<div class="response">
-			<h2 class="my-4 fluid-heading-05">Here are some ideas for, <span class="italic">"{app.lastInput}"</span>:</h2>
-			<ul class="my-4">
-				{#each app.suggestions as suggestion}
-					<ListItemButton size="three-line" onClick={() => selectRecipe(suggestion)}>
-						<p class="font-bold">{suggestion.title}</p>
-						<p class="text-sm">{suggestion.short_description}</p>
-					</ListItemButton>
-				{/each}
-			</ul>
-			<Button onClick={() => getSuggestions(true)} label="Get more suggestions">
-				Show me some more ideas
-			</Button>
 		</div>
 	{:else if app.view === 'error'}
 		<div class="error">

@@ -1,9 +1,8 @@
 <script lang="ts">
-	import { Toolbar } from 'bits-ui';
-	import { toast, Toaster } from 'svelte-sonner';
+	import { toast } from 'svelte-sonner';
 
 	import { db } from '$lib/db';
-	import { savedRecipes } from '$lib/stores/recipes';
+	import { recipes } from '$lib/stores/recipes';
   import Button from '$lib/ui/Button/Button.svelte'
 	import { List, ListItem } from '$lib/ui/List';
 	import IconButton from '$lib/ui/IconButton.svelte';
@@ -12,6 +11,11 @@
 	import { slide } from 'svelte/transition';
 	import BackIcon from '$lib/ui/Icons/BackIcon.svelte';
 	import { AppBar } from '$lib/ui/AppBar';
+	import PageHeader from '$lib/ui/PageHeader.svelte';
+
+	function goBack() {
+		window.history.back();
+	}
 
 	async function deleteRecipe(id: string, title: string) {
 		// if (confirm('Delete this recipe?')) {
@@ -36,42 +40,53 @@
 		}
 		// }
 	}
+
 </script>
 
-<AppBar.Root>
-  <Button title="Back" href="/" size="xs" icon>
-    <BackIcon />
-  </Button>
-  <AppBar.Text primary="My Recipe Book" />
-  <AppBar.End>
-    <Button title="Trash bin" href="/recipes/trash" size="xs" icon>
-      <TrashIcon />
-    </Button>
-  </AppBar.End>
-</AppBar.Root>
-<main>
-	{#if $savedRecipes.length === 0}
-		<p>You haven't saved any recipes yet.</p>
-	{:else if $savedRecipes.length > 0}
-		<List size="three-line">
-			{#each $savedRecipes as recipe}
-        <hr class="border-gray-200">
-				<ListItem.Root>
-					<ListItem.Link href="/recipes/{recipe.id}">
-						<ListItem.Text primary={recipe.title} secondary={recipe.short_description} />
-					</ListItem.Link>
-					<ListItem.SecondaryAction>
-						<IconButton title="Delete recipe" onClick={() => deleteRecipe(recipe.id, recipe.title)} size="xs">
-							<TrashIcon />
-						</IconButton>
-					</ListItem.SecondaryAction>
-				</ListItem.Root>
-			{/each}
-		</List>
-	{:else}
-		<div class="absolute inset-0 grid place-content-center">
+<PageHeader>
+	<AppBar.Root>
+		<Button title="Back" onClick={goBack} label="Go back" size="xs" icon>
+			<BackIcon />
+		</Button>
+		<AppBar.Text primary="My Recipes" />
+		<AppBar.End>
+			<Button title="Trash bin" href="/recipes/trash" size="xs" icon>
+				<TrashIcon />
+			</Button>
+		</AppBar.End>
+	</AppBar.Root>
+</PageHeader>
+
+<main class="mx-auto max-w-5xl px-4 min-h-screen">
+	{#if $recipes.loading}
+		<div class="mx-auto w-full max-w-3xl h-screen grid place-content-center">
 			<ProgressSpinner size="lg" />
+		</div>
+	{:else if $recipes.error}
+		<div class="mx-auto w-full max-w-3xl h-screen grid place-content-center gap-6">
+			<h1 class="fluid-heading-05">Ah donkey-spittle! There was a problem.</h1>
+			<p class="flex items-center gap-3"><span class="fluid-heading-03">{$recipes.error.name}</span><span>|</span><span>{$recipes.error?.message}</span></p>
+		</div>
+	{:else if $recipes.data}
+		<div class="py-24">
+			<h1 class="fluid-heading-05 mb-8">My Recipes</h1>
+			<List size="three-line">
+				{#each $recipes.data as recipe}
+					<hr class="border-gray-200">
+					<div transition:slide={{ duration: 300, axis: 'y' }}>
+						<ListItem.Root>
+							<ListItem.Link href="/recipes/{recipe.id}">
+								<ListItem.Text primary={recipe.title} secondary={recipe.short_description} />
+							</ListItem.Link>
+							<ListItem.SecondaryAction>
+								<IconButton title="Delete recipe" onClick={() => deleteRecipe(recipe.id, recipe.title)} size="xs">
+									<TrashIcon />
+								</IconButton>
+							</ListItem.SecondaryAction>
+						</ListItem.Root>
+					</div>
+				{/each}
+			</List>
 		</div>
 	{/if}
 </main>
-<footer></footer>

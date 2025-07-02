@@ -7,7 +7,7 @@ import { error, fail, type Actions, type ServerLoad } from '@sveltejs/kit';
 export const load: ServerLoad = async ({ url }): Promise<FullRecipe> => {
 	const encodedTitle = url.searchParams.get('title');
 	if (!encodedTitle) error(404, 'No title provided');
-
+	
 	const title = decodeURIComponent(encodedTitle);
 
 	// Check session for cached recipe data
@@ -17,7 +17,7 @@ export const load: ServerLoad = async ({ url }): Promise<FullRecipe> => {
 	}
 
 	// Make API call using decoded searchParams
-	const response = await getFullRecipe(title);
+	const response = await getFullRecipe(sanitizePromptInput(title));
 
 	if (response) {
 		setCachedRecipe(title, response); // cache the response

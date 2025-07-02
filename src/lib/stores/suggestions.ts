@@ -1,8 +1,21 @@
 import { db } from '$lib/db';
 import type { RecipeSummary, Suggestion } from '$lib/types';
 import { liveQuery } from 'dexie';
-import { readable } from 'svelte/store';
+import { readable, writable } from 'svelte/store';
 import { v4 as uuid } from 'uuid';
+
+export const suggestionMap = writable<Map<string, RecipeSummary>>(new Map());
+
+/**
+ * Returns the suggestion history in its entirety, most recent first
+ */
+export const suggestionHistory = readable<Suggestion[]>([], (suggestions) => {
+  const subscription = liveQuery(async () => {
+    return db.suggestions.orderBy('created_at').reverse().toArray();
+  }).subscribe(suggestions);
+
+  return () => subscription.unsubscribe();
+});
 
 /**
  * Returns a list of the most recent suggestions as a LiveQuery subscription

@@ -14,7 +14,7 @@
 	import Prompt from '$lib/ui/Prompt.svelte';
 	import Recipe from '$lib/ui/Recipe.svelte';
 	import SvelteMarkdown from '@humanspeak/svelte-markdown';
-	import { getContext } from 'svelte';
+	import { getContext, onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import { slide } from 'svelte/transition';
   import { v4 as uuid } from 'uuid';
@@ -34,7 +34,7 @@
 		return vp.nav === 'expanded' ? 'calc(18rem + 1px)' : 'calc(3.5rem + 1px)';
 	});
 
-  let view = $derived<ViewState>(recipe ? 'idle' : 'loading');
+  let view = $state<ViewState>('loading');
 
   let status = $state<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
@@ -85,6 +85,12 @@
     }
 	}
 
+	onMount(async () => {
+		if (data) {
+			view = 'idle';
+		}
+	});
+
   // Handle prompt responses
   $effect(() => {
 		if (form && form.error === undefined) {
@@ -101,7 +107,7 @@
 				try {
           recipe = JSON.parse(message) as FullRecipe;
 					toast.success(`"${recipe.title}" updated`);
-          setCachedRecipe(recipe.title, message)
+          // setCachedRecipe(recipe.title, message)
 				} catch (err) {
 					console.error(err);
 					toast.error('There was a problem parsing the recipe JSON');

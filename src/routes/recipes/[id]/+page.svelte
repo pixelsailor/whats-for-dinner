@@ -23,9 +23,9 @@
 
 	const vp: any = getContext('viewport');
 
-	const id = $derived(page.params.id);
-
 	let { form } = $props();
+
+	let id = $state(page.params.id);
 
 	let promptInput = $state<string>();
 	
@@ -139,13 +139,9 @@
 			<BackIcon />
 		</Button>
 		<AppBar.Text primary={recipe?.title || ''} />
-		<AppBar.End>
-			<Button title="Trash bin" href="/recipes/trash" size="xs" icon>
-				<TrashIcon />
-			</Button>
-		</AppBar.End>
 	</AppBar.Root>
 </PageHeader>
+
 <article class="mx-auto max-w-5xl px-4 pt-24" style:padding-bottom={`calc(${promptHeight}px + 1.5rem)`}>
 	{#if app.view === 'loading'}
 		<div class="absolute inset-0 grid place-content-center">

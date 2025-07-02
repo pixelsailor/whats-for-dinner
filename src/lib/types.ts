@@ -1,6 +1,19 @@
-export type ViewState = 'idle' | 'suggestions' | 'detail' | 'error' | 'loading';
-
 export type IconSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+
+type Layout =
+	| 'mobile--collapsed'
+	| 'mobile--expanded'
+	| 'desktop--collapsed'
+	| 'desktop--expanded';
+
+export type Viewport = {
+	width: number;
+	device: 'desktop' | 'mobile';
+	layout: Layout;
+	nav: 'collapsed' | 'expanded';
+}
+
+export type ViewState = 'idle' | 'suggestions' | 'detail' | 'error' | 'loading';
 
 export type ApiResponse<T> = {
 	success: boolean;

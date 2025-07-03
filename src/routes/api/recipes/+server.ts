@@ -1,27 +1,41 @@
-import { json, type RequestHandler } from '@sveltejs/kit';
-import { getFullRecipe, getRecipeSuggestions } from '$lib/server/openai';
+import { error, json, type RequestHandler } from '@sveltejs/kit';
+import { askCookingQuestion, getFullRecipe, getRecipeSuggestions } from '$lib/server/openai';
+import type { promptContext } from '$lib/queries/recipes';
 
 export const POST: RequestHandler = async ({ request }) => {
 	try {
-		const { action, input } = await request.json();
+		const { action, prompt, recipe }: { action: promptContext; prompt: string; recipe?: string } =
+			await request.json();
 
-		let response: string | undefined;
+		if (!prompt || typeof prompt !== 'string') {
+			return error(400, { message: 'A valid prompt is required' });
+		}
+
+		let response: [promptContext, string | null];
 
 		switch (action) {
-			case 'suggestions': {
-				response = await getRecipeSuggestions(input.trim());
+			case 'summaries': {
+				response = await getRecipeSuggestions(prompt.trim());
+				break;
+			}
+			case 'assistance': {
+				if (!recipe || typeof recipe !== 'string') {
+					return error(400, { message: 'The request is missing a valid recipe string.' });
+				}
+
+				response = await askCookingQuestion(prompt, recipe);
 				break;
 			}
 			case 'detail': {
-				response = await getFullRecipe(input.title);
+				response = await getFullRecipe(prompt);
 				break;
 			}
 			default:
 				return json({ error: 'Unknown action' }, { status: 400 });
 		}
 
-		if (response) {
-			return json({ success: true, data: JSON.parse(response) });
+		if (response[1]) {
+			return json({ success: true, data: [response[0], JSON.parse(response[1])] });
 		} else {
 			return json(
 				{

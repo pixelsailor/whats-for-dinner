@@ -9,7 +9,9 @@ const openai = new OpenAI({
 
 const model = 'gpt-4.1-nano';
 
-export async function getRecipeSuggestions(input: string): Promise<string|undefined> {
+type promptContext = 'assistance' | 'detail' | 'revision' | 'summaries';
+
+export async function getRecipeSuggestions(input: string): Promise<[promptContext, string|null]> {
 	const messages: ChatCompletionMessageParam[] = [
 		{
 			role: 'system',
@@ -34,14 +36,14 @@ export async function getRecipeSuggestions(input: string): Promise<string|undefi
 			temperature: 0.7
 		});
 
-		return response.choices[0].message.content || undefined;
+		return ['summaries', response.choices[0].message.content || null];
 	} catch (error) {
 		console.error('OpenAI API error:', error);
 		throw error;
 	}
 }
 
-export async function getFullRecipe(title: string): Promise<string|undefined> {
+export async function getFullRecipe(title: string): Promise<['detail', string|null]> {
   const messages: ChatCompletionMessageParam[] = [
     {
       role: 'system',
@@ -95,7 +97,7 @@ Keep your formatting consistent and minimal.
       messages
     });
   
-    return response.choices[0].message.content ?? undefined;
+    return ['detail', response.choices[0].message.content ?? null];
   }
   catch (err) {
     console.error('OpenAI API error:', err);
@@ -103,7 +105,7 @@ Keep your formatting consistent and minimal.
   }
 }
 
-export async function requestRecipeModifications(input: string, recipe: string): Promise<['recipe', string]> {
+export async function requestRecipeModifications(input: string, recipe: string): Promise<['revised', string|null]> {
   const messages: ChatCompletionMessageParam[] = [
     {
       role: 'system',
@@ -149,14 +151,14 @@ Here is the user's modification request:
       temperature: 0.7
     });
 
-    return ['recipe', response.choices[0].message.content ?? `I wasn't able to complete that request.`];
+    return ['revised', response.choices[0].message.content ?? null];
   } catch (err) {
     console.error('OpenAI API error:', err);
     throw err;
   }
 }
 
-export async function askCookingQuestion(question: string, recipeJson: string): Promise<['conversation', string]> {
+export async function askCookingQuestion(question: string, recipeJson: string): Promise<['assistance', string|null]> {
   const recipe = JSON.parse(recipeJson) as FullRecipe;
   const prompt = `
 You are an helpful, experienced culinary assistant helping a user working on a recipe.
@@ -188,5 +190,5 @@ ${question}
     temperature: 0.7
   });
 
-  return ['conversation', response.choices[0].message.content ?? `Sorry, I can't answer that right now.`];
+  return ['assistance', response.choices[0].message.content ?? null];
 }

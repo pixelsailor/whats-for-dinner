@@ -1,5 +1,5 @@
 import { askCookingQuestion, getFullRecipe, requestRecipeModifications } from '$lib/server/openai';
-import { getCachedRecipe, setCachedRecipe } from '$lib/stores/recipes';
+// import { getCachedRecipe, setCachedRecipe } from '$lib/stores/recipes';
 import type { FullRecipe } from '$lib/types';
 import { isModificationRequest, sanitizePromptInput } from '$lib/utils';
 import { error, fail, type Actions, type ServerLoad } from '@sveltejs/kit';
@@ -20,9 +20,9 @@ export const load: ServerLoad = async ({ url }): Promise<FullRecipe> => {
 	// Make API call using decoded searchParams
 	const response = await getFullRecipe(sanitizePromptInput(title));
 
-	if (response) {
+	if (response[1]) {
 		// setCachedRecipe(title, response); // cache the response
-		return JSON.parse(response) as FullRecipe;
+		return JSON.parse(response[1]) as FullRecipe;
 	} else {
 		error(500, { message: 'The AI failed to produce a response.' });
 	}
@@ -47,7 +47,7 @@ export const actions: Actions = {
 
 		try {
 			const response = await queryFn(message.trim(), recipe);
-			if (response) {
+			if (response && response[1] != null) {
 				const [type, message] = response;
 				return { type, message };
 			} else {

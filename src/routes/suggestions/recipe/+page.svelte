@@ -2,8 +2,8 @@
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
 	import { db } from '$lib/db.js';
-	import { setCachedRecipe } from '$lib/stores/recipes.js';
-	import type { FullRecipe, SavedRecipe, ViewState } from '$lib/types.js';
+	// import { setCachedRecipe } from '$lib/stores/recipes.js';
+	import type { FullRecipe, PromptContext, SavedRecipe, ViewState } from '$lib/types.js';
 	import { AppBar } from '$lib/ui/AppBar';
 	import Button from '$lib/ui/Button/Button.svelte';
 	import BackIcon from '$lib/ui/Icons/BackIcon.svelte';
@@ -43,7 +43,7 @@
 
   let promptInput = $state<string>();
 	
-	let promptType = $state<'conversation'|'recipe'>();
+	let promptType = $state<'revised' | 'assistance'>();
 
   let promptRef = $state<HTMLElement>();
   
@@ -101,7 +101,7 @@
 			lastFormMessage = message;
 			working = false;
 
-			if (type === 'conversation') {
+			if (type === 'assistance') {
 				conversationMsg = message;
 			} else {
 				try {

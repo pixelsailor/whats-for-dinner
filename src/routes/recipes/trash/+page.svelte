@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { db } from '$lib/db';
-  import { archivedRecipes } from '$lib/stores/recipes';
+	import { archivedRecipes } from '$lib/stores/recipes';
 	import IconButton from '$lib/ui/IconButton.svelte';
 	import RevertIcon from '$lib/ui/Icons/RevertIcon.svelte';
 	import { List, ListItem } from '$lib/ui/List';
@@ -12,38 +12,37 @@
 	import { slide } from 'svelte/transition';
 	import { toast } from 'svelte-sonner';
 
-	  let alert = $state({
-    type: '' as 'info' | 'warn' | 'danger' | 'success' | 'error',
-    message: ''
-  });
-
-	async function restoreRecipe(id: string) {
-    try {
-      await db.recipes.update(id, { archived: undefined });
-    } catch (err) {
+	const restoreRecipe = async (id: string) => {
+		try {
+			await db.recipes.update(id, { archived: undefined });
+		} catch (err) {
 			console.error(err);
-			toast.error('There was a problem trying to restore the recipe.')
-    }
-	}
+			toast.error('There was a problem trying to restore the recipe.');
+		}
+	};
 </script>
 
 <PageHeader>
 	<AppBar.Root>
 		<Button title="Back" href="/recipes" label="Go back" size="xs" icon>
-			<BackIcon size="xs"/>
+			<BackIcon size="xs" />
 		</Button>
 	</AppBar.Root>
 </PageHeader>
 
-<main class="mx-auto max-w-5xl px-4 min-h-screen">
+<main class="mx-auto min-h-screen max-w-5xl px-4">
 	{#if $archivedRecipes.loading}
-		<div class="mx-auto w-full max-w-3xl h-screen grid place-content-center">
+		<div class="mx-auto grid h-screen w-full max-w-3xl place-content-center">
 			<ProgressSpinner size="lg" />
 		</div>
 	{:else if $archivedRecipes.error}
-		<div class="mx-auto w-full max-w-3xl h-screen grid place-content-center gap-6">
+		<div class="mx-auto grid h-screen w-full max-w-3xl place-content-center gap-6">
 			<h1 class="fluid-heading-05">Ah donkey-spittle! There was a problem.</h1>
-			<p class="flex items-center gap-3"><span class="fluid-heading-03">{$archivedRecipes.error.name}</span><span>|</span><span>{$archivedRecipes.error?.message}</span></p>
+			<p class="flex items-center gap-3">
+				<span class="fluid-heading-03">{$archivedRecipes.error.name}</span><span>|</span><span
+					>{$archivedRecipes.error?.message}</span
+				>
+			</p>
 		</div>
 	{:else if $archivedRecipes.data}
 		<div class="py-24">
@@ -51,7 +50,7 @@
 			{#if $archivedRecipes.data.length > 0}
 				<List>
 					{#each $archivedRecipes.data as recipe}
-						<hr class="border-gray-200">
+						<hr class="border-gray-200" />
 						<div transition:slide={{ duration: 300, axis: 'y' }}>
 							<ListItem.Root>
 								<ListItem.Text primary={recipe.title} />

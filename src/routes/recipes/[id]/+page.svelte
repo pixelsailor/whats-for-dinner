@@ -9,15 +9,13 @@
 	import { page } from '$app/state';
 	import { db } from '$lib/db';
 	import { getSavedRecipe } from '$lib/stores/recipes';
-	import type { SavedRecipe, ViewState } from '$lib/types';
+	import type { PromptContext, SavedRecipe, ViewState } from '$lib/types';
 	import Button from '$lib/ui/Button/Button.svelte';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
 	import { AppBar } from '$lib/ui/AppBar';
 	import BackIcon from '$lib/ui/Icons/BackIcon.svelte';
-	import TrashIcon from '$lib/ui/Icons/TrashIcon.svelte';
 	import PageHeader from '$lib/ui/PageHeader.svelte';
 	import Prompt from '$lib/ui/Prompt.svelte';
-	import IconButton from '$lib/ui/IconButton.svelte';
 	import CloseIcon from '$lib/ui/Icons/CloseIcon.svelte';
 	import Recipe from '$lib/ui/Recipe.svelte';
 
@@ -28,8 +26,8 @@
 	let id = $state(page.params.id);
 
 	let promptInput = $state<string>();
-	
-	let promptType = $state<'conversation'|'recipe'>();
+
+	let promptType = $state<PromptContext>();
 
 	let conversationMsg = $state<string>();
 
@@ -52,7 +50,7 @@
 	});
 
 	let promptRef = $state<HTMLElement>();
-	
+
 	let promptHeight = $derived(promptRef?.clientHeight);
 
 	let lastFormMessage: string | undefined = undefined;
@@ -75,6 +73,7 @@
 			});
 	});
 
+	// React to user prompts
 	$effect(() => {
 		if (form && form.error === undefined) {
 			if (form.message === lastFormMessage) return;
@@ -84,7 +83,7 @@
 			lastFormMessage = message;
 			waiting = false;
 
-			if (type === 'conversation') {
+			if (type === 'assistance') {
 				conversationMsg = message;
 			} else {
 				// clone the snapshot to avoid "DataCloneError" in `saveModifiedRecipe()`
@@ -97,8 +96,7 @@
 						duration: Number.POSITIVE_INFINITY,
 						action: {
 							label: 'Save changes',
-							onClick: () =>
-								saveModifiedRecipe(original, structuredClone($state.snapshot(recipe!)))
+							onClick: () => saveModifiedRecipe(original, structuredClone($state.snapshot(recipe!)))
 						}
 					});
 				} catch (err) {
@@ -142,27 +140,39 @@
 	</AppBar.Root>
 </PageHeader>
 
-<article class="mx-auto max-w-5xl px-4 pt-24" style:padding-bottom={`calc(${promptHeight}px + 1.5rem)`}>
+<article
+	class="mx-auto max-w-5xl px-4 pt-24"
+	style:padding-bottom={`calc(${promptHeight}px + 1.5rem)`}
+>
 	{#if app.view === 'loading'}
 		<div class="absolute inset-0 grid place-content-center">
 			<ProgressSpinner size="lg" />
 		</div>
 	{:else if app.view === 'idle' && recipe}
-		<Recipe recipe={recipe} />
+		<Recipe {recipe} />
 		<div class="fixed right-0 bottom-0 px-4" style:left bind:this={promptRef}>
 			<Prompt>
 				{#if conversationMsg}
-					<div class="flex flex-row gap-2 items-start" transition:slide={{ duration: 500, axis: 'y' }}>
-						<div class="markdown text-sm mb-4 self-center">
+					<div
+						class="flex flex-row items-start gap-2"
+						transition:slide={{ duration: 500, axis: 'y' }}
+					>
+						<div class="markdown mb-4 self-center text-sm">
 							<SvelteMarkdown source={conversationMsg} />
 						</div>
-						<Button onClick={() => conversationMsg = ''} label="Close" size='xs' icon class="-m-2">
+						<Button
+							onClick={() => (conversationMsg = '')}
+							label="Close"
+							size="xs"
+							icon
+							class="-m-2"
+						>
 							<CloseIcon />
 						</Button>
 					</div>
 				{/if}
 				<form
-					class="flex flex-row gap-2 w-full"
+					class="flex w-full flex-row gap-2"
 					method="POST"
 					use:enhance={() => {
 						waiting = true;
@@ -176,12 +186,14 @@
 						placeholder="Make changes or ask a recipe related question"
 					/>
 					<input type="hidden" name="recipe" bind:value={recipeJson} />
-					<Button type="submit" label="Submit request" disabled={waiting || !promptInput?.trim()}>{waiting ? 'Thinking...' : 'Submit'}</Button>
+					<Button type="submit" label="Submit request" disabled={waiting || !promptInput?.trim()}
+						>{waiting ? 'Thinking...' : 'Submit'}</Button
+					>
 				</form>
 			</Prompt>
 		</div>
 	{:else}
-		<div class="mx-auto w-full max-w-3xl h-max grid place-content-center">
+		<div class="mx-auto grid h-max w-full max-w-3xl place-content-center">
 			<h1 class="fluid-heading-05 my-8">Ah donkey-spittle! There was a problem.</h1>
 			<p class="flex items-center gap-3">A recipe matching the provided ID could not be found.</p>
 		</div>

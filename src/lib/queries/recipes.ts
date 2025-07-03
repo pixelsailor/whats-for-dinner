@@ -1,9 +1,8 @@
+import type { PromptContext } from '$lib/types';
 import { sanitizePromptInput } from '$lib/utils';
 import { createQuery } from '@tanstack/svelte-query';
 
-export type promptContext = 'assistance' | 'detail' | 'revision' | 'summaries';
-
-async function query(action: promptContext, prompt: string, recipe?: string) {
+async function query(action: PromptContext, prompt: string, recipe?: string) {
 	const body: Record<string, unknown> = { action, prompt };
 	if (recipe !== undefined) body.recipe = recipe;
 

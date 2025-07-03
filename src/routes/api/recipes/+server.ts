@@ -1,33 +1,39 @@
 import { error, json, type RequestHandler } from '@sveltejs/kit';
-import { askCookingQuestion, getFullRecipe, getRecipeSuggestions } from '$lib/server/openai';
-import type { promptContext } from '$lib/queries/recipes';
+import { askCookingQuestion, getFullRecipe, getRecipeSuggestions, requestRecipeModifications } from '$lib/server/openai';
+import type { PromptContext } from '$lib/types';
 
 export const POST: RequestHandler = async ({ request }) => {
 	try {
-		const { action, prompt, recipe }: { action: promptContext; prompt: string; recipe?: string } =
+		const { action, prompt, recipe }: { action: PromptContext; prompt: string; recipe?: string } =
 			await request.json();
 
 		if (!prompt || typeof prompt !== 'string') {
 			return error(400, { message: 'A valid prompt is required' });
 		}
 
-		let response: [promptContext, string | null];
+		let response: [PromptContext, string | null];
 
 		switch (action) {
-			case 'summaries': {
-				response = await getRecipeSuggestions(prompt.trim());
-				break;
-			}
 			case 'assistance': {
 				if (!recipe || typeof recipe !== 'string') {
 					return error(400, { message: 'The request is missing a valid recipe string.' });
 				}
-
 				response = await askCookingQuestion(prompt, recipe);
 				break;
 			}
 			case 'detail': {
 				response = await getFullRecipe(prompt);
+				break;
+			}
+			case 'revision': {
+				if (!recipe || typeof recipe !== 'string') {
+					return error(400, { message: 'The request is missing a valid recipe string.' });
+				}
+				response = await requestRecipeModifications(prompt, recipe);
+				break;
+			}
+			case 'summaries': {
+				response = await getRecipeSuggestions(prompt.trim());
 				break;
 			}
 			default:

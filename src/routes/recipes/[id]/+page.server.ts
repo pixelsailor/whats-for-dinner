@@ -18,8 +18,8 @@ export const actions: Actions = {
     const queryFn = isModificationRequest(message) ? requestRecipeModifications : askCookingQuestion;
 
     try {
-      const response = await queryFn(message.trim(), recipe);
-      if (response) {
+      const response = await queryFn(message, recipe);
+      if (response && response[1]) {
         const [ type, message ] = response;
         return { type, message };
       } else {

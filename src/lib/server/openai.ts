@@ -1,5 +1,5 @@
 import { VITE_OPENAI_API_KEY } from '$env/static/private';
-import type { FullRecipe } from '$lib/types';
+import type { FullRecipe, PromptContext } from '$lib/types';
 import { OpenAI } from 'openai/client.js';
 import type { ChatCompletionMessageParam } from 'openai/resources';
 
@@ -9,9 +9,7 @@ const openai = new OpenAI({
 
 const model = 'gpt-4.1-nano';
 
-type promptContext = 'assistance' | 'detail' | 'revision' | 'summaries';
-
-export async function getRecipeSuggestions(input: string): Promise<[promptContext, string|null]> {
+export async function getRecipeSuggestions(input: string): Promise<[PromptContext, string|null]> {
 	const messages: ChatCompletionMessageParam[] = [
 		{
 			role: 'system',
@@ -105,7 +103,7 @@ Keep your formatting consistent and minimal.
   }
 }
 
-export async function requestRecipeModifications(input: string, recipe: string): Promise<['revised', string|null]> {
+export async function requestRecipeModifications(input: string, recipe: string): Promise<[PromptContext, string|null]> {
   const messages: ChatCompletionMessageParam[] = [
     {
       role: 'system',
@@ -151,14 +149,14 @@ Here is the user's modification request:
       temperature: 0.7
     });
 
-    return ['revised', response.choices[0].message.content ?? null];
+    return ['revision', response.choices[0].message.content ?? null];
   } catch (err) {
     console.error('OpenAI API error:', err);
     throw err;
   }
 }
 
-export async function askCookingQuestion(question: string, recipeJson: string): Promise<['assistance', string|null]> {
+export async function askCookingQuestion(question: string, recipeJson: string): Promise<[PromptContext, string|null]> {
   const recipe = JSON.parse(recipeJson) as FullRecipe;
   const prompt = `
 You are an helpful, experienced culinary assistant helping a user working on a recipe.

@@ -43,7 +43,7 @@
 
   let promptInput = $state<string>();
 	
-	let promptType = $state<'revised' | 'assistance'>();
+	let promptType = $state<PromptContext>();
 
   let promptRef = $state<HTMLElement>();
   

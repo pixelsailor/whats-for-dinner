@@ -2,8 +2,8 @@
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
 	import { db } from '$lib/db.js';
-	// import { setCachedRecipe } from '$lib/stores/recipes.js';
-	import type { FullRecipe, PromptContext, SavedRecipe, ViewState } from '$lib/types.js';
+	import { createFullRecipeQuery } from '$lib/queries/recipes.js';
+	import type { FullRecipe, PromptContext, SavedRecipe } from '$lib/types.js';
 	import { AppBar } from '$lib/ui/AppBar';
 	import Button from '$lib/ui/Button/Button.svelte';
 	import BackIcon from '$lib/ui/Icons/BackIcon.svelte';
@@ -23,18 +23,18 @@
 
   let { data, form } = $props();
 
-  let recipe = $state<FullRecipe>(data);
+  let recipe = $derived(createFullRecipeQuery(data.recipeTitle));
+
+  let fullRecipe = $derived($recipe.data?.data[1]);
 
   // Responsible for passing the recipe to the FormData
-	let recipeJson = $derived(recipe ? JSON.stringify(recipe) : '');
+	let recipeJson = $derived(fullRecipe ? JSON.stringify(fullRecipe) : '');
 
   // Account for sidenav width and adjust accordingly
   let left = $derived.by(() => {
 		if (vp.device === 'mobile') return '0';
 		return vp.nav === 'expanded' ? 'calc(18rem + 1px)' : 'calc(3.5rem + 1px)';
 	});
-
-  let view = $state<ViewState>('loading');
 
   let status = $state<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
@@ -85,40 +85,34 @@
     }
 	}
 
-	onMount(async () => {
-		if (data) {
-			view = 'idle';
-		}
-	});
-
   // Handle prompt responses
-  $effect(() => {
-		if (form && form.error === undefined) {
-			if (form.message === lastFormMessage) return;
+  // $effect(() => {
+	// 	if (form && form.error === undefined) {
+	// 		if (form.message === lastFormMessage) return;
 
-			const { type, message } = form;
-			promptType = type;
-			lastFormMessage = message;
-			working = false;
+	// 		const { type, message } = form;
+	// 		promptType = type;
+	// 		lastFormMessage = message;
+	// 		working = false;
 
-			if (type === 'assistance') {
-				conversationMsg = message;
-			} else {
-				try {
-          recipe = JSON.parse(message) as FullRecipe;
-					toast.success(`"${recipe.title}" updated`);
-          // setCachedRecipe(recipe.title, message)
-				} catch (err) {
-					console.error(err);
-					toast.error('There was a problem parsing the recipe JSON');
-				}
-			}
-		} else if (form && form.error) {
-			working = false;
-			console.error(form.error);
-			toast.error(`${form.error}`);
-		}
-	});
+	// 		if (type === 'assistance') {
+	// 			conversationMsg = message;
+	// 		} else {
+	// 			try {
+  //         recipe = JSON.parse(message) as FullRecipe;
+	// 				toast.success(`"${recipe.title}" updated`);
+  //         // setCachedRecipe(recipe.title, message)
+	// 			} catch (err) {
+	// 				console.error(err);
+	// 				toast.error('There was a problem parsing the recipe JSON');
+	// 			}
+	// 		}
+	// 	} else if (form && form.error) {
+	// 		working = false;
+	// 		console.error(form.error);
+	// 		toast.error(`${form.error}`);
+	// 	}
+	// });
 </script>
 
 <PageHeader>
@@ -126,27 +120,30 @@
 		<Button title="Back" onClick={goBack} label="Go back" size="xs" icon>
 			<BackIcon />
 		</Button>
-		<AppBar.Text primary={recipe.title} />
-		<AppBar.End>
-      <Button onClick={saveRecipe} label="Save recipe" size="xs" icon>
-        <BookmarkIcon />
-      </Button>
-    </AppBar.End>
+		<AppBar.Text primary={fullRecipe ? fullRecipe.title : 'Checking the pantry...'} />
+    {#if $recipe.data}
+      <AppBar.End>
+        <Button onClick={saveRecipe} label="Save recipe" size="xs" icon>
+          <BookmarkIcon />
+        </Button>
+      </AppBar.End>
+    {/if}
 	</AppBar.Root>
 </PageHeader>
 <article class="mx-auto max-w-5xl px-4 pt-24" style:padding-bottom={`calc(${promptHeight}px + 1.5rem)`}>
-	{#if view === 'loading'}
-		<div class="absolute inset-0 grid place-content-center">
-			<ProgressSpinner size="lg" />
+	{#if $recipe.isError}
+		<div class="mx-auto w-full max-w-3xl h-max grid place-content-center">
+			<h1 class="fluid-heading-05 my-8">Ah donkey-spittle! There was a problem.</h1>
+			<p class="flex items-center gap-3">A recipe matching the provided title could not be found.</p>
 		</div>
-	{:else if view === 'idle'}
+	{:else if $recipe.data && fullRecipe}
     <div class="mb-8">
       <Button onClick={goBack} label="Go back to recipe suggetions" size="sm">
 				<BackIcon size="xs" />
 				Back to suggestions
 			</Button>
     </div>
-		<Recipe recipe={recipe} />
+		<Recipe recipe={fullRecipe} />
     <Button onClick={saveRecipe} label="Save to My Recipes" disabled={working} size="sm">
       <BookmarkIcon size="xs" />
       Save to My Recipes
@@ -183,9 +180,8 @@
 			</Prompt>
 		</div>
 	{:else}
-		<div class="mx-auto w-full max-w-3xl h-max grid place-content-center">
-			<h1 class="fluid-heading-05 my-8">Ah donkey-spittle! There was a problem.</h1>
-			<p class="flex items-center gap-3">A recipe matching the provided title could not be found.</p>
+    <div class="absolute inset-0 grid place-content-center">
+			<ProgressSpinner size="lg" />
 		</div>
 	{/if}
 </article>

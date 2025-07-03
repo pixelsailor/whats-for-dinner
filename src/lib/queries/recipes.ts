@@ -19,13 +19,19 @@ async function query(action: PromptContext, prompt: string, recipe?: string) {
 	return response.json();
 }
 
+// Tanstack Query functions for caching. It's expected that URI prompts have been encoded
+
+// `createAssistanceQuery` and `createRevisionQuery` should not be cached. Keeping them so that
+// api calls can maintain a consistent usage format but these are not necessary and could hinder
+// sending requests to openai
+
 export function createAssistanceQuery(prompt: string, recipe: string) {
 	const sanitizedPrompt = sanitizePromptInput(decodeURIComponent(prompt));
 	return createQuery({
 		queryKey: ['assistance', sanitizedPrompt],
 		queryFn: () => query('assistance', sanitizedPrompt, recipe),
 		enabled: !!sanitizedPrompt && sanitizedPrompt.length > 0,
-		staleTime: Infinity
+		// staleTime: Infinity
 	});
 }
 
@@ -42,10 +48,10 @@ export function createFullRecipeQuery(prompt: string) {
 export function createRevisionQuery(prompt: string, recipe: string) {
 	const sanitizedPrompt = sanitizePromptInput(decodeURIComponent(prompt));
 	return createQuery({
-		queryKey: ['revision', sanitizedPrompt, recipe],
-		queryFn: () => query('revision', sanitizedPrompt),
+		queryKey: ['revision', sanitizedPrompt],
+		queryFn: () => query('revision', sanitizedPrompt, recipe),
 		enabled: !!sanitizedPrompt && sanitizedPrompt.length > 0,
-		staleTime: Infinity
+		// staleTime: Infinity
 	});
 }
 

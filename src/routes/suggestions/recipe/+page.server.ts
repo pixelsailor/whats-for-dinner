@@ -1,31 +1,13 @@
-import { askCookingQuestion, getFullRecipe, requestRecipeModifications } from '$lib/server/openai';
-// import { getCachedRecipe, setCachedRecipe } from '$lib/stores/recipes';
-import type { FullRecipe } from '$lib/types';
+import { askCookingQuestion, requestRecipeModifications } from '$lib/server/openai';
 import { isModificationRequest, sanitizePromptInput } from '$lib/utils';
 import { error, fail, type Actions, type ServerLoad } from '@sveltejs/kit';
 
-export const load: ServerLoad = async ({ url }): Promise<FullRecipe> => {
-  
+export const load: ServerLoad = async ({ url }) => {
   const encodedTitle = url.searchParams.get('title');
+  const encodedDesc = url.searchParams.get('desc');
 	if (!encodedTitle) error(404, 'No title provided');
-  
-	const title = decodeURIComponent(encodedTitle);
 
-	// Check session for cached recipe data
-	// const cachedRecipe = getCachedRecipe(title);
-	// if (cachedRecipe) {
-	// 	return JSON.parse(cachedRecipe);
-	// }
-
-	// Make API call using decoded searchParams
-	const response = await getFullRecipe(sanitizePromptInput(title));
-
-	if (response[1]) {
-		// setCachedRecipe(title, response); // cache the response
-		return JSON.parse(response[1]) as FullRecipe;
-	} else {
-		error(500, { message: 'The AI failed to produce a response.' });
-	}
+	return { recipeTitle: encodedTitle, shortDesc: encodedDesc };
 };
 
 export const actions: Actions = {

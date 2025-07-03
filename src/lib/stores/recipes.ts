@@ -1,32 +1,8 @@
 import { liveQuery } from 'dexie';
-import { readable, writable } from 'svelte/store';
+import { readable } from 'svelte/store';
 import { db } from '$lib/db';
 import type { SavedRecipe } from '$lib/types';
 import { createLiveQueryStore } from './_utils';
-
-// Store for unsaved recipes
-export const recipeCache = writable(new Map());
-
-// Cache helper functions
-export const getCachedRecipe = (title: string) => {
-	let cachedData = null;
-	recipeCache.subscribe((cache) => {
-		cachedData = cache.get(title);
-	})();
-	return cachedData;
-};
-
-/**
- * Write the recipe to cache
- * @param title - Title of the recipe
- * @param data - JSON string of the recipe
- */
-export const setCachedRecipe = (title: string, data: string) => {
-	recipeCache.update((cache) => {
-		cache.set(title, data);
-		return cache;
-	});
-};
 
 export const savedRecipes = readable<SavedRecipe[]>([], (recipes) => {
 	const subscription = liveQuery(async () => {

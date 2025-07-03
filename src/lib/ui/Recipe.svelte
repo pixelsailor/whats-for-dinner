@@ -31,7 +31,7 @@
   </div>
 </div>
 <div class="instructions my-8">
-  <h2 class="fluid-heading-03 my-2">Preparation:</h2>
+  <h2 class="fluid-heading-03 my-2">Instructions:</h2>
   <div class="instructions__content markdown">
     <SvelteMarkdown source={recipe.instructions} />
   </div>

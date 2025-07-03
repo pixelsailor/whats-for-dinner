@@ -11,12 +11,24 @@
 	import RecipesIcon from '$lib/ui/Icons/RecipesIcon.svelte';
 	import CollapseSidenavIcon from '$lib/ui/Icons/CollapseSidenavIcon.svelte';
 	import '../app.css';
+	import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query';
+	import { browser } from '$app/environment';
 
 	type Layout =
 		| 'mobile--collapsed'
 		| 'mobile--expanded'
 		| 'desktop--collapsed'
 		| 'desktop--expanded';
+
+	const queryClient = new QueryClient({
+		defaultOptions: {
+			queries: {
+				enabled: browser,
+				retry: 2,
+				// staleTime: 5 * 60 * 1000 // 5 minutes
+			}
+		}
+	});
 
 	let { children } = $props();
 
@@ -116,6 +128,7 @@
 
 <svelte:window bind:innerWidth={vp.width} />
 
+<QueryClientProvider client={queryClient}>
 <div
 	class="flex h-full w-full flex-row flex-nowrap overflow-x-hidden"
 >
@@ -168,8 +181,9 @@
 		{@render children()}
 	</div>
 </div>
-
 <Toaster position={vp.device === 'mobile' ? 'top-center' : 'top-right'} />
+</QueryClientProvider>
+
 
 <style>
 	.sidebar {

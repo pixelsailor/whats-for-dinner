@@ -18,10 +18,10 @@
 	"dependencies": {
 		"@humanspeak/svelte-markdown": "^0.8.7",
 		"@supabase/supabase-js": "^2.50.0",
+		"@tanstack/svelte-query": "^5.81.5",
 		"bits-ui": "^2.8.8",
 		"carbon-icons-svelte": "^13.4.0",
 		"dexie": "^4.0.11",
-		"mutative": "^1.2.0",
 		"openai": "^5.7.0",
 		"svelte-sonner": "^1.0.5",
 		"uuid": "^11.1.0"

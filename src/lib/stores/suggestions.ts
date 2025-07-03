@@ -2,7 +2,6 @@ import { db } from '$lib/db';
 import type { RecipeSummary, Suggestion } from '$lib/types';
 import { liveQuery } from 'dexie';
 import { readable, writable } from 'svelte/store';
-import { v4 as uuid } from 'uuid';
 
 export const suggestionMap = writable<Map<string, RecipeSummary>>(new Map());
 
@@ -41,11 +40,11 @@ export async function saveSuggestions(suggestions: RecipeSummary[]) {
 	const now = Date.now();
 	const enriched: Suggestion[] = suggestions.map((s) => ({
 		...s,
-		id: uuid(),
+		id: s.title.toLowerCase().replaceAll(' ', '-'),
 		created_at: now
 	}));
 
-	await db.suggestions.bulkAdd(enriched);
+	await db.suggestions.bulkPut(enriched);
 
 	// Prune old suggestions beyond 100-item limit
 	const count = await db.suggestions.count();
@@ -58,4 +57,17 @@ export async function saveSuggestions(suggestions: RecipeSummary[]) {
 		const extraIds = extras.map((s) => s.id);
 		await db.suggestions.bulkDelete(extraIds);
 	}
+}
+
+export async function deleteSuggestion(id: string) {
+	await db.suggestions.delete(id);
+}
+
+/**
+ * Bulk delete all stored `suggestions`
+ */
+export async function bulkDeleteSuggestions() {
+	const collection = db.suggestions.toCollection();
+	const keys = await collection.primaryKeys();
+	await db.suggestions.bulkDelete(keys);
 }

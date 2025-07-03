@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
+	import { db } from '$lib/db';
 	import { createSuggestionsQuery } from '$lib/queries/recipes.js';
-	import { suggestionHistory } from '$lib/stores/suggestions.js';
+	import { bulkDeleteSuggestions, saveSuggestions, suggestionHistory } from '$lib/stores/suggestions.js';
 	import type { RecipeSummary } from '$lib/types';
 	import { AppBar } from '$lib/ui/AppBar';
 	import Button from '$lib/ui/Button/Button.svelte';
@@ -26,9 +27,10 @@
 	// Save suggestions to history
 	$effect(() => {
 		if (hasPrompt && $query?.data) {
-			console.log('save suggestions to history');
-			// const summaries = $query.data.data;
-			// saveSuggestions(summaries);
+			if ($query.data.data[1]) {
+				const summaries = $query.data.data[1] as RecipeSummary[];
+				saveSuggestions(summaries);
+			}
 		}
 	});
 
@@ -89,8 +91,14 @@
 		<div class="py-24">
 			<h1 class="fluid-heading-05 mb-4">Suggestion History</h1>
 			{#if $suggestionHistory.length > 0}
+				<div class="flex flex-row items-center justify-between">
+					<Button size="sm" onClick={() => bulkDeleteSuggestions()} label="Delete suggestions">
+						Delete suggestions
+					</Button>
+				</div>
 				<List>
 					{#each $suggestionHistory as summary}
+						<hr class="border-gray-200 dark:border-gray-700" />
 						<ListItem.Root>
 							<ListItem.Button onClick={() => getFullRecipe(summary)} disabled={working}>
 								<ListItem.Text primary={summary.title} secondary={summary.short_description} />

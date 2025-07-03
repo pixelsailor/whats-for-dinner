@@ -64,7 +64,7 @@
 	{:else if app.view === 'idle'}
 		<div class="mx-auto w-full max-w-3xl">
 			<h1 class="fluid-heading-06 my-4 text-center">What's for Dinner?</h1>
-			<Prompt>
+			<Prompt style="margin-bottom: 0">
 				<form class="flex w-full flex-row gap-2" onsubmit={getSuggestions}>
 					<input
 						class="grow p-1"
@@ -84,6 +84,11 @@
 					</Button>
 				</form>
 			</Prompt>
+			<div class="mt-2 flex flex-row gap-1">
+				<Button href="/suggestions" size="sm">
+					Recent suggestions
+				</Button>
+			</div>
 		</div>
 	{:else if app.view === 'error'}
 		<div class="error">

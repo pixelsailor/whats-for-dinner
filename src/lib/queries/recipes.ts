@@ -1,8 +1,6 @@
 import { createQuery, useQueryClient } from '@tanstack/svelte-query';
 
 export function createSuggestionsQuery(prompt: string) {
-  console.log('createSuggestionsQuery', prompt);
-  
 	return createQuery({
 		queryKey: ['suggestions', prompt],
 		queryFn: async () => {

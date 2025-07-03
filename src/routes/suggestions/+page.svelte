@@ -50,11 +50,11 @@
 		}
 	});
 
-	$effect(() => {
-		// Save suggestions to history
-		const summaries = $query.data.data;
-		// saveSuggestions(summaries);
-	})
+	// $effect(() => {
+	// 	// Save suggestions to history
+	// 	const summaries = $query.data.data;
+	// 	// saveSuggestions(summaries);
+	// })
 
   function getFullRecipe(recipe: RecipeSummary) {
 		working = true;

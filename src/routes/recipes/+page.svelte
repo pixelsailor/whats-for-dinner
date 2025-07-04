@@ -3,7 +3,7 @@
 
 	import { db } from '$lib/db';
 	import { recipes } from '$lib/stores/recipes';
-  import Button from '$lib/ui/Button/Button.svelte'
+	import Button from '$lib/ui/Button/Button.svelte';
 	import { List, ListItem } from '$lib/ui/List';
 	import IconButton from '$lib/ui/IconButton.svelte';
 	import TrashIcon from '$lib/ui/Icons/TrashIcon.svelte';
@@ -19,7 +19,7 @@
 
 	async function deleteRecipe(id: string, title: string) {
 		// if (confirm('Delete this recipe?')) {
-    const deletedAt = Date.now();
+		const deletedAt = Date.now();
 
 		try {
 			await db.recipes.update(id, { archived: deletedAt });
@@ -32,7 +32,7 @@
 						toast.success(`"${title}" restored`);
 					}
 				},
-        duration: 5000
+				duration: 5000
 			});
 		} catch (err) {
 			toast.error('Failed to delete recipe');
@@ -40,7 +40,6 @@
 		}
 		// }
 	}
-
 </script>
 
 <PageHeader>
@@ -57,31 +56,41 @@
 	</AppBar.Root>
 </PageHeader>
 
-<main class="mx-auto max-w-5xl px-4 min-h-screen">
+<main class="mx-auto min-h-screen max-w-5xl px-4">
 	{#if $recipes.loading}
-		<div class="mx-auto w-full max-w-3xl h-screen grid place-content-center">
+		<div class="mx-auto grid h-screen w-full max-w-3xl place-content-center">
 			<ProgressSpinner size="lg" />
 		</div>
 	{:else if $recipes.error}
-		<div class="mx-auto w-full max-w-3xl h-screen grid place-content-center gap-6">
+		<div class="mx-auto grid h-screen w-full max-w-3xl place-content-center gap-6">
 			<h1 class="fluid-heading-05">Ah donkey-spittle! There was a problem.</h1>
-			<p class="flex items-center gap-3"><span class="fluid-heading-03">{$recipes.error.name}</span><span>|</span><span>{$recipes.error?.message}</span></p>
+			<p class="flex items-center gap-3">
+				<span class="fluid-heading-03">{$recipes.error.name}</span><span>|</span><span
+					>{$recipes.error?.message}</span
+				>
+			</p>
 		</div>
 	{:else if $recipes.data}
 		<div class="py-24">
 			<h1 class="fluid-heading-05 mb-8">My Recipes</h1>
 			<List size="three-line">
 				{#each $recipes.data as recipe}
-					<hr class="border-gray-200">
+					<hr class="border-gray-200 dark:border-gray-800" />
 					<div transition:slide={{ duration: 300, axis: 'y' }}>
 						<ListItem.Root>
 							<ListItem.Link href="/recipes/{recipe.id}">
 								<ListItem.Text primary={recipe.title} secondary={recipe.short_description} />
 							</ListItem.Link>
 							<ListItem.SecondaryAction>
-								<IconButton title="Delete recipe" onClick={() => deleteRecipe(recipe.id, recipe.title)} size="xs">
+								<Button
+									title="Delete recipe"
+									onClick={() => deleteRecipe(recipe.id, recipe.title)}
+									label="Delete recipe"
+									size="xs"
+									icon
+								>
 									<TrashIcon />
-								</IconButton>
+								</Button>
 							</ListItem.SecondaryAction>
 						</ListItem.Root>
 					</div>

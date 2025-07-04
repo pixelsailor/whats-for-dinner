@@ -5,6 +5,7 @@
 	import Prompt from '$lib/ui/Prompt.svelte';
 	import { goto } from '$app/navigation';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
+	import { getGreeting } from '$lib/greetings';
 
 	const vp = getContext<Viewport>('viewport');
 
@@ -39,10 +40,7 @@
 		return messages[Math.floor(Math.random() * max)];
 	}
 
-	/**
-	 * Handles prompt form, sending input value as URL params
-	 * @param e
-	 */
+	/** Handles prompt form, sending input value as URL params */
 	function getSuggestions(e: Event) {
 		e.preventDefault();
 		if (!app.input.trim()) return;
@@ -63,7 +61,7 @@
 		</div>
 	{:else if app.view === 'idle'}
 		<div class="mx-auto w-full max-w-3xl">
-			<h1 class="fluid-heading-06 my-4 text-center">What's for Dinner?</h1>
+			<h1 class="fluid-heading-06 my-4 text-center">{getGreeting()}</h1>
 			<Prompt style="margin-bottom: 0">
 				<form class="flex w-full flex-row gap-2" onsubmit={getSuggestions}>
 					<input
@@ -71,7 +69,7 @@
 						type="text"
 						name="input"
 						bind:value={app.input}
-						placeholder={promptPlaceholder}
+						placeholder="Ask for event ideas, regional recipes, or just list ingredients"
 						disabled={working}
 					/>
 					<Button

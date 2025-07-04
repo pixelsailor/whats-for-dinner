@@ -22,7 +22,10 @@ export const POST: RequestHandler = async ({ request }) => {
 				break;
 			}
 			case 'detail': {
-				response = await getFullRecipe(prompt);
+				if (!recipe || typeof recipe !== 'string') {
+					return error(400, { message: 'The request is missing a short description.' });
+				}
+				response = await getFullRecipe(prompt, recipe);
 				break;
 			}
 			case 'revision': {

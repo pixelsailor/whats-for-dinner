@@ -3,7 +3,7 @@
 	import { beforeNavigate, goto } from '$app/navigation';
 	import { db } from '$lib/db.js';
 	import { createFullRecipeQuery } from '$lib/queries/recipes.js';
-	import type { FullRecipe, PromptContext, SavedRecipe } from '$lib/types.js';
+	import type { FullRecipe, PromptContext } from '$lib/types.js';
 	import { AppBar } from '$lib/ui/AppBar';
 	import Button from '$lib/ui/Button/Button.svelte';
 	import BackIcon from '$lib/ui/Icons/BackIcon.svelte';
@@ -14,7 +14,7 @@
 	import Prompt from '$lib/ui/Prompt.svelte';
 	import Recipe from '$lib/ui/Recipe.svelte';
 	import SvelteMarkdown from '@humanspeak/svelte-markdown';
-	import { getContext, onMount } from 'svelte';
+	import { getContext } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import { slide } from 'svelte/transition';
 	import { v4 as uuid } from 'uuid';
@@ -23,7 +23,7 @@
 
 	let { data, form } = $props();
 
-	let recipe = $derived(createFullRecipeQuery(data.recipeTitle));
+	let recipe = $derived(createFullRecipeQuery(data.recipeTitle, data.desc));
 
 	let fullRecipe = $derived<FullRecipe>($recipe.data?.data[1]);
 

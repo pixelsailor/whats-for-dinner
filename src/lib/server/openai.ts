@@ -41,7 +41,7 @@ export async function getRecipeSuggestions(input: string): Promise<[PromptContex
 	}
 }
 
-export async function getFullRecipe(title: string): Promise<['detail', string|null]> {
+export async function getFullRecipe(title: string, desc: string): Promise<['detail', string|null]> {
   const messages: ChatCompletionMessageParam[] = [
     {
       role: 'system',
@@ -85,7 +85,7 @@ Keep your formatting consistent and minimal.
     },
     {
       role: 'user',
-      content: `Give me the full recipe for, "${title}"`
+      content: `Give me the full recipe for, "${title}", in accordance with its description, "${desc}"`
     }
   ];
 

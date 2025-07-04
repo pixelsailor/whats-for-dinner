@@ -35,11 +35,13 @@ export function createAssistanceQuery(prompt: string, recipe: string) {
 	});
 }
 
-export function createFullRecipeQuery(prompt: string) {
+// Using "recipe" on this one so that the POST response doesn't need a unique argument
+export function createFullRecipeQuery(prompt: string, recipe: string) {
 	const sanitizedPrompt = sanitizePromptInput(decodeURIComponent(prompt));
+	const sanitizedDesc = sanitizePromptInput(decodeURIComponent(recipe));
 	return createQuery({
 		queryKey: ['detail', sanitizedPrompt],
-		queryFn: () => query('detail', sanitizedPrompt),
+		queryFn: () => query('detail', sanitizedPrompt, sanitizedDesc),
 		enabled: !!sanitizedPrompt && sanitizedPrompt.length > 0,
 		staleTime: Infinity
 	});

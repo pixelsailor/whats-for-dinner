@@ -5,9 +5,10 @@ import { error, fail, type Actions, type ServerLoad } from '@sveltejs/kit';
 export const load: ServerLoad = async ({ url }) => {
   const encodedTitle = url.searchParams.get('title');
   const encodedDesc = url.searchParams.get('desc');
+	
 	if (!encodedTitle) error(404, 'No title provided');
 
-	return { recipeTitle: encodedTitle, shortDesc: encodedDesc };
+	return { recipeTitle: encodedTitle, desc: encodedDesc || 'no description given' };
 };
 
 export const actions: Actions = {

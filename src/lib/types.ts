@@ -37,6 +37,7 @@ export type Suggestion = RecipeSummary & {
 
 export type FullRecipe = {
 	title: string;
+	short_description: string;
 	description: string;
 	ingredients: string; // markdown
 	instructions: string; // markdown
@@ -45,7 +46,6 @@ export type FullRecipe = {
 		prep: string;
 		cook: string;
 		total: string;
-		chill?: string;
 	}
   tags: string[];
 	yield: string;
@@ -54,7 +54,6 @@ export type FullRecipe = {
 
 export type SavedRecipe = FullRecipe & {
 	id: string;
-	short_description: string;
 	created_at: number;
 	archived?: number;
 	last_opened: number;

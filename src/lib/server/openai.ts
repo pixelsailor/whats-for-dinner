@@ -45,12 +45,13 @@ export async function getFullRecipe(title: string, desc: string): Promise<['deta
   const messages: ChatCompletionMessageParam[] = [
     {
       role: 'system',
-      content: `You are an expert culinary assistant.
+      content: `You are an expert culinary assistant with professional insight into preparation and process.
 Respond ONLY with valid JSON in the following format:
       
 {
   "title": "string",
-  "description": "string",
+  "short_description": "string (use the user's provided description)",
+  "description": "string (can be a long form of the user's description with additional commentary or suggested pairings)",
   "ingredients": "markdown string (DO NOT wrap with triple backticks or code blocks)",
   "instructions": "markdown string (DO NOT wrap with triple backticks or code blocks)",
   "tags": ["string", ...],
@@ -85,7 +86,7 @@ Keep your formatting consistent and minimal.
     },
     {
       role: 'user',
-      content: `Give me the full recipe for, "${title}", in accordance with its description, "${desc}"`
+      content: `Give me the full recipe for, "${title}", as described by, "${desc}"`
     }
   ];
 
@@ -112,6 +113,7 @@ You must respond ONLY with a full updated version of the recipe in JSON format t
 
 {
   "title": "string",
+  "short_description": "string",
   "description": "string",
   "ingredients": "markdown",
   "instructions": "markdown",

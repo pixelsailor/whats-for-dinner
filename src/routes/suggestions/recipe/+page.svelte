@@ -67,16 +67,18 @@
 
 		try {
 			const now = Date.now();
-			const newRecipe: FullRecipe = JSON.parse(JSON.stringify(recipe));
-			const recipeId = await db.recipes.put({
-				...newRecipe,
-				short_description: '',
+			const clonedRecipe: FullRecipe = JSON.parse(JSON.stringify(fullRecipe));
+			const newRecipe = {
+				...clonedRecipe,
 				id: uuid(),
 				created_at: now,
 				last_opened: now,
 				version: 1,
 				is_current: true
-			});
+			};
+
+			const recipeId = await db.recipes.put(newRecipe);
+			
 			status = 'saved';
 			goto(`/recipes/${recipeId}`, { replaceState: true });
 		} catch (err) {

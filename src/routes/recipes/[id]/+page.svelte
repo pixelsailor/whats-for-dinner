@@ -23,7 +23,7 @@
 
 	let { form } = $props();
 
-	let id = $state(page.params.id);
+	let id = $derived(page.params.id);
 
 	let promptInput = $state<string>();
 

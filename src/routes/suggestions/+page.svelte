@@ -44,7 +44,6 @@
 
 	// Filter suggestions
 	function filterSuggestions(value: string) {
-		console.log('filterSuggestions', value);
 		const lower = value.toLowerCase();
 		return $suggestionHistory.filter(
 			(s) =>

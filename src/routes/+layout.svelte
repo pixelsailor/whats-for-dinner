@@ -14,6 +14,9 @@
 	import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query';
 	import { browser } from '$app/environment';
 	import { db } from '$lib/db';
+	import ChatbotIcon from '$lib/ui/Icons/ChatbotIcon.svelte';
+	import SettingsIcon from '$lib/ui/Icons/SettingsIcon.svelte';
+	import OpenPanelLeftIcon from '$lib/ui/Icons/OpenPanelLeftIcon.svelte';
 
 	type Layout =
 		| 'mobile--collapsed'
@@ -96,46 +99,53 @@
 
 {#snippet sidenav()}
 	<AppBar.Root>
+		<Button size="md" href="/" icon>
+			<ChatbotIcon />
+		</Button>
+		<AppBar.Text primary="" />
 		<AppBar.End>
-			<Button size="xs" onClick={toggleSidenav} label="Get new suggestions" icon>
+			<Button size="xs" onClick={toggleSidenav} label="Minimize navigation panel" icon>
 				<CollapseSidenavIcon />
 			</Button>
 		</AppBar.End>
 	</AppBar.Root>
-	<List>
-		<ListItem.Root>
-			<ListItem.Link href="/">
-				<RecipesIcon size="xs" />
-				New Suggestions
-			</ListItem.Link>
-		</ListItem.Root>
-		<ListItem.Root>
-			<ListItem.Link href="/recipes">
-				<RecipesIcon size="xs" />
-				My Recipes
-			</ListItem.Link>
-		</ListItem.Root>
-	</List>
-	<div class="mt-8 px-4">
-		<span class="heading-compact text-gray-500">Recent recipes</span>
-	</div>
-	{#if $recentlyOpened.length === 0}
-		<p>Your recently viewed recipes will appear.</p>
-	{:else if $recentlyOpened.length > 0}
+	<div class="px-1 -my-1">
 		<List>
-			{#each $recentlyOpened as recipe}
-				<ListItem.Root>
-					<ListItem.Link href="/recipes/{recipe.id}">
-						{recipe.title}
-					</ListItem.Link>
-				</ListItem.Root>
-			{/each}
+			<ListItem.Root>
+				<ListItem.Link href="/">
+					<ChatbotIcon size="xs" />
+					New Suggestions
+				</ListItem.Link>
+			</ListItem.Root>
+			<ListItem.Root>
+				<ListItem.Link href="/recipes">
+					<RecipesIcon size="xs" />
+					My Recipes
+				</ListItem.Link>
+			</ListItem.Root>
 		</List>
-	{/if}
-	<div class="fixed bottom-0 w-full">
+		<div class="mt-8 px-4">
+			<span class="heading-compact text-gray-500">Recent recipes</span>
+		</div>
+		{#if $recentlyOpened.length === 0}
+			<p>Your recently viewed recipes will appear.</p>
+		{:else if $recentlyOpened.length > 0}
+			<List>
+				{#each $recentlyOpened as recipe}
+					<ListItem.Root>
+						<ListItem.Link href="/recipes/{recipe.id}">
+							{recipe.title}
+						</ListItem.Link>
+					</ListItem.Root>
+				{/each}
+			</List>
+		{/if}
+	</div>
+	<div class="fixed bottom-0 px-1 w-full">
 		<List>
 			<ListItem.Root>
 				<ListItem.Link href="/preferences">
+					<SettingsIcon size="xs" />
 					Preferences
 				</ListItem.Link>
 			</ListItem.Root>
@@ -166,22 +176,23 @@
 			<AppBar.Root>
 				<AppBar.Start>
 					<Button size="xs" onClick={toggleSidenav} label="Toggle side-nav" icon>
-						<CollapseSidenavIcon />
+						<OpenPanelLeftIcon />
 					</Button>
 				</AppBar.Start>
 			</AppBar.Root>
-			<List>
-				<ListItem.Root>
-					<ListItem.Link href="/">
-						<RecipesIcon size="xs" />
-					</ListItem.Link>
-				</ListItem.Root>
-				<ListItem.Root>
-					<ListItem.Link href="/recipes">
-						<RecipesIcon size="xs" />
-					</ListItem.Link>
-				</ListItem.Root>
-			</List>
+			<div class="p-1 flex flex-col gap-2">
+				<Button href="/" size="xs" label="Home" icon>
+					<ChatbotIcon />
+				</Button>
+				<Button href="/recipes" size="xs" label="My Recipes" icon>
+					<RecipesIcon />
+				</Button>
+			</div>
+			<div class="fixed bottom-0 px-1 py-2">
+				<Button href="/preferences" size="xs" label="My Recipes" icon>
+					<SettingsIcon />
+				</Button>
+			</div>
 		</div>
 	{:else}
 		<!-- Standard desktop Layout with sidenav expanded -->

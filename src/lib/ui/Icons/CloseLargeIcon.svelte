@@ -8,7 +8,7 @@
 <IconRoot {size}>
 	{#snippet children(iconSize: number | string)}
 		<svg
-			data-svg-carbon-icon="Close32"
+			data-svg-carbon-icon="CloseLarge32"
 			xmlns="http://www.w3.org/2000/svg"
 			viewBox="0 0 32 32"
 			fill="currentColor"
@@ -17,7 +17,7 @@
 			preserveAspectRatio="xMidYMid meet"
 		>
 			<path
-				d="M17.4141 16L24 9.4141 22.5859 8 16 14.5859 9.4143 8 8 9.4141 14.5859 16 8 22.5859 9.4143 24 16 17.4141 22.5859 24 24 22.5859 17.4141 16z"
+				d="M17.4141 16L26 7.4141 24.5859 6 16 14.5859 7.4143 6 6 7.4141 14.5859 16 6 24.5859 7.4143 26 16 17.4141 24.5859 26 26 24.5859 17.4141 16z"
 			></path>
 		</svg>
 	{/snippet}

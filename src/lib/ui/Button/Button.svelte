@@ -11,6 +11,7 @@
 		icon?: boolean;
 		primary?: boolean;
 		onClick?: MouseEventHandler<HTMLButtonElement>;
+		onClickCapture?: MouseEventHandler<HTMLButtonElement>;
 		size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 		shape?: 'round' | 'square';
 		title?: string;
@@ -21,7 +22,7 @@
 
 	type ButtonProps =
 		| (BaseProps & { label: string; href?: never })
-		| (BaseProps & { href: string; label?: string; onClick?: never; type?: never });
+		| (BaseProps & { href: string; label?: string; onClick?: never; onClickCapture?: never; type?: never });
 
 	let {
 		children,
@@ -32,6 +33,7 @@
 		primary = false,
 		label,
 		onClick,
+		onClickCapture,
 		size = 'sm',
 		shape = 'square',
 		title,
@@ -131,6 +133,7 @@
 	<button
 		{...props}
 		onclick={onClick}
+		onclickcapture={onClickCapture}
 		tabindex="0"
 		{title}
 		type={type || 'button'}

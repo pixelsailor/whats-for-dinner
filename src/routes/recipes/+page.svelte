@@ -5,7 +5,6 @@
 	import { recipes } from '$lib/stores/recipes';
 	import Button from '$lib/ui/Button/Button.svelte';
 	import { List, ListItem } from '$lib/ui/List';
-	import IconButton from '$lib/ui/IconButton.svelte';
 	import TrashIcon from '$lib/ui/Icons/TrashIcon.svelte';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
 	import { slide } from 'svelte/transition';

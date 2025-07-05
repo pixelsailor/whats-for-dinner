@@ -9,11 +9,11 @@ const openai = new OpenAI({
 
 const model = 'gpt-4.1-nano';
 
-export async function getRecipeSuggestions(input: string): Promise<[PromptContext, string|null]> {
+export async function getRecipeSuggestions(input: string, userPreferences: string): Promise<[PromptContext, string|null]> {
 	const messages: ChatCompletionMessageParam[] = [
 		{
 			role: 'system',
-			content: `You are a meal planner. Response with a JSON array of 4-8 meal ideas based on the users's input. Each item should include:
+			content: `You are a meal planner. Response with a JSON array of 4-8 meal ideas based on the users's input. ${userPreferences} Each item should include:
       - title (string)
       - short_description (string)
       - estimated_time (e.g., "30 min")
@@ -41,11 +41,12 @@ export async function getRecipeSuggestions(input: string): Promise<[PromptContex
 	}
 }
 
-export async function getFullRecipe(title: string, desc: string): Promise<['detail', string|null]> {
+export async function getFullRecipe(title: string, desc: string, userPreferences?: string): Promise<['detail', string|null]> {
   const messages: ChatCompletionMessageParam[] = [
     {
       role: 'system',
       content: `You are an expert culinary assistant with professional insight into preparation and process.
+${userPreferences}
 Respond ONLY with valid JSON in the following format:
       
 {
@@ -78,6 +79,7 @@ Formatting Guidelines:
   - Use regular paragraph formatting or a markdown list.
 - DO NOT wrap any markdown with triple backticks or code blocks.
 - DO NOT return any extra text — respond with pure JSON only.
+- DO NOT use subheadings greater than three hashes (do NOT use "#" or "##").
 - If a field is unknown or not needed, omit it.
 - DO NOT include any emojis or non-ASCII characters.
 
@@ -93,7 +95,8 @@ Keep your formatting consistent and minimal.
   try {
     const response = await openai.chat.completions.create({
       model,
-      messages
+      messages,
+      temperature: 0.4
     });
   
     return ['detail', response.choices[0].message.content ?? null];
@@ -148,7 +151,7 @@ Here is the user's modification request:
     const response = await openai.chat.completions.create({
       model,
       messages,
-      temperature: 0.7
+      temperature: 0.4
     });
 
     return ['revision', response.choices[0].message.content ?? null];
@@ -187,7 +190,7 @@ ${question}
       { role: 'system', content: prompt },
       { role: 'user', content: input }
     ],
-    temperature: 0.7
+    temperature: 0.4
   });
 
   return ['assistance', response.choices[0].message.content ?? null];

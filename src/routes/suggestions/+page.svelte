@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { db } from '$lib/db';
 	import { createSuggestionsQuery } from '$lib/queries/recipes.js';
 	import { bulkDeleteSuggestions, saveSuggestions, suggestionHistory } from '$lib/stores/suggestions.js';
 	import type { RecipeSummary } from '$lib/types';
@@ -12,11 +11,15 @@
 	import PageHeader from '$lib/ui/PageHeader.svelte';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
 
+	let { data } = $props();
+
+	let userPreferences = $state(data.preferences);
+
 	let prompt = $derived(page.url.searchParams.get('prompt'));
 
 	const hasPrompt = $derived(!!prompt);
 
-	let query = $derived(createSuggestionsQuery(prompt));
+	let query = $derived(createSuggestionsQuery(prompt, userPreferences));
 
 	let working = $state(false);
 

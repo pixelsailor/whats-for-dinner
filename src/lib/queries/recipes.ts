@@ -2,9 +2,20 @@ import type { PromptContext } from '$lib/types';
 import { sanitizePromptInput } from '$lib/utils';
 import { createQuery } from '@tanstack/svelte-query';
 
-async function query(action: PromptContext, prompt: string, recipe?: string) {
+async function query({
+	action,
+	prompt,
+	recipe,
+	prefs
+}: {
+	action: PromptContext;
+	prompt: string;
+	recipe?: string;
+	prefs?: string;
+}) {
 	const body: Record<string, unknown> = { action, prompt };
 	if (recipe !== undefined) body.recipe = recipe;
+	if (prefs !== undefined) body.preferences = prefs;
 
 	const response = await fetch('/api/recipes', {
 		method: 'POST',
@@ -29,8 +40,8 @@ export function createAssistanceQuery(prompt: string, recipe: string) {
 	const sanitizedPrompt = sanitizePromptInput(decodeURIComponent(prompt));
 	return createQuery({
 		queryKey: ['assistance', sanitizedPrompt],
-		queryFn: () => query('assistance', sanitizedPrompt, recipe),
-		enabled: !!sanitizedPrompt && sanitizedPrompt.length > 0,
+		queryFn: () => query({ action: 'assistance', prompt: sanitizedPrompt, recipe }),
+		enabled: !!sanitizedPrompt && sanitizedPrompt.length > 0
 		// staleTime: Infinity
 	});
 }
@@ -41,7 +52,7 @@ export function createFullRecipeQuery(prompt: string, recipe: string) {
 	const sanitizedDesc = sanitizePromptInput(decodeURIComponent(recipe));
 	return createQuery({
 		queryKey: ['detail', sanitizedPrompt],
-		queryFn: () => query('detail', sanitizedPrompt, sanitizedDesc),
+		queryFn: () => query({ action: 'detail', prompt: sanitizedPrompt, recipe: sanitizedDesc }),
 		enabled: !!sanitizedPrompt && sanitizedPrompt.length > 0,
 		staleTime: Infinity
 	});
@@ -51,19 +62,21 @@ export function createRevisionQuery(prompt: string, recipe: string) {
 	const sanitizedPrompt = sanitizePromptInput(decodeURIComponent(prompt));
 	return createQuery({
 		queryKey: ['revision', sanitizedPrompt],
-		queryFn: () => query('revision', sanitizedPrompt, recipe),
-		enabled: !!sanitizedPrompt && sanitizedPrompt.length > 0,
+		queryFn: () => query({ action: 'revision', prompt: sanitizedPrompt, recipe }),
+		enabled: !!sanitizedPrompt && sanitizedPrompt.length > 0
 		// staleTime: Infinity
 	});
 }
 
-export function createSuggestionsQuery(prompt: string | null) {
+export function createSuggestionsQuery(prompt: string | null, preferences?: string) {
 	if (!prompt) return null;
 
 	const sanitizedPrompt = sanitizePromptInput(decodeURIComponent(prompt));
+	const prefs = preferences ? sanitizePromptInput(preferences) : '';
+
 	return createQuery({
 		queryKey: ['summaries', sanitizedPrompt],
-		queryFn: () => query('summaries', sanitizedPrompt),
+		queryFn: () => query({ action: 'summaries', prompt: sanitizedPrompt, prefs }),
 		enabled: !!sanitizedPrompt && sanitizedPrompt.length > 0,
 		staleTime: Infinity
 	});

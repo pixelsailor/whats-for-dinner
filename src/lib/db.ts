@@ -1,10 +1,11 @@
 import Dexie, { type Table } from 'dexie';
-import type { PantryItem, SavedRecipe, Suggestion } from './types';
+import type { PantryItem, SavedRecipe, Suggestion, UserPreferences } from './types';
 
 class MealDexie extends Dexie {
 	recipes!: Table<SavedRecipe, string>;
 	suggestions!: Table<Suggestion, string>;
 	pantry!: Table<PantryItem, string>;
+	preferences!: Table<UserPreferences, string>;
 
 	constructor() {
 		super('meal_assistant');
@@ -12,7 +13,8 @@ class MealDexie extends Dexie {
 		this.version(1).stores({
 			recipes: 'id, title, created_at, archived, last_opened',
 			suggestions: 'id, created_at',
-			pantry: 'id, name, added_at'
+			pantry: 'id, name, added_at',
+			preferences: 'id',
 		});
 	}
 }

@@ -2,9 +2,10 @@ import { error, json, type RequestHandler } from '@sveltejs/kit';
 import { askCookingQuestion, getFullRecipe, getRecipeSuggestions, requestRecipeModifications } from '$lib/server/openai';
 import type { PromptContext } from '$lib/types';
 
+
 export const POST: RequestHandler = async ({ request }) => {
 	try {
-		const { action, prompt, recipe }: { action: PromptContext; prompt: string; recipe?: string } =
+		const { action, prompt, recipe, preferences, }: { action: PromptContext; prompt: string; recipe?: string; preferences?: string; } =
 			await request.json();
 
 		if (!prompt || typeof prompt !== 'string') {
@@ -25,7 +26,7 @@ export const POST: RequestHandler = async ({ request }) => {
 				if (!recipe || typeof recipe !== 'string') {
 					return error(400, { message: 'The request is missing a short description.' });
 				}
-				response = await getFullRecipe(prompt, recipe);
+				response = await getFullRecipe(prompt, recipe, preferences);
 				break;
 			}
 			case 'revision': {
@@ -36,7 +37,7 @@ export const POST: RequestHandler = async ({ request }) => {
 				break;
 			}
 			case 'summaries': {
-				response = await getRecipeSuggestions(prompt.trim());
+				response = await getRecipeSuggestions(prompt, preferences || '');
 				break;
 			}
 			default:

@@ -13,6 +13,7 @@
 	import '../app.css';
 	import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query';
 	import { browser } from '$app/environment';
+	import { db } from '$lib/db';
 
 	type Layout =
 		| 'mobile--collapsed'
@@ -81,6 +82,13 @@
 
 	setContext('viewport', vp);
 
+	onMount(async () => {
+		const prefs = await db.preferences.get('preferences');
+		if (!prefs) {
+			await db.preferences.put({ id: 'preferences' });
+		}
+	});
+
 	function toggleSidenav() {
 		vp.nav = vp.nav === 'expanded' ? 'collapsed' : 'expanded';
 	}
@@ -124,6 +132,15 @@
 			{/each}
 		</List>
 	{/if}
+	<div class="fixed bottom-0 w-full">
+		<List>
+			<ListItem.Root>
+				<ListItem.Link href="/preferences">
+					Preferences
+				</ListItem.Link>
+			</ListItem.Root>
+		</List>
+	</div>
 {/snippet}
 
 <svelte:window bind:innerWidth={vp.width} />

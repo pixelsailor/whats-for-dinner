@@ -4,14 +4,6 @@ import { db } from '$lib/db';
 import type { SavedRecipe } from '$lib/types';
 import { createLiveQueryStore } from './_utils';
 
-export const savedRecipes = readable<SavedRecipe[]>([], (recipes) => {
-	const subscription = liveQuery(async () => {
-		const all = await db.recipes.toArray();
-		return all.filter((r) => !r.archived && r.is_current);
-	}).subscribe(recipes);
-	return () => subscription.unsubscribe();
-});
-
 export const recipes = createLiveQueryStore(async () => {
 	const all = await db.recipes.toArray();
 	return all.filter((r) => !r.archived && r.is_current);

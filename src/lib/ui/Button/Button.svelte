@@ -92,7 +92,7 @@
 {#snippet Base()}
 	<div
 		class={[
-			`pxl-button__content body-compact flex flex-row place-items-center rounded whitespace-nowrap`,
+			`pxl-button__content label flex flex-row place-items-center rounded whitespace-nowrap`,
 			cueClasses
 		]}
 		style:height={`${dims[0]}rem`}

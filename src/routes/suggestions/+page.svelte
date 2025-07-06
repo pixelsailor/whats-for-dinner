@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { createSuggestionsQuery } from '$lib/queries/recipes.js';
+	import { recommendedRecipes } from '$lib/stores/recommendations.js';
 	import {
 		bulkDeleteSuggestions,
 		saveSuggestions,
@@ -23,7 +24,7 @@
 
 	const hasPrompt = $derived(!!prompt);
 
-	let query = $derived(createSuggestionsQuery(prompt, userPreferences));
+	let query = $derived(prompt === 'recommended' ? recommendedRecipes : createSuggestionsQuery(prompt, userPreferences));
 
 	let working = $state(false);
 
@@ -53,12 +54,12 @@
 
 	// Save suggestions to history
 	$effect(() => {
-		if (hasPrompt && $query?.data) {
-			if ($query.data.data[1]) {
+		if (hasPrompt && prompt !== 'recommended' && $query?.data) {
+			if ($query.data.data && $query.data.data[1]) {
 				const summaries = $query.data.data[1] as RecipeSummary[];
 				saveSuggestions(summaries);
 			}
-		}
+		} 
 	});
 
 	function getFullRecipe(recipe: RecipeSummary) {
@@ -85,11 +86,7 @@
 
 <main class="mx-auto min-h-screen max-w-5xl px-4">
 	{#if hasPrompt && $query}
-		{#if $query.isLoading}
-			<div class="mx-auto grid h-screen w-full max-w-3xl place-content-center">
-				<ProgressSpinner size="lg" />
-			</div>
-		{:else if $query.error}
+		{#if $query.error}
 			<div class="mx-auto grid h-screen w-full max-w-3xl place-content-center gap-6">
 				<h1 class="fluid-heading-05">Ah donkey-spittle! There was a problem.</h1>
 				<p class="flex items-center gap-3">
@@ -98,7 +95,7 @@
 					>
 				</p>
 			</div>
-		{:else if $query.data}
+		{:else if $query.data?.data}
 			<div class="py-24">
 				<h1 class="fluid-heading-05 mb-8">
 					Here are some ideas for, <span class="italic">"{prompt}"</span>
@@ -112,6 +109,25 @@
 						</ListItem.Root>
 					{/each}
 				</List>
+			</div>
+		{:else if $query.data}
+			<div class="py-24">
+				<h1 class="fluid-heading-05 mb-8">
+					Here's some recipes you have made in a while.
+				</h1>
+				<List>
+					{#each $query.data as summary}
+						<ListItem.Root>
+							<ListItem.Link href="/recipes/{summary.id}">
+								<ListItem.Text primary={summary.title} secondary={summary.short_description} />
+							</ListItem.Link>
+						</ListItem.Root>
+					{/each}
+				</List>
+			</div>
+		{:else}
+			<div class="mx-auto grid h-screen w-full max-w-3xl place-content-center">
+				<ProgressSpinner size="lg" />
 			</div>
 		{/if}
 	{:else}

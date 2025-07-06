@@ -82,9 +82,15 @@
 					</Button>
 				</form>
 			</Prompt>
-			<div class="mt-2 flex flex-row gap-1">
-				<Button href="/suggestions" size="sm">
-					Recent suggestions
+			<div class="mt-2 flex flex-row justify-center gap-4">
+				<Button href="/suggestions" cue="text" size="sm">
+					Recent Suggestions
+				</Button>
+				<Button href="/suggestions?prompt=recommended" cue="text" size="sm">
+					Recommended
+				</Button>
+				<Button href="/suggestions" cue="text" size="sm">
+					Surprise Me!
 				</Button>
 			</div>
 		</div>

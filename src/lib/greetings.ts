@@ -26,10 +26,12 @@ export function getGreeting(): string {
 		meals = ['breakfast', 'a hearty breakfast', 'something warm and light'];
 	} else if (hour >= 10 && hour < 12) {
 		meals = ['brunch', 'a light brunch', 'something in between'];
-	} else if (hour >= 12 && hour < 16) {
+	} else if (hour >= 12 && hour < 14) {
 		meals = ['lunch', 'a quick bite', 'a power lunch'];
+	} else if (hour >= 14 && hour < 16) {
+		meals = ['late lunch', 'a quick bite', 'a pick-me-up', 'appetizers'];
 	} else if (hour >= 16 && hour < 21) {
-		meals = ['dinner', 'supper', 'something filling'];
+		meals = ['dinner', 'supper', 'something filling', 'brinner'];
 	} else {
 		meals = ['a midnight snack', 'something indulgent', 'late night cravings'];
 	}

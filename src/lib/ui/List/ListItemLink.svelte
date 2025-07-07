@@ -13,7 +13,7 @@
 <a
 	{href}
 	class={[
-		'pxl-listitem__link flex h-full w-full flex-row gap-3 pl-4 items-center',
+		'pxl-listitem__link flex h-full w-full flex-row gap-3 items-center',
 		{ 'place-content-center gap-4': size === 'two-line' },
 		{ 'place-content-start gap-4': size === 'three-line' }
 	]}

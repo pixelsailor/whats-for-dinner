@@ -109,12 +109,12 @@
 			</Button>
 		</AppBar.End>
 	</AppBar.Root>
-	<div class="px-1 -my-1">
+	<div class="px-5 -my-1 overflow-x-hidden">
 		<List>
 			<ListItem.Root>
 				<ListItem.Link href="/">
 					<ChatbotIcon size="xs" />
-					New Suggestions
+					What's For Dinner?
 				</ListItem.Link>
 			</ListItem.Root>
 			<ListItem.Root>
@@ -124,7 +124,7 @@
 				</ListItem.Link>
 			</ListItem.Root>
 		</List>
-		<div class="mt-8 px-4">
+		<div class="mt-8">
 			<span class="heading-compact text-gray-500">Recent recipes</span>
 		</div>
 		{#if $recentlyOpened.length === 0}
@@ -141,7 +141,7 @@
 			</List>
 		{/if}
 	</div>
-	<div class="fixed bottom-0 px-1 w-full">
+	<div class="fixed bottom-0 px-5 w-full">
 		<List>
 			<ListItem.Root>
 				<ListItem.Link href="/preferences">

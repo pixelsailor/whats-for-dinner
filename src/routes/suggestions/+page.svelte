@@ -24,6 +24,8 @@
 
 	const hasPrompt = $derived(!!prompt);
 
+	let ogPrompt: string;
+
 	let query = $derived(prompt === 'recommended' ? recommendedRecipes : createSuggestionsQuery(prompt, userPreferences));
 
 	let working = $state(false);
@@ -65,9 +67,18 @@
 	function getFullRecipe(recipe: RecipeSummary) {
 		working = true;
 		const title = encodeURIComponent(recipe.title);
-		// include the `short_description` otherwise AI will write a new one
+		// include the `short_description` otherwise AI will write a new one and the generated
+		// recipe may very from the description
 		const desc = encodeURIComponent(recipe.short_description);
 		goto(`/suggestions/recipe?title=${title}&desc=${desc}`);
+	}
+
+	function getMoreSuggestions() {
+		if (!ogPrompt) {
+			ogPrompt = prompt!;
+		}
+		const newPrompt = ogPrompt += ' give me more ideas';
+		goto(`/suggestions?prompt=${newPrompt}`);
 	}
 </script>
 
@@ -98,10 +109,11 @@
 		{:else if $query.data?.data}
 			<div class="py-24">
 				<h1 class="fluid-heading-05 mb-8">
-					Here are some ideas for, <span class="italic">"{prompt}"</span>
+					Here are some ideas for, <span class="italic">"{ogPrompt || prompt}"</span>
 				</h1>
-				<List>
+				<List size="three-line">
 					{#each $query.data.data[1] as summary}
+						<hr />
 						<ListItem.Root>
 							<ListItem.Button onClick={() => getFullRecipe(summary)} disabled={working}>
 								<ListItem.Text primary={summary.title} secondary={summary.short_description} />
@@ -109,14 +121,18 @@
 						</ListItem.Root>
 					{/each}
 				</List>
+				<div class="my-8">
+					<Button onClick={getMoreSuggestions} label="Get more ideas">Get more ideas</Button>
+				</div>
 			</div>
 		{:else if $query.data}
 			<div class="py-24">
 				<h1 class="fluid-heading-05 mb-8">
-					Here's some recipes you have made in a while.
+					Here's some recipes you haven't made in a while.
 				</h1>
-				<List>
+				<List size="three-line">
 					{#each $query.data as summary}
+						<hr />
 						<ListItem.Root>
 							<ListItem.Link href="/recipes/{summary.id}">
 								<ListItem.Text primary={summary.title} secondary={summary.short_description} />

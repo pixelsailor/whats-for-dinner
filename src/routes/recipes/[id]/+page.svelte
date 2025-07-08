@@ -121,6 +121,7 @@
 			id: uuid(),
 			version,
 			parent_id: original.parent_id ?? original.id,
+			archived: 0,
 			is_current: true,
 			created_at: now,
 			last_opened: now

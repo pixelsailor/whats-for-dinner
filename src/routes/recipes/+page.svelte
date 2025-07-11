@@ -48,6 +48,9 @@
 		</Button>
 		<AppBar.Text primary="My Recipes" />
 		<AppBar.End>
+			<Button href="/recipes/new" size="xs">
+				Add a recipe
+			</Button>
 			<Button title="Trash bin" href="/recipes/trash" size="xs" icon>
 				<TrashIcon />
 			</Button>

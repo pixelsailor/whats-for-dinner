@@ -1,191 +1,150 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
 	import { db } from '$lib/db.js';
-	import { setCachedRecipe } from '$lib/stores/recipes.js';
 	import type { FullRecipe, SavedRecipe, ViewState } from '$lib/types.js';
 	import { AppBar } from '$lib/ui/AppBar';
 	import Button from '$lib/ui/Button/Button.svelte';
-	import BackIcon from '$lib/ui/Icons/BackIcon.svelte';
-	import BookmarkIcon from '$lib/ui/Icons/BookmarkIcon.svelte';
-	import CloseIcon from '$lib/ui/Icons/CloseIcon.svelte';
 	import PageHeader from '$lib/ui/PageHeader.svelte';
-	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
-	import Prompt from '$lib/ui/Prompt.svelte';
-	import Recipe from '$lib/ui/Recipe.svelte';
-	import SvelteMarkdown from '@humanspeak/svelte-markdown';
+	import { Slider } from 'bits-ui';
 	import { getContext, onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
-	import { slide } from 'svelte/transition';
-  import { v4 as uuid } from 'uuid';
+	import { v4 as uuid } from 'uuid';
 
-  const vp: any = getContext('viewport');
+	const vp: any = getContext('viewport');
 
-  let { data, form } = $props();
-
-  let recipe = $state<FullRecipe>(data);
-
-  // Responsible for passing the recipe to the FormData
-	let recipeJson = $derived(recipe ? JSON.stringify(recipe) : '');
-
-  // Account for sidenav width and adjust accordingly
-  let left = $derived.by(() => {
-		if (vp.device === 'mobile') return '0';
-		return vp.nav === 'expanded' ? 'calc(18rem + 1px)' : 'calc(3.5rem + 1px)';
+	let form = $state<FullRecipe>({
+		title: '',
+		description: '',
+		short_description: '',
+		yield: '',
+		time: {
+			prep: '',
+			cook: '',
+			total: ''
+		},
+		ingredients: '',
+		instructions: '',
+		tags: []
 	});
 
-  let view = $state<ViewState>('loading');
+	let servingRange = $state([1, 10]);
 
-  let status = $state<'idle' | 'saving' | 'saved' | 'error'>('idle');
+	let status = $state<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
-  // True when a request is being processed
+	// True when a request is being processed
 	let working = $state(false);
 
-  let promptInput = $state<string>();
-	
-	let promptType = $state<'conversation'|'recipe'>();
-
-  let promptRef = $state<HTMLElement>();
-  
-  let promptHeight = $derived(promptRef?.clientHeight);
-	
-  let conversationMsg = $state<string>();
-
-  let lastFormMessage: string | undefined = undefined;
-
-  function goBack() {
-    window.history.back();
-  }
-
-  /**
+	/**
 	 * Save to the User's recipe book
 	 */
-	async function saveRecipe() {
+	async function saveRecipe(event: Event) {
+		event.preventDefault();
 		working = true;
 
-		try {
-      const now = Date.now();
-      const newRecipe: FullRecipe = JSON.parse(JSON.stringify(recipe));
-      const recipeId = await db.recipes.put({
-        ...newRecipe,
-        short_description: '',
-        id: uuid(),
-        created_at: now,
-        last_opened: now,
-        version: 1,
-        is_current: true
-      });
-      status = 'saved';
-      goto(`/recipes/${recipeId}`, { replaceState: true });
-		} catch (err) {
-			console.error('Save failed', err);
+		const serves = servingRange.join(' to ');
+
+		// const form = event.target as HTMLFormElement;
+		// const formData = new FormData(form);
+		const now = Date.now();
+		const newRecipe: FullRecipe = JSON.parse(JSON.stringify(form));
+		
+		db.recipes.add({
+			...newRecipe,
+			yield: serves,
+			id: uuid(),
+			created_at: now,
+			last_opened: now,
+			version: 1,
+			is_current: true
+		}).then((id) => {
+			console.log('then', id);
+			status = 'saved';
+			goto(`/recipes/${id}`, { replaceState: true });
+		},
+		(err) => {
+			console.error('err', err);
+			toast.error('Save failed');
 			status = 'error';
-      working = false;
-      toast.error('Save failed');
-    }
+		})
 	}
-
-	onMount(async () => {
-		if (data) {
-			view = 'idle';
-		}
-	});
-
-  // Handle prompt responses
-  $effect(() => {
-		if (form && form.error === undefined) {
-			if (form.message === lastFormMessage) return;
-
-			const { type, message } = form;
-			promptType = type;
-			lastFormMessage = message;
-			working = false;
-
-			if (type === 'conversation') {
-				conversationMsg = message;
-			} else {
-				try {
-          recipe = JSON.parse(message) as FullRecipe;
-					toast.success(`"${recipe.title}" updated`);
-          // setCachedRecipe(recipe.title, message)
-				} catch (err) {
-					console.error(err);
-					toast.error('There was a problem parsing the recipe JSON');
-				}
-			}
-		} else if (form && form.error) {
-			working = false;
-			console.error(form.error);
-			toast.error(`${form.error}`);
-		}
-	});
 </script>
 
 <PageHeader>
 	<AppBar.Root>
-		<Button title="Back" onClick={goBack} label="Go back" size="xs" icon>
-			<BackIcon />
-		</Button>
-		<AppBar.Text primary={recipe.title} />
-		<AppBar.End>
-      <Button onClick={saveRecipe} label="Save recipe" size="xs" icon>
-        <BookmarkIcon />
-      </Button>
-    </AppBar.End>
+		<AppBar.Text primary="Create a Recipe" />
 	</AppBar.Root>
 </PageHeader>
-<article class="mx-auto max-w-5xl px-4 pt-24" style:padding-bottom={`calc(${promptHeight}px + 1.5rem)`}>
-	{#if view === 'loading'}
-		<div class="absolute inset-0 grid place-content-center">
-			<ProgressSpinner size="lg" />
+<article class="mx-auto max-w-5xl px-4 pt-24">
+	<h1 class="fluid-heading-05 mb-16">Create a new recipe</h1>
+	<form onsubmit={saveRecipe}>
+		<div class="form-field mb-3 flex min-h-24 flex-col">
+			<label for="title" class="label mb-1">Recipe title</label>
+			<input type="text" id="title" name="title" class="fluid-heading-04" required bind:value={form.title} />
 		</div>
-	{:else if view === 'idle'}
-    <div class="mb-8">
-      <Button onClick={goBack} label="Go back to recipe suggetions" size="sm">
-				<BackIcon size="xs" />
-				Back to suggestions
-			</Button>
-    </div>
-		<Recipe recipe={recipe} />
-    <Button onClick={saveRecipe} label="Save to My Recipes" disabled={working} size="sm">
-      <BookmarkIcon size="xs" />
-      Save to My Recipes
-    </Button>
-		<div class="fixed right-0 bottom-0 px-4" style:left bind:this={promptRef}>
-			<Prompt>
-				{#if conversationMsg}
-					<div class="flex flex-row gap-2 items-start" transition:slide={{ duration: 500, axis: 'y' }}>
-						<div class="markdown text-sm mb-4 self-center">
-							<SvelteMarkdown source={conversationMsg} />
-						</div>
-						<Button onClick={() => conversationMsg = ''} label="Close" size='xs' icon class="-m-2">
-							<CloseIcon />
-						</Button>
-					</div>
-				{/if}
-				<form
-					class="flex flex-row gap-2 w-full"
-					method="POST"
-					use:enhance={() => {
-						working = true;
-					}}
-				>
-					<input
-						class="grow p-1"
-						type="text"
-						name="input"
-						bind:value={promptInput}
-						placeholder="Make changes or ask a recipe related question"
-					/>
-					<input type="hidden" name="recipe" bind:value={recipeJson} />
-					<Button type="submit" label="Submit request" disabled={working || !promptInput?.trim()}>{working ? 'Thinking...' : 'Submit'}</Button>
-				</form>
-			</Prompt>
+		<div class="form-field mb-3 flex min-h-24 flex-col">
+			<label for="description" class="label mb-1">Description</label>
+			<textarea name="description" id="description" bind:value={form.description}></textarea>
 		</div>
-	{:else}
-		<div class="mx-auto w-full max-w-3xl h-max grid place-content-center">
-			<h1 class="fluid-heading-05 my-8">Ah donkey-spittle! There was a problem.</h1>
-			<p class="flex items-center gap-3">A recipe matching the provided title could not be found.</p>
+		<div class="form-field mb-3 flex min-h-24 flex-col">
+			<label for="yield" class="label mb-1">Serves</label>
+			<!-- <input type="text" id="yield" name="title" required> -->
+			<Slider.Root
+				type="multiple"
+				min={1}
+				max={10}
+				step={1}
+				class="relative flex w-full touch-none items-center select-none"
+				bind:value={servingRange}
+			>
+				{#snippet children({ tickItems, thumbItems })}
+					<span class="relative h-2 w-full grow cursor-pointer overflow-hidden rounded-full">
+						<Slider.Range class="absolute h-full dark:bg-gray-500" />
+					</span>
+					{#each thumbItems as { index } (index)}
+						<Slider.Thumb
+							{index}
+							class="focus-visible:ring-foreground dark:bg-foreground dark:shadow-card data-active:border-dark-40 z-5 block size-[16px] cursor-pointer rounded-full border bg-gray-300 shadow-sm transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50 data-active:scale-[0.98]"
+						/>
+					{/each}
+					{#each tickItems as { index } (index)}
+						<Slider.Tick {index} />
+					{/each}
+				{/snippet}
+			</Slider.Root>
 		</div>
-	{/if}
+		<div class="form-field mb-3 flex min-h-24 flex-col">
+			<label for="time" class="label mb-1">Estimated time</label>
+			<input type="text" class="heading w-full" id="time" name="time" bind:value={form.time.total} />
+		</div>
+		<div class="form-field mb-3 flex min-h-24 flex-col">
+			<label for="ingredients" class="label mb-1">Ingredients</label>
+			<textarea name="ingredients" id="ingredients" required bind:value={form.ingredients}></textarea>
+		</div>
+		<div class="form-field mb-3 flex min-h-24 flex-col">
+			<label for="instructions" class="label mb-1">Instructions</label>
+			<textarea name="instructions" id="instructions" required bind:value={form.instructions}></textarea>
+		</div>
+		<div class="form-field mb-3 flex min-h-24 flex-col">
+			<label for="notes" class="label mb-1">Notes</label>
+			<textarea name="notes" id="notes" bind:value={form.notes}></textarea>
+		</div>
+		<div class="form-field mb-3 flex min-h-24 flex-col">
+			<label for="tags" class="label mb-1">Tags</label>
+			<input type="text" class="w-full" id="tags" name="tags" bind:value={form.tags} />
+		</div>
+		<div class="my-4 border-t border-gray-300 pt-4">
+			<Button type="submit" size="sm" primary>Save</Button>
+		</div>
+	</form>
 </article>
+
+<style>
+	.form-field {
+		input,
+		textarea {
+			border: 1px solid gray;
+			padding: 0.25rem 0.75rem;
+			border-radius: 0.25rem;
+		}
+	}
+</style>

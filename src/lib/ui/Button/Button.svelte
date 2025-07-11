@@ -21,7 +21,7 @@
 	};
 
 	type ButtonProps =
-		| (BaseProps & { label: string; href?: never })
+		| (BaseProps & { label?: string; href?: never })
 		| (BaseProps & { href: string; label?: string; onClick?: never; onClickCapture?: never; type?: never });
 
 	let {

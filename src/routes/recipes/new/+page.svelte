@@ -1,12 +1,13 @@
 <script lang="ts">
+	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
 	import { db } from '$lib/db.js';
-	import type { FullRecipe, SavedRecipe, ViewState } from '$lib/types.js';
+	import type { FullRecipe } from '$lib/types.js';
 	import { AppBar } from '$lib/ui/AppBar';
 	import Button from '$lib/ui/Button/Button.svelte';
 	import PageHeader from '$lib/ui/PageHeader.svelte';
 	import { Slider } from 'bits-ui';
-	import { getContext, onMount } from 'svelte';
+	import { getContext } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import { v4 as uuid } from 'uuid';
 
@@ -34,30 +35,59 @@
 	// True when a request is being processed
 	let working = $state(false);
 
+	// Parse the `Slider` component as a string
+	function insertServingValue(): string {
+		form.yield = 'Serves ' + (servingRange[1] - servingRange[0] === 0) ? `${servingRange[0]}` : servingRange.join(' to ');
+		return form.yield;
+	}
+
+	// Checks for empty form values. If false, can cancel server query and handle in browser
+	function hasEmptyFields(): boolean {
+		const missingFields = [
+			'short_description',
+			'yield',
+			'time.prep',
+			'time.cook',
+			'time.total',
+			'tags'
+		].filter((field) => {
+			const value = field.includes('time.')
+				? form.time[field.split('.')[1] as 'prep' | 'cook' | 'total']
+				: form[field as keyof FullRecipe];
+			return !value || (Array.isArray(value) && value.length === 0);
+    });
+
+		return missingFields.length > 0;
+	}
+
+	function updateRecipe(response: string) {
+		const aiFields = JSON.parse(response);
+		const formFields = JSON.parse(JSON.stringify(form));
+		const recipe = {
+			...formFields,
+			...aiFields
+		};
+		saveRecipe(recipe);
+	}
+
 	/**
 	 * Save to the User's recipe book
 	 */
-	async function saveRecipe(event: Event) {
-		event.preventDefault();
+	async function saveRecipe(recipe?: FullRecipe) {
 		working = true;
+		status = 'saving';
 
-		const serves = servingRange.join(' to ');
-
-		// const form = event.target as HTMLFormElement;
-		// const formData = new FormData(form);
 		const now = Date.now();
-		const newRecipe: FullRecipe = JSON.parse(JSON.stringify(form));
-		
+		const newRecipe: FullRecipe = JSON.parse(JSON.stringify(recipe || form));
+
 		db.recipes.add({
 			...newRecipe,
-			yield: serves,
 			id: uuid(),
 			created_at: now,
 			last_opened: now,
 			version: 1,
 			is_current: true
 		}).then((id) => {
-			console.log('then', id);
 			status = 'saved';
 			goto(`/recipes/${id}`, { replaceState: true });
 		},
@@ -76,14 +106,30 @@
 </PageHeader>
 <article class="mx-auto max-w-5xl px-4 pt-24">
 	<h1 class="fluid-heading-05 mb-16">Create a new recipe</h1>
-	<form onsubmit={saveRecipe}>
+	<form method="POST" use:enhance={({ formData, cancel }) => {
+		status = 'saving';
+		formData.append('yield', insertServingValue());
+		if (!hasEmptyFields()) {
+			cancel();
+			saveRecipe();
+		}
+		return async ({ result, update }) => {
+			if (result.type === 'success') {
+				updateRecipe(result.data?.message as string);
+			} else {
+				status = 'error';
+			}
+			await update();
+		}
+	}}>
 		<div class="form-field mb-3 flex min-h-24 flex-col">
 			<label for="title" class="label mb-1">Recipe title</label>
 			<input type="text" id="title" name="title" class="fluid-heading-04" required bind:value={form.title} />
 		</div>
 		<div class="form-field mb-3 flex min-h-24 flex-col">
-			<label for="description" class="label mb-1">Description</label>
-			<textarea name="description" id="description" bind:value={form.description}></textarea>
+			<label for="shortDescription" class="label mb-1">Short description</label>
+			<textarea name="short_description" id="shortDescription" bind:value={form.short_description}></textarea>
+			<p class="helper-text">A short description of the recipe to include in My Recipes</p>
 		</div>
 		<div class="form-field mb-3 flex min-h-24 flex-col">
 			<label for="yield" class="label mb-1">Serves</label>
@@ -113,8 +159,12 @@
 			</Slider.Root>
 		</div>
 		<div class="form-field mb-3 flex min-h-24 flex-col">
-			<label for="time" class="label mb-1">Estimated time</label>
-			<input type="text" class="heading w-full" id="time" name="time" bind:value={form.time.total} />
+			<label for="prepTime" class="label mb-1">Prep time</label>
+			<input type="text" class="heading w-full" id="prepTime" name="prep_time" bind:value={form.time.prep} />
+		</div>
+		<div class="form-field mb-3 flex min-h-24 flex-col">
+			<label for="cookTime" class="label mb-1">Cook time</label>
+			<input type="text" class="heading w-full" id="cookTime" name="cook_time" bind:value={form.time.cook} />
 		</div>
 		<div class="form-field mb-3 flex min-h-24 flex-col">
 			<label for="ingredients" class="label mb-1">Ingredients</label>

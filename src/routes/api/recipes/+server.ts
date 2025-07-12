@@ -1,5 +1,5 @@
 import { error, json, type RequestHandler } from '@sveltejs/kit';
-import { askCookingQuestion, getFullRecipe, getRecipeSuggestions, requestRecipeModifications } from '$lib/server/openai';
+import { appendRecipeDetails, askCookingQuestion, getFullRecipe, getRecipeSuggestions, requestRecipeModifications } from '$lib/server/openai';
 import type { PromptContext } from '$lib/types';
 
 
@@ -15,6 +15,9 @@ export const POST: RequestHandler = async ({ request }) => {
 		let response: [PromptContext, string | null];
 
 		switch (action) {
+			case 'addendum':
+				response = await appendRecipeDetails(prompt);
+				break;
 			case 'assistance': {
 				if (!recipe || typeof recipe !== 'string') {
 					return error(400, { message: 'The request is missing a valid recipe string.' });

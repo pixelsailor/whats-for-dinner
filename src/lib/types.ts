@@ -11,7 +11,7 @@ export type Viewport = {
 
 export type ViewState = 'idle' | 'suggestions' | 'detail' | 'error' | 'loading';
 
-export type PromptContext = 'assistance' | 'detail' | 'revision' | 'summaries';
+export type PromptContext = 'addendum' | 'assistance' | 'detail' | 'revision' | 'summaries';
 
 export type ApiResponse<T> = {
 	success: boolean;

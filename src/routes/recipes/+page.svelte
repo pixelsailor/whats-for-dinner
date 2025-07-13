@@ -11,6 +11,7 @@
 	import BackIcon from '$lib/ui/Icons/BackIcon.svelte';
 	import { AppBar } from '$lib/ui/AppBar';
 	import PageHeader from '$lib/ui/PageHeader.svelte';
+	import RecipesIcon from '$lib/ui/Icons/RecipesIcon.svelte';
 
 	function goBack() {
 		window.history.back();
@@ -49,7 +50,8 @@
 		<AppBar.Text primary="My Recipes" />
 		<AppBar.End>
 			<Button href="/recipes/new" size="xs">
-				Add a recipe
+				<RecipesIcon size="xs" />
+				<span class="ml-2 hidden md:inline">Add a recipe</span>
 			</Button>
 			<Button title="Trash bin" href="/recipes/trash" size="xs" icon>
 				<TrashIcon />

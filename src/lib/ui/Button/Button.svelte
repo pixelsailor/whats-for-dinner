@@ -159,6 +159,7 @@
 	.pxl-button {
 		display: flex;
 		place-items: center;
+		place-content: center;
 	}
 	.pxl-button:hover {
 		opacity: 0.8;

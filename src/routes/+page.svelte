@@ -22,24 +22,6 @@
 	// Show request status without changing app.view
 	let working = $state(false);
 
-	let promptPlaceholder = $state('');
-
-	onMount(async () => {
-		promptPlaceholder = getRandomPromptMessage();
-	});
-
-	function getRandomPromptMessage() {
-		const messages = [
-			`How can I help?`,
-			`What'll it be tonight?`,
-			`What are you in the mood for?`,
-			`If you could dine anywhere in the world right now, where would that be?`,
-			`Ready for something new?`
-		];
-		const max = messages.length;
-		return messages[Math.floor(Math.random() * max)];
-	}
-
 	/** Handles prompt form, sending input value as URL params */
 	function getSuggestions(e: Event) {
 		e.preventDefault();
@@ -89,7 +71,7 @@
 				<Button href="/suggestions?prompt=recommended" cue="text" size="sm">
 					Recommended
 				</Button>
-				<Button href="/suggestions" cue="text" size="sm">
+				<Button href="/recipes" cue="text" size="sm">
 					Surprise Me!
 				</Button>
 			</div>

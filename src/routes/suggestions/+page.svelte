@@ -8,10 +8,10 @@
 		saveSuggestions,
 		suggestionHistory
 	} from '$lib/stores/suggestions.js';
-	import type { RecipeSummary } from '$lib/types';
-	import { AppBar } from '$lib/ui/AppBar';
+	import type { RecipeSummary, Suggestion } from '$lib/types';
+	import { AppBar } from '$lib/ui/AppBar/index.js';
 	import Button from '$lib/ui/Button/Button.svelte';
-	import BackIcon from '$lib/ui/Icons/BackIcon.svelte';
+	import TrashIcon from '$lib/ui/Icons/TrashIcon.svelte';
 	import { List, ListItem } from '$lib/ui/List';
 	import PageHeader from '$lib/ui/PageHeader.svelte';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
@@ -41,9 +41,18 @@
 		}
 	});
 
-	function goBack() {
-		window.history.back();
-	}
+	// Group suggestions by day
+  let groupedSuggestions = $derived.by(() => {
+    const groups: Record<string, Suggestion[]> = {};
+    for (const s of filteredSuggestions) {
+      const day = new Date(s.created_at).toLocaleDateString();
+      if (!groups[day]) groups[day] = [];
+      groups[day].push(s);
+    }
+    return Object.entries(groups)
+      .sort(([a], [b]) => new Date(b).getTime() - new Date(a).getTime()) // newest first
+      .map(([date ,suggestions]) => ({ date, suggestions }));
+  });
 
 	// Filter suggestions
 	function filterSuggestions(value: string) {
@@ -84,14 +93,20 @@
 
 <PageHeader>
 	<AppBar.Root>
-		<Button title="Back" onClick={goBack} label="Go back" size="xs" icon>
+		<!-- <Button title="Back" onClick={goBack} label="Go back" size="xs" icon>
 			<BackIcon />
 		</Button>
 		{#if hasPrompt}
 			<AppBar.Text primary="Suggested Recipes" />
 		{:else}
 			<AppBar.Text primary="Suggestion History" />
-		{/if}
+		{/if} -->
+		<AppBar.End>
+			<Button onClick={() => bulkDeleteSuggestions()} size="sm" >
+				<TrashIcon size="xs" />
+				<span class="hidden md:inline">Delete all</span>
+			</Button>
+		</AppBar.End>
 	</AppBar.Root>
 </PageHeader>
 
@@ -160,19 +175,17 @@
 				</div>
 			{/if}
 			{#if filteredSuggestions.length > 0}
-				<div class="flex flex-row items-center justify-between">
-					<Button size="sm" onClick={() => bulkDeleteSuggestions()} label="Delete suggestions">
-						Delete suggestions
-					</Button>
-				</div>
 				<List>
-					{#each filteredSuggestions as summary}
-						<hr class="border-gray-200 dark:border-gray-700" />
-						<ListItem.Root>
-							<ListItem.Button onClick={() => getFullRecipe(summary)} disabled={working}>
-								<ListItem.Text primary={summary.title} secondary={summary.short_description} />
-							</ListItem.Button>
-						</ListItem.Root>
+					{#each groupedSuggestions as group}
+						<h3 class="mt-6 mb-2 heading dark:text-gray-400">{group.date}</h3>
+						{#each group.suggestions as summary}
+							<ListItem.Root>
+								<ListItem.Button onClick={() => getFullRecipe(summary)} disabled={working}>
+									<ListItem.Text primary={summary.title} secondary={summary.short_description} />
+								</ListItem.Button>
+							</ListItem.Root>
+							<hr class="border-gray-200 dark:border-gray-700" />
+						{/each}
 					{/each}
 				</List>
 			{:else}

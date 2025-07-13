@@ -1,5 +1,9 @@
 @import 'tailwindcss';
 
+a {
+  text-decoration: underline;
+}
+
 /* Carbon DS type sets. Type set suffix has been removed. All class name belong to "02" (expressive). */
 /* See https://carbondesignsystem.com/elements/typography/type-sets/ for usage guidelines */
 .label {

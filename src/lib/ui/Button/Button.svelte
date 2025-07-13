@@ -76,7 +76,7 @@
 
 		let rules = {
 			elevated: '',
-			filled: primary ? 'bg-indigo-300' : 'group-hover:bg-gray-200 group-hover:dark:bg-gray-700',
+			filled: primary ? 'bg-green-700 text-white' : 'group-hover:bg-gray-200 group-hover:dark:bg-gray-700',
 			tonal: '',
 			outlined: primary
 				? 'border border-indigo-700'

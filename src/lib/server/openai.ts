@@ -208,7 +208,7 @@ ${question}
 	return ['assistance', response.choices[0].message.content ?? null];
 }
 
-export async function appendRecipeDetails(recipe: string) {
+export async function appendRecipeDetails(recipe: string): Promise<[PromptContext, string | null]> {
   const { title, time, short_description, ingredients, instructions, notes } = JSON.parse(recipe);
 	const prompt = `
 You are an helpful, experienced culinary assistant helping a user working on a recipe.

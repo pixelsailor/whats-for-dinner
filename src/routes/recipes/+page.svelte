@@ -8,7 +8,6 @@
 	import TrashIcon from '$lib/ui/Icons/TrashIcon.svelte';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
 	import { slide } from 'svelte/transition';
-	import BackIcon from '$lib/ui/Icons/BackIcon.svelte';
 	import { AppBar } from '$lib/ui/AppBar';
 	import PageHeader from '$lib/ui/PageHeader.svelte';
 	import RecipesIcon from '$lib/ui/Icons/RecipesIcon.svelte';
@@ -44,17 +43,15 @@
 
 <PageHeader>
 	<AppBar.Root>
-		<Button title="Back" onClick={goBack} label="Go back" size="xs" icon>
-			<BackIcon />
-		</Button>
 		<AppBar.Text primary="My Recipes" />
 		<AppBar.End>
 			<Button href="/recipes/new" size="xs">
 				<RecipesIcon size="xs" />
 				<span class="ml-2 hidden md:inline">Add a recipe</span>
 			</Button>
-			<Button title="Trash bin" href="/recipes/trash" size="xs" icon>
-				<TrashIcon />
+			<Button title="Trash bin" href="/recipes/trash" size="xs">
+				<TrashIcon size="xs" />
+				<span class="ml-2 hidden md:inline">Trash</span>
 			</Button>
 		</AppBar.End>
 	</AppBar.Root>

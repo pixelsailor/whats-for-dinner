@@ -132,9 +132,6 @@
 
 <PageHeader>
 	<AppBar.Root>
-		<Button title="Back" onClick={goBack} label="Go back" size="xs" icon>
-			<BackIcon />
-		</Button>
 		<AppBar.Text primary={fullRecipe ? fullRecipe.title : 'Checking the pantry...'} />
 		{#if $recipe.data}
 			<AppBar.End>

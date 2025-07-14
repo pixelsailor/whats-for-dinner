@@ -56,7 +56,6 @@
 		set device(val: 'desktop' | 'mobile') {
 			this.#device = val;
 			this.nav = val === 'mobile' ? 'collapsed' : 'expanded';
-			// this.#setLayout();
 		}
 
 		get nav() {
@@ -98,7 +97,7 @@
 </script>
 
 {#snippet sidenav()}
-	<AppBar.Root>
+	<AppBar.Root disableMobileNav>
 		<Button size="md" href="/" icon>
 			<ChatbotIcon />
 		</Button>
@@ -162,7 +161,7 @@
 	{#if vp.layout === 'mobile--expanded'}
 		<!-- Layout when mobile sidenav is expanded -->
 		<div class="sidebar fixed inset-0 z-10 backdrop-blur-md">
-			<div class="h-full w-2xs bg-white shadow-md">
+			<div class="h-full w-2xs shadow-md border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-900">
 				{@render sidenav()}
 			</div>
 		</div>

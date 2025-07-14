@@ -1,13 +1,9 @@
 <script lang="ts">
 	import { preferences, updatePreferences } from '$lib/stores/preferences';
 	import { AppBar } from '$lib/ui/AppBar';
-	import Button from '$lib/ui/Button/Button.svelte';
-	import BackIcon from '$lib/ui/Icons/BackIcon.svelte';
 	import PageHeader from '$lib/ui/PageHeader.svelte';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
 	import PxlSelect from '$lib/ui/PxlSelect.svelte';
-	import { Label, RadioGroup, Select } from 'bits-ui';
-	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
 
 	const options = {
@@ -97,11 +93,7 @@
 </script>
 
 <PageHeader>
-	<AppBar.Root>
-		<Button title="Back" onClick={() => history.back()} label="Go back" size="xs" icon>
-			<BackIcon />
-		</Button>
-	</AppBar.Root>
+	<AppBar.Root />
 </PageHeader>
 
 <main class="mx-auto min-h-screen max-w-5xl px-4">

@@ -4,10 +4,8 @@
 	import IconButton from '$lib/ui/IconButton.svelte';
 	import RevertIcon from '$lib/ui/Icons/RevertIcon.svelte';
 	import { List, ListItem } from '$lib/ui/List';
-	import BackIcon from '$lib/ui/Icons/BackIcon.svelte';
 	import PageHeader from '$lib/ui/PageHeader.svelte';
 	import { AppBar } from '$lib/ui/AppBar';
-	import Button from '$lib/ui/Button/Button.svelte';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
 	import { slide } from 'svelte/transition';
 	import { toast } from 'svelte-sonner';
@@ -23,11 +21,7 @@
 </script>
 
 <PageHeader>
-	<AppBar.Root>
-		<Button title="Back" href="/recipes" label="Go back" size="xs" icon>
-			<BackIcon size="xs" />
-		</Button>
-	</AppBar.Root>
+	<AppBar.Root />
 </PageHeader>
 
 <main class="mx-auto min-h-screen max-w-5xl px-4">

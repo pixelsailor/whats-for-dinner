@@ -10,6 +10,8 @@
 	import { getContext } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import { v4 as uuid } from 'uuid';
+	import PageHeader from '$lib/ui/PageHeader.svelte';
+	import { AppBar } from '$lib/ui/AppBar';
 
 	const vp: any = getContext('viewport');
 
@@ -127,6 +129,10 @@
 	  textarea.style.height = Math.min(textarea.scrollHeight, 420) + 'px';
 	}
 </script>
+
+<PageHeader>
+	<AppBar.Root />
+</PageHeader>
 
 <article class="mx-auto max-w-5xl px-4 pt-24">
 	<h1 class="fluid-heading-05 mb-16">Create a new recipe</h1>

@@ -26,7 +26,9 @@
 
 	let ogPrompt: string;
 
-	let query = $derived(prompt === 'recommended' ? recommendedRecipes : createSuggestionsQuery(prompt, userPreferences));
+	let query = $derived(
+		prompt === 'recommended' ? recommendedRecipes : createSuggestionsQuery(prompt, userPreferences)
+	);
 
 	let working = $state(false);
 
@@ -42,17 +44,17 @@
 	});
 
 	// Group suggestions by day
-  let groupedSuggestions = $derived.by(() => {
-    const groups: Record<string, Suggestion[]> = {};
-    for (const s of filteredSuggestions) {
-      const day = new Date(s.created_at).toLocaleDateString();
-      if (!groups[day]) groups[day] = [];
-      groups[day].push(s);
-    }
-    return Object.entries(groups)
-      .sort(([a], [b]) => new Date(b).getTime() - new Date(a).getTime()) // newest first
-      .map(([date ,suggestions]) => ({ date, suggestions }));
-  });
+	let groupedSuggestions = $derived.by(() => {
+		const groups: Record<string, Suggestion[]> = {};
+		for (const s of filteredSuggestions) {
+			const day = new Date(s.created_at).toLocaleDateString();
+			if (!groups[day]) groups[day] = [];
+			groups[day].push(s);
+		}
+		return Object.entries(groups)
+			.sort(([a], [b]) => new Date(b).getTime() - new Date(a).getTime()) // newest first
+			.map(([date, suggestions]) => ({ date, suggestions }));
+	});
 
 	// Filter suggestions
 	function filterSuggestions(value: string) {
@@ -70,7 +72,7 @@
 				const summaries = $query.data.data[1] as RecipeSummary[];
 				saveSuggestions(summaries);
 			}
-		} 
+		}
 	});
 
 	function getFullRecipe(recipe: RecipeSummary) {
@@ -86,23 +88,15 @@
 		if (!ogPrompt) {
 			ogPrompt = prompt!;
 		}
-		const newPrompt = ogPrompt += ' give me more ideas';
+		const newPrompt = (ogPrompt += ' give me more ideas');
 		goto(`/suggestions?prompt=${newPrompt}`);
 	}
 </script>
 
 <PageHeader>
 	<AppBar.Root>
-		<!-- <Button title="Back" onClick={goBack} label="Go back" size="xs" icon>
-			<BackIcon />
-		</Button>
-		{#if hasPrompt}
-			<AppBar.Text primary="Suggested Recipes" />
-		{:else}
-			<AppBar.Text primary="Suggestion History" />
-		{/if} -->
 		<AppBar.End>
-			<Button onClick={() => bulkDeleteSuggestions()} size="sm" >
+			<Button onClick={() => bulkDeleteSuggestions()} size="sm">
 				<TrashIcon size="xs" />
 				<span class="hidden md:inline">Delete all</span>
 			</Button>
@@ -142,9 +136,7 @@
 			</div>
 		{:else if $query.data}
 			<div class="py-24">
-				<h1 class="fluid-heading-05 mb-8">
-					Here's some recipes you haven't made in a while.
-				</h1>
+				<h1 class="fluid-heading-05 mb-8">Here's some recipes you haven't made in a while.</h1>
 				<List size="three-line">
 					{#each $query.data as summary}
 						<hr />
@@ -177,7 +169,7 @@
 			{#if filteredSuggestions.length > 0}
 				<List>
 					{#each groupedSuggestions as group}
-						<h3 class="mt-6 mb-2 heading dark:text-gray-400">{group.date}</h3>
+						<h3 class="heading mt-6 mb-2 dark:text-gray-400">{group.date}</h3>
 						{#each group.suggestions as summary}
 							<ListItem.Root>
 								<ListItem.Button onClick={() => getFullRecipe(summary)} disabled={working}>

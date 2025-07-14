@@ -13,7 +13,6 @@
 	import Button from '$lib/ui/Button/Button.svelte';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
 	import { AppBar } from '$lib/ui/AppBar';
-	import BackIcon from '$lib/ui/Icons/BackIcon.svelte';
 	import PageHeader from '$lib/ui/PageHeader.svelte';
 	import Prompt from '$lib/ui/Prompt.svelte';
 	import CloseIcon from '$lib/ui/Icons/CloseIcon.svelte';
@@ -134,9 +133,6 @@
 
 <PageHeader>
 	<AppBar.Root>
-		<Button title="Back" href="/recipes" size="xs" icon>
-			<BackIcon />
-		</Button>
 		<AppBar.Text primary={recipe?.title || ''} />
 	</AppBar.Root>
 </PageHeader>

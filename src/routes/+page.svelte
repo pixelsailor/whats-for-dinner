@@ -1,13 +1,12 @@
 <script lang="ts">
-	import { getContext, onMount } from 'svelte';
 	import type { RecipeSummary, Viewport } from '$lib/types';
 	import Button from '$lib/ui/Button/Button.svelte';
 	import Prompt from '$lib/ui/Prompt.svelte';
 	import { goto } from '$app/navigation';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
 	import { getGreeting } from '$lib/greetings';
-
-	const vp = getContext<Viewport>('viewport');
+	import PageHeader from '$lib/ui/PageHeader.svelte';
+	import { AppBar } from '$lib/ui/AppBar';
 
 	let app = $state({
 		input: '',
@@ -32,6 +31,10 @@
 		goto(`/suggestions?prompt=${prompt}`);
 	}
 </script>
+
+<PageHeader>
+	<AppBar.Root></AppBar.Root>
+</PageHeader>
 
 <main
 	class="mx-auto flex h-screen max-w-5xl items-center px-4 py-24"

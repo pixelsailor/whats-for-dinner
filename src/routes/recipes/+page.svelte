@@ -12,8 +12,23 @@
 	import PageHeader from '$lib/ui/PageHeader.svelte';
 	import RecipesIcon from '$lib/ui/Icons/RecipesIcon.svelte';
 
-	function goBack() {
-		window.history.back();
+	let search = $state<string>();
+
+	// Suggestions filtered by search
+	let filteredRecipes = $derived.by(() => {
+		if (!search || search.length <= 2) {
+			return $recipes.data;
+		} else {
+			return filterRecipes(search);
+		}
+	});
+
+	function filterRecipes(value: string) {
+		const lower = value.toLowerCase();
+		return $recipes.data!.filter(
+			(s) =>
+				s.title.toLowerCase().includes(lower) || s.short_description.toLowerCase().includes(lower)
+		);
 	}
 
 	async function deleteRecipe(id: string, title: string) {
@@ -74,8 +89,16 @@
 	{:else if $recipes.data}
 		<div class="py-24">
 			<h1 class="fluid-heading-05 mb-8">My Recipes</h1>
-			<List size="three-line">
-				{#each $recipes.data as recipe}
+			<div class="my-12 w-full">
+        <input
+          type="text"
+          class="label my-1 flex h-12 w-full flex-row flex-nowrap items-stretch rounded-sm border border-gray-200 px-3 dark:border-gray-700 dark:bg-gray-900 hover:dark:bg-gray-800"
+          placeholder="Search history"
+          bind:value={search}
+        />
+      </div>
+			<List size="two-line">
+				{#each filteredRecipes! as recipe}
 					<hr class="border-gray-200 dark:border-gray-800" />
 					<div transition:slide={{ duration: 300, axis: 'y' }}>
 						<ListItem.Root>

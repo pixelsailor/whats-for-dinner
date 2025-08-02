@@ -1,6 +1,6 @@
 import { liveQuery } from 'dexie';
 import { readable } from 'svelte/store';
-import { db } from '$lib/db';
+import { db } from '$lib/db/local';
 import type { SavedRecipe } from '$lib/types';
 import { createLiveQueryStore } from './_utils';
 

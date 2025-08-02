@@ -1,4 +1,4 @@
-import { db } from '$lib/db';
+import { db } from '$lib/db/local';
 import type { UserPreferences } from '$lib/types';
 import { createLiveQueryStore } from './_utils';
 

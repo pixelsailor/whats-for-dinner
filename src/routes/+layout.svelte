@@ -13,7 +13,7 @@
 	import '../app.css';
 	import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query';
 	import { browser } from '$app/environment';
-	import { db } from '$lib/db';
+	import { db } from '$lib/db/local';
 	import ChatbotIcon from '$lib/ui/Icons/ChatbotIcon.svelte';
 	import SettingsIcon from '$lib/ui/Icons/SettingsIcon.svelte';
 	import OpenPanelLeftIcon from '$lib/ui/Icons/OpenPanelLeftIcon.svelte';

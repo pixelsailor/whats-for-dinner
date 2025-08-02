@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getContext } from 'svelte';
+	import { getContext, onMount } from 'svelte';
 	import { slide } from 'svelte/transition';
 	import SvelteMarkdown from '@humanspeak/svelte-markdown';
 	import { toast } from 'svelte-sonner';
@@ -7,7 +7,7 @@
 
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
-	import { db } from '$lib/db';
+	import { db } from '$lib/db/local';
 	import { getSavedRecipe } from '$lib/stores/recipes';
 	import type { PromptContext, SavedRecipe, ViewState } from '$lib/types';
 	import Button from '$lib/ui/Button/Button.svelte';
@@ -54,22 +54,41 @@
 
 	let lastFormMessage: string | undefined = undefined;
 
-	$effect(() => {
-		getSavedRecipe(id)
-			.then((response) => {
-				if (!response) {
+	async function loadRecipe(id: string) {
+		// @TODO: replace the `searchParams` with a regex to parse the string
+		const url = new URL(window.location.href);
+		const isShared = url.searchParams.get('shared');
+
+		if (isShared) {
+			try {
+				const res = await fetch(`/api/supabase?shared=${encodeURIComponent(id)}`);
+				const data = await res.json();
+				if (data.recipe) {
+					recipe = data.recipe;
+					app.view = 'idle';
+				} else {
+					app.error = data.error || 'Recipe not found or unavailable.';
 					app.view = 'error';
-					app.error = 'A recipe matching the provided ID could not be found.';
-					return;
 				}
-				recipe = response;
+			} catch (err) {
+				app.error = 'Recipe not found or unavailable';
+				app.view = 'error';
+			}
+		} else {
+			const localRecipe = await getSavedRecipe(id);
+			if (localRecipe) {
+				recipe = localRecipe;
 				app.view = 'idle';
 				db.recipes.update(id, { last_opened: Date.now() });
-			})
-			.catch((err) => {
-				app.error = err.message;
+			} else {
+				app.error = 'A recipe matching the provided ID could not be found.';
 				app.view = 'error';
-			});
+			}
+		}
+	}
+
+	$effect(() => {
+		loadRecipe(id);
 	});
 
 	// React to user prompts

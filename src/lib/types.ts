@@ -56,6 +56,11 @@ export type SavedRecipe = FullRecipe & {
 	version: number;
 	parent_id?: string;
 	is_current: boolean;
+	owner_id?: string;
+	shared_id?: string;
+	synced?: boolean;
+	last_synced_at?: number;
+	sync_error?: string;
 };
 
 export type PantryItem = {

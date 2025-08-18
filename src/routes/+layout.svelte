@@ -17,6 +17,8 @@
 	import ChatbotIcon from '$lib/ui/Icons/ChatbotIcon.svelte';
 	import SettingsIcon from '$lib/ui/Icons/SettingsIcon.svelte';
 	import OpenPanelLeftIcon from '$lib/ui/Icons/OpenPanelLeftIcon.svelte';
+	import { Dialog } from 'bits-ui';
+	import { PUBLIC_QA_PW, PUBLIC_QA_USER } from '$env/static/public';
 
 	type Layout =
 		| 'mobile--collapsed'
@@ -84,6 +86,52 @@
 
 	setContext('viewport', vp);
 
+	let showLoginDialog = $state(false);
+
+	let email = $state(PUBLIC_QA_USER);
+  let password = $state(PUBLIC_QA_PW);
+  let loading = $state(false);
+  let error = $state('');
+  let success = $state('');
+
+  async function handleLogin() {
+    loading = true;
+    error = '';
+    success = '';
+
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      const result: { success: boolean, user: any, message: string } = await response.json();
+
+			console.table(result);
+			
+      if (!response.ok) {
+        error = result.message || 'Login failed';
+        return;
+      }
+
+      success = 'Login successful!';
+      
+      // Redirect after successful login
+      // setTimeout(() => {
+      //   goto('/dashboard'); // or wherever you want to redirect
+      // }, 1000);
+
+    } catch (err) {
+      console.error('Login error:', err);
+      error = 'An unexpected error occurred';
+    } finally {
+      loading = false;
+    }
+	}
+
 	onMount(async () => {
 		const prefs = await db.preferences.get('preferences');
 		if (!prefs) {
@@ -94,6 +142,11 @@
 	function toggleSidenav() {
 		vp.nav = vp.nav === 'expanded' ? 'collapsed' : 'expanded';
 	}
+
+	// function openLoginDialog() {
+	// 	console.log('openLoginDialog');
+		
+	// }
 </script>
 
 {#snippet sidenav()}
@@ -140,13 +193,18 @@
 			</List>
 		{/if}
 	</div>
-	<div class="fixed bottom-0 px-5 w-full">
+	<div class="absolute bottom-0 px-5 w-full">
 		<List>
 			<ListItem.Root>
 				<ListItem.Link href="/preferences">
 					<SettingsIcon size="xs" />
 					Preferences
 				</ListItem.Link>
+			</ListItem.Root>
+			<ListItem.Root>
+				<ListItem.Button onClick={() => showLoginDialog = true}>
+					Log In
+				</ListItem.Button>
 			</ListItem.Root>
 		</List>
 	</div>
@@ -208,6 +266,49 @@
 		{@render children()}
 	</div>
 </div>
+
+<Dialog.Root bind:open={showLoginDialog}>
+	<Dialog.Portal>
+		<Dialog.Overlay
+			class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80" />
+		<Dialog.Content
+			class="rounded-lg bg-gray-50 dark:bg-black dark:text-gray-300 shadow-popover data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 outline-hidden fixed left-[50%] top-[50%] z-50 w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] border p-5 sm:max-w-[490px] md:w-full"
+		>
+			<Dialog.Title>Log In</Dialog.Title>
+			<Dialog.Description>Log in to sync to the cloud</Dialog.Description>
+
+			<form onsubmit={e => { e.preventDefault(); handleLogin(); }}>
+				<div>
+					<label for="email">Email:</label>
+					<input 
+						type="email" 
+						id="email" 
+						bind:value={email}
+						required 
+						disabled={loading}
+						autocomplete="off"
+					/>
+				</div>
+				
+				<div>
+					<label for="password">Password:</label>
+					<input 
+						type="password" 
+						id="password" 
+						bind:value={password}
+						required 
+						disabled={loading}
+					/>
+				</div>
+				
+				<button type="submit" disabled={loading}>
+					{loading ? 'Logging in...' : 'Login'}
+				</button>
+			</form>
+		</Dialog.Content>
+	</Dialog.Portal>
+</Dialog.Root>
+
 <Toaster position={vp.device === 'mobile' ? 'top-center' : 'top-right'} />
 </QueryClientProvider>
 

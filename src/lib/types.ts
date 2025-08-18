@@ -37,7 +37,6 @@ export type FullRecipe = {
 	description: string;
 	ingredients: string; // markdown
 	instructions: string; // markdown
-	estimated_time?: string; // deprecated
 	time: {
 		prep: string;
 		cook: string;

@@ -2,12 +2,24 @@ import { VITE_OPENAI_API_KEY } from '$env/static/private';
 import type { FullRecipe, PromptContext } from '$lib/types';
 import { OpenAI } from 'openai/client.js';
 import type { ChatCompletionMessageParam } from 'openai/resources';
+// import { zodResponseFormat } from 'openai/helpers/zod';
+// import { z } from 'zod';
 
 const openai = new OpenAI({
 	apiKey: VITE_OPENAI_API_KEY
 });
 
 const model = 'gpt-4.1-nano';
+// const model = 'gpt-4o-mini'; // necessary for structured output -- 4.1-nano did work pretty well however
+
+// const SummaryResponse = z.object({
+// 	title: z.string(),
+// 	short_description: z.string(),
+// 	estimated_time: z.string(),
+// 	tags: z.array(z.string())
+// });
+
+const temperature = 0.7;
 
 export async function getRecipeSuggestions(
 	input: string,
@@ -16,7 +28,11 @@ export async function getRecipeSuggestions(
 	const messages: ChatCompletionMessageParam[] = [
 		{
 			role: 'system',
-			content: `You are a meal planner. Response with a JSON array of 4-8 meal ideas based on the users's input. ${userPreferences} Each item should include:
+			content: `You are a meal planner. Response with a JSON array of 4-8 recipe ideas based on the users's input.
+			Pay attention to the user's request. Meal ideas should be assumed unless otherwise specified.
+			${userPreferences}
+
+			Each item should include:
       - title (string)
       - short_description (string)
       - estimated_time (e.g., "30 min")
@@ -27,14 +43,19 @@ export async function getRecipeSuggestions(
 		{
 			role: 'user',
 			content: input
-		}
+		},
 	];
 
 	try {
+		// const response = await openai.responses.parse({
+		// 	model,
+		// 	input: messages,
+		// 	text: zodResponseFormat(SummaryResponse, 'summary')
+		// });
 		const response = await openai.chat.completions.create({
 			model,
 			messages,
-			temperature: 0.7
+			temperature,
 		});
 
 		return ['summaries', response.choices[0].message.content || null];
@@ -52,7 +73,11 @@ export async function getFullRecipe(
 	const messages: ChatCompletionMessageParam[] = [
 		{
 			role: 'system',
-			content: `You are an expert culinary assistant with professional insight into preparation and process.
+			content: `You are an expert culinary assistant. You are thoughtful about flavor profiles,
+ingredients and traditional preparation methods. Consider the steps necessary during preparation
+-- whether items that will be combined should be prepared/cooked separately, at the same time. Be
+considerate of the total time an item may spend cooking if additional items are added that must be
+cooked together.
 ${userPreferences}
 Respond ONLY with valid JSON in the following format:
       
@@ -103,7 +128,7 @@ Keep your formatting consistent and minimal.
 		const response = await openai.chat.completions.create({
 			model,
 			messages,
-			temperature: 0.4
+			temperature
 		});
 
 		return ['detail', response.choices[0].message.content ?? null];
@@ -160,7 +185,7 @@ Here is the user's modification request:
 		const response = await openai.chat.completions.create({
 			model,
 			messages,
-			temperature: 0.4
+			temperature: 1.0
 		});
 
 		return ['revision', response.choices[0].message.content ?? null];
@@ -202,7 +227,7 @@ ${question}
 			{ role: 'system', content: prompt },
 			{ role: 'user', content: input }
 		],
-		temperature: 0.4
+		temperature
 	});
 
 	return ['assistance', response.choices[0].message.content ?? null];

@@ -1,9 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
-import { VITE_SUPABASE_ANON_KEY, VITE_SUPABASE_URL } from '$env/static/private';
+import { PUBLIC_SUPABASE_ANON_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public';
 import type { SavedRecipe } from '$lib/types';
 import { db } from '$lib/db/local';
 
-const supabase = createClient(VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY);
+export const supabase = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY);
 
 export async function syncLocalToRemote(localRecipes: SavedRecipe[], userId: string) {
   for (const recipe of localRecipes) {

@@ -9,19 +9,51 @@
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
 	import { slide } from 'svelte/transition';
 	import { toast } from 'svelte-sonner';
+	import Button from '$lib/ui/Button/Button.svelte';
+	import TrashIcon from '$lib/ui/Icons/TrashIcon.svelte';
 
 	const restoreRecipe = async (id: string) => {
 		try {
 			await db.recipes.update(id, { archived: undefined });
+			console.log(`${id} deleted`);
 		} catch (err) {
 			console.error(err);
 			toast.error('There was a problem trying to restore the recipe.');
 		}
 	};
+
+	const deleteRecipe = async(id: string) => {
+		try {
+			await db.recipes.delete(id);
+		} catch (err) {
+			console.error(err);
+		}
+	}
+
+	const deleteAll = async () => {
+		const all = $archivedRecipes.data?.map((recipe) => recipe.id);
+		if (!all?.length) return;
+		
+		try {
+			await db.recipes.bulkDelete(all)
+		} catch (err) {
+			console.error(err);
+		}
+	}
 </script>
 
 <PageHeader>
-	<AppBar.Root />
+	<AppBar.Root>
+		<AppBar.Text primary="Trash Bin" />
+		<AppBar.End>
+			{#if $archivedRecipes.data && $archivedRecipes.data.length}
+				<Button onClick={deleteAll} size="xs">
+					<TrashIcon size="xs" />
+					<span class="ml-2 hidden md:inline">Empty Trash</span>
+				</Button>
+			{/if}
+		</AppBar.End>
+	</AppBar.Root>
 </PageHeader>
 
 <main class="mx-auto min-h-screen max-w-5xl px-4">
@@ -49,6 +81,9 @@
 							<ListItem.Root>
 								<ListItem.Text primary={recipe.title} />
 								<ListItem.SecondaryAction>
+									<IconButton title="Delete permanently" onClick={() => deleteRecipe(recipe.id)} size="xs">
+										<TrashIcon size="xs" />
+									</IconButton>
 									<IconButton title="Restore" onClick={() => restoreRecipe(recipe.id)} size="xs">
 										<RevertIcon />
 									</IconButton>

@@ -93,7 +93,7 @@
 	}
 </script>
 
-<PageHeader>
+<!-- <PageHeader>
 	<AppBar.Root>
 		<AppBar.End>
 			<Button onClick={() => bulkDeleteSuggestions()} size="sm">
@@ -102,7 +102,7 @@
 			</Button>
 		</AppBar.End>
 	</AppBar.Root>
-</PageHeader>
+</PageHeader> -->
 
 <main class="mx-auto min-h-screen max-w-5xl px-4">
 	{#if hasPrompt && $query}

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { db } from '$lib/db/local';
-	import { archivedRecipes } from '$lib/stores/recipes';
+	import { deletedRecipes } from '$lib/stores/recipes';
 	import IconButton from '$lib/ui/IconButton.svelte';
 	import RevertIcon from '$lib/ui/Icons/RevertIcon.svelte';
 	import { List, ListItem } from '$lib/ui/List';
@@ -14,7 +14,7 @@
 
 	const restoreRecipe = async (id: string) => {
 		try {
-			await db.recipes.update(id, { archived: undefined });
+			await db.recipes.update(id, { deleted_at: undefined });
 			console.log(`${id} deleted`);
 		} catch (err) {
 			console.error(err);
@@ -31,7 +31,7 @@
 	}
 
 	const deleteAll = async () => {
-		const all = $archivedRecipes.data?.map((recipe) => recipe.id);
+		const all = $deletedRecipes.data?.map((recipe) => recipe.id);
 		if (!all?.length) return;
 		
 		try {
@@ -46,7 +46,7 @@
 	<AppBar.Root>
 		<AppBar.Text primary="Trash Bin" />
 		<AppBar.End>
-			{#if $archivedRecipes.data && $archivedRecipes.data.length}
+			{#if $deletedRecipes.data && $deletedRecipes.data.length}
 				<Button onClick={deleteAll} size="xs">
 					<TrashIcon size="xs" />
 					<span class="ml-2 hidden md:inline">Empty Trash</span>
@@ -57,33 +57,33 @@
 </PageHeader>
 
 <main class="mx-auto min-h-screen max-w-5xl px-4">
-	{#if $archivedRecipes.loading}
+	{#if $deletedRecipes.loading}
 		<div class="mx-auto grid h-screen w-full max-w-3xl place-content-center">
 			<ProgressSpinner size="lg" />
 		</div>
-	{:else if $archivedRecipes.error}
+	{:else if $deletedRecipes.error}
 		<div class="mx-auto grid h-screen w-full max-w-3xl place-content-center gap-6">
 			<h1 class="fluid-heading-05">Ah donkey-spittle! There was a problem.</h1>
 			<p class="flex items-center gap-3">
-				<span class="fluid-heading-03">{$archivedRecipes.error.name}</span><span>|</span><span
-					>{$archivedRecipes.error?.message}</span
+				<span class="fluid-heading-03">{$deletedRecipes.error.name}</span><span>|</span><span
+					>{$deletedRecipes.error?.message}</span
 				>
 			</p>
 		</div>
-	{:else if $archivedRecipes.data}
+	{:else if $deletedRecipes.data}
 		<div class="py-24">
-			<h1 class="fluid-heading-05 mb-8">Trash</h1>
-			{#if $archivedRecipes.data.length > 0}
+			<h1 class="fluid-heading-04 mb-8">Trash</h1>
+			{#if $deletedRecipes.data.length > 0}
 				<List>
-					{#each $archivedRecipes.data as recipe}
+					{#each $deletedRecipes.data as recipe}
 						<hr class="border-gray-200" />
 						<div transition:slide={{ duration: 300, axis: 'y' }}>
 							<ListItem.Root>
 								<ListItem.Text primary={recipe.title} />
 								<ListItem.SecondaryAction>
-									<IconButton title="Delete permanently" onClick={() => deleteRecipe(recipe.id)} size="xs">
+									<Button title="Delete permanently" onClick={() => deleteRecipe(recipe.id)} size="xs" icon>
 										<TrashIcon size="xs" />
-									</IconButton>
+									</Button>
 									<IconButton title="Restore" onClick={() => restoreRecipe(recipe.id)} size="xs">
 										<RevertIcon />
 									</IconButton>

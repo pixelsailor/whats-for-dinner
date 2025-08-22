@@ -5,11 +5,11 @@ import { createLiveQueryStore } from './_utils';
 export const recommendedRecipes = createLiveQueryStore(async () => {
 	const mealType = getMealContext();
 
-	const all = (await db.recipes.toArray()).filter((r) => !r.archived);
+	const all = (await db.recipes.toArray()).filter((r) => !r.deleted_at);
 
 	if (all.every((r) => !r.last_opened)) {
 		return all
-			.filter(r => !r.archived)
+			.filter(r => !r.deleted_at)
 			.sort((a, b) => b.created_at - a.created_at)
 			.slice(0, 6);
 	}
@@ -21,7 +21,7 @@ export const recommendedRecipes = createLiveQueryStore(async () => {
 
 	if (candidates.length < 6) {
 		const additional = all
-			.filter(r => !candidates.includes(r) && !r.archived)
+			.filter(r => !candidates.includes(r) && !r.deleted_at)
 			.sort((a, b) => a.last_opened - b.last_opened)
 			// .slice(0, 6 - candidates.length);
 		candidates = [...candidates, ...additional];

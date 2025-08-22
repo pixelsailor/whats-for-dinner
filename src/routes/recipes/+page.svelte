@@ -11,6 +11,7 @@
 	import { AppBar } from '$lib/ui/AppBar';
 	import PageHeader from '$lib/ui/PageHeader.svelte';
 	import RecipesIcon from '$lib/ui/Icons/RecipesIcon.svelte';
+	import CloudBackup from '$lib/ui/Icons/CloudBackup.svelte';
 
 	let search = $state<string>();
 
@@ -31,18 +32,23 @@
 		);
 	}
 
+	function syncRecipeStore() {
+		console.log('syncRecipeStore');
+		
+	}
+
 	async function deleteRecipe(id: string, title: string) {
 		// if (confirm('Delete this recipe?')) {
 		const deletedAt = Date.now();
 
 		try {
-			await db.recipes.update(id, { archived: deletedAt });
+			await db.recipes.update(id, { deleted_at: deletedAt });
 
 			toast.success(`"${title}" deleted`, {
 				action: {
 					label: 'Undo',
 					onClick: async () => {
-						await db.recipes.update(id, { archived: undefined });
+						await db.recipes.update(id, { deleted_at: undefined });
 						toast.success(`"${title}" restored`);
 					}
 				},
@@ -60,6 +66,9 @@
 	<AppBar.Root>
 		<AppBar.Text primary="My Recipes" />
 		<AppBar.End>
+			<Button onClick={syncRecipeStore} size="xs" label="Cloud sync" title="Cloud sync" icon>
+				<CloudBackup size="xs" />
+			</Button>
 			<Button href="/recipes/new" size="xs">
 				<RecipesIcon size="xs" />
 				<span class="ml-2 hidden md:inline">Add a recipe</span>

@@ -51,12 +51,13 @@ export type SavedRecipe = FullRecipe & {
 	id: string;
 	created_at: number;
 	archived?: number;
+	deleted_at?: number;
 	last_opened: number;
 	version: number;
 	parent_id?: string;
 	is_current: boolean;
 	owner_id?: string;
-	shared_id?: string;
+	// shared_id?: string;
 	synced?: boolean;
 	last_synced_at?: number;
 	sync_error?: string;

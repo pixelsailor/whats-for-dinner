@@ -103,7 +103,7 @@
 		</div>
 	{:else if $preferences.data}
 		<div class="py-24">
-			<h1 class="fluid-heading-05 mb-8">Preferences</h1>
+			<h1 class="fluid-heading-04 mb-8">Preferences</h1>
 			<p class="my-8">
 				Set your recipe preferences here. These choices will affect every suggested recipe. If you
 				want to modify recipes only occasionally, rather than setting a preference, just be specific
@@ -155,6 +155,28 @@
 					onchange={() => handleFieldChange('dislikes')}
 				/>
 				<p class="helper-text opacity-70">List anything you don't like that you want excluded.</p>
+			</div>
+			
+			<div class="mb-3 min-h-24">
+				<p class="label mb-1">Prefer substitutions for these ingredients</p>
+				<!-- <input
+					type="text"
+					class="label my-1 flex h-12 w-full flex-row flex-nowrap items-stretch rounded-sm border border-gray-200 px-3 dark:border-gray-700 dark:bg-gray-900 hover:dark:bg-gray-800"
+					bind:value={dislikes}
+					onchange={() => handleFieldChange('dislikes')}
+				/>
+				<p class="helper-text opacity-70">Some ingredients are ok but you prefer alternates if possible.</p> -->
+			</div>
+			
+			<div class="mb-3 min-h-24">
+				<p class="label mb-1">Prefer (fresh) or (shelf-stable) of (no preference) ingredients</p>
+				<!-- <input
+					type="text"
+					class="label my-1 flex h-12 w-full flex-row flex-nowrap items-stretch rounded-sm border border-gray-200 px-3 dark:border-gray-700 dark:bg-gray-900 hover:dark:bg-gray-800"
+					bind:value={dislikes}
+					onchange={() => handleFieldChange('dislikes')}
+				/>
+				<p class="helper-text opacity-70">List anything you don't like that you want excluded.</p> -->
 			</div>
 		</div>
 	{/if}

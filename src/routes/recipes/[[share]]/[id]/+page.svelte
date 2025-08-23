@@ -20,9 +20,11 @@
 
 	const vp: any = getContext('viewport');
 
-	let { form } = $props();
+	let { data, form } = $props();
 
 	let id = $derived(page.params.id);
+
+	let isShared = $derived(!!page.params.share);
 
 	let promptInput = $state<string>();
 
@@ -55,14 +57,14 @@
 	let lastFormMessage: string | undefined = undefined;
 
 	async function loadRecipe(id: string) {
-		// @TODO: replace the `searchParams` with a regex to parse the string
-		const url = new URL(window.location.href);
-		const isShared = url.searchParams.get('shared');
-
 		if (isShared) {
 			try {
-				const res = await fetch(`/api/supabase?shared=${encodeURIComponent(id)}`);
+				const res = await fetch(`/api/share/${id}`);
+				if (!res.ok) throw new Error(await res.text());
+				
 				const data = await res.json();
+				console.log('remote', data);
+				
 				if (data.recipe) {
 					recipe = data.recipe;
 					app.view = 'idle';
@@ -71,11 +73,15 @@
 					app.view = 'error';
 				}
 			} catch (err) {
+				console.log(err);
+				
 				app.error = 'Recipe not found or unavailable';
 				app.view = 'error';
 			}
 		} else {
 			const localRecipe = await getSavedRecipe(id);
+			console.log('local', localRecipe);
+			
 			if (localRecipe) {
 				recipe = localRecipe;
 				app.view = 'idle';
@@ -139,7 +145,8 @@
 			id: uuid(),
 			version,
 			parent_id: original.parent_id ?? original.id,
-			archived: 0,
+			// archived: 0,
+			// deleted_at: 0,
 			is_current: true,
 			created_at: now,
 			last_opened: now

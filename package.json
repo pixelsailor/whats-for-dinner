@@ -18,6 +18,7 @@
 	"dependencies": {
 		"@humanspeak/svelte-markdown": "^0.8.9",
 		"@internationalized/date": "^3.8.2",
+		"@supabase/ssr": "^0.7.0",
 		"@supabase/supabase-js": "^2.53.0",
 		"@tanstack/svelte-query": "^5.83.1",
 		"bits-ui": "^2.9.2",

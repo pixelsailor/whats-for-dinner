@@ -19,7 +19,7 @@ const model = 'gpt-4.1-nano';
 // 	tags: z.array(z.string())
 // });
 
-const temperature = 0.7;
+const temperature = 0.9;
 
 export async function getRecipeSuggestions(
 	input: string,
@@ -77,7 +77,7 @@ export async function getFullRecipe(
 ingredients and traditional preparation methods. Consider the steps necessary during preparation
 -- whether items that will be combined should be prepared/cooked separately, at the same time. Be
 considerate of the total time an item may spend cooking if additional items are added that must be
-cooked together.
+cooked together. For measured ingredients, dry ingredients should be listed before wet.
 ${userPreferences}
 Respond ONLY with valid JSON in the following format:
       
@@ -116,6 +116,19 @@ Formatting Guidelines:
 - DO NOT include any emojis or non-ASCII characters.
 
 Keep your formatting consistent and minimal.
+
+Tags Requirements:
+- The __tags__ field must always be an array of human-readable strings.
+- At least one tag must be included from **at least one** of these sub-category groups (if relevant):  
+  1. Meal Type — e.g., Breakfast, Lunch, Dinner, Dessert, Snack, Appetizer, Side Dish, Main Course, Condiment/Sauce  
+  2. Time & Occasion — e.g., Quick & Easy, Weeknight Dinner, Meal Prep, Special Occasion, Holiday, Potluck, Kid-Friendly  
+  3. Dietary & Nutrition — e.g., Vegetarian, Vegan, Gluten-Free, Dairy-Free, Low-Carb, High-Protein, Paleo, Low-Calorie, Nut-Free  
+  4. Cuisine — e.g., Italian, Mexican, Chinese, Indian, Thai, Japanese, Mediterranean, Middle Eastern, French, Latin American, Korean, African, Fusion  
+  5. Course / Dish Type — e.g., Soup, Salad, Casserole, Sandwich, Pasta, Stir-Fry, Rice Dish, Pizza, Noodles, Grill/BBQ, Bowl, Skillet, Bake  
+  6. Cooking Method — e.g., No-Cook, Baked, Roasted, Grilled, Pan-Fried, Boiled, Steamed, Slow Cooker, Instant Pot, Air Fryer, Sous Vide  
+  7. Primary Ingredient / Protein — e.g., Chicken, Beef, Pork, Lamb, Fish, Shellfish, Eggs, Tofu, Beans, Cheese, Grains, Vegetables, Fruit  
+  8. Beverages & Extras — e.g., Smoothies, Juices, Cocktails, Non-Alcoholic Drinks, Sauces, Marinades, Breads  
+- You may include **additional relevant tags** beyond these lists — do not restrict tags to only the examples above.
 `
 		},
 		{
@@ -257,6 +270,19 @@ Only return valid JSON for the missing fields — do not include any commentary,
 If **short_description** is missing, one may be added using the recipe details as a guide.
 The __description__ may be a long form of the user's **short_description** with additional commentary or suggested pairings.
 Do not alter the provided recipe in any way.
+
+Tags Requirements:
+- The __tags__ field must always be an array of human-readable strings.
+- At least one tag must be included from **at least one** of these sub-category groups (if relevant):  
+  1. Meal Type — e.g., Breakfast, Lunch, Dinner, Dessert, Snack, Appetizer, Side Dish, Main Course, Condiment/Sauce  
+  2. Time & Occasion — e.g., Quick & Easy, Weeknight Dinner, Meal Prep, Special Occasion, Holiday, Potluck, Kid-Friendly  
+  3. Dietary & Nutrition — e.g., Vegetarian, Vegan, Gluten-Free, Dairy-Free, Low-Carb, High-Protein, Paleo, Low-Calorie, Nut-Free  
+  4. Cuisine — e.g., Italian, Mexican, Chinese, Indian, Thai, Japanese, Mediterranean, Middle Eastern, French, Latin American, Korean, African, Fusion  
+  5. Course / Dish Type — e.g., Soup, Salad, Casserole, Sandwich, Pasta, Stir-Fry, Rice Dish, Pizza, Noodles, Grill/BBQ, Bowl, Skillet, Bake  
+  6. Cooking Method — e.g., No-Cook, Baked, Roasted, Grilled, Pan-Fried, Boiled, Steamed, Slow Cooker, Instant Pot, Air Fryer, Sous Vide  
+  7. Primary Ingredient / Protein — e.g., Chicken, Beef, Pork, Lamb, Fish, Shellfish, Eggs, Tofu, Beans, Cheese, Grains, Vegetables, Fruit  
+  8. Beverages & Extras — e.g., Smoothies, Juices, Cocktails, Non-Alcoholic Drinks, Sauces, Marinades, Breads  
+- You may include **additional relevant tags** beyond these lists — do not restrict tags to only the examples above.
 `;
 
   const input = `

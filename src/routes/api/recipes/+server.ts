@@ -1,11 +1,21 @@
 import { error, json, type RequestHandler } from '@sveltejs/kit';
-import { appendRecipeDetails, askCookingQuestion, getFullRecipe, getRecipeSuggestions, requestRecipeModifications } from '$lib/server/openai';
+import {
+	appendRecipeDetails,
+	askCookingQuestion,
+	getRecipeSuggestions,
+	requestRecipeModifications
+} from '$lib/server/openai';
 import type { PromptContext } from '$lib/types';
-
+import { getFullRecipe } from '$lib/openai/recipe';
 
 export const POST: RequestHandler = async ({ request }) => {
 	try {
-		const { action, prompt, recipe, preferences, }: { action: PromptContext; prompt: string; recipe?: string; preferences?: string; } =
+		const {
+			action,
+			prompt,
+			recipe,
+			preferences
+		}: { action: PromptContext; prompt: string; recipe?: string; preferences?: string } =
 			await request.json();
 
 		if (!prompt || typeof prompt !== 'string') {

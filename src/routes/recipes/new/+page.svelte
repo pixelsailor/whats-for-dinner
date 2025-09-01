@@ -2,7 +2,7 @@
 	import { Time } from '@internationalized/date';
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
-	import { db } from '$lib/db.js';
+	import { db } from '$lib/db';
 	import type { FullRecipe } from '$lib/types.js';
 	import Button from '$lib/ui/Button/Button.svelte';
 	import RecipeTime from '$lib/ui/RecipeTime.svelte';

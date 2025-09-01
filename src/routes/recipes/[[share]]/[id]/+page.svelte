@@ -7,7 +7,7 @@
 
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
-	import { db } from '$lib/db/local';
+	import { db } from '$lib/db';
 	import { getSavedRecipe } from '$lib/stores/recipes';
 	import type { PromptContext, SavedRecipe, ViewState } from '$lib/types';
 	import Button from '$lib/ui/Button/Button.svelte';

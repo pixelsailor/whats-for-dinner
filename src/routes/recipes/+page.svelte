@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { toast } from 'svelte-sonner';
 
-	import { db } from '$lib/db/local';
+	import { db } from '$lib/db';
 	import { recipes } from '$lib/stores/recipes';
 	import Button from '$lib/ui/Button/Button.svelte';
 	import { List, ListItem } from '$lib/ui/List';

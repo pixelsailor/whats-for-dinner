@@ -1,6 +1,7 @@
 import Dexie, { type Table } from 'dexie';
 import type { SavedRecipe, Suggestion, UserPreferences } from '../types';
 
+/** @deprecated - go back to the original db.ts */
 class MealDexie extends Dexie {
 	recipes!: Table<SavedRecipe, string>;
 	suggestions!: Table<Suggestion, string>;

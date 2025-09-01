@@ -1,4 +1,4 @@
-import { db } from '$lib/db/local';
+import { db } from '$lib/db';
 import { getMealContext } from '$lib/getMealContext';
 import { createLiveQueryStore } from './_utils';
 

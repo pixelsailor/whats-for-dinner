@@ -1,4 +1,4 @@
-import { db } from '$lib/db/local';
+import { db } from '$lib/db';
 import type { RecipeSummary, Suggestion } from '$lib/types';
 import { liveQuery } from 'dexie';
 import { readable, writable } from 'svelte/store';

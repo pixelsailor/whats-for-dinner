@@ -1,5 +1,5 @@
 import { browser } from '$app/environment';
-import { db } from '$lib/db/local';
+import { db } from '$lib/db';
 import type { PageLoad } from './$types';
 
 export const load: PageLoad = async () => {

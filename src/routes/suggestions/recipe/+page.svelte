@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { beforeNavigate, goto } from '$app/navigation';
-	import { db } from '$lib/db.js';
+	import { db } from '$lib/db';
 	import { createFullRecipeQuery } from '$lib/queries/recipes.js';
 	import type { FullRecipe, PromptContext } from '$lib/types.js';
 	import { AppBar } from '$lib/ui/AppBar';

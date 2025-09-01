@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { db } from '$lib/db/local';
+	import { db } from '$lib/db';
 	import { deletedRecipes } from '$lib/stores/recipes';
 	import IconButton from '$lib/ui/IconButton.svelte';
 	import RevertIcon from '$lib/ui/Icons/RevertIcon.svelte';

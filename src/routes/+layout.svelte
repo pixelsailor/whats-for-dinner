@@ -2,6 +2,8 @@
 	import { onMount, setContext } from 'svelte';
 	import { Toaster } from 'svelte-sonner';
 
+	import { SvelteQueryDevtools } from '@tanstack/svelte-query-devtools'
+
 	import { MIN_DESKTOP_SIZE } from '$lib/constants';
 	import { recentlyOpened } from '$lib/stores/recipes';
 	import { List, ListItem } from '$lib/ui/List';

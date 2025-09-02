@@ -1,4 +1,4 @@
-import { db } from '$lib/db/local';
+import { db } from '$lib/db';
 
 async function getUserPreferences() {
 	const user = await db.preferences.get('preferences');

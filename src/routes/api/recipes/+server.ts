@@ -7,6 +7,7 @@ import {
 } from '$lib/server/openai';
 import type { PromptContext } from '$lib/types';
 import { getFullRecipe } from '$lib/openai/recipe';
+// import { getRecipeSuggestions } from '$lib/openai/suggestions';
 
 export const POST: RequestHandler = async ({ request }) => {
 	try {

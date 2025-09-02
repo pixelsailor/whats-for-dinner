@@ -71,7 +71,7 @@
 				<Button href="/suggestions" cue="text" size="sm">
 					Recent Suggestions
 				</Button>
-				<Button href="/suggestions?prompt=recommended" cue="text" size="sm">
+				<Button href="/recommendations" cue="text" size="sm">
 					Recommended
 				</Button>
 				<Button href="/recipes" cue="text" size="sm">

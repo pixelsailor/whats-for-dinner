@@ -16,6 +16,13 @@
 	import PageHeader from '$lib/ui/PageHeader.svelte';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
 
+	/**
+	 * `/routes/suggestions` is for handling LLM responses. While it uses the User's local preference
+	 * data for customizing the suggestion prompt, this page requires LLM API access at all times.
+	 * `/routes/recommendations` on the other hand is completely in browser and should not have
+	 * a server requirement.
+	 */
+
 	let { data } = $props();
 
 	let userPreferences = $state(data.preferences);
@@ -24,11 +31,7 @@
 
 	const hasPrompt = $derived(!!prompt);
 
-	let ogPrompt: string;
-
-	let query = $derived(
-		prompt === 'recommended' ? recommendedRecipes : createSuggestionsQuery(prompt, userPreferences)
-	);
+	let query = $derived(createSuggestionsQuery(prompt, userPreferences));
 
 	let working = $state(false);
 
@@ -84,13 +87,13 @@
 		goto(`/suggestions/recipe?title=${title}&desc=${desc}`);
 	}
 
-	function getMoreSuggestions() {
-		if (!ogPrompt) {
-			ogPrompt = prompt!;
-		}
-		const newPrompt = (ogPrompt += ' give me more ideas');
-		goto(`/suggestions?prompt=${newPrompt}`);
-	}
+	// function getMoreSuggestions() {
+	// 	if (!ogPrompt) {
+	// 		ogPrompt = prompt!;
+	// 	}
+	// 	const newPrompt = (ogPrompt += ' give me more ideas');
+	// 	goto(`/suggestions?prompt=${newPrompt}`);
+	// }
 </script>
 
 <!-- <PageHeader>
@@ -118,7 +121,7 @@
 		{:else if $query.data?.data}
 			<div class="py-24">
 				<h1 class="fluid-heading-05 mb-8">
-					Here are some ideas for, <span class="italic">"{ogPrompt || prompt}"</span>
+					Here are some ideas for, <span class="italic">"{prompt}"</span>
 				</h1>
 				<List size="three-line">
 					{#each $query.data.data[1] as summary}
@@ -130,9 +133,9 @@
 						</ListItem.Root>
 					{/each}
 				</List>
-				<div class="my-8">
+				<!-- <div class="my-8">
 					<Button onClick={getMoreSuggestions} label="Get more ideas">Get more ideas</Button>
-				</div>
+				</div> -->
 			</div>
 		{:else if $query.data}
 			<div class="py-24">

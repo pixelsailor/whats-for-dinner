@@ -132,11 +132,19 @@
 
 <PageHeader>
 	<AppBar.Root>
-		<AppBar.Text primary={fullRecipe ? fullRecipe.title : 'Checking the pantry...'} />
+		{#if $recipe.data}
+			<Button onClick={goBack} label="Go back to recipe suggetions" size="sm">
+				<BackIcon size="xs" />
+				Back to suggestions
+			</Button>
+		{:else}
+			<AppBar.Text primary={'Checking the pantry...'} />
+		{/if}
 		{#if $recipe.data}
 			<AppBar.End>
-				<Button onClick={saveRecipe} label="Save recipe" size="xs" icon>
-					<BookmarkIcon />
+				<Button onClick={saveRecipe} label="Save recipe">
+					<BookmarkIcon size="xs" />
+					Save recipe
 				</Button>
 			</AppBar.End>
 		{/if}
@@ -154,12 +162,6 @@
 			</p>
 		</div>
 	{:else if $recipe.data && fullRecipe}
-		<div class="mb-8">
-			<Button onClick={goBack} label="Go back to recipe suggetions" size="sm">
-				<BackIcon size="xs" />
-				Back to suggestions
-			</Button>
-		</div>
 		<Recipe recipe={fullRecipe} />
 		<Button onClick={saveRecipe} label="Save to My Recipes" disabled={working} size="sm">
 			<BookmarkIcon size="xs" />

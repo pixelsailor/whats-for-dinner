@@ -1,6 +1,10 @@
 import { db } from '$lib/db';
 
-async function getUserPreferences() {
+/**
+ * Queries the local dexie database for the User's personal cooking preferences and returns them
+ * in as an LLM friendly string for direct prompt inclusion.
+ */
+async function getUserPreferences(): Promise<string> {
 	const user = await db.preferences.get('preferences');
 
 	if (!user) {

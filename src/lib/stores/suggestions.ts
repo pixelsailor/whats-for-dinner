@@ -3,7 +3,34 @@ import type { RecipeSummary, Suggestion } from '$lib/types';
 import { liveQuery } from 'dexie';
 import { readable, writable } from 'svelte/store';
 
+// @TODO is this used?
 export const suggestionMap = writable<Map<string, RecipeSummary>>(new Map());
+
+/** Manages state for requesting suggestions from OpenAI */
+export const pendingSuggestionRequest = writable(null);
+
+/** Allows form requests to be passed from one page to another before calling the API */
+// export function startSuggestionRequest(requestPromise: Promise<any>, requestId) {
+// 	const requestData = {
+// 		id: requestId,
+// 		promise: requestPromise,
+// 		status: 'loading'
+// 	};
+
+// 	pendingSuggestionRequest.set(requestData);
+
+// 	requestPromise
+// 		.then((result) => {
+// 			pendingSuggestionRequest.update((current) => {
+// 				return current?.id === requestId ? { ...current, status: 'success', result } : current;
+// 			});
+// 		})
+// 		.catch((err) => {
+// 			pendingSuggestionRequest.update((current) => {
+// 				return current?.id === requestId ? {...current, status: 'error', err } : current;
+// 			})
+// 		});
+// }
 
 /**
  * Returns the suggestion history in its entirety, most recent first

@@ -87,13 +87,13 @@ export const RecipeSchema = z.object({
 		.string()
 		.min(1)
 		.describe(
-			"Markdown dash-space list of ingredients. Optional '### Section' headings allowed for multi-part recipes. DO NOT use 'Ingredients' as a heading. No bullets (•), or back-tick code blocks."
+			"Markdown dash-space list of ingredients. Optional '### Section' headings allowed for multi-part recipes. DO NOT use 'Ingredients' as a heading. No bullets (•). Preserve markdown exactly as written. Do not double-escape any special characters."
 		),
 	instructions: z
 		.string()
 		.min(1)
 		.describe(
-			"Markdown numbered list of instructions -- new line per item. Optional '### Section' headings allowed for multi-part recipes. DO NOT use 'Instructions' as a heading. No H1/H2 headings."
+			"Markdown numbered list of instructions. Optional '### Section' headings allowed for multi-part recipes. DO NOT use 'Instructions' as a heading. No H1/H2 headings. Preserve markdown exactly as written. Do not double-escape any special characters."
 		),
 	tags: z
 		.array(z.string().min(1))

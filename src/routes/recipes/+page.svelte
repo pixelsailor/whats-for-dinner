@@ -1,37 +1,55 @@
 <script lang="ts">
+	import { slide } from 'svelte/transition';
 	import { toast } from 'svelte-sonner';
+	import { MultiSelect } from 'flowbite-svelte'
 
 	import { db } from '$lib/db';
 	import { recipes } from '$lib/stores/recipes';
+	import type { SavedRecipe } from '$lib/types';
 	import Button from '$lib/ui/Button/Button.svelte';
 	import { List, ListItem } from '$lib/ui/List';
 	import TrashIcon from '$lib/ui/Icons/TrashIcon.svelte';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
-	import { slide } from 'svelte/transition';
 	import { AppBar } from '$lib/ui/AppBar';
 	import PageHeader from '$lib/ui/PageHeader.svelte';
 	import RecipesIcon from '$lib/ui/Icons/RecipesIcon.svelte';
 	import CloudBackup from '$lib/ui/Icons/CloudBackup.svelte';
 
-	let search = $state<string>();
-
-	// Suggestions filtered by search
-	let filteredRecipes = $derived.by(() => {
-		if (!search || search.length <= 2) {
-			return $recipes.data;
-		} else {
-			return filterRecipes(search);
-		}
+	const commonTags = $derived.by(() => {
+		const tags = new Set<string>();
+		$recipes.data?.forEach((r) => {
+			r.tags.forEach((t) => {
+				tags.add(t);
+			})
+		})
+		return Array.from(tags).map((t) => ({ value: t, name: t }));
 	});
 
-	function filterRecipes(value: string) {
-		const lower = value.toLowerCase();
-		return $recipes.data!.filter(
-			(s) =>
-				s.title.toLowerCase().includes(lower) || s.short_description.toLowerCase().includes(lower)
-		);
-	}
+	let selectedTags = $state<string[]>([]);
 
+	let search = $state<string>();
+	
+	// Suggestions filtered by search and tags
+	let filteredRecipes: SavedRecipe[] = $derived.by(() => {
+		console.log('filteredRecipes');
+		
+		let results = $recipes.data;
+		if (!results) return [];
+
+		const titleSearch = search?.toLowerCase().trim() || '';
+		const hasSearch = Boolean(search && search.length > 1);
+		const hasFilters = selectedTags && selectedTags.length > 0;
+		if (!hasSearch && !hasFilters) {
+			return results;
+		}
+
+		return results.filter((r) => {
+			const searchMatches = !hasSearch || r.title.toLowerCase().includes(titleSearch);
+			const tagMatches = !hasFilters || selectedTags.every((t) => r.tags.includes(t));
+			return searchMatches && tagMatches;
+		});
+	});
+	
 	function syncRecipeStore() {
 		console.log('syncRecipeStore');
 		
@@ -98,13 +116,14 @@
 	{:else if $recipes.data}
 		<div class="py-24">
 			<h1 class="fluid-heading-05 mb-8">My Recipes</h1>
-			<div class="my-12 w-full">
+			<div class="my-12 w-full grid grid-cols-2 gap-4">
         <input
           type="text"
           class="label my-1 flex h-12 w-full flex-row flex-nowrap items-stretch rounded-sm border border-gray-200 px-3 dark:border-gray-700 dark:bg-gray-900 hover:dark:bg-gray-800"
           placeholder="Search history"
           bind:value={search}
         />
+				<MultiSelect items={commonTags} bind:value={selectedTags} placeholder="Filter by tag" />
       </div>
 			<List size="two-line">
 				{#each filteredRecipes! as recipe}

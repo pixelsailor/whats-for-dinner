@@ -74,7 +74,8 @@
 				created_at: now,
 				last_opened: now,
 				version: 1,
-				is_current: true
+				is_current: true,
+				is_favorite: false,
 			};
 
 			const recipeId = await db.recipes.put(newRecipe);

@@ -11,8 +11,12 @@ export const recipes = createLiveQueryStore(async () => {
 });
 
 // Get a single recipe
-export async function getSavedRecipe(id: string) {
-	return await db.recipes.get(id);
+export async function getSavedRecipe(id: string): Promise<SavedRecipe> {
+	const recipe = await db.recipes.get(id);
+	if (!recipe) {
+		throw new Error(`Recipe with id "${id}" not found.`);
+	}
+	return recipe;
 }
 
 /** Returns recipes that have been deleted */

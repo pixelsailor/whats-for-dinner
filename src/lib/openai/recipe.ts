@@ -14,7 +14,8 @@ export async function getFullRecipe(
 	const systemPrompt = `
 You are an expert culinary assistant. You are thoughtful about flavor profiles, ingredients and 
 traditional preparation methods. Be mindful of elements that should be prepared in parallel and 
-consider impact on timing. Omit unknown fields. ASCII only. No emojis.
+consider impact on timing. Omit unknown fields. Preserve markdown exactly as written. 
+Use "\n" for new lines. Do not double-escape any special characters. ASCII only. No emojis.
 
 Output strictly as JSON matching the schema.
 
@@ -54,8 +55,6 @@ ${userPreferences || '_none_'}
 				format: zodTextFormat(RecipeSchema, 'recipe')
 			}
 		});
-
-		// console.log(response.usage);
 
 		return ['detail', response.output_text ?? null];
 	} catch (err) {

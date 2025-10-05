@@ -15,6 +15,8 @@
 
 	const vp: any = getContext('viewport');
 
+	const hasAssistedRecipeAccess = true;
+
 	let form = $state<FullRecipe>({
 		title: '',
 		description: '',
@@ -110,7 +112,8 @@
 			created_at: now,
 			last_opened: now,
 			version: 1,
-			is_current: true
+			is_current: true,
+			is_favorite: false,
 		}).then((id) => {
 			status = 'saved';
 			goto(`/recipes/${id}`, { replaceState: true });
@@ -140,7 +143,7 @@
 		status = 'saving';
 		formData.append('yield', insertServingValue());
 		humanizeTimes();
-		if (!hasEmptyFields()) {
+		if (!hasAssistedRecipeAccess || !hasEmptyFields()) {
 			cancel();
 			saveRecipe();
 		}

@@ -104,13 +104,19 @@ export type SavedRecipe = FullRecipe & {
 	id: string;
 	/** Creation timestamp (ms since epoch). */
 	created_at: number;
-	/** Optional archived timestamp. */
+	/**
+	 * Optional archived timestamp. Cloud backup: Recipe is not saved locally.
+	 * @todo This would require another db to tracking archived recipes -- supabase users only
+	 */
 	archived?: number;
 	/** Optional deletion timestamp. */
 	deleted_at?: number;
 	/** Timestamp (ms) indicating when the recipe was last opened. */
 	last_opened: number;
-	/** Monotonically increasing version number used for edits. */
+	/**
+	 * Monotonically increasing version number used for edits.
+	 * @todo Requires repo of recipe versions -- supabase users only
+	 */
 	version: number;
 	/** Parent id for version history (if applicable). */
 	parent_id?: string;

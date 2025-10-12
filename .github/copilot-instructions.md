@@ -3,13 +3,13 @@ repository's conventions (strict typing, runes for local state, Dexie for client
 server API routes for secret ops).
 
 Quick commands
-- Start dev server: `npm run dev`
-- Build: `npm run build`
-- Preview build: `npm run preview`
-- Typecheck & svelte-check: `npm run check`
-- Lint: `npm run lint`  (Prettier + ESLint)
-- Format: `npm run format`
-- Tests: `npm run test` (Vitest)
+- Start dev server: `pnpm run dev`
+- Build: `pnpm run build`
+- Preview build: `pnpm run preview`
+- Typecheck & svelte-check: `pnpm run check`
+- Lint: `pnpm run lint`  (Prettier + ESLint)
+- Format: `pnpm run format`
+- Tests: `pnpm run test` (Vitest)
 
 Architecture highlights (what matters to agents)
 - Client-first SvelteKit app. Local data lives in IndexedDB via Dexie: `src/lib/db.ts` (primary) and
@@ -63,7 +63,7 @@ Small gotchas
 - There is a deprecated duplicate DB file at `src/lib/db/local.ts`. Prefer `src/lib/db.ts`.
 - Prompts in `src/lib/openai/*` expect strict JSON output and often use Zod schemas. Follow
 	the schema formats strictly (examples in `recipe.ts` and `schema.ts`).
-- The repo uses `svelte-kit sync` in the `prepare`/`check` scripts—ensure you run `npm run check`
+- The repo uses `svelte-kit sync` in the `prepare`/`check` scripts—ensure you run `pnpm run check`
 	before large refactors to surface type/svelte issues.
 
 If anything here is unclear or you want me to add examples for a specific area (stores, OpenAI

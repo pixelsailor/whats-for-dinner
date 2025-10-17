@@ -14,7 +14,7 @@
 	import Prompt from '$lib/ui/Prompt.svelte';
 	import Recipe from '$lib/ui/Recipe.svelte';
 	import SvelteMarkdown from '@humanspeak/svelte-markdown';
-	import { getContext } from 'svelte';
+	import { getContext, onDestroy } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import { slide } from 'svelte/transition';
 	import { v4 as uuid } from 'uuid';
@@ -55,8 +55,30 @@
 
 	let hasUnsavedChanges = $state(false);
 
+	// Timeout for saving full recipe to suggestions after 2 minutes
+	let saveTimeout: number | null = null;
+
 	function goBack() {
 		window.history.back();
+	}
+
+	/**
+	 * Save full recipe to suggestions table after 2 minutes
+	 */
+	async function saveFullRecipeToSuggestions() {
+		if (!fullRecipe || !data.recipeTitle) return;
+
+		try {
+			// Convert title to suggestion ID using same logic as saveSuggestions
+			const suggestionId = data.recipeTitle.toLowerCase().replaceAll(' ', '-');
+			
+			await db.suggestions.update(suggestionId, {
+				...fullRecipe,
+				last_opened: Date.now()
+			});
+		} catch (error) {
+			console.error('Failed to save full recipe to suggestions:', error);
+		}
 	}
 
 	/**
@@ -117,6 +139,33 @@
 			console.error(form.error);
 			toast.error(`${form.error}`);
 		}
+	});
+
+	// Start timeout to save full recipe to suggestions after 2 minutes
+	$effect(() => {
+		if (fullRecipe && data.recipeTitle) {
+			// Clear any existing timeout
+			if (saveTimeout) {
+				clearTimeout(saveTimeout);
+			}
+
+			// Start new 2-minute timeout
+			saveTimeout = window.setTimeout(() => {
+				saveFullRecipeToSuggestions();
+			}, 2 * 60 * 1000); // 2 minutes
+		}
+
+		// Cleanup timeout on unmount
+		// return () => {
+		// 	if (saveTimeout) {
+		// 		clearTimeout(saveTimeout);
+		// 		saveTimeout = null;
+		// 	}
+		// };
+	});
+
+	onDestroy(() => {
+		if (saveTimeout) clearTimeout(saveTimeout);
 	});
 
 	beforeNavigate(({ cancel }) => {

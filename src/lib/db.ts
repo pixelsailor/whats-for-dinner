@@ -10,10 +10,10 @@ class MealDexie extends Dexie {
 	constructor() {
 		super('meal_assistant');
 
-		this.version(2).stores({
+		this.version(1).stores({
 			recipes:
 				'id, title, created_at, deleted_at, last_opened, owner_id, shared_id, synced, last_synced_at',
-			suggestions: 'id, created_at',
+			suggestions: 'id, created_at, last_opened',
 			// pantry: 'id, name, added_at',
 			preferences: 'id'
 		});

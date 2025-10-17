@@ -65,7 +65,9 @@ export type Suggestion = RecipeSummary & {
 	id: string;
 	/** Unix epoch ms when suggestion was created. */
 	created_at: number;
-};
+	/** Unix epoch ms when full recipe was first loaded. */
+	last_opened?: number;
+} & Partial<FullRecipe>;
 
 /**
  * Full recipe model used for storage and editing. Several fields contain markdown strings.

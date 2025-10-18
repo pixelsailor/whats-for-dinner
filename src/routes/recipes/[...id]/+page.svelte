@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getContext, onMount } from 'svelte';
+	import { getContext, onDestroy, onMount } from 'svelte';
 	import { slide } from 'svelte/transition';
 	import SvelteMarkdown from '@humanspeak/svelte-markdown';
 	import { toast } from 'svelte-sonner';
@@ -20,6 +20,8 @@
 	import EditableRecipe from '$lib/ui/EditableRecipe.svelte';
 
 	const vp: any = getContext('viewport');
+
+	const markAsOpenedDelay = 2 * 60 * 1000;
 
 	let { data, form } = $props();
 
@@ -44,6 +46,10 @@
 	// Responsible for passing the recipe to the FormData
 	let recipeJson = $derived(recipe ? JSON.stringify(recipe) : '');
 
+	// Timer used to update the recipe's last_opened after a short delay
+	// let openedTimer: ReturnType<typeof setTimeout> | null = null;
+	let openedTimer: number | null = null;
+
 	// Waiting for a response to an OpenAI request
 	let waiting = $state(false);
 
@@ -58,11 +64,33 @@
 
 	let lastFormMessage: string | undefined = undefined;
 
-	function loadRecipe(id: string): Promise<SavedRecipe> {
+	async function loadRecipe(id: string): Promise<SavedRecipe> {
 		if (isShared) {
 			throw new Error("Shared recipes not yet supported");
 		} else {
-			return getSavedRecipe(id);
+			// return getSavedRecipe(id);
+			const r = await getSavedRecipe(id);
+			recipe = r;
+
+			// Clear any existing timer then set a new one to update last_opened
+			if (openedTimer) {
+				clearTimeout(openedTimer);
+				openedTimer = null;
+			}
+			openedTimer = window.setTimeout(async () => {
+				try {
+					const ts = Date.now();
+					await db.recipes.update(id, { last_opened: ts });
+					if (recipe && recipe.id === id) {
+						recipe = { ...recipe, last_opened: ts } as SavedRecipe;
+					}
+				} catch (err) {
+					console.error('Error updating last_opened:', err);
+				} finally {
+					openedTimer = null;
+				}
+			}, markAsOpenedDelay);
+			return r;
 		}
 		// if (isShared) {
 		// 	try {
@@ -100,6 +128,48 @@
 		// }
 	}
 
+
+// 	async function loadRecipe(id: string): Promise<SavedRecipe> {
+// 		if (isShared) {
+// 			throw new Error('Shared recipes not yet supported');
+// 		} else {
+// 			const r = await getSavedRecipe(id);
+// 			recipe = r;
+// 			// Clear any existing timer then set a new one to update last_opened
+// 			if (openedTimer) {
+// 				clearTimeout(openedTimer as unknown as number);
+// 				openedTimer = null;
+// 			}
+// // 		app.error = 'A recipe matching the provided ID could not be found.';
+// 			openedTimer = setTimeout(async () => {
+// 				try {
+// 					const ts = Date.now();
+// 					await db.recipes.update(id, { last_opened: ts });
+// 					if (recipe && recipe.id === id) {
+// 						recipe = { ...recipe, last_opened: ts } as SavedRecipe;
+// 					}
+// 				} catch (err) {
+// 					console.error('Error updating last_opened:', err);
+// 				} finally {
+// 					openedTimer = null;
+// 				}
+// 			}, 20000);
+// // 		app.view = 'error';
+// 			return r;
+// 		}
+// 	}
+// 		// 	}
+// 			onDestroy(() => {
+// 				if (openedTimer) {
+// 					clearTimeout(openedTimer as unknown as number);
+// 					openedTimer = null;
+// 				}
+// 			});
+
+	onDestroy(() => {
+		if (openedTimer) clearTimeout(openedTimer);
+	});
+	
 	$effect(() => {
 		loadRecipe(id);
 	});

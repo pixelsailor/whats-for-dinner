@@ -2,6 +2,7 @@ import { db } from '$lib/db';
 import type { RecipeSummary, Suggestion } from '$lib/types';
 import { liveQuery } from 'dexie';
 import { readable, writable } from 'svelte/store';
+import { useQueryClient } from '@tanstack/svelte-query';
 
 // @TODO is this used?
 export const suggestionMap = writable<Map<string, RecipeSummary>>(new Map());
@@ -97,4 +98,33 @@ export async function bulkDeleteSuggestions() {
 	const collection = db.suggestions.toCollection();
 	const keys = await collection.primaryKeys();
 	await db.suggestions.bulkDelete(keys);
+}
+
+/**
+ * Check if a suggestion has been viewed (either in session cache or persisted to DB)
+ * @param suggestion - The suggestion to check
+ * @param recipeTitle - The recipe title to check in TanStack Query cache
+ * @returns Object with isViewed (session or persisted) and isPersisted (DB only) flags
+ */
+export function getViewedStatus(suggestion: Suggestion, recipeTitle?: string): { isViewed: boolean; isPersisted: boolean } {
+	// Check if persisted to database
+	const isPersisted = !!suggestion.last_opened;
+	
+	// Check if in session cache (TanStack Query)
+	let isViewedInSession = false;
+	if (recipeTitle) {
+		try {
+			const queryClient = useQueryClient();
+			const cachedData = queryClient.getQueryData(['detail', recipeTitle]);
+			isViewedInSession = !!cachedData;
+		} catch (error) {
+			// Query client might not be available in some contexts
+			console.warn('Could not check TanStack Query cache:', error);
+		}
+	}
+	
+	// A suggestion is viewed if it's either in session cache OR persisted to DB
+	const isViewed = isViewedInSession || isPersisted;
+	
+	return { isViewed, isPersisted };
 }

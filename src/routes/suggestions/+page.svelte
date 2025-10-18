@@ -2,19 +2,21 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { createSuggestionsQuery } from '$lib/queries/recipes.js';
-	import { recommendedRecipes } from '$lib/stores/recommendations.js';
+	// import { recommendedRecipes } from '$lib/stores/recommendations.js';
 	import {
 		bulkDeleteSuggestions,
 		saveSuggestions,
-		suggestionHistory
+		suggestionHistory,
+		getViewedStatus
 	} from '$lib/stores/suggestions.js';
 	import type { RecipeSummary, Suggestion } from '$lib/types';
-	import { AppBar } from '$lib/ui/AppBar/index.js';
+	// import { AppBar } from '$lib/ui/AppBar/index.js';
 	import Button from '$lib/ui/Button/Button.svelte';
-	import TrashIcon from '$lib/ui/Icons/TrashIcon.svelte';
+	// import TrashIcon from '$lib/ui/Icons/TrashIcon.svelte';
 	import { List, ListItem } from '$lib/ui/List';
-	import PageHeader from '$lib/ui/PageHeader.svelte';
+	// import PageHeader from '$lib/ui/PageHeader.svelte';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
+	import ViewedBadge from '$lib/ui/ViewedBadge.svelte';
 
 	/**
 	 * `/routes/suggestions` is for handling LLM responses. While it uses the User's local preference
@@ -70,7 +72,7 @@
 
 	// Save suggestions to history
 	$effect(() => {
-		if (hasPrompt && prompt !== 'recommended' && $query?.data) {
+		if (hasPrompt && $query?.data) {
 			if ($query.data.data && $query.data.data[1]) {
 				const summaries = $query.data.data[1] as RecipeSummary[];
 				saveSuggestions(summaries);
@@ -87,25 +89,8 @@
 		goto(`/suggestions/recipe?title=${title}&desc=${desc}`);
 	}
 
-	// function getMoreSuggestions() {
-	// 	if (!ogPrompt) {
-	// 		ogPrompt = prompt!;
-	// 	}
-	// 	const newPrompt = (ogPrompt += ' give me more ideas');
-	// 	goto(`/suggestions?prompt=${newPrompt}`);
-	// }
+	function getMoreSuggestions() {}
 </script>
-
-<!-- <PageHeader>
-	<AppBar.Root>
-		<AppBar.End>
-			<Button onClick={() => bulkDeleteSuggestions()} size="sm">
-				<TrashIcon size="xs" />
-				<span class="hidden md:inline">Delete all</span>
-			</Button>
-		</AppBar.End>
-	</AppBar.Root>
-</PageHeader> -->
 
 <main class="mx-auto min-h-screen max-w-5xl px-4">
 	{#if hasPrompt && $query}
@@ -129,13 +114,14 @@
 						<ListItem.Root>
 							<ListItem.Button onClick={() => getFullRecipe(summary)} disabled={working}>
 								<ListItem.Text primary={summary.title} secondary={summary.short_description} />
+								<ViewedBadge viewed={getViewedStatus(summary, summary.title).isViewed} />
 							</ListItem.Button>
 						</ListItem.Root>
 					{/each}
 				</List>
-				<!-- <div class="my-8">
+				<div class="my-8">
 					<Button onClick={getMoreSuggestions} label="Get more ideas">Get more ideas</Button>
-				</div> -->
+				</div>
 			</div>
 		{:else if $query.data}
 			<div class="py-24">
@@ -177,6 +163,7 @@
 							<ListItem.Root>
 								<ListItem.Button onClick={() => getFullRecipe(summary)} disabled={working}>
 									<ListItem.Text primary={summary.title} secondary={summary.short_description} />
+									<ViewedBadge viewed={getViewedStatus(summary, summary.title).isViewed} />
 								</ListItem.Button>
 							</ListItem.Root>
 							<hr class="border-gray-200 dark:border-gray-700" />

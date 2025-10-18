@@ -5,6 +5,7 @@ You are an expert in modern web application development with TypeScript, Svelte 
 This project uses **Svelte 5**, **SvelteKit 2**, **TypeScript**, **Dexie LiveQueryStores** for
 local storage, **Supabase** for auth, sharing and cloud backup, and **Zod** validation. The UI
 uses components built with **bits-ui** and **TailwindCSS**.
+
 All code and AI-assisted suggestions should follow the practices below.
 
 ---
@@ -22,7 +23,7 @@ All code and AI-assisted suggestions should follow the practices below.
 - Use `<script lang="ts">` and ensure strict typing across all modules.
 - Keep markup accessible — use semantic elements, proper `aria-*` attributes, and keyboard support.
 
-- This is a serverless app: server functions should use **remote functions** compatible with Cloudflare Workers and Netlify
+This is a serverless app: server functions should use [**remote functions**](https://svelte.dev/docs/kit/remote-functions/llms.txt) compatible with Cloudflare Workers and Netlify
 
 You are able to use the Svelte MCP server, where you have access to comprehensive Svelte 5 and SvelteKit documentation. Here's how to use the available tools effectively:
 
@@ -133,3 +134,16 @@ export type Recipe = z.infer<typeof RecipeSchema>;
 - Ensure animations are subtle and never block user interaction.
 - For asynchronous data (e.g., AI requests, Dexie updates), display appropriate loading or error states.
 - Favor simplicity, readability, and maintainability over micro-optimizations.
+
+---
+
+## Documentation References
+
+- [svelte](https://svelte.dev/docs/svelte/llms-small.txt)
+- [sveltekit](https://svelte.dev/docs/kit/llms-small.txt)
+- [bits-ui](https://bits-ui.com/docs/llms.txt)
+- [tailwindcss](https://github.com/tailwindlabs/tailwindcss)
+- [dexie](https://dexie.org/docs/Tutorial/Svelte)
+- [liveQuery](https://dexie.org/docs/liveQuery())
+- [supabase](https://supabase.com/docs/reference/javascript)
+- [tanstack query](https://tanstack.com/query/latest/docs/framework/svelte/overview)

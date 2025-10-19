@@ -2,7 +2,7 @@
 	import { onMount, setContext } from 'svelte';
 	import { Toaster } from 'svelte-sonner';
 
-	import { SvelteQueryDevtools } from '@tanstack/svelte-query-devtools'
+	import { SvelteQueryDevtools } from '@tanstack/svelte-query-devtools';
 
 	import { MIN_DESKTOP_SIZE } from '$lib/constants';
 	import { recentlyOpened } from '$lib/stores/recipes';
@@ -19,9 +19,10 @@
 	import ChatbotIcon from '$lib/ui/Icons/ChatbotIcon.svelte';
 	import SettingsIcon from '$lib/ui/Icons/SettingsIcon.svelte';
 	import OpenPanelLeftIcon from '$lib/ui/Icons/OpenPanelLeftIcon.svelte';
-	import { Dialog } from 'bits-ui';
+	import { Avatar, Dialog, DropdownMenu, NavigationMenu } from 'bits-ui';
 	import { PUBLIC_QA_PW, PUBLIC_QA_USER } from '$env/static/public';
-	import { supabase } from '$lib/supabaseClient';
+	import { invalidate } from '$app/navigation';
+	// import { supabase } from '$lib/supabaseClient';
 
 	type Layout =
 		| 'mobile--collapsed'
@@ -33,13 +34,14 @@
 		defaultOptions: {
 			queries: {
 				enabled: browser,
-				retry: 2,
+				retry: 2
 				// staleTime: 5 * 60 * 1000 // 5 minutes
 			}
 		}
 	});
 
-	let { children } = $props();
+	let { children, data } = $props();
+	let { session, supabase } = $derived(data);
 
 	class Viewport {
 		#width = $state(0);
@@ -117,21 +119,32 @@
 		loading = false;
 	}
 
-	onMount(async () => {
-		const prefs = await db.preferences.get('preferences');
-		if (!prefs) {
-			await db.preferences.put({ id: 'preferences' });
-		}
+	async function handleSignOut() {
+		await supabase.auth.signOut();
+		invalidate('supabase:auth');
+	}
+
+	onMount(() => {
+		// Get preferences
+		// const prefs = await db.preferences.get('preferences');
+		// if (!prefs) {
+		// 	await db.preferences.put({ id: 'preferences' });
+		// }
+
+		const { data } = supabase.auth.onAuthStateChange((_, newSession) => {
+			console.log(data);
+			
+			if (newSession?.expires_at !== session?.expires_at) {
+				invalidate('supabase:auth');
+			}
+		});
+
+		return () => data.subscription.unsubscribe();
 	});
 
 	function toggleSidenav() {
 		vp.nav = vp.nav === 'expanded' ? 'collapsed' : 'expanded';
 	}
-
-	// function openLoginDialog() {
-	// 	console.log('openLoginDialog');
-
-	// }
 </script>
 
 {#snippet sidenav()}
@@ -178,18 +191,39 @@
 			</List>
 		{/if}
 	</div>
-	<div class="absolute bottom-0 w-full px-5">
-		<List>
-			<ListItem.Root>
-				<ListItem.Link href="/preferences">
-					<SettingsIcon size="xs" />
-					Preferences
-				</ListItem.Link>
-			</ListItem.Root>
-			<ListItem.Root>
-				<ListItem.Button onClick={() => (showLoginDialog = true)}>Log In</ListItem.Button>
-			</ListItem.Root>
-		</List>
+	<div class="absolute bottom-0 w-full">
+		<NavigationMenu.Root orientation="vertical">
+			<NavigationMenu.List>
+				<NavigationMenu.Item>
+					<NavigationMenu.Link
+						class="hover:text-accent-foreground focus:bg-muted focus:text-accent-foreground dark:hover:bg-muted dark:data-[state=open]:bg-muted group inline-flex h-8 w-full items-center bg-transparent px-4 py-2 text-sm font-medium transition-colors hover:bg-white focus:outline-hidden disabled:pointer-events-none disabled:opacity-50"
+						href="/preferences"
+					>
+						<SettingsIcon size="xs" />
+						<span class="hidden sm:inline"> Preferences </span>
+					</NavigationMenu.Link>
+				</NavigationMenu.Item>
+				<NavigationMenu.Item>
+					{#if session}
+						<button
+							class="hover:text-accent-foreground focus:bg-muted focus:text-accent-foreground dark:hover:bg-muted dark:data-[state=open]:bg-muted group inline-flex h-8 w-full items-center bg-transparent px-4 py-2 text-sm font-medium transition-colors hover:bg-white focus:outline-hidden disabled:pointer-events-none disabled:opacity-50"
+							onclick={handleSignOut}
+						>
+							<SettingsIcon size="xs" />
+							<span class="hidden sm:inline"> {session.user.email} </span>
+						</button>
+					{:else}
+						<NavigationMenu.Link
+							class="hover:text-accent-foreground focus:bg-muted focus:text-accent-foreground dark:hover:bg-muted dark:data-[state=open]:bg-muted group inline-flex h-8 items-center bg-transparent px-4 py-2 text-sm font-medium transition-colors hover:bg-white focus:outline-hidden disabled:pointer-events-none disabled:opacity-50"
+							href="/auth"
+						>
+							<SettingsIcon size="xs" />
+							<span class="hidden sm:inline"> Log in to sync </span>
+						</NavigationMenu.Link>
+					{/if}
+				</NavigationMenu.Item>
+			</NavigationMenu.List>
+		</NavigationMenu.Root>
 	</div>
 {/snippet}
 
@@ -200,7 +234,9 @@
 		{#if vp.layout === 'mobile--expanded'}
 			<!-- Layout when mobile sidenav is expanded -->
 			<div class="sidebar fixed inset-0 z-10 backdrop-blur-md">
-				<div class="h-full w-2xs border-gray-200 bg-gray-100 shadow-md dark:border-gray-700 dark:bg-gray-900">
+				<div
+					class="h-full w-2xs border-gray-200 bg-gray-100 shadow-md dark:border-gray-700 dark:bg-gray-900"
+				>
 					{@render sidenav()}
 				</div>
 			</div>
@@ -252,7 +288,7 @@
 		</div>
 	</div>
 
-	<Dialog.Root bind:open={showLoginDialog}>
+	<!-- <Dialog.Root bind:open={showLoginDialog}>
 		<Dialog.Portal>
 			<Dialog.Overlay
 				class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80"
@@ -260,8 +296,10 @@
 			<Dialog.Content
 				class="shadow-popover data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] rounded-lg border bg-gray-50 p-5 outline-hidden sm:max-w-[490px] md:w-full dark:bg-black dark:text-gray-300"
 			>
-				<Dialog.Title>Log In</Dialog.Title>
-				<Dialog.Description>Log in to sync to the cloud</Dialog.Description>
+				<Dialog.Title
+        class="flex w-full items-center justify-center text-lg font-semibold tracking-tight"
+      >Log In</Dialog.Title>
+				<Dialog.Description class="text-foreground-alt text-sm">Log in to sync to the cloud</Dialog.Description>
 
 				<form
 					onsubmit={(e) => {
@@ -298,7 +336,7 @@
 				</form>
 			</Dialog.Content>
 		</Dialog.Portal>
-	</Dialog.Root>
+	</Dialog.Root> -->
 
 	<Toaster position={vp.device === 'mobile' ? 'top-center' : 'top-right'} />
 </QueryClientProvider>

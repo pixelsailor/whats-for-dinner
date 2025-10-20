@@ -8,6 +8,9 @@
 	import PageHeader from '$lib/ui/PageHeader.svelte';
 	import { AppBar } from '$lib/ui/AppBar';
 
+	let { data } = $props();
+	let canUseAI = $derived(data.permissions?.aiAssistedRecipe?.allowed ?? false);
+
 	let app = $state({
 		input: '',
 		lastInput: '',
@@ -47,26 +50,32 @@
 	{:else if app.view === 'idle'}
 		<div class="mx-auto w-full max-w-3xl">
 			<h1 class="fluid-heading-06 my-4 text-center">{getGreeting()}</h1>
-			<Prompt style="margin-bottom: 0">
-				<form class="flex w-full flex-row gap-2" onsubmit={getSuggestions}>
-					<input
-						class="grow p-1"
-						type="text"
-						name="input"
-						bind:value={app.input}
-						placeholder="Ask for event ideas, regional recipes, or just list ingredients"
-						disabled={working}
-					/>
-					<Button
-						type="submit"
-						class="-mr-1"
-						label="Submit request"
-						disabled={working || !app.input.trim()}
-					>
-						{working ? 'Thinking...' : 'Get ideas'}
-					</Button>
-				</form>
-			</Prompt>
+			{#if canUseAI}
+				<Prompt style="margin-bottom: 0">
+					<form class="flex w-full flex-row gap-2" onsubmit={getSuggestions}>
+						<input
+							class="grow p-1"
+							type="text"
+							name="input"
+							bind:value={app.input}
+							placeholder="Ask for event ideas, regional recipes, or just list ingredients"
+							disabled={working}
+						/>
+						<Button
+							type="submit"
+							class="-mr-1"
+							label="Submit request"
+							disabled={working || !app.input.trim()}
+						>
+							{working ? 'Thinking...' : 'Get ideas'}
+						</Button>
+					</form>
+				</Prompt>
+			{:else}
+				<p class="text-center text-gray-500">
+					<a href="/auth" class="underline">Log in</a> to get AI-powered recipe suggestions
+				</p>
+			{/if}
 			<div class="mt-2 flex flex-row justify-center gap-4">
 				<Button href="/suggestions" cue="text" size="sm">
 					Recent Suggestions

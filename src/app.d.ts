@@ -1,4 +1,5 @@
 import type { Session, SupabaseClient, User } from '@supabase/supabase-js';
+import type { PolicyResult } from '$lib/types/auth';
 
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
@@ -13,6 +14,10 @@ declare global {
 		}
 		interface PageData {
 			session: Session | null;
+			permissions?: {
+				cloudSync: PolicyResult;
+				aiAssistedRecipe: PolicyResult;
+			};
 		}
 		// interface PageState {}
 		// interface Platform {}

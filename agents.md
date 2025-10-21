@@ -87,6 +87,11 @@ export const recipesStore = liveQuery(() => db.recipes.toArray());
 
 ---
 
+## Supabase Auth, Sharing and Cloud Backup
+
+- Uses the `supabaseClient` in `src/lib/supabaseClient.ts` for authentication at login
+- Uses `locals.supabase` in `src/hooks.server.ts` for route guards
+
 ## Zod Validation Rules
 
 - Define all schemas in src/lib/schemas/ — one file per domain entity.
@@ -134,6 +139,30 @@ export type Recipe = z.infer<typeof RecipeSchema>;
 - Ensure animations are subtle and never block user interaction.
 - For asynchronous data (e.g., AI requests, Dexie updates), display appropriate loading or error states.
 - Favor simplicity, readability, and maintainability over micro-optimizations.
+
+---
+
+## Architecture highlights (what matters to agents)
+
+- Client-first SvelteKit app. Local data lives in IndexedDB via Dexie: `src/lib/db/local.ts` (primary) and
+	the deprecated `src/lib/db.ts` (avoid editing unless migrating schema).
+- Reactive stores use small helpers (see `src/lib/stores/_utils.ts` -> `createLiveQueryStore`) and
+	derived/readable stores in `src/lib/stores/*.ts` (examples: `recipes.ts`, `suggestions.ts`).
+- Cloud sync uses Supabase for authorized users via `src/lib/supabaseClient.ts` (PUBLIC_SUPABASE_* envs).
+- OpenAI integration: server-side wrappers live under `src/lib/server/openai.ts` and higher-level
+	prompt logic in `src/lib/openai/*.ts` (see `recipe.ts`, `schema.ts`). Keep secret keys in server-only
+	envs (`$env/static/private`). Example: private key imported as `VITE_OPENAI_API_KEY` in this repo.
+- API routes live under `src/routes/api/*`. Any code that touches secrets (OpenAI, private DB keys)
+	should run in server modules or route handlers, not in client components.
+  
+---
+
+## Env & secrets
+
+- Public keys: use `PUBLIC_*` env vars for values safe to expose (supabase URL/anon key found in
+	`src/lib/supabaseClient.ts`).
+- Private keys: use `$env/static/private` imports inside server code. This project uses
+	`VITE_OPENAI_API_KEY` (imported in `src/lib/openai/index.ts`) — do NOT expose it to client bundles.
 
 ---
 

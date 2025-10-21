@@ -27,7 +27,7 @@
 
 	let { data } = $props();
 
-	let userPreferences = $state(data.preferences);
+	let userPreferences = $state(data.preferences || '');
 
 	let prompt = $derived(page.url.searchParams.get('prompt'));
 

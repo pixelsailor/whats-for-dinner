@@ -12,8 +12,8 @@ Quick commands
 - Tests: `pnpm run test` (Vitest)
 
 Architecture highlights (what matters to agents)
-- Client-first SvelteKit app. Local data lives in IndexedDB via Dexie: `src/lib/db.ts` (primary) and
-	the deprecated `src/lib/db/local.ts` (avoid editing unless migrating schema).
+- Client-first SvelteKit app. Local data lives in IndexedDB via Dexie: `src/lib/db/local.ts` (primary) and
+	the deprecated `src/lib/local.ts` (avoid editing unless migrating schema).
 - Reactive stores use small helpers (see `src/lib/stores/_utils.ts` -> `createLiveQueryStore`) and
 	derived/readable stores in `src/lib/stores/*.ts` (examples: `recipes.ts`, `suggestions.ts`).
 - Cloud sync uses Supabase for authorized users via `src/lib/supabaseClient.ts` (PUBLIC_SUPABASE_* envs).
@@ -24,7 +24,7 @@ Architecture highlights (what matters to agents)
 	should run in server modules or route handlers, not in client components.
 
 Patterns & conventions (concrete, discoverable)
-- Use the Dexie `db` instance from `src/lib/db.ts`. Example usage: `await db.recipes.toArray()` or
+- Use the Dexie `db` instance from `src/lib/local/db.ts`. Example usage: `await db.recipes.toArray()` or
 	helper `getSavedRecipe(id)` in `src/lib/stores/recipes.ts`.
 - Prefer `createLiveQueryStore(queryFn)` (in `src/lib/stores/_utils.ts`) to expose reactive DB-backed
 	Svelte stores instead of manual subscriptions.
@@ -60,7 +60,7 @@ Quick examples for common edits
 		`src/lib/server/openai.ts`). Keep prompt composition and parsing near `src/lib/openai/`.
 
 Small gotchas
-- There is a deprecated duplicate DB file at `src/lib/db/local.ts`. Prefer `src/lib/db.ts`.
+- There is a deprecated duplicate DB file at `src/lib/db.ts`. Prefer `src/lib/db/local.ts`.
 - Prompts in `src/lib/openai/*` expect strict JSON output and often use Zod schemas. Follow
 	the schema formats strictly (examples in `recipe.ts` and `schema.ts`).
 - The repo uses `svelte-kit sync` in the `prepare`/`check` scripts—ensure you run `pnpm run check`

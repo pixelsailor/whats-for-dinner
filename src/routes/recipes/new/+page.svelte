@@ -174,7 +174,8 @@
 		</div>
 		<div class="form-field mb-4 flex min-h-24 flex-col">
 			<label for="servingRange" class="label mb-2">Serves</label>
-			<Slider.Root
+			<input type="text" class="w-full bg-gray-100 dark:bg-gray-900" id="yield" name="yield" bind:value={form.yield} />
+			<!-- <Slider.Root
 				type="multiple"
 				min={1}
 				max={10}
@@ -197,7 +198,7 @@
 						<Slider.TickLabel {index} class="label mt-2" position="bottom">{value}</Slider.TickLabel>
 					{/each}
 				{/snippet}
-			</Slider.Root>
+			</Slider.Root> -->
 		</div>
 		<div class="flex flex-row gap-16">
 			<RecipeTime placeholder={new Time(0,0)} labelText="Prep time" bind:value={prepTime} />

@@ -6,6 +6,13 @@ import { RecipeSchema } from './schema';
 // Causes an error when used with gpt-5-mini -- or it could be unsupported with Response API
 // const temperature = 0.6;
 
+/**
+ * Requests a OpenAI create a recipe based on the provided _title_ and _description_.
+ * @param title The title of the recipe being requested
+ * @param desc The short description of the recipe being requested
+ * @param userPreferences - Recipe requirements based on user restrictions/preferences
+ * @todo DO NOT USE. Not ready for production yet. There are errors with the zod response object
+ */
 export async function getFullRecipe(
 	title: string,
 	desc: string,

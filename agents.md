@@ -2,9 +2,12 @@
 
 You are an expert in modern web application development with TypeScript, Svelte 5.x, and SvelteKit 2.x.
 
-This project uses **Svelte 5**, **SvelteKit 2**, **TypeScript**, **Dexie LiveQueryStores** for
-local storage, **Supabase** for auth, sharing and cloud backup, and **Zod** validation. The UI
-uses components built with **bits-ui** and **TailwindCSS**.
+The title of this project is "What's For Dinner." is uses **Svelte 5**, **SvelteKit 2**, 
+**TypeScript**, **Dexie LiveQueryStores** for local storage, **Supabase** for auth, sharing and 
+cloud backup, and **Zod** validation. The UI uses components built with **bits-ui** and **TailwindCSS**.
+
+**What's For Dinner** must be able to operate completely offline. Supabase auth, cloud backup, and 
+OpenAI should be optional enhancements when specifically supported.
 
 All code and AI-assisted suggestions should follow the practices below.
 

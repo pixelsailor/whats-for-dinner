@@ -7,9 +7,34 @@
 	import { getGreeting } from '$lib/greetings';
 	import PageHeader from '$lib/ui/PageHeader.svelte';
 	import { AppBar } from '$lib/ui/AppBar';
+	import { networkStore } from '$lib/stores/network';
+	import { deriveAICapability } from '$lib/utils/capabilities';
 
 	let { data } = $props();
-	let canUseAI = $derived(data.permissions?.aiAssistedRecipe?.allowed ?? false);
+	let network = $derived($networkStore);
+	let aiCapability = $derived(
+		deriveAICapability({
+			session: data.session,
+			permissions: data.permissions,
+			featureFlags: data.featureFlags,
+			online: network.online
+		})
+	);
+	let canUseAI = $derived(aiCapability.canUseAI);
+let aiRestrictionMessage = $derived.by(() => {
+		switch (aiCapability.reason) {
+			case 'offline':
+				return 'You are offline. Reconnect to request fresh suggestions.';
+			case 'disabled':
+				return 'AI suggestions are unavailable in this build.';
+			case 'unauthenticated':
+				return 'Log in to request AI-powered recipe suggestions.';
+			case 'unauthorized':
+				return 'Your account does not include AI suggestions.';
+			default:
+				return '';
+		}
+	});
 
 	let app = $state({
 		input: '',
@@ -71,10 +96,8 @@
 						</Button>
 					</form>
 				</Prompt>
-			{:else}
-				<p class="text-center text-gray-500">
-					<a href="/auth" class="underline">Log in</a> to get AI-powered recipe suggestions
-				</p>
+			{:else if aiRestrictionMessage}
+				<p class="text-center text-gray-500">{aiRestrictionMessage}</p>
 			{/if}
 			<div class="mt-2 flex flex-row justify-center gap-4">
 				<Button href="/suggestions" cue="text" size="sm">

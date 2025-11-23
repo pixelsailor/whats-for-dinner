@@ -17,6 +17,8 @@
 	// import PageHeader from '$lib/ui/PageHeader.svelte';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
 	import ViewedBadge from '$lib/ui/ViewedBadge.svelte';
+	import { networkStore } from '$lib/stores/network';
+	import { deriveAICapability } from '$lib/utils/capabilities';
 
 	/**
 	 * `/routes/suggestions` is for handling LLM responses. While it uses the User's local preference
@@ -28,12 +30,42 @@
 	let { data } = $props();
 
 	let userPreferences = $state(data.preferences || '');
+	let network = $derived($networkStore);
+	let aiCapability = $derived(
+		deriveAICapability({
+			session: data.session,
+			permissions: data.permissions,
+			featureFlags: data.featureFlags,
+			online: network.online
+		})
+	);
+	let canRequestSuggestions = $derived(aiCapability.canUseAI);
+let aiRestrictionMessage = $derived.by(() => {
+		switch (aiCapability.reason) {
+			case 'offline':
+				return 'You are offline. Reconnect to request new recipe ideas.';
+			case 'disabled':
+				return 'AI suggestions are unavailable in this build.';
+			case 'unauthenticated':
+				return 'Log in to request recipe suggestions.';
+			case 'unauthorized':
+				return 'Your account does not include AI suggestions.';
+			default:
+				return '';
+		}
+	});
 
 	let prompt = $derived(page.url.searchParams.get('prompt'));
 
-	const hasPrompt = $derived(!!prompt);
+const hasPrompt = $derived(!!prompt);
 
-	let query = $derived(createSuggestionsQuery(prompt, userPreferences));
+let suggestionsStore = $derived(() =>
+	!prompt || !canRequestSuggestions
+		? null
+		: createSuggestionsQuery(prompt, userPreferences, { enabled: true })
+);
+
+let suggestionsResult = $derived.by(() => (suggestionsStore ? $suggestionsStore : null));
 
 	let working = $state(false);
 
@@ -71,16 +103,20 @@
 	}
 
 	// Save suggestions to history
-	$effect(() => {
-		if (hasPrompt && $query?.data) {
-			if ($query.data.data && $query.data.data[1]) {
-				const summaries = $query.data.data[1] as RecipeSummary[];
+$effect(() => {
+	if (hasPrompt && suggestionsResult?.data?.data) {
+		if (suggestionsResult.data.data && suggestionsResult.data.data[1]) {
+			const summaries = suggestionsResult.data.data[1] as RecipeSummary[];
 				saveSuggestions(summaries);
 			}
 		}
 	});
 
 	function getFullRecipe(recipe: RecipeSummary) {
+		if (!canRequestSuggestions) {
+			return;
+		}
+
 		working = true;
 		const title = encodeURIComponent(recipe.title);
 		// include the `short_description` otherwise AI will write a new one and the generated
@@ -93,26 +129,36 @@
 </script>
 
 <main class="mx-auto min-h-screen max-w-5xl px-4">
-	{#if hasPrompt && $query}
-		{#if $query.error}
+	{#if aiRestrictionMessage}
+		<div
+			class="mb-6 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-500 dark:bg-amber-950 dark:text-amber-100"
+		>
+			{aiRestrictionMessage}
+		</div>
+	{/if}
+	{#if hasPrompt && suggestionsResult}
+		{#if suggestionsResult.error}
 			<div class="mx-auto grid h-screen w-full max-w-3xl place-content-center gap-6">
 				<h1 class="fluid-heading-05">Ah donkey-spittle! There was a problem.</h1>
 				<p class="flex items-center gap-3">
-					<span class="fluid-heading-03">{$query.error.name}</span><span>|</span><span
-						>{$query.error?.message}</span
+					<span class="fluid-heading-03">{suggestionsResult.error.name}</span><span>|</span><span
+						>{suggestionsResult.error?.message}</span
 					>
 				</p>
 			</div>
-		{:else if $query.data?.data}
+		{:else if suggestionsResult.data?.data}
 			<div class="py-24">
 				<h1 class="fluid-heading-05 mb-8">
 					Here are some ideas for, <span class="italic">"{prompt}"</span>
 				</h1>
 				<List size="three-line">
-					{#each $query.data.data[1] as summary}
+					{#each suggestionsResult.data.data[1] as summary (summary.title)}
 						<hr />
 						<ListItem.Root>
-							<ListItem.Button onClick={() => getFullRecipe(summary)} disabled={working}>
+							<ListItem.Button
+								onClick={() => getFullRecipe(summary)}
+								disabled={working || !canRequestSuggestions}
+							>
 								<ListItem.Text primary={summary.title} secondary={summary.short_description} />
 								<ViewedBadge viewed={getViewedStatus(summary, summary.title).isViewed} />
 							</ListItem.Button>
@@ -120,14 +166,20 @@
 					{/each}
 				</List>
 				<div class="my-8">
-					<Button onClick={getMoreSuggestions} label="Get more ideas">Get more ideas</Button>
+					<Button
+						onClick={getMoreSuggestions}
+						label="Get more ideas"
+						disabled={!canRequestSuggestions}
+					>
+						Get more ideas
+					</Button>
 				</div>
 			</div>
-		{:else if $query.data}
+		{:else if suggestionsResult.data}
 			<div class="py-24">
 				<h1 class="fluid-heading-05 mb-8">Here's some recipes you haven't made in a while.</h1>
 				<List size="three-line">
-					{#each $query.data as summary}
+					{#each suggestionsResult.data as summary (summary.id)}
 						<hr />
 						<ListItem.Root>
 							<ListItem.Link href="/recipes/{summary.id}">
@@ -142,6 +194,11 @@
 				<ProgressSpinner size="lg" />
 			</div>
 		{/if}
+	{:else if hasPrompt && !canRequestSuggestions}
+		<div class="mx-auto grid h-screen w-full max-w-3xl place-content-center gap-6 text-center">
+			<h1 class="fluid-heading-05">AI suggestions are unavailable.</h1>
+			<p>{aiRestrictionMessage}</p>
+		</div>
 	{:else}
 		<div class="py-24">
 			<h1 class="fluid-heading-05 mb-4">Suggestion History</h1>
@@ -157,11 +214,14 @@
 			{/if}
 			{#if filteredSuggestions.length > 0}
 				<List>
-					{#each groupedSuggestions as group}
+					{#each groupedSuggestions as group (group.date)}
 						<h3 class="heading mt-6 mb-2 dark:text-gray-400">{group.date}</h3>
-						{#each group.suggestions as summary}
+						{#each group.suggestions as summary (summary.title)}
 							<ListItem.Root>
-								<ListItem.Button onClick={() => getFullRecipe(summary)} disabled={working}>
+								<ListItem.Button
+									onClick={() => getFullRecipe(summary)}
+									disabled={working || !canRequestSuggestions}
+								>
 									<ListItem.Text primary={summary.title} secondary={summary.short_description} />
 									<ViewedBadge viewed={getViewedStatus(summary, summary.title).isViewed} />
 								</ListItem.Button>

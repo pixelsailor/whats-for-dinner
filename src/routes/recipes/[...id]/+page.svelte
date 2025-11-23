@@ -5,25 +5,52 @@
 	import { toast } from 'svelte-sonner';
 	import { v4 as uuid } from 'uuid';
 
-	import { enhance } from '$app/forms';
-	import { page } from '$app/state';
-	import { db } from '$lib/db';
-	import { getSavedRecipe } from '$lib/stores/recipes';
-	import type { PromptContext, SavedRecipe, ViewState } from '$lib/types';
-	import Button from '$lib/ui/Button/Button.svelte';
-	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
-	import { AppBar } from '$lib/ui/AppBar';
-	import PageHeader from '$lib/ui/PageHeader.svelte';
-	import Prompt from '$lib/ui/Prompt.svelte';
-	import CloseIcon from '$lib/ui/Icons/CloseIcon.svelte';
-	import Recipe from '$lib/ui/Recipe.svelte';
-	import EditableRecipe from '$lib/ui/EditableRecipe.svelte';
+import { enhance } from '$app/forms';
+import { page } from '$app/state';
+import { db } from '$lib/db';
+import { getSavedRecipe } from '$lib/stores/recipes';
+import type { PromptContext, SavedRecipe, ViewState } from '$lib/types';
+import Button from '$lib/ui/Button/Button.svelte';
+import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
+import { AppBar } from '$lib/ui/AppBar';
+import PageHeader from '$lib/ui/PageHeader.svelte';
+import Prompt from '$lib/ui/Prompt.svelte';
+import CloseIcon from '$lib/ui/Icons/CloseIcon.svelte';
+import Recipe from '$lib/ui/Recipe.svelte';
+import EditableRecipe from '$lib/ui/EditableRecipe.svelte';
+import { networkStore } from '$lib/stores/network';
+import { deriveAICapability } from '$lib/utils/capabilities';
 
-	const vp: any = getContext('viewport');
+const vp: any = getContext('viewport');
 
-	const markAsOpenedDelay = 2 * 60 * 1000;
+const markAsOpenedDelay = 2 * 60 * 1000;
 
-	let { data, form } = $props();
+let { data, form } = $props();
+
+let network = $derived($networkStore);
+let aiCapability = $derived(
+	deriveAICapability({
+		session: data.session,
+		permissions: data.permissions,
+		featureFlags: data.featureFlags,
+		online: network.online
+	})
+);
+let canUseAI = $derived(aiCapability.canUseAI);
+let aiRestrictionMessage = $derived(() => {
+	switch (aiCapability.reason) {
+		case 'offline':
+			return 'You are offline. Reconnect to ask follow-up questions.';
+		case 'disabled':
+			return 'AI recipe assistance is unavailable in this build.';
+		case 'unauthenticated':
+			return 'Log in to ask for recipe adjustments.';
+		case 'unauthorized':
+			return 'Your account does not include AI recipe assistance.';
+		default:
+			return '';
+	}
+});
 
 	let path = $derived(page.params.id as string);
 
@@ -256,6 +283,56 @@
 	{:then recipe}
 		<!-- <Recipe {recipe} onBlur={saveRecipeChanges} /> -->
 		<EditableRecipe {recipe} />
+		{#if canUseAI}
+			<div class="fixed right-0 bottom-0 px-4" style:left bind:this={promptRef}>
+				<Prompt>
+					{#if conversationMsg}
+						<div
+							class="flex flex-row items-start gap-2"
+							transition:slide={{ duration: 500, axis: 'y' }}
+						>
+							<div class="markdown mb-4 self-center text-sm">
+								<SvelteMarkdown source={conversationMsg} />
+							</div>
+							<Button
+								onClick={() => (conversationMsg = '')}
+								label="Close"
+								size="xs"
+								icon
+								class="-m-2"
+							>
+								<CloseIcon />
+							</Button>
+						</div>
+					{/if}
+					<form
+						class="flex w-full flex-row gap-2"
+						method="POST"
+						use:enhance={() => {
+							waiting = true;
+						}}
+					>
+						<input
+							class="grow p-1"
+							type="text"
+							name="input"
+							bind:value={promptInput}
+							placeholder="Make changes or ask a recipe related question"
+						/>
+						<input type="hidden" name="recipe" bind:value={recipeJson} />
+						<Button type="submit" label="Submit request" disabled={waiting || !promptInput?.trim()}
+							>{waiting ? 'Thinking...' : 'Submit'}</Button
+						>
+					</form>
+				</Prompt>
+			</div>
+		{:else if aiRestrictionMessage}
+			<div
+				class="mt-6 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-500 dark:bg-amber-950 dark:text-amber-100"
+			>
+				{aiRestrictionMessage()}
+			</div>
+		{/if}
 	{/await}
 	<!-- {#if app.view === 'loading'}
 		<div class="absolute inset-0 grid place-content-center">

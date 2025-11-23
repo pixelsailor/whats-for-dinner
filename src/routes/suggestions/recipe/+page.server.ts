@@ -1,6 +1,11 @@
-import { askCookingQuestion, requestRecipeModifications } from '$lib/server/openai';
+import {
+	askCookingQuestion,
+	requestRecipeModifications,
+	OPENAI_DISABLED_ERROR
+} from '$lib/server/openai';
 import { isModificationRequest, sanitizePromptInput } from '$lib/utils';
 import { error, fail, type Actions, type ServerLoad } from '@sveltejs/kit';
+import { checkPolicy } from '$lib/utils/permissions';
 
 export const load: ServerLoad = async ({ url }) => {
   const encodedTitle = url.searchParams.get('title');
@@ -12,7 +17,19 @@ export const load: ServerLoad = async ({ url }) => {
 };
 
 export const actions: Actions = {
-	default: async ({ request }) => {
+	default: async ({ request, locals }) => {
+		const session = locals.session;
+
+		if (!session) {
+			return fail(401, { error: 'Authentication required' });
+		}
+
+		const aiPolicy = checkPolicy(session, 'ai-assisted-recipe');
+
+		if (!aiPolicy.allowed) {
+			return fail(403, { error: aiPolicy.reason ?? 'AI access denied' });
+		}
+
 		const data = await request.formData();
 		const message = sanitizePromptInput(data.get('input') as string);
 		const recipe = data.get('recipe') as string;
@@ -37,6 +54,13 @@ export const actions: Actions = {
 				return fail(502, { error: 'Invalid response from AI', message });
 			}
 		} catch (error) {
+			if (error instanceof Error && error.message === OPENAI_DISABLED_ERROR) {
+				return fail(503, {
+					error: 'AI service is unavailable right now',
+					message
+				});
+			}
+
 			console.error('Network error:', error);
 
 			return fail(500, {

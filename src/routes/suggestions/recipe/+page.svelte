@@ -2,7 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { beforeNavigate, goto } from '$app/navigation';
 	import { db } from '$lib/db';
-	import { createFullRecipeQuery } from '$lib/queries/recipes.js';
+import { createFullRecipeQuery } from '$lib/queries/recipes.js';
 	import type { FullRecipe, PromptContext } from '$lib/types.js';
 	import { AppBar } from '$lib/ui/AppBar';
 	import Button from '$lib/ui/Button/Button.svelte';
@@ -14,21 +14,55 @@
 	import Prompt from '$lib/ui/Prompt.svelte';
 	import Recipe from '$lib/ui/Recipe.svelte';
 	import SvelteMarkdown from '@humanspeak/svelte-markdown';
-	import { getContext, onDestroy } from 'svelte';
+import { getContext, onDestroy } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import { slide } from 'svelte/transition';
 	import { v4 as uuid } from 'uuid';
+import { networkStore } from '$lib/stores/network';
+import { deriveAICapability } from '$lib/utils/capabilities';
 
-	const vp: any = getContext('viewport');
+const vp: any = getContext('viewport');
 
-	let { data, form } = $props();
+let { data, form } = $props();
 
-	let recipe = $derived(createFullRecipeQuery(data.recipeTitle, data.desc));
+let network = $derived($networkStore);
+let aiCapability = $derived(
+	deriveAICapability({
+		session: data.session,
+		permissions: data.permissions,
+		featureFlags: data.featureFlags,
+		online: network.online
+	})
+);
+let canUseAI = $derived(aiCapability.canUseAI);
+let aiRestrictionMessage = $derived(() => {
+	switch (aiCapability.reason) {
+		case 'offline':
+			return 'You are offline. Reconnect to request full recipes or adjustments.';
+		case 'disabled':
+			return 'AI recipe details are unavailable in this build.';
+		case 'unauthenticated':
+			return 'Log in to request full recipes.';
+		case 'unauthorized':
+			return 'Your account does not include AI recipe requests.';
+		default:
+			return '';
+	}
+});
 
-	let fullRecipe = $derived<FullRecipe>($recipe.data?.data[1]);
+let recipeQuery = $derived.by(() => {
+	if (!canUseAI) {
+		return null;
+	}
+	return createFullRecipeQuery(data.recipeTitle, data.desc, { enabled: true });
+});
+
+let fullRecipe = $derived<FullRecipe | undefined>(() =>
+	recipeQuery ? ($recipeQuery.data?.data[1] as FullRecipe | undefined) : undefined
+);
 
 	// Responsible for passing the recipe to the FormData
-	let recipeJson = $derived(fullRecipe ? JSON.stringify(fullRecipe) : '');
+let recipeJson = $derived(fullRecipe ? JSON.stringify(fullRecipe) : '');
 
 	// Account for sidenav width and adjust accordingly
 	let left = $derived.by(() => {
@@ -182,17 +216,19 @@
 
 <PageHeader>
 	<AppBar.Root>
-		{#if $recipe.data}
+		{#if recipeQuery && $recipeQuery.data}
 			<Button onClick={goBack} label="Go back to recipe suggetions" size="sm">
 				<BackIcon size="xs" />
 				Back to suggestions
 			</Button>
+		{:else if !canUseAI}
+			<AppBar.Text primary={'AI unavailable'} />
 		{:else}
 			<AppBar.Text primary={'Checking the pantry...'} />
 		{/if}
-		{#if $recipe.data}
+		{#if recipeQuery && $recipeQuery.data}
 			<AppBar.End>
-				<Button onClick={saveRecipe} label="Save recipe">
+				<Button onClick={saveRecipe} label="Save recipe" disabled={!canUseAI}>
 					<BookmarkIcon size="xs" />
 					Save recipe
 				</Button>
@@ -204,14 +240,19 @@
 	class="mx-auto max-w-5xl px-4 pt-24"
 	style:padding-bottom={`calc(${promptHeight}px + 1.5rem)`}
 >
-	{#if $recipe.isError}
+	{#if !canUseAI}
+		<div class="mx-auto grid h-max w-full max-w-3xl place-content-center text-center">
+			<h1 class="fluid-heading-05 my-8">AI recipe details unavailable</h1>
+			<p>{aiRestrictionMessage}</p>
+		</div>
+	{:else if recipeQuery && $recipeQuery.isError}
 		<div class="mx-auto grid h-max w-full max-w-3xl place-content-center">
 			<h1 class="fluid-heading-05 my-8">Ah donkey-spittle! There was a problem.</h1>
 			<p class="flex items-center gap-3">
 				A recipe matching the provided title could not be found.
 			</p>
 		</div>
-	{:else if $recipe.data && fullRecipe}
+	{:else if recipeQuery && $recipeQuery.data && fullRecipe}
 		<Recipe recipe={fullRecipe} />
 		<Button onClick={saveRecipe} label="Save to My Recipes" disabled={working} size="sm">
 			<BookmarkIcon size="xs" />

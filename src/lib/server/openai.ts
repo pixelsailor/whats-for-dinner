@@ -1,10 +1,29 @@
 import type { FullRecipe, PromptContext } from '$lib/types';
-import { openai } from '../openai';
 import type { ChatCompletionMessageParam } from 'openai/resources';
+import { OpenAI } from 'openai';
+import { VITE_OPENAI_API_KEY } from '$env/static/private';
 
 const model = 'gpt-4.1-nano';
 
 const temperature = 0.4;
+
+export const OPENAI_DISABLED_ERROR = 'OPENAI_DISABLED';
+
+let client: OpenAI | null = null;
+
+function getOpenAI(): OpenAI {
+	if (!VITE_OPENAI_API_KEY) {
+		throw new Error(OPENAI_DISABLED_ERROR);
+	}
+
+	if (!client) {
+		client = new OpenAI({
+			apiKey: VITE_OPENAI_API_KEY
+		});
+	}
+
+	return client;
+}
 
 /** @deprecated */
 export async function getRecipeSuggestions(
@@ -33,6 +52,7 @@ export async function getRecipeSuggestions(
 	];
 
 	try {
+		const openai = getOpenAI();
 		// const response = await openai.responses.parse({
 		// 	model,
 		// 	input: messages,
@@ -112,6 +132,7 @@ Keep your formatting consistent and minimal.
 	];
 
 	try {
+		const openai = getOpenAI();
 		const response = await openai.chat.completions.create({
 			model,
 			messages,
@@ -169,6 +190,7 @@ Here is the user's modification request:
 		}
 	];
 	try {
+		const openai = getOpenAI();
 		const response = await openai.chat.completions.create({
 			model,
 			messages,
@@ -208,6 +230,7 @@ ${recipe.instructions}
 Now, here is my question:
 ${question}
 `;
+	const openai = getOpenAI();
 	const response = await openai.chat.completions.create({
 		model,
 		messages: [
@@ -221,7 +244,7 @@ ${question}
 }
 
 export async function appendRecipeDetails(recipe: string): Promise<[PromptContext, string | null]> {
-  const { title, time, short_description, ingredients, instructions, notes } = JSON.parse(recipe);
+	const { title, time, short_description, ingredients, instructions, notes } = JSON.parse(recipe);
 	const prompt = `
 You are an helpful, experienced culinary assistant helping a user working on a recipe.
 Given the user provided recipe details, fill in any missing fields: description, yield, time.prep, time.cook, time.total, and tags.
@@ -246,7 +269,7 @@ The __description__ may be a long form of the user's **short_description** with 
 Do not alter the provided recipe in any way.
 `;
 
-  const input = `
+	const input = `
 The user has provided the following recipe details:
 
 title: ${title}
@@ -257,6 +280,7 @@ instructions: ${instructions}
 notes: ${notes}
 `;
 
+	const openai = getOpenAI();
 	const response = await openai.chat.completions.create({
 		model,
 		messages: [

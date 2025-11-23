@@ -3,14 +3,28 @@ import {
 	appendRecipeDetails,
 	askCookingQuestion,
 	getRecipeSuggestions,
-	requestRecipeModifications
+	requestRecipeModifications,
+	getFullRecipe,
+	OPENAI_DISABLED_ERROR
 } from '$lib/server/openai';
 import type { PromptContext } from '$lib/types';
-import { getFullRecipe } from '$lib/server/openai';
+import { checkPolicy } from '$lib/utils/permissions';
 // import { getRecipeSuggestions } from '$lib/openai/suggestions';
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, locals }) => {
 	try {
+		const session = locals.session;
+
+		if (!session) {
+			throw error(401, { message: 'Authentication required' });
+		}
+
+		const aiPolicy = checkPolicy(session, 'ai-assisted-recipe');
+
+		if (!aiPolicy.allowed) {
+			throw error(403, { message: aiPolicy.reason ?? 'AI access denied' });
+		}
+
 		const {
 			action,
 			prompt,
@@ -70,6 +84,13 @@ export const POST: RequestHandler = async ({ request }) => {
 			);
 		}
 	} catch (error) {
+		if (error instanceof Error && error.message === OPENAI_DISABLED_ERROR) {
+			return json(
+				{ error: 'AI service is unavailable right now', code: 'AI_UNAVAILABLE' },
+				{ status: 503 }
+			);
+		}
+
 		console.error('API Error:', error);
 		return json(
 			{

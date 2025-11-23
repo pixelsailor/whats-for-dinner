@@ -18,6 +18,9 @@ declare global {
 				cloudSync: PolicyResult;
 				aiAssistedRecipe: PolicyResult;
 			};
+			featureFlags?: {
+				openai: boolean;
+			};
 		}
 		// interface PageState {}
 		// interface Platform {}

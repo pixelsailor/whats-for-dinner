@@ -4,8 +4,9 @@
 
 	import { SvelteQueryDevtools } from '@tanstack/svelte-query-devtools';
 
-	import { MIN_DESKTOP_SIZE } from '$lib/constants';
-	import { recentlyOpened } from '$lib/stores/recipes';
+import { MIN_DESKTOP_SIZE } from '$lib/constants';
+import { recentlyOpened } from '$lib/stores/recipes';
+import { networkStore } from '$lib/stores/network';
 	import { List, ListItem } from '$lib/ui/List';
 	import { AppBar } from '$lib/ui/AppBar';
 	import Button from '$lib/ui/Button/Button.svelte';
@@ -40,8 +41,9 @@
 		}
 	});
 
-	let { children, data } = $props();
-	let { session, supabase } = $derived(data);
+let { children, data } = $props();
+let { session, supabase } = $derived(data);
+let network = $derived($networkStore);
 
 	class Viewport {
 		#width = $state(0);
@@ -181,7 +183,7 @@
 			<p>Your recently viewed recipes will appear.</p>
 		{:else if $recentlyOpened.length > 0}
 			<List>
-				{#each $recentlyOpened as recipe}
+				{#each $recentlyOpened as recipe (recipe.id)}
 					<ListItem.Root>
 						<ListItem.Link href="/recipes/{recipe.id}">
 							{recipe.title}
@@ -189,6 +191,13 @@
 					</ListItem.Root>
 				{/each}
 			</List>
+		{/if}
+		{#if !network.online}
+			<div
+				class="mt-6 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-500 dark:bg-amber-950 dark:text-amber-100"
+			>
+				Offline mode: cloud sync and AI features are temporarily disabled.
+			</div>
 		{/if}
 	</div>
 	<div class="absolute bottom-0 w-full">

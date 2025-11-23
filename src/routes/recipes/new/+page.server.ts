@@ -1,9 +1,23 @@
-import { appendRecipeDetails } from '$lib/server/openai';
+import { appendRecipeDetails, OPENAI_DISABLED_ERROR } from '$lib/server/openai';
 import type { FullRecipe } from '$lib/types';
 import type { Actions } from './$types';
+import { fail } from '@sveltejs/kit';
+import { checkPolicy } from '$lib/utils/permissions';
 
 export const actions: Actions = {
-	default: async ({ request }) => {
+	default: async ({ request, locals }) => {
+		const session = locals.session;
+
+		if (!session) {
+			return fail(401, { error: 'Authentication required' });
+		}
+
+		const aiPolicy = checkPolicy(session, 'ai-assisted-recipe');
+
+		if (!aiPolicy.allowed) {
+			return fail(403, { error: aiPolicy.reason ?? 'AI access denied' });
+		}
+
 		const data = await request.formData();
 
 		const recipe: FullRecipe = {
@@ -29,7 +43,11 @@ export const actions: Actions = {
 				return { type, message };
 			}
 		} catch (err) {
-			throw new Error('There was a problem with the server' + `${err}`);
+			if (err instanceof Error && err.message === OPENAI_DISABLED_ERROR) {
+				return fail(503, { error: 'AI service is unavailable' });
+			}
+
+			return fail(500, { error: 'There was a problem with the server' });
 		}
 	}
 } satisfies Actions;

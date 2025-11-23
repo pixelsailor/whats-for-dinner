@@ -2,20 +2,24 @@ import type { PromptContext } from '$lib/types';
 import { sanitizePromptInput } from '$lib/utils';
 import { createQuery } from '@tanstack/svelte-query';
 
+type QueryOptions = {
+	enabled?: boolean;
+};
+
 async function query({
 	action,
 	prompt,
 	recipe,
-	prefs
+	preferences
 }: {
 	action: PromptContext;
 	prompt: string;
 	recipe?: string;
-	prefs?: string;
+	preferences?: string;
 }) {
 	const body: Record<string, unknown> = { action, prompt };
 	if (recipe !== undefined) body.recipe = recipe;
-	if (prefs !== undefined) body.preferences = prefs;
+	if (preferences !== undefined) body.preferences = preferences;
 
 	const response = await fetch('/api/recipes', {
 		method: 'POST',
@@ -36,39 +40,43 @@ async function query({
 // api calls can maintain a consistent usage format but these are not necessary and could hinder
 // sending requests to openai
 
-export function createAssistanceQuery(prompt: string, recipe: string) {
+export function createAssistanceQuery(prompt: string, recipe: string, options?: QueryOptions) {
 	const sanitizedPrompt = sanitizePromptInput(decodeURIComponent(prompt));
 	return createQuery({
 		queryKey: ['assistance', sanitizedPrompt],
 		queryFn: () => query({ action: 'assistance', prompt: sanitizedPrompt, recipe }),
-		enabled: !!sanitizedPrompt && sanitizedPrompt.length > 0
+		enabled: Boolean(sanitizedPrompt.length) && (options?.enabled ?? true)
 		// staleTime: Infinity
 	});
 }
 
 // Using "recipe" on this one so that the POST response doesn't need a unique argument
-export function createFullRecipeQuery(prompt: string, recipe: string) {
+export function createFullRecipeQuery(prompt: string, recipe: string, options?: QueryOptions) {
 	const sanitizedPrompt = sanitizePromptInput(decodeURIComponent(prompt));
 	const sanitizedDesc = sanitizePromptInput(decodeURIComponent(recipe));
 	return createQuery({
 		queryKey: ['detail', sanitizedPrompt],
 		queryFn: () => query({ action: 'detail', prompt: sanitizedPrompt, recipe: sanitizedDesc }),
-		enabled: !!sanitizedPrompt && sanitizedPrompt.length > 0,
+		enabled: Boolean(sanitizedPrompt.length) && (options?.enabled ?? true),
 		staleTime: Infinity
 	});
 }
 
-export function createRevisionQuery(prompt: string, recipe: string) {
+export function createRevisionQuery(prompt: string, recipe: string, options?: QueryOptions) {
 	const sanitizedPrompt = sanitizePromptInput(decodeURIComponent(prompt));
 	return createQuery({
 		queryKey: ['revision', sanitizedPrompt],
 		queryFn: () => query({ action: 'revision', prompt: sanitizedPrompt, recipe }),
-		enabled: !!sanitizedPrompt && sanitizedPrompt.length > 0
+		enabled: Boolean(sanitizedPrompt.length) && (options?.enabled ?? true)
 		// staleTime: Infinity
 	});
 }
 
-export function createSuggestionsQuery(prompt: string | null, preferences?: string) {
+export function createSuggestionsQuery(
+	prompt: string | null,
+	preferences?: string,
+	options?: QueryOptions
+) {
 	if (!prompt) return null;
 
 	const sanitizedPrompt = sanitizePromptInput(decodeURIComponent(prompt));
@@ -76,8 +84,8 @@ export function createSuggestionsQuery(prompt: string | null, preferences?: stri
 
 	return createQuery({
 		queryKey: ['summaries', sanitizedPrompt],
-		queryFn: () => query({ action: 'summaries', prompt: sanitizedPrompt, prefs }),
-		enabled: !!sanitizedPrompt && sanitizedPrompt.length > 0,
+		queryFn: () => query({ action: 'summaries', prompt: sanitizedPrompt, preferences: prefs }),
+		enabled: Boolean(sanitizedPrompt.length) && (options?.enabled ?? true),
 		staleTime: Infinity
 	});
 }

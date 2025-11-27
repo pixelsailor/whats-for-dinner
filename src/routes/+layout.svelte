@@ -209,7 +209,7 @@ let network = $derived($networkStore);
 						href="/preferences"
 					>
 						<SettingsIcon size="xs" />
-						<span class="hidden sm:inline"> Preferences </span>
+						<span class="hidden sm:inline pl-2"> Preferences </span>
 					</NavigationMenu.Link>
 				</NavigationMenu.Item>
 				<NavigationMenu.Item>
@@ -227,7 +227,7 @@ let network = $derived($networkStore);
 							href="/auth"
 						>
 							<SettingsIcon size="xs" />
-							<span class="hidden sm:inline"> Log in to sync </span>
+							<span class="hidden sm:inline pl-2">Log in</span>
 						</NavigationMenu.Link>
 					{/if}
 				</NavigationMenu.Item>

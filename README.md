@@ -143,7 +143,7 @@ pnpm test:unit
 ┌─────────────────────────────────────────────────────────────┐
 │                    User Interface Layer                     │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────┐ │
-│  │   Svelte 5      │  │   bits-ui       │  │  TailwindCSS │ │
+│  │   Svelte 5      │  │   Flowbite      │  │  TailwindCSS │ │
 │  │   Components    │  │   Components    │  │  Styling     │ │
 │  └─────────────────┘  └─────────────────┘  └──────────────┘ │
 └─────────────────────────────────────────────────────────────┘
@@ -151,25 +151,25 @@ pnpm test:unit
 ┌─────────────────────────────────────────────────────────────┐
 │                    State Management Layer                   │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────┐ │
-│  │   Dexie         │  │  TanStack       │  │  Svelte       │ │
+│  │   Dexie         │  │  TanStack       │  │  Svelte      │ │
 │  │   (IndexedDB)   │  │  Query          │  │  Stores      │ │
 │  └─────────────────┘  └─────────────────┘  └──────────────┘ │
 └─────────────────────────────────────────────────────────────┘
                               │
 ┌─────────────────────────────────────────────────────────────┐
-│                      API Layer                             │
+│                       API Layer                             │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────┐ │
-│  │   SvelteKit     │  │   Remote        │  │  Server       │ │
-│  │   Routes        │  │   Functions     │  │  Hooks        │ │
+│  │   SvelteKit     │  │   Remote        │  │  Server      │ │
+│  │   Routes        │  │   Functions     │  │  Hooks       │ │
 │  └─────────────────┘  └─────────────────┘  └──────────────┘ │
 └─────────────────────────────────────────────────────────────┘
                               │
 ┌─────────────────────────────────────────────────────────────┐
-│                  External Services                         │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────┐ │
-│  │   OpenAI        │  │   Supabase      │  │  Cloud       │ │
-│  │   (AI/ML)       │  │   (Auth/Sync)   │  │  Storage     │ │
-│  └─────────────────┘  └─────────────────┘  └──────────────┘ │
+│                   External Services                         │
+│  ┌─────────────────┐  ┌───────────────────────────────────┐ │
+│  │   OpenAI        │  │   Supabase                        │ │
+│  │   (AI/ML)       │  │   (Auth/Cloud Storage/Sharing)    │ │
+│  └─────────────────┘  └───────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -198,9 +198,11 @@ src/
 │   │   ├── local.ts    # Primary DB (IndexedDB)
 │   │   └── remote.ts   # Supabase sync logic
 │   ├── openai/         # OpenAI integration & prompts
+│   ├── queries/        # TanStack query functions
 │   ├── stores/         # Reactive stores (recipes, suggestions)
 │   ├── ui/             # UI components (bits-ui based)
-│   └── types/          # TypeScript type definitions
+│   ├── types/          # TypeScript type definitions
+│   └── utils/          # Shared utility functions
 ├── routes/
 │   ├── api/            # API endpoints (server-side)
 │   └── [pages]         # SvelteKit routes
@@ -259,7 +261,8 @@ Understanding these dependencies is crucial for generating compatible code:
 - **Svelte 5**: Must use runes syntax, not legacy reactivity patterns
 - **SvelteKit 2 Remote Functions**: Server code must be edge runtime compatible
 - **Dexie**: IndexedDB wrapper with async operations and reactive `liveQuery()`
-- **bits-ui**: Headless UI components that compose with TailwindCSS
+- **Flowbite Svelte**: Prefered UI components built with TailwindCSS.
+- **bits-ui**: Legacy headless UI components that compose with TailwindCSS. Deprecated.
 - **OpenAI SDK v6**: Uses new API patterns with streaming responses
 - **Supabase SSR**: Requires specific setup in hooks and layouts
 - **Zod 4**: Schema-first validation with automatic type inference

@@ -35,12 +35,6 @@ importers:
       dexie:
         specifier: ^4.2.1
         version: 4.2.1
-      flowbite:
-        specifier: ^3.1.2
-        version: 3.1.2(rollup@4.52.5)
-      flowbite-svelte:
-        specifier: ^1.18.0
-        version: 1.18.0(rollup@4.52.5)(svelte@5.41.0)(tailwindcss@4.1.14)
       openai:
         specifier: ^6.5.0
         version: 6.5.0(ws@8.18.3)(zod@4.1.12)
@@ -93,6 +87,12 @@ importers:
       eslint-plugin-svelte:
         specifier: ^3.12.5
         version: 3.12.5(eslint@9.38.0(jiti@2.6.1))(svelte@5.41.0)
+      flowbite:
+        specifier: ^3.1.2
+        version: 3.1.2(rollup@4.52.5)
+      flowbite-svelte:
+        specifier: ^1.18.0
+        version: 1.18.0(rollup@4.52.5)(svelte@5.41.0)(tailwindcss@4.1.14)
       globals:
         specifier: ^16.4.0
         version: 16.4.0

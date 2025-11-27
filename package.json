@@ -25,8 +25,6 @@
 		"carbon-icons-svelte": "^13.6.0",
 		"clsx": "^2.1.1",
 		"dexie": "^4.2.1",
-		"flowbite": "^3.1.2",
-		"flowbite-svelte": "^1.18.0",
 		"openai": "^6.5.0",
 		"svelte-sonner": "^1.0.5",
 		"uuid": "^13.0.0"
@@ -46,6 +44,8 @@
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-import": "^2.32.0",
 		"eslint-plugin-svelte": "^3.12.5",
+		"flowbite": "^3.1.2",
+		"flowbite-svelte": "^1.18.0",
 		"globals": "^16.4.0",
 		"playwright": "^1.56.1",
 		"prettier": "^3.6.2",

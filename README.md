@@ -188,6 +188,24 @@ pnpm test:unit
 4. **External Services** → OpenAI (AI), Supabase (auth/sync)
 5. **Cloud Sync** → Optional synchronization for authenticated users
 
+## 📴 Offline Service Worker
+
+The custom service worker in [`src/service-worker.js`](src/service-worker.js) keeps the PWA usable offline by combining cache-first static assets with network-first content fetches:
+
+- **Static shell**: Every entry in `$service-worker`'s `build` and `files` manifests is pre-cached during `install` and served cache-first for instant boot.
+- **Dynamic data**: Network-first caching (with offline fallback) covers the key content routes:
+  - `/recipes` (all nested pages such as `/recipes/[id]`, `/recipes/new`, `/recipes/trash`)
+  - `/recommendations`
+  - `/suggestions` (including `/suggestions/recipe`)
+  - `/preferences`
+  - `/` (home/dashboard)
+- **Safety guards**: Only same-origin `GET` requests are intercepted, preventing interference with Supabase/OpenAI calls, while failed network requests reuse the last good cached response.
+
+### Adding New Offline Paths
+1. Identify the route (or family of routes) that should work offline.
+2. Update the `dataRoutePrefixes` array inside `src/service-worker.js` with the new prefix. Nested routes are automatically covered by the helper that checks `pathname.startsWith(prefix + '/')`.
+3. For API endpoints, only cache them if they expose `GET` handlers and contain idempotent payloads. As of now, no `/api/*` routes for recipes, recommendations, suggestions, or preferences rely on `GET`, so caching is not required. Revisit this guidance if new read-only API endpoints are introduced.
+
 ## 📁 Project Structure
 
 ```

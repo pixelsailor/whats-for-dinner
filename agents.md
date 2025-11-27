@@ -25,6 +25,11 @@ All code and AI-assisted suggestions should follow the practices below.
 - Animate transitions and list updates using Svelte’s `animate:` directive or `motion` from `svelte-motion`.
 - Use `<script lang="ts">` and ensure strict typing across all modules.
 - Keep markup accessible — use semantic elements, proper `aria-*` attributes, and keyboard support.
+- Handle Promises in `+page.svelte` with `{#await ...}` blocks so pending, success, and error UI states stay declarative. Reference: [Await Blocks](https://svelte.dev/docs/svelte/await/llms.txt).
+
+### Reactive $: statements
+
+Legacy Svelte components relied on `Reactive $:` statements (e.g. `$: sum = a + b`) to recompute values or run side-effects when referenced state changed. Runes mode replaces those patterns with `$derived` for computed data and `$effect` for imperative reactions, which keeps dependencies explicit and tree-shakable. Do not author new `$:` statements—only interact with existing legacy code to remove or migrate it. For reference, see [Legacy Reactive Assignments](https://svelte.dev/docs/svelte/legacy-reactive-assignments/llms.txt).
 
 This is a serverless app: server functions should use [**remote functions**](https://svelte.dev/docs/kit/remote-functions/llms.txt) compatible with Cloudflare Workers and Netlify
 

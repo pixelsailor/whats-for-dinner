@@ -263,6 +263,8 @@ For AI agents working on this codebase, see the comprehensive [AGENTS.md](./AGEN
 ### Critical Patterns for LLMs
 
 - **Svelte 5 Runes**: Use `$state()`, `$derived()`, `$props()` - avoid legacy syntax
+- **Await Blocks**: Wrap Promise-returning data sources inside `{#await ...}` when rendering in `+page.svelte` files to control pending/error states. Docs: [Await Blocks](https://svelte.dev/docs/svelte/await/llms.txt)
+- **Reactive $: statements**: Older components may use `$:` blocks for derived data or effects. Prefer `$derived` and `$effect` runes instead, and migrate legacy code when touched. Docs: [Legacy Reactive Assignments](https://svelte.dev/docs/svelte/legacy-reactive-assignments/llms.txt)
 - **Remote Functions**: Server code must be serverless-compatible
 - **Zod Validation**: All external data must be validated
 - **Dexie Live Queries**: Use `liveQuery()` for reactive database stores

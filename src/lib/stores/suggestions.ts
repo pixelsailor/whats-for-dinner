@@ -66,11 +66,14 @@ const MAX_SUGGESTIONS = 100;
  */
 export async function saveSuggestions(suggestions: RecipeSummary[]) {
 	const now = Date.now();
-	const enriched: Suggestion[] = suggestions.map((s) => ({
-		...s,
-		id: s.title.toLowerCase().replaceAll(' ', '-'),
-		created_at: now
-	}));
+	const enriched: Suggestion[] = suggestions.map((raw) => {
+		const summary = JSON.parse(JSON.stringify(raw)) as RecipeSummary;
+		return {
+			...summary,
+			id: summary.title.toLowerCase().replaceAll(' ', '-'),
+			created_at: now
+		};
+	});
 
 	await db.suggestions.bulkPut(enriched);
 
@@ -106,9 +109,12 @@ export async function bulkDeleteSuggestions() {
  * @param recipeTitle - The recipe title to check in TanStack Query cache
  * @returns Object with isViewed (session or persisted) and isPersisted (DB only) flags
  */
-export function getViewedStatus(suggestion: Suggestion, recipeTitle?: string): { isViewed: boolean; isPersisted: boolean } {
+export function getViewedStatus(
+	suggestion: Suggestion | RecipeSummary,
+	recipeTitle?: string
+): { isViewed: boolean; isPersisted: boolean } {
 	// Check if persisted to database
-	const isPersisted = !!suggestion.last_opened;
+	const isPersisted = 'last_opened' in suggestion && !!suggestion.last_opened;
 	
 	// Check if in session cache (TanStack Query)
 	let isViewedInSession = false;

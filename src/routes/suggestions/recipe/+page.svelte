@@ -35,7 +35,7 @@ let aiCapability = $derived(
 	})
 );
 let canUseAI = $derived(aiCapability.canUseAI);
-let aiRestrictionMessage = $derived(() => {
+let aiRestrictionMessage = $derived.by(() => {
 	switch (aiCapability.reason) {
 		case 'offline':
 			return 'You are offline. Reconnect to request full recipes or adjustments.';
@@ -50,19 +50,33 @@ let aiRestrictionMessage = $derived(() => {
 	}
 });
 
-let recipeQuery = $derived.by(() => {
+type FullRecipeQueryStore = ReturnType<typeof createFullRecipeQuery>;
+type FullRecipeQueryValue = Parameters<Parameters<FullRecipeQueryStore['subscribe']>[0]>[0];
+
+let recipeQuery: FullRecipeQueryStore | null = null;
+
+$effect(() => {
 	if (!canUseAI) {
-		return null;
+		recipeQuery = null;
+		return;
 	}
-	return createFullRecipeQuery(data.recipeTitle, data.desc, { enabled: true });
+	recipeQuery = createFullRecipeQuery(data.recipeTitle, data.desc, { enabled: true });
 });
 
-let fullRecipe = $derived<FullRecipe | undefined>(() =>
-	recipeQuery ? ($recipeQuery.data?.data[1] as FullRecipe | undefined) : undefined
+let recipeQueryState = $derived.by<FullRecipeQueryValue | null>(() =>
+	recipeQuery ? $recipeQuery : null
 );
+let recipeFromQuery = $derived.by<FullRecipe | null>(() => {
+	const payload = recipeQueryState?.data?.data;
+	return payload ? (payload[1] as FullRecipe) : null;
+});
 
-	// Responsible for passing the recipe to the FormData
-let recipeJson = $derived(fullRecipe ? JSON.stringify(fullRecipe) : '');
+let overriddenRecipe = $state<FullRecipe | null>(null);
+let fullRecipe = $derived(overriddenRecipe ?? recipeFromQuery ?? null);
+let hasUnsavedChanges = $derived(Boolean(overriddenRecipe));
+
+// Responsible for passing the recipe to the FormData
+let recipeJson = $derived.by(() => (fullRecipe ? JSON.stringify(fullRecipe) : ''));
 
 	// Account for sidenav width and adjust accordingly
 	let left = $derived.by(() => {
@@ -87,8 +101,6 @@ let recipeJson = $derived(fullRecipe ? JSON.stringify(fullRecipe) : '');
 
 	let lastFormMessage: string | undefined = undefined;
 
-	let hasUnsavedChanges = $state(false);
-
 	// Timeout for saving full recipe to suggestions after 2 minutes
 	let saveTimeout: number | null = null;
 
@@ -105,9 +117,11 @@ let recipeJson = $derived(fullRecipe ? JSON.stringify(fullRecipe) : '');
 		try {
 			// Convert title to suggestion ID using same logic as saveSuggestions
 			const suggestionId = data.recipeTitle.toLowerCase().replaceAll(' ', '-');
-			
+
+			const safeRecipe = JSON.parse(JSON.stringify(fullRecipe)) as FullRecipe;
+
 			await db.suggestions.update(suggestionId, {
-				...fullRecipe,
+				...safeRecipe,
 				last_opened: Date.now()
 			});
 		} catch (error) {
@@ -122,6 +136,12 @@ let recipeJson = $derived(fullRecipe ? JSON.stringify(fullRecipe) : '');
 		working = true;
 
 		try {
+			if (!fullRecipe) {
+				toast.error('No recipe available to save');
+				working = false;
+				return;
+			}
+
 			const now = Date.now();
 			const clonedRecipe: FullRecipe = JSON.parse(JSON.stringify(fullRecipe));
 			const newRecipe = {
@@ -131,7 +151,7 @@ let recipeJson = $derived(fullRecipe ? JSON.stringify(fullRecipe) : '');
 				last_opened: now,
 				version: 1,
 				is_current: true,
-				is_favorite: false,
+				is_favorite: false
 			};
 
 			const recipeId = await db.recipes.put(newRecipe);
@@ -152,17 +172,24 @@ let recipeJson = $derived(fullRecipe ? JSON.stringify(fullRecipe) : '');
 			if (form.message === lastFormMessage) return;
 
 			const { type, message } = form;
+			if (typeof message !== 'string') {
+				console.error('Unexpected AI payload', message);
+				toast.error('There was a problem parsing the recipe response');
+				working = false;
+				return;
+			}
+
+			const messageText = message;
 			promptType = type;
-			lastFormMessage = message;
+			lastFormMessage = messageText;
 			working = false;
 
 			if (type === 'assistance') {
-				conversationMsg = message;
+				conversationMsg = messageText;
 			} else {
 				try {
-					fullRecipe = JSON.parse(message) as FullRecipe;
-					hasUnsavedChanges = true;
-					toast.success(`"${fullRecipe.title}" updated`);
+					overriddenRecipe = JSON.parse(messageText) as FullRecipe;
+					toast.success(`"${overriddenRecipe.title}" updated`);
 				} catch (err) {
 					console.error(err);
 					toast.error('There was a problem parsing the recipe JSON');
@@ -216,17 +243,17 @@ let recipeJson = $derived(fullRecipe ? JSON.stringify(fullRecipe) : '');
 
 <PageHeader>
 	<AppBar.Root>
-		{#if recipeQuery && $recipeQuery.data}
+		{#if recipeQueryState?.data}
 			<Button onClick={goBack} label="Go back to recipe suggetions" size="sm">
 				<BackIcon size="xs" />
 				Back to suggestions
 			</Button>
 		{:else if !canUseAI}
-			<AppBar.Text primary={'AI unavailable'} />
+			<AppBar.Text primary="AI unavailable" />
 		{:else}
-			<AppBar.Text primary={'Checking the pantry...'} />
+			<AppBar.Text primary="Checking the pantry..." />
 		{/if}
-		{#if recipeQuery && $recipeQuery.data}
+		{#if recipeQueryState?.data}
 			<AppBar.End>
 				<Button onClick={saveRecipe} label="Save recipe" disabled={!canUseAI}>
 					<BookmarkIcon size="xs" />
@@ -245,14 +272,14 @@ let recipeJson = $derived(fullRecipe ? JSON.stringify(fullRecipe) : '');
 			<h1 class="fluid-heading-05 my-8">AI recipe details unavailable</h1>
 			<p>{aiRestrictionMessage}</p>
 		</div>
-	{:else if recipeQuery && $recipeQuery.isError}
+	{:else if recipeQueryState?.isError}
 		<div class="mx-auto grid h-max w-full max-w-3xl place-content-center">
 			<h1 class="fluid-heading-05 my-8">Ah donkey-spittle! There was a problem.</h1>
 			<p class="flex items-center gap-3">
 				A recipe matching the provided title could not be found.
 			</p>
 		</div>
-	{:else if recipeQuery && $recipeQuery.data && fullRecipe}
+	{:else if recipeQueryState?.data && fullRecipe}
 		<Recipe recipe={fullRecipe} />
 		<Button onClick={saveRecipe} label="Save to My Recipes" disabled={working} size="sm">
 			<BookmarkIcon size="xs" />

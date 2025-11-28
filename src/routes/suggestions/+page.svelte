@@ -64,8 +64,13 @@
 		Parameters<SuggestionsQueryStore['subscribe']>[0]
 	>[0];
 
-	let suggestionsStore = $state<SuggestionsQueryStore | null>(null);
-	let suggestionsResult = $state<SuggestionsResult | null>(null);
+let suggestionsStore = $state<SuggestionsQueryStore | null>(null);
+let suggestionsResult = $state<SuggestionsResult | null>(null);
+let suggestionsError = $derived.by(() => suggestionsResult?.error ?? null);
+let remoteSuggestions = $derived.by<RecipeSummary[] | null>(() => {
+	const payload = suggestionsResult?.data?.data;
+	return payload ? (payload[1] as RecipeSummary[]) : null;
+});
 
 	$effect(() => {
 		const currentPrompt = prompt;
@@ -132,11 +137,8 @@
 
 	// Save suggestions to history
 	$effect(() => {
-		if (hasPrompt && suggestionsResult?.data?.data) {
-			if (suggestionsResult.data.data && suggestionsResult.data.data[1]) {
-				const summaries = suggestionsResult.data.data[1] as RecipeSummary[];
-				saveSuggestions(summaries);
-			}
+		if (hasPrompt && remoteSuggestions) {
+			saveSuggestions(remoteSuggestions);
 		}
 	});
 
@@ -164,69 +166,61 @@
 			{aiRestrictionMessage}
 		</div>
 	{/if}
-	{#if hasPrompt && suggestionsResult}
-		{#if suggestionsResult.error}
-			<div class="mx-auto grid h-screen w-full max-w-3xl place-content-center gap-6">
-				<h1 class="fluid-heading-05">Ah donkey-spittle! There was a problem.</h1>
-				<p class="flex items-center gap-3">
-					<span class="fluid-heading-03">{suggestionsResult.error.name}</span><span>|</span><span
-						>{suggestionsResult.error?.message}</span
-					>
-				</p>
+	{#if hasPrompt}
+		{#if !canRequestSuggestions}
+			<div class="mx-auto grid h-screen w-full max-w-3xl place-content-center gap-6 text-center">
+				<h1 class="fluid-heading-05">AI suggestions are unavailable.</h1>
+				<p>{aiRestrictionMessage}</p>
 			</div>
-		{:else if suggestionsResult.data?.data}
-			<div class="py-24">
-				<h1 class="fluid-heading-05 mb-8">
-					Here are some ideas for, <span class="italic">"{prompt}"</span>
-				</h1>
-				<List size="three-line">
-					{#each suggestionsResult.data.data[1] as summary (summary.title)}
-						<hr />
-						<ListItem.Root>
-							<ListItem.Button
-								onClick={() => getFullRecipe(summary)}
-								disabled={working || !canRequestSuggestions}
-							>
-								<ListItem.Text primary={summary.title} secondary={summary.short_description} />
-								<ViewedBadge viewed={getViewedStatus(summary, summary.title).isViewed} />
-							</ListItem.Button>
-						</ListItem.Root>
-					{/each}
-				</List>
-				<div class="my-8">
-					<Button
-						onClick={getMoreSuggestions}
-						label="Get more ideas"
-						disabled={!canRequestSuggestions}
-					>
-						Get more ideas
-					</Button>
+		{:else if suggestionsResult}
+			{#if suggestionsError}
+				<div class="mx-auto grid h-screen w-full max-w-3xl place-content-center gap-6">
+					<h1 class="fluid-heading-05">Ah donkey-spittle! There was a problem.</h1>
+					<p class="flex items-center gap-3">
+						<span class="fluid-heading-03">{suggestionsError.name}</span><span>|</span><span
+							>{suggestionsError?.message}</span
+						>
+					</p>
 				</div>
-			</div>
-		{:else if suggestionsResult.data}
-			<div class="py-24">
-				<h1 class="fluid-heading-05 mb-8">Here's some recipes you haven't made in a while.</h1>
-				<List size="three-line">
-					{#each suggestionsResult.data as summary (summary.id)}
-						<hr />
-						<ListItem.Root>
-							<ListItem.Link href="/recipes/{summary.id}">
-								<ListItem.Text primary={summary.title} secondary={summary.short_description} />
-							</ListItem.Link>
-						</ListItem.Root>
-					{/each}
-				</List>
-			</div>
+			{:else if remoteSuggestions}
+				<div class="py-24">
+					<h1 class="fluid-heading-05 mb-8">
+						Here are some ideas for, <span class="italic">"{prompt}"</span>
+					</h1>
+					<List size="three-line">
+						{#each remoteSuggestions as summary (summary.title)}
+							<hr />
+							<ListItem.Root>
+								<ListItem.Button
+									onClick={() => getFullRecipe(summary)}
+									disabled={working || !canRequestSuggestions}
+								>
+									<ListItem.Text primary={summary.title} secondary={summary.short_description} />
+									<ViewedBadge viewed={getViewedStatus(summary, summary.title).isViewed} />
+								</ListItem.Button>
+							</ListItem.Root>
+						{/each}
+					</List>
+					<div class="my-8">
+						<Button
+							onClick={getMoreSuggestions}
+							label="Get more ideas"
+							disabled={!canRequestSuggestions}
+						>
+							Get more ideas
+						</Button>
+					</div>
+				</div>
+			{:else}
+				<div class="mx-auto grid h-screen w-full max-w-3xl place-content-center">
+					<ProgressSpinner size="lg" />
+				</div>
+			{/if}
 		{:else}
 			<div class="mx-auto grid h-screen w-full max-w-3xl place-content-center">
 				<ProgressSpinner size="lg" />
 			</div>
 		{/if}
-	{:else if hasPrompt && !canRequestSuggestions}
-		<div class="mx-auto grid h-screen w-full max-w-3xl place-content-center gap-6 text-center">
-			<h1 class="fluid-heading-05">AI suggestions are unavailable.</h1>
-			<p>{aiRestrictionMessage}</p>
-		</div>
 	{:else}
 		<div class="py-24">
 			<h1 class="fluid-heading-05 mb-4">Suggestion History</h1>

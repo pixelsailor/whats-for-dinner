@@ -30,9 +30,17 @@ export type Viewport = {
 export type ViewState = 'idle' | 'suggestions' | 'detail' | 'error' | 'loading';
 
 /**
- * Context types for prompts sent to OpenAI (controls parsing/handlers).
+ * Exported as both a runtime enum-like object and a type-safe union.
  */
-export type PromptContext = 'addendum' | 'assistance' | 'detail' | 'revision' | 'summaries';
+export const PromptContextEnum = {
+	ADDENDUM: 'addendum',
+	ASSISTANCE: 'assistance',
+	DETAIL: 'detail',
+	REVISION: 'revision',
+	SUMMARIES: 'summaries'
+} as const;
+
+export type PromptContext = (typeof PromptContextEnum)[keyof typeof PromptContextEnum];
 
 /**
  * Generic API response envelope used by server routes.
@@ -43,9 +51,24 @@ export type ApiResponse<T> = {
 	success: boolean;
 	/** Payload returned by the API when successful. */
 	data: T;
-	/** Human readable message (errors or success info). */
-	message: string;
+	/** Optional human readable message (errors or success info). */
+	message?: string;
+	/** Optional structured error object for failures. */
+	error?: {
+		message: string;
+		code?: string;
+	};
 };
+
+/**
+ * Pairing of the originating prompt context with the parsed payload coming back from OpenAI.
+ */
+export type OpenAiResponse<TPayload> = [PromptContext, TPayload];
+
+/**
+ * API payload returned by `/api/recipes` when wrapping OpenAI responses.
+ */
+export type OpenAiApiResponse<TPayload> = ApiResponse<OpenAiResponse<TPayload>>;
 
 /**
  * Minimal recipe metadata used for lists and suggestions.
@@ -96,6 +119,27 @@ export type FullRecipe = {
 	/** Optional freeform notes (markdown). */
 	notes?: string; // markdown
 };
+
+/**
+ * Partial enrichment returned by OpenAI when we ask it to append missing recipe metadata.
+ */
+export type RecipeAddendum = {
+	short_description?: string;
+	description?: string;
+	tags?: string[];
+	yield?: string;
+	time?: {
+		prep?: string;
+		cook?: string;
+		total?: string;
+	};
+};
+
+export type RecipeSuggestionsResponse = OpenAiResponse<RecipeSummary[]>;
+export type RecipeDetailResponse = OpenAiResponse<FullRecipe>;
+export type RecipeRevisionResponse = OpenAiResponse<FullRecipe>;
+export type RecipeAssistanceResponse = OpenAiResponse<string>;
+export type RecipeAddendumResponse = OpenAiResponse<RecipeAddendum>;
 
 /**
  * Recipe as stored in the local DB (IndexedDB via Dexie). Extends `FullRecipe` with

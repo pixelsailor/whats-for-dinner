@@ -7,9 +7,23 @@ import {
 	getFullRecipe,
 	OPENAI_DISABLED_ERROR
 } from '$lib/server/openai';
-import type { PromptContext } from '$lib/types';
+import type {
+	PromptContext,
+	RecipeAddendumResponse,
+	RecipeAssistanceResponse,
+	RecipeDetailResponse,
+	RecipeRevisionResponse,
+	RecipeSuggestionsResponse
+} from '$lib/types';
 import { checkPolicy } from '$lib/utils/permissions';
 // import { getRecipeSuggestions } from '$lib/openai/suggestions';
+
+type AiResponse =
+	| RecipeAddendumResponse
+	| RecipeAssistanceResponse
+	| RecipeDetailResponse
+	| RecipeRevisionResponse
+	| RecipeSuggestionsResponse;
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	try {
@@ -37,7 +51,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			return error(400, { message: 'A valid prompt is required' });
 		}
 
-		let response: [PromptContext, string | null];
+		let response: AiResponse;
 
 		switch (action) {
 			case 'addendum':
@@ -72,17 +86,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 				return json({ error: 'Unknown action' }, { status: 400 });
 		}
 
-		if (response[1]) {
-			return json({ success: true, data: [response[0], JSON.parse(response[1])] });
-		} else {
-			return json(
-				{
-					success: false,
-					error: { message: 'Invalid response from AI', code: 'INVALID_RESPONSE' }
-				},
-				{ status: 502 }
-			);
-		}
+		return json({ success: true, data: response });
 	} catch (error) {
 		if (error instanceof Error && error.message === OPENAI_DISABLED_ERROR) {
 			return json(

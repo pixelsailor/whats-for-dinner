@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
 	// import { marked } from 'marked';
-	import type { FullRecipe, SavedRecipe } from '$lib/types';
+	import type { FullRecipe } from '$lib/types';
 	import SvelteMarkdown from '@humanspeak/svelte-markdown';
 
 	interface EditState {
@@ -9,8 +9,8 @@
 		originalValue: any;
 	}
 
-	// let { recipe = $bindable() }: Props = $props();
-	let { recipe }: { recipe: FullRecipe } = $props();
+// let { recipe = $bindable() }: Props = $props();
+	let { recipe, locked = true }: { recipe: FullRecipe; locked?: boolean } = $props();
 
 	// State
 	let editState = $state<EditState>({ field: null, originalValue: '' });
@@ -28,8 +28,16 @@
 		cancel: { field: keyof FullRecipe; value: string };
 	}>();
 
+	$effect(() => {
+		if (locked && editState.field) {
+			cancelEdit();
+		}
+	});
+
 	// Helper functions
 	function startEdit(field: keyof FullRecipe) {
+	if (locked) return;
+
 		// Skip editing non-string values for now
 		if (typeof field !== 'string') return;
 
@@ -77,6 +85,8 @@
 	}
 
 	function handleKeydown(event: KeyboardEvent, field: keyof FullRecipe) {
+	if (locked) return;
+
 		if (
 			event.key === 'Enter' &&
 			!event.shiftKey &&
@@ -92,6 +102,8 @@
 	}
 
 	function handleTextareaKeydown(event: KeyboardEvent) {
+	if (locked) return;
+
 		if (event.key === 'Escape') {
 			event.preventDefault();
 			cancelEdit();
@@ -104,6 +116,8 @@
 	}
 
 	function handleBlur(event: FocusEvent) {
+	if (locked) return;
+
 		// Check if focus moved to commit/cancel buttons
 		const relatedTarget = event.relatedTarget as HTMLElement;
 		if (
@@ -122,9 +136,24 @@
 	}
 
 	function handleTextareaInput(event: Event) {
+	if (locked) return;
+
 		const textarea = event.target as HTMLTextAreaElement;
 		adjustTextareaHeight(textarea);
 	}
+
+	function handleEditableClick(field: keyof FullRecipe) {
+		if (locked) return;
+		startEdit(field);
+	}
+
+	function handleEditableKeydown(event: KeyboardEvent, field: keyof FullRecipe) {
+	if (locked) return;
+		if (event.key === 'Enter' || event.key === ' ') {
+			event.preventDefault();
+			startEdit(field);
+		}
+}
 
 	// function renderMarkdown(content: string): string {
 	//   return marked(content, { breaks: true });
@@ -150,7 +179,6 @@
 						bind:value={recipe.title}
 						onkeydown={(e) => handleKeydown(e, 'title')}
 						onblur={handleBlur}
-						autofocus
 					/>
 					<div class="button-group">
 						<button class="commit-btn" onclick={commitEdit}>✓</button>
@@ -160,10 +188,13 @@
 			{:else}
 				<div
 					role="button"
-					tabindex="0"
-					onclick={() => startEdit('title')}
+					tabindex={locked ? -1 : 0}
+					aria-disabled={locked}
+					class={`editable-wrapper ${locked ? 'editable--locked' : ''}`}
+					onclick={() => handleEditableClick('title')}
+					onkeydown={(event) => handleEditableKeydown(event, 'title')}
 				>
-					<h1 class="recipe-title fluid-heading-05 editable hover:bg-gray-100 hover:dark:bg-gray-900/40">
+					<h1 class="recipe-title fluid-heading-05 hover:bg-gray-100 hover:dark:bg-gray-900/40">
 						{recipe.title || 'Click to add title'}
 					</h1>
 				</div>
@@ -189,10 +220,12 @@
 				</div>
 			{:else}
 				<div
-					class="recipe-description editable italic hover:bg-gray-100 hover:dark:bg-gray-900/40"
+					class={`recipe-description editable italic hover:bg-gray-100 hover:dark:bg-gray-900/40 ${locked ? 'editable--locked' : ''}`}
 					role="button"
-					tabindex="0"
-					onclick={() => startEdit('description')}
+					tabindex={locked ? -1 : 0}
+					aria-disabled={locked}
+					onclick={() => handleEditableClick('description')}
+					onkeydown={(event) => handleEditableKeydown(event, 'description')}
 				>
 					{recipe.description || 'Click to add description'}
 				</div>
@@ -201,7 +234,7 @@
 		<p class="px-2">{recipe.yield}</p>
 		{#if recipeTime}
 			<ul class="px-2">
-				{#each recipeTime as time}
+				{#each recipeTime as time (time[0])}
 					<li class="my-1"><span class="heading">{time[0]} time:</span> <span>{time[1]}</span></li>
 				{/each}
 			</ul>
@@ -232,10 +265,12 @@
 			</div>
 		{:else}
 			<div
-				class="recipe-ingredients editable hover:bg-gray-100 hover:dark:bg-gray-900/40"
+				class={`recipe-ingredients editable hover:bg-gray-100 hover:dark:bg-gray-900/40 ${locked ? 'editable--locked' : ''}`}
 				role="button"
-				tabindex="0"
-				onclick={() => startEdit('ingredients')}
+				tabindex={locked ? -1 : 0}
+				aria-disabled={locked}
+				onclick={() => handleEditableClick('ingredients')}
+				onkeydown={(event) => handleEditableKeydown(event, 'ingredients')}
 			>
 				{#if recipe.ingredients}
 					<div class="ingredients__content markdown">
@@ -272,10 +307,12 @@
 			</div>
 		{:else}
 			<div
-				class="recipe-instructions editable hover:bg-gray-100 hover:dark:bg-gray-900/40"
+				class={`recipe-instructions editable hover:bg-gray-100 hover:dark:bg-gray-900/40 ${locked ? 'editable--locked' : ''}`}
 				role="button"
-				tabindex="0"
-				onclick={() => startEdit('instructions')}
+				tabindex={locked ? -1 : 0}
+				aria-disabled={locked}
+				onclick={() => handleEditableClick('instructions')}
+				onkeydown={(event) => handleEditableKeydown(event, 'instructions')}
 			>
 				{#if recipe.instructions}
 					<div class="instructionns__content markdown">
@@ -308,10 +345,12 @@
 			</div>
 		{:else}
 			<div
-				class="recipe-notes editable hover:bg-gray-100 hover:dark:bg-gray-900/40"
+				class={`recipe-notes editable hover:bg-gray-100 hover:dark:bg-gray-900/40 ${locked ? 'editable--locked' : ''}`}
 				role="button"
-				tabindex="0"
-				onclick={() => startEdit('notes')}
+				tabindex={locked ? -1 : 0}
+				aria-disabled={locked}
+				onclick={() => handleEditableClick('notes')}
+				onkeydown={(event) => handleEditableKeydown(event, 'notes')}
 			>
 				{#if recipe.notes}
 					<div class="instructionns__content markdown">
@@ -325,7 +364,7 @@
 	</section>
 
 	<ul class="inline-flex flex-wrap gap-2 px-2 mb-4 h-12 items-center">
-		{#each recipe.tags as tag}
+		{#each recipe.tags as tag, index (tag + index)}
 			<li>
 				<span class="tag label lowercase px-2 py-1 border rounded bg-gray-100 border-gray-200 dark:bg-gray-700 dark:border-gray-600 whitespace-nowrap">{tag}</span>
 			</li>
@@ -375,20 +414,8 @@
 		gap: 2rem;
 	}
 
-	.recipe-header {
-		/* margin-bottom: 2rem;
-    border-bottom: 2px solid #eee;
-    padding-bottom: 1rem; */
-	}
-
-	.recipe-title {
-		/* font-size: 2.5rem;
-    font-weight: 700;
-    margin: 0;
-    color: #2c3e50; */
-	}
-
-	.editable {
+	.editable,
+	.editable-wrapper {
 		cursor: pointer;
 		padding: 0.5rem;
 		border-radius: 4px;
@@ -397,11 +424,10 @@
 		border: 2px solid transparent;
 	}
 
-	.editable:hover {
-		/* background-color: #f8f9fa;
-		border-color: #dee2e6; */
-
+	.editable--locked {
+		cursor: default;
 	}
+
 
 	.placeholder {
 		/* color: #6c757d; */

@@ -1,56 +1,60 @@
 <script lang="ts">
+	import { Button as BitsButton } from 'bits-ui';
+	import { Tooltip } from "bits-ui";
 	import { getContext, onDestroy, onMount } from 'svelte';
 	import { slide } from 'svelte/transition';
 	import SvelteMarkdown from '@humanspeak/svelte-markdown';
 	import { toast } from 'svelte-sonner';
 	import { v4 as uuid } from 'uuid';
 
-import { enhance } from '$app/forms';
-import { page } from '$app/state';
-import { db } from '$lib/db';
-import { getSavedRecipe } from '$lib/stores/recipes';
-import type { PromptContext, SavedRecipe, ViewState } from '$lib/types';
-import Button from '$lib/ui/Button/Button.svelte';
-import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
-import { AppBar } from '$lib/ui/AppBar';
-import PageHeader from '$lib/ui/PageHeader.svelte';
-import Prompt from '$lib/ui/Prompt.svelte';
-import CloseIcon from '$lib/ui/Icons/CloseIcon.svelte';
-import Recipe from '$lib/ui/Recipe.svelte';
-import EditableRecipe from '$lib/ui/EditableRecipe.svelte';
-import { networkStore } from '$lib/stores/network';
-import { deriveAICapability } from '$lib/utils/capabilities';
+	import { enhance } from '$app/forms';
+	import { page } from '$app/state';
+	import { db } from '$lib/db';
+	import { getSavedRecipe } from '$lib/stores/recipes';
+	import type { PromptContext, SavedRecipe, ViewState } from '$lib/types';
+	import Button from '$lib/ui/Button/Button.svelte';
+	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
+	import { AppBar } from '$lib/ui/AppBar';
+	import PageHeader from '$lib/ui/PageHeader.svelte';
+	import Prompt from '$lib/ui/Prompt.svelte';
+	import CloseIcon from '$lib/ui/Icons/CloseIcon.svelte';
+	// import Recipe from '$lib/ui/Recipe.svelte';
+	import EditableRecipe from '$lib/ui/EditableRecipe.svelte';
+	import { networkStore } from '$lib/stores/network';
+	import { deriveAICapability } from '$lib/utils/capabilities';
+	import LockIcon from '$lib/ui/Icons/LockIcon.svelte';
+	import UnlockIcon from '$lib/ui/Icons/UnlockIcon.svelte';
 
-const vp: any = getContext('viewport');
+	const vp: any = getContext('viewport');
 
-const markAsOpenedDelay = 2 * 60 * 1000;
+	const markAsOpenedDelay = 2 * 60 * 1000;
 
-let { data, form } = $props();
+	let { data, form } = $props();
 
-let network = $derived($networkStore);
-let aiCapability = $derived(
-	deriveAICapability({
-		session: data.session,
-		permissions: data.permissions,
-		featureFlags: data.featureFlags,
-		online: network.online
-	})
-);
-let canUseAI = $derived(aiCapability.canUseAI);
-let aiRestrictionMessage = $derived(() => {
-	switch (aiCapability.reason) {
-		case 'offline':
-			return 'You are offline. Reconnect to ask follow-up questions.';
-		case 'disabled':
-			return 'AI recipe assistance is unavailable in this build.';
-		case 'unauthenticated':
-			return 'Log in to ask for recipe adjustments.';
-		case 'unauthorized':
-			return 'Your account does not include AI recipe assistance.';
-		default:
-			return '';
-	}
-});
+	let network = $derived($networkStore);
+	let aiCapability = $derived(
+		deriveAICapability({
+			session: data.session,
+			permissions: data.permissions,
+			featureFlags: data.featureFlags,
+			online: network.online
+		})
+	);
+	let canUseAI = $derived(aiCapability.canUseAI);
+	let aiRestrictionMessage = $derived(() => {
+		switch (aiCapability.reason) {
+			case 'offline':
+				return 'You are offline. Reconnect to ask follow-up questions.';
+			case 'disabled':
+				return 'AI recipe assistance is unavailable in this build.';
+			case 'unauthenticated':
+				return 'Log in to ask for recipe adjustments.';
+			case 'unauthorized':
+				return 'Your account does not include AI recipe assistance.';
+			default:
+				return '';
+		}
+	});
 
 	let path = $derived(page.params.id as string);
 
@@ -90,6 +94,8 @@ let aiRestrictionMessage = $derived(() => {
 	let promptHeight = $derived(promptRef?.clientHeight);
 
 	let lastFormMessage: string | undefined = undefined;
+
+	let isLocked = $state(true);
 
 	async function loadRecipe(id: string): Promise<SavedRecipe> {
 		if (isShared) {
@@ -208,6 +214,11 @@ let aiRestrictionMessage = $derived(() => {
 
 			const { type, message } = form;
 			promptType = type;
+			if (typeof message !== 'string') {
+				console.warn('Unexpected non-string form message payload', message);
+				return;
+			}
+
 			lastFormMessage = message;
 			waiting = false;
 
@@ -269,6 +280,32 @@ let aiRestrictionMessage = $derived(() => {
 <PageHeader>
 	<AppBar.Root>
 		<AppBar.Text primary={recipe?.title || ''} />
+		<AppBar.End>
+			<Tooltip.Provider>
+				<Tooltip.Root>
+					<Tooltip.Trigger>
+						{#snippet child({ props })}
+							<BitsButton.Root {...props}
+								class="h-12 w-12 flex items-center justify-center rounded hover:cursor-pointer hover:bg-gray-200 hover:dark:bg-gray-700"
+								title={isLocked ? 'Unlock recipe' : 'Lock recipe'}
+								onclick={() => {
+									isLocked = !isLocked;
+								}}
+							>
+								{#if isLocked}
+									<LockIcon size="xs" />
+								{:else}
+									<UnlockIcon size="xs" />
+								{/if}
+							</BitsButton.Root>
+						{/snippet}
+					</Tooltip.Trigger>
+					<Tooltip.Content side="bottom" class="animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-(--bits-tooltip-content-transform-origin)">
+						<span class="helper-text">{isLocked ? 'Unlock to make changes' : 'Lock to prevent changes'}</span>
+					</Tooltip.Content>
+				</Tooltip.Root>
+			</Tooltip.Provider>
+		</AppBar.End>
 	</AppBar.Root>
 </PageHeader>
 
@@ -282,7 +319,7 @@ let aiRestrictionMessage = $derived(() => {
 		</div>
 	{:then recipe}
 		<!-- <Recipe {recipe} onBlur={saveRecipeChanges} /> -->
-		<EditableRecipe {recipe} />
+		<EditableRecipe {recipe} locked={isLocked} />
 		{#if canUseAI}
 			<div class="fixed right-0 bottom-0 px-4" style:left bind:this={promptRef}>
 				<Prompt>

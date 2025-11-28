@@ -9,7 +9,8 @@ import { RecipeSummarySchema } from './schema';
  * @param input - The input to use for the query.
  * @param userPreferences - The user preferences to use for the query.
  * @returns The recipe suggestions.
- * @deprecated Use the query function instead.
+ * @deprecated
+ * @see $lib/queries/recipes.ts
  */
 export async function getRecipeSuggestions(
 	input: string,

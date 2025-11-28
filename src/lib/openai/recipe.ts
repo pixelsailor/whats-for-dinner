@@ -13,7 +13,8 @@ import { RecipeSchema } from './schema';
  * @param desc - The short description of the recipe being requested
  * @param userPreferences - Recipe requirements based on user restrictions/preferences
  * @returns The full recipe.
- * @deprecated Use the query function instead.
+ * @deprecated
+ * @see $lib/queries/recipes.ts
  */
 export async function getFullRecipe(
 	title: string,

@@ -70,6 +70,7 @@ This is a serverless app: server functions should use [**remote functions**](htt
 - Avoid `any`; if a type is uncertain, narrow it through validation or explicit typing.
 - Always provide explicit return types for exported functions and stores.
 - Use descriptive names for stores, variables, and functions.
+- Respect indents. Keep nested items aligned. Do not reset tabs for nested content.
 - When working with Svelte runes, prefer clear naming for derived and reactive state:
 ```ts
   const count = $state(0);

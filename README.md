@@ -7,7 +7,7 @@ A modern, offline-first web application built with Svelte 5 and SvelteKit 2, fea
 ## ✨ Features
 
 ### Core Features
-- **AI-Powered Suggestions**: Get personalized recipe recommendations using OpenAI
+- **AI-Powered Suggestions**: Get personalized recipe recommendations using the OpenAI Chat Completions API
 - **Recipe Management**: Save, organize, and manage your favorite recipes
 - **Personalized Recommendations**: Learn from your preferences and dietary restrictions
 - **Smart Search**: Find recipes by ingredients, cuisine, or dietary needs
@@ -44,7 +44,7 @@ A modern, offline-first web application built with Svelte 5 and SvelteKit 2, fea
 
 ### Backend & Services
 - **Supabase** - Authentication, database, and real-time subscriptions
-- **OpenAI API** - AI-powered recipe generation and suggestions
+- **OpenAI Chat Completions API** - AI-powered recipe summaries, full recipes, revisions, and Q&A
 - **Zod** - Runtime type validation and schema definition
 
 ### Development & Testing
@@ -68,7 +68,7 @@ This application is designed for serverless deployment with the following constr
 - **Alternative Adapters**: `@sveltejs/adapter-netlify`, `@sveltejs/adapter-auto`
 
 ### Security Considerations
-- OpenAI API keys handled server-side only
+- OpenAI Chat Completions API keys handled server-side only
 - Environment variables properly scoped (PUBLIC_* vs private)
 - Authentication via Supabase SSR pattern
 
@@ -102,6 +102,7 @@ VITE_OPENAI_API_KEY=your_openai_api_key
 ```
 
 ### Environment Setup
+- **OpenAI Usage**: `VITE_OPENAI_API_KEY` powers all Chat Completions requests inside `src/lib/server/openai.ts`.
 - **Public Variables**: Safe to expose in client bundles (Supabase URL/key)
 - **Private Variables**: Server-only, imported via `$env/static/private`
 - **Security**: Never commit API keys to version control
@@ -167,8 +168,9 @@ pnpm test:unit
 ┌─────────────────────────────────────────────────────────────┐
 │                   External Services                         │
 │  ┌─────────────────┐  ┌───────────────────────────────────┐ │
-│  │   OpenAI        │  │   Supabase                        │ │
-│  │   (AI/ML)       │  │   (Auth/Cloud Storage/Sharing)    │ │
+│  │   OpenAI Chat   │  │   Supabase                        │ │
+│  │   Completions   │  │   (Auth/Cloud Storage/Sharing)    │ │
+│  │   (AI/ML)       │  │                                   │ │
 │  └─────────────────┘  └───────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -179,13 +181,14 @@ pnpm test:unit
 - **Reactive Stores**: `liveQuery()` from Dexie wrapped in Svelte stores
 - **Type Safety**: Zod schemas define all data structures, TypeScript interfaces derived
 - **Authentication**: Supabase SSR pattern with `hooks.server.ts`
-- **AI Integration**: Server-side OpenAI calls via API routes
+- **AI Integration**: Server-side OpenAI Chat Completions calls via API routes
+- **Chat Completions Workflow**: `src/lib/server/openai.ts` orchestrates Chat Completions requests for idea summaries, full recipes, revisions, addendums, and Q&A so clients never touch the API directly.
 
 ### Data Flow
 1. **User Input** → Svelte 5 components (runes-based reactivity)
 2. **Local Storage** → Dexie IndexedDB with reactive queries
 3. **API Calls** → SvelteKit remote functions (serverless)
-4. **External Services** → OpenAI (AI), Supabase (auth/sync)
+4. **External Services** → OpenAI Chat Completions (AI), Supabase (auth/sync)
 5. **Cloud Sync** → Optional synchronization for authenticated users
 
 ## 📴 Offline Service Worker
@@ -283,7 +286,7 @@ Understanding these dependencies is crucial for generating compatible code:
 - **Dexie**: IndexedDB wrapper with async operations and reactive `liveQuery()`
 - **Flowbite Svelte**: Prefered UI components built with TailwindCSS.
 - **bits-ui**: Legacy headless UI components that compose with TailwindCSS. Deprecated.
-- **OpenAI SDK v6**: Uses new API patterns with streaming responses
+- **OpenAI SDK v6 (Chat Completions)**: Uses the Chat Completions API with streaming responses for recipes
 - **Supabase SSR**: Requires specific setup in hooks and layouts
 - **Zod 4**: Schema-first validation with automatic type inference
 

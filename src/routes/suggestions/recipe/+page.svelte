@@ -2,8 +2,8 @@
 	import { enhance } from '$app/forms';
 	import { beforeNavigate, goto } from '$app/navigation';
 	import { db } from '$lib/db';
-import { createFullRecipeQuery } from '$lib/queries/recipes.js';
-	import type { FullRecipe, PromptContext } from '$lib/types.js';
+	import { sanitizePromptInput } from '$lib/utils';
+	import type { FullRecipe, OpenAiApiResponse, PromptContext } from '$lib/types.js';
 	import { AppBar } from '$lib/ui/AppBar';
 	import Button from '$lib/ui/Button/Button.svelte';
 	import BackIcon from '$lib/ui/Icons/BackIcon.svelte';
@@ -14,69 +14,154 @@ import { createFullRecipeQuery } from '$lib/queries/recipes.js';
 	import Prompt from '$lib/ui/Prompt.svelte';
 	import Recipe from '$lib/ui/Recipe.svelte';
 	import SvelteMarkdown from '@humanspeak/svelte-markdown';
-import { getContext, onDestroy } from 'svelte';
+	import { getContext, onDestroy } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import { slide } from 'svelte/transition';
 	import { v4 as uuid } from 'uuid';
-import { networkStore } from '$lib/stores/network';
-import { deriveAICapability } from '$lib/utils/capabilities';
+	import { networkStore } from '$lib/stores/network';
+	import { deriveAICapability } from '$lib/utils/capabilities';
 
-const vp: any = getContext('viewport');
+	const vp: any = getContext('viewport');
 
-let { data, form } = $props();
+	let { data, form } = $props();
+	
+	let network = $derived($networkStore);
+	let aiCapability = $derived(
+		deriveAICapability({
+			session: data.session,
+			permissions: data.permissions,
+			featureFlags: data.featureFlags,
+			online: network.online
+		})
+	);
+	let canUseAI = $derived(aiCapability.canUseAI);
+	let aiRestrictionMessage = $derived.by(() => {
+		switch (aiCapability.reason) {
+			case 'offline':
+				return 'You are offline. Reconnect to request full recipes or adjustments.';
+			case 'disabled':
+				return 'AI recipe details are unavailable in this build.';
+			case 'unauthenticated':
+				return 'Log in to request full recipes.';
+			case 'unauthorized':
+				return 'Your account does not include AI recipe requests.';
+			default:
+				return '';
+		}
+	});
 
-let network = $derived($networkStore);
-let aiCapability = $derived(
-	deriveAICapability({
-		session: data.session,
-		permissions: data.permissions,
-		featureFlags: data.featureFlags,
-		online: network.online
-	})
-);
-let canUseAI = $derived(aiCapability.canUseAI);
-let aiRestrictionMessage = $derived.by(() => {
-	switch (aiCapability.reason) {
-		case 'offline':
-			return 'You are offline. Reconnect to request full recipes or adjustments.';
-		case 'disabled':
-			return 'AI recipe details are unavailable in this build.';
-		case 'unauthenticated':
-			return 'Log in to request full recipes.';
-		case 'unauthorized':
-			return 'Your account does not include AI recipe requests.';
-		default:
-			return '';
-	}
-});
+	type RecipeRequestState = {
+		data: OpenAiApiResponse<FullRecipe> | null;
+		isPending: boolean;
+		isError: boolean;
+		error: string | null;
+	};
 
-type FullRecipeQueryStore = ReturnType<typeof createFullRecipeQuery>;
-type FullRecipeQueryValue = Parameters<Parameters<FullRecipeQueryStore['subscribe']>[0]>[0];
+	const initialRecipeState = (): RecipeRequestState => ({
+		data: null,
+		isPending: false,
+		isError: false,
+		error: null
+	});
 
-let recipeQuery: FullRecipeQueryStore | null = null;
+	const decodeParam = (value: string): string => {
+		try {
+			return decodeURIComponent(value);
+		} catch {
+			return value;
+		}
+	};
 
-$effect(() => {
-	if (!canUseAI) {
-		recipeQuery = null;
-		return;
-	}
-	recipeQuery = createFullRecipeQuery(data.recipeTitle, data.desc, { enabled: true });
-});
+	let recipeQueryState = $state<RecipeRequestState>(initialRecipeState());
 
-let recipeQueryState = $derived.by<FullRecipeQueryValue | null>(() =>
-	recipeQuery ? $recipeQuery : null
-);
-let recipeFromQuery = $derived.by<FullRecipe | null>(() => {
-	const payload = recipeQueryState?.data?.data;
-	return payload ? (payload[1] as FullRecipe) : null;
-});
+	let recipeFromQuery = $derived.by<FullRecipe | null>(() => {
+		const payload = recipeQueryState.data?.data;
+		return payload ? (payload[1] as FullRecipe) : null;
+	});
 
-let overriddenRecipe = $state<FullRecipe | null>(null);
-let fullRecipe = $derived(overriddenRecipe ?? recipeFromQuery ?? null);
-let hasUnsavedChanges = $derived(Boolean(overriddenRecipe));
+	$effect(() => {
+		const rawTitle = data.recipe.title;
+		const rawDescription = data.recipe.description ?? '';
 
-// Responsible for passing the recipe to the FormData
-let recipeJson = $derived.by(() => (fullRecipe ? JSON.stringify(fullRecipe) : ''));
+		if (!canUseAI) {
+			recipeQueryState = initialRecipeState();
+			return;
+		}
+
+		const sanitizedPrompt = sanitizePromptInput(decodeParam(rawTitle ?? ''));
+		const sanitizedDesc = sanitizePromptInput(decodeParam(rawDescription));
+
+		if (!sanitizedPrompt.length) {
+			recipeQueryState = {
+				data: null,
+				isPending: false,
+				isError: true,
+				error: 'A recipe title is required.'
+			};
+			return;
+		}
+
+		const controller = new AbortController();
+
+		recipeQueryState = {
+			data: null,
+			isPending: true,
+			isError: false,
+			error: null
+		};
+
+		const fetchRecipe = async () => {
+			try {
+				const response = await fetch('/api/recipes', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({
+						action: 'detail',
+						prompt: sanitizedPrompt,
+						recipe: sanitizedDesc
+					}),
+					signal: controller.signal
+				});
+
+				const payload = (await response.json()) as OpenAiApiResponse<FullRecipe>;
+
+				if (!response.ok) {
+					throw new Error(payload?.error?.message ?? 'Failed to load recipe details.');
+				}
+
+				recipeQueryState = {
+					data: payload,
+					isPending: false,
+					isError: false,
+					error: null
+				};
+			} catch (error) {
+				if (controller.signal.aborted) return;
+				recipeQueryState = {
+					data: null,
+					isPending: false,
+					isError: true,
+					error:
+						error instanceof Error
+							? error.message
+							: 'Unable to request recipe details right now.'
+				};
+			}
+		};
+
+		void fetchRecipe();
+
+		return () => controller.abort();
+	});
+
+	let overriddenRecipe = $state<FullRecipe | null>(null);
+	let fullRecipe = $derived(overriddenRecipe ?? recipeFromQuery ?? null);
+	let hasUnsavedChanges = $derived(Boolean(overriddenRecipe));
+
+	// Responsible for passing the recipe to the FormData
+	let recipeJson = $derived.by(() => (fullRecipe ? JSON.stringify(fullRecipe) : ''));
 
 	// Account for sidenav width and adjust accordingly
 	let left = $derived.by(() => {
@@ -112,11 +197,11 @@ let recipeJson = $derived.by(() => (fullRecipe ? JSON.stringify(fullRecipe) : ''
 	 * Save full recipe to suggestions table after 2 minutes
 	 */
 	async function saveFullRecipeToSuggestions() {
-		if (!fullRecipe || !data.recipeTitle) return;
+		if (!fullRecipe || !data.recipe.title) return;
 
 		try {
 			// Convert title to suggestion ID using same logic as saveSuggestions
-			const suggestionId = data.recipeTitle.toLowerCase().replaceAll(' ', '-');
+			const suggestionId = data.recipe.title.toLowerCase().replaceAll(' ', '-');
 
 			const safeRecipe = JSON.parse(JSON.stringify(fullRecipe)) as FullRecipe;
 
@@ -204,7 +289,7 @@ let recipeJson = $derived.by(() => (fullRecipe ? JSON.stringify(fullRecipe) : ''
 
 	// Start timeout to save full recipe to suggestions after 2 minutes
 	$effect(() => {
-		if (fullRecipe && data.recipeTitle) {
+		if (fullRecipe && data.recipe.title) {
 			// Clear any existing timeout
 			if (saveTimeout) {
 				clearTimeout(saveTimeout);
@@ -217,12 +302,12 @@ let recipeJson = $derived.by(() => (fullRecipe ? JSON.stringify(fullRecipe) : ''
 		}
 
 		// Cleanup timeout on unmount
-		// return () => {
-		// 	if (saveTimeout) {
-		// 		clearTimeout(saveTimeout);
-		// 		saveTimeout = null;
-		// 	}
-		// };
+		return () => {
+			if (saveTimeout) {
+				clearTimeout(saveTimeout);
+				saveTimeout = null;
+			}
+		};
 	});
 
 	onDestroy(() => {

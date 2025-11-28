@@ -313,7 +313,7 @@ let aiRestrictionMessage = $derived(() => {
 						}}
 					>
 						<input
-							class="grow p-1"
+							class="grow p-1 border-none bg-gray-100 dark:bg-gray-900 placeholder:text-gray-500 dark:placeholder:text-gray-400"
 							type="text"
 							name="input"
 							bind:value={promptInput}
@@ -369,7 +369,7 @@ let aiRestrictionMessage = $derived(() => {
 					}}
 				>
 					<input
-						class="grow p-1"
+						class="grow p-1 border-none bg-gray-100 dark:bg-gray-900 placeholder:text-gray-500 dark:placeholder:text-gray-400"
 						type="text"
 						name="input"
 						bind:value={promptInput}

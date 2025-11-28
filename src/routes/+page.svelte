@@ -79,7 +79,7 @@ let aiRestrictionMessage = $derived.by(() => {
 				<Prompt style="margin-bottom: 0">
 					<form class="flex w-full flex-row gap-2" onsubmit={getSuggestions}>
 						<input
-							class="grow p-1"
+							class="grow p-1 border-none bg-gray-100 dark:bg-gray-900 placeholder:text-gray-500 dark:placeholder:text-gray-400"
 							type="text"
 							name="input"
 							bind:value={app.input}

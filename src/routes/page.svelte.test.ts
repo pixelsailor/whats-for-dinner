@@ -1,118 +1,106 @@
-import { page, userEvent } from '@vitest/browser/context';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
-import Page from './+page.svelte';
+import PageHarness from './__tests__/PageHarness.svelte';
+import { goto } from '$app/navigation';
+import { deriveAICapability } from '$lib/utils/capabilities';
+import { getGreeting } from '$lib/greetings';
 
-// describe('/+page.svelte', () => {
-// 	it('should render h1', async () => {
-// 		render(Page);
+const PROMPT_PLACEHOLDER =
+	'Ask for event ideas, regional recipes, or just list ingredients';
 
-// 		const heading = page.getByRole('heading', { level: 1 });
-// 		await expect.element(heading).toBeInTheDocument();
-// 	});
-// });
-
-// import { render, fireEvent, waitFor } from '@testing-library/svelte';
-// import Page from './+page.svelte';
-
-// Mock dependencies
-vi.mock('$lib/api', () => ({
-  recipesApiPostHandler: vi.fn().mockResolvedValue({
-    success: true,
-    data: {
-      title: 'Test Recipe',
-      description: 'A test recipe',
-      estimated_time: '30 min',
-      ingredients: ['Eggs', 'Flour'],
-      instructions: ['Mix', 'Bake'],
-    }
-  })
-}));
-vi.mock('$lib/db.js', () => ({
-  db: {
-    recipes: {
-      put: vi.fn(),
-      toArray: vi.fn().mockResolvedValue([]),
-    }
-  }
+vi.mock('$app/navigation', () => ({
+	goto: vi.fn()
 }));
 
-describe('Page', () => {
-  it('renders the idle state and form', () => {
-    const { getByText, getByRole } = render(Page, { props: { data: {}, form: {} } });
-    expect(getByText('What are you hungry for?')).toBeInTheDocument();
-    expect(getByRole('textbox')).toBeInTheDocument();
-    expect(getByRole('button', { name: /get ideas/i })).toBeInTheDocument();
-  });
+vi.mock('$lib/stores/network', () => ({
+	networkStore: {
+		subscribe: (run: (value: { online: boolean }) => void) => {
+			run({ online: true });
+			return () => {};
+		}
+	}
+}));
 
-  it('disables submit button when input is empty', async () => {
-    const { getByRole } = render(Page, { props: { data: {}, form: {} } });
-    const button = getByRole('button', { name: /get ideas/i });
-    expect(button).toBeDisabled();
-  });
+vi.mock('$lib/utils/capabilities', () => ({
+	deriveAICapability: vi.fn()
+}));
 
-  it.skip('shows loading state when app.view is loading', async () => {
-    const { component, getByText } = render(Page, { props: { data: {}, form: {} } });
-		console.log(component);
-		
-    component.app.view = 'loading';
-    await vi.waitFor(() => {
-      expect(getByText('Loading...')).toBeInTheDocument();
-    });
-  });
+vi.mock('$lib/greetings', () => ({
+	getGreeting: vi.fn()
+}));
 
-  it('shows suggestions when app.view is suggestions', async () => {
-    const form = { data: [{ title: 'Pizza', short_description: 'Cheesy' }] };
-    const { getByText } = render(Page, { props: { data: {}, form } });
-    // Simulate suggestions view
-    // window.app = { view: 'suggestions' };
-    // await vi.waitFor(() => {
-    //   expect(getByText('Here are some ideas:')).toBeInTheDocument();
-    //   expect(getByText('Pizza')).toBeInTheDocument();
-    // });
-		expect(getByText('Here are some ideas:')).toBeInTheDocument();
-		expect(getByText('Pizza')).toBeInTheDocument();
-  });
+const mockedGoto = vi.mocked(goto);
+const mockedCapability = vi.mocked(deriveAICapability);
+const mockedGreeting = vi.mocked(getGreeting);
 
-  it.skip('shows recipe details when app.view is detail', async () => {
-    const { component, getByText } = render(Page, { props: { data: {}, form: {} } });
-    // Simulate selecting a recipe
-    component.app.selected = { title: 'Test Recipe', short_description: 'desc' };
-    component.app.fullRecipes.set('Test Recipe', {
-      title: 'Test Recipe',
-      description: 'A test recipe',
-      estimated_time: '30 min',
-      ingredients: ['Eggs', 'Flour'],
-      instructions: ['Mix', 'Bake'],
-    });
-    component.app.view = 'detail';
-    await vi.waitFor(() => {
-      expect(getByText('Test Recipe')).toBeInTheDocument();
-      expect(getByText('A test recipe')).toBeInTheDocument();
-      expect(getByText('Eggs')).toBeInTheDocument();
-      expect(getByText('Mix')).toBeInTheDocument();
-    });
-  });
+const createPageData = (): App.PageData => ({
+	session: null,
+	permissions: {
+		cloudSync: { allowed: false },
+		aiAssistedRecipe: { allowed: true }
+	},
+	featureFlags: {
+		openai: true
+	}
+});
 
-  it.skip('shows error state', async () => {
-    const { component, getByText } = render(Page, { props: { data: {}, form: {} } });
-    component.app.view = 'error';
-    component.app.error = 'Something went wrong';
-    await vi.waitFor(() => {
-      expect(getByText(/there was a problem/i)).toBeInTheDocument();
-      expect(getByText('Something went wrong')).toBeInTheDocument();
-    });
-  });
+beforeEach(() => {
+	vi.clearAllMocks();
+	mockedCapability.mockReturnValue({
+		canUseAI: true,
+		reason: null
+	});
+	mockedGreeting.mockReturnValue('Howdy there');
+	mockedGoto.mockResolvedValue(undefined);
+});
 
-  it.skip('calls selectRecipe when a suggestion is clicked', async () => {
-    const form = { data: [{ title: 'Pizza', short_description: 'Cheesy' }] };
-    const { getByText, component } = render(Page, { props: { data: {}, form } });
-    // Simulate suggestions view
-    component.app.view = 'suggestions';
-    const spy = vi.spyOn(component, 'selectRecipe');
-    await vi.waitFor(() => {
-      userEvent.click(getByText('Pizza'));
-      expect(spy).toHaveBeenCalled();
-    });
-  });
+describe('/+page.svelte', () => {
+	it('renders greeting and AI prompt when available', async () => {
+		const screen = render(PageHarness, { data: createPageData() });
+
+		const heading = screen.getByRole('heading', {
+			level: 1,
+			name: 'Howdy there'
+		});
+		await expect.element(heading).toBeInTheDocument();
+
+		const promptInput = screen.getByPlaceholder(PROMPT_PLACEHOLDER);
+		await expect.element(promptInput).toBeInTheDocument();
+
+		const submitButton = screen.getByRole('button', { name: 'Submit request' });
+		await expect.element(submitButton).toBeDisabled();
+
+		expect(mockedGreeting).toHaveBeenCalled();
+		expect(mockedCapability).toHaveBeenCalled();
+	});
+
+	it('submits prompt and navigates to suggestions list', async () => {
+		const screen = render(PageHarness, { data: createPageData() });
+
+		const promptInput = screen.getByPlaceholder(PROMPT_PLACEHOLDER);
+		await promptInput.fill('chili + rice');
+
+		const submitButton = screen.getByRole('button', { name: 'Submit request' });
+		await expect.element(submitButton).toBeEnabled();
+
+		await submitButton.click();
+
+		expect(mockedGoto).toHaveBeenCalledWith('/suggestions?prompt=chili%20%2B%20rice');
+
+		await expect.element(submitButton).toBeDisabled();
+		const workingLabel = screen.getByText('Thinking...');
+		await expect.element(workingLabel).toBeInTheDocument();
+	});
+
+	it('shows restriction message when AI is unavailable', async () => {
+		mockedCapability.mockReturnValue({
+			canUseAI: false,
+			reason: 'disabled'
+		});
+
+		const screen = render(PageHarness, { data: createPageData() });
+
+		const message = screen.getByText('AI suggestions are unavailable in this build.');
+		await expect.element(message).toBeInTheDocument();
+	});
 });

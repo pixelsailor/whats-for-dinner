@@ -1,4 +1,9 @@
-import type { PromptContext } from '$lib/types';
+import type {
+	FullRecipe,
+	OpenAiApiResponse,
+	PromptContext,
+	RecipeSummary
+} from '$lib/types';
 import { sanitizePromptInput } from '$lib/utils';
 import { createQuery } from '@tanstack/svelte-query';
 
@@ -11,6 +16,13 @@ type QueryOptions = {
 	enabled?: boolean;
 };
 
+type QueryArgs = {
+	action: PromptContext;
+	prompt: string;
+	recipe?: string;
+	preferences?: string;
+};
+
 /**
  * Query the API for a recipe.
  * 
@@ -20,17 +32,7 @@ type QueryOptions = {
  * @param preferences - The preferences to use for the query.
  * @returns The response from the API.
  */
-async function query({
-	action,
-	prompt,
-	recipe,
-	preferences
-}: {
-	action: PromptContext;
-	prompt: string;
-	recipe?: string;
-	preferences?: string;
-}) {
+async function query<TPayload>({ action, prompt, recipe, preferences }: QueryArgs) {
 	const body: Record<string, unknown> = { action, prompt };
 	if (recipe !== undefined) body.recipe = recipe;
 	if (preferences !== undefined) body.preferences = preferences;
@@ -45,7 +47,7 @@ async function query({
 
 	if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
-	return response.json();
+	return response.json() as Promise<OpenAiApiResponse<TPayload>>;
 }
 
 // Tanstack Query functions for caching. It's expected that URI prompts have been encoded
@@ -66,7 +68,7 @@ export function createAssistanceQuery(prompt: string, recipe: string, options?: 
 	const sanitizedPrompt = sanitizePromptInput(decodeURIComponent(prompt));
 	return createQuery({
 		queryKey: ['assistance', sanitizedPrompt],
-		queryFn: () => query({ action: 'assistance', prompt: sanitizedPrompt, recipe }),
+		queryFn: () => query<string>({ action: 'assistance', prompt: sanitizedPrompt, recipe }),
 		enabled: Boolean(sanitizedPrompt.length) && (options?.enabled ?? true)
 		// staleTime: Infinity
 	});
@@ -85,7 +87,8 @@ export function createFullRecipeQuery(prompt: string, recipe: string, options?: 
 	const sanitizedDesc = sanitizePromptInput(decodeURIComponent(recipe));
 	return createQuery({
 		queryKey: ['detail', sanitizedPrompt],
-		queryFn: () => query({ action: 'detail', prompt: sanitizedPrompt, recipe: sanitizedDesc }),
+		queryFn: () =>
+			query<FullRecipe>({ action: 'detail', prompt: sanitizedPrompt, recipe: sanitizedDesc }),
 		enabled: Boolean(sanitizedPrompt.length) && (options?.enabled ?? true),
 		staleTime: Infinity
 	});
@@ -103,7 +106,7 @@ export function createRevisionQuery(prompt: string, recipe: string, options?: Qu
 	const sanitizedPrompt = sanitizePromptInput(decodeURIComponent(prompt));
 	return createQuery({
 		queryKey: ['revision', sanitizedPrompt],
-		queryFn: () => query({ action: 'revision', prompt: sanitizedPrompt, recipe }),
+		queryFn: () => query<FullRecipe>({ action: 'revision', prompt: sanitizedPrompt, recipe }),
 		enabled: Boolean(sanitizedPrompt.length) && (options?.enabled ?? true)
 		// staleTime: Infinity
 	});
@@ -129,7 +132,8 @@ export function createSuggestionsQuery(
 
 	return createQuery({
 		queryKey: ['summaries', sanitizedPrompt],
-		queryFn: () => query({ action: 'summaries', prompt: sanitizedPrompt, preferences: prefs }),
+		queryFn: () =>
+			query<RecipeSummary[]>({ action: 'summaries', prompt: sanitizedPrompt, preferences: prefs }),
 		enabled: Boolean(sanitizedPrompt.length) && (options?.enabled ?? true),
 		staleTime: Infinity
 	});

@@ -1,4 +1,15 @@
-import type { FullRecipe, PromptContext } from '$lib/types';
+import type {
+	FullRecipe,
+	PromptContext,
+	RecipeAddendum,
+	RecipeAddendumResponse,
+	RecipeAssistanceResponse,
+	RecipeDetailResponse,
+	RecipeRevisionResponse,
+	RecipeSuggestionsResponse,
+	RecipeSummary
+} from '$lib/types';
+import { PromptContextEnum } from '$lib/types';
 import type { ChatCompletionMessageParam } from 'openai/resources';
 import { OpenAI } from 'openai';
 import { VITE_OPENAI_API_KEY } from '$env/static/private';
@@ -11,6 +22,11 @@ export const OPENAI_DISABLED_ERROR = 'OPENAI_DISABLED';
 
 let client: OpenAI | null = null;
 
+/**
+ * Get the OpenAI client.
+ * 
+ * @returns The OpenAI client.
+ */
 function getOpenAI(): OpenAI {
 	if (!VITE_OPENAI_API_KEY) {
 		throw new Error(OPENAI_DISABLED_ERROR);
@@ -25,11 +41,37 @@ function getOpenAI(): OpenAI {
 	return client;
 }
 
-/** @deprecated */
+type ChatContent = string | null | undefined;
+
+function ensureContent(raw: ChatContent, context: PromptContext): string {
+	if (!raw || !raw.trim()) {
+		throw new Error(`OpenAI returned an empty response for "${context}".`);
+	}
+
+	return raw;
+}
+
+function parseJsonPayload<TPayload>(raw: ChatContent, context: PromptContext): TPayload {
+	const content = ensureContent(raw, context);
+
+	try {
+		return JSON.parse(content) as TPayload;
+	} catch (error) {
+		console.error(`Failed to parse OpenAI JSON for "${context}".`, { content, error });
+		throw new Error(`Failed to parse OpenAI JSON for "${context}".`);
+	}
+}
+
+/**
+ * Request 4-8 high-level recipe suggestions for a given prompt.
+ *
+ * @returns Tuple where the first item is the prompt context and the second item is
+ * a parsed array of `RecipeSummary` objects.
+ */
 export async function getRecipeSuggestions(
 	input: string,
 	userPreferences: string
-): Promise<[PromptContext, string | null]> {
+): Promise<RecipeSuggestionsResponse> {
 	const messages: ChatCompletionMessageParam[] = [
 		{
 			role: 'system',
@@ -64,19 +106,28 @@ export async function getRecipeSuggestions(
 			temperature,
 		});
 
-		return ['summaries', response.choices[0].message.content || null];
+		const payload = parseJsonPayload<RecipeSummary[]>(
+			response.choices[0]?.message?.content,
+			PromptContextEnum.SUMMARIES
+		);
+
+		return [PromptContextEnum.SUMMARIES, payload];
 	} catch (error) {
 		console.error('OpenAI API error:', error);
 		throw error;
 	}
 }
 
-/** @deprecated */
+/**
+ * Request a complete `FullRecipe` for a suggestion the user wants to expand.
+ *
+ * @returns Tuple of `[PromptContextEnum.DETAIL, FullRecipe]`.
+ */
 export async function getFullRecipe(
 	title: string,
 	desc: string,
 	userPreferences?: string
-): Promise<['detail', string | null]> {
+): Promise<RecipeDetailResponse> {
 	const messages: ChatCompletionMessageParam[] = [
 		{
 			role: 'system',
@@ -139,17 +190,27 @@ Keep your formatting consistent and minimal.
 			temperature
 		});
 
-		return ['detail', response.choices[0].message.content ?? null];
+		const payload = parseJsonPayload<FullRecipe>(
+			response.choices[0]?.message?.content,
+			PromptContextEnum.DETAIL
+		);
+
+		return [PromptContextEnum.DETAIL, payload];
 	} catch (err) {
 		console.error('OpenAI API error:', err);
 		throw err;
 	}
 }
 
+/**
+ * Ask OpenAI to revise an existing recipe using the provided prompt.
+ *
+ * @returns Tuple of `[PromptContextEnum.REVISION, FullRecipe]`.
+ */
 export async function requestRecipeModifications(
 	input: string,
 	recipe: string
-): Promise<[PromptContext, string | null]> {
+): Promise<RecipeRevisionResponse> {
 	const messages: ChatCompletionMessageParam[] = [
 		{
 			role: 'system',
@@ -197,17 +258,27 @@ Here is the user's modification request:
 			temperature: 1.0
 		});
 
-		return ['revision', response.choices[0].message.content ?? null];
+		const payload = parseJsonPayload<FullRecipe>(
+			response.choices[0]?.message?.content,
+			PromptContextEnum.REVISION
+		);
+
+		return [PromptContextEnum.REVISION, payload];
 	} catch (err) {
 		console.error('OpenAI API error:', err);
 		throw err;
 	}
 }
 
+/**
+ * Ask OpenAI for conversational cooking help related to an existing recipe.
+ *
+ * @returns Tuple of `[PromptContextEnum.ASSISTANCE, string]`.
+ */
 export async function askCookingQuestion(
 	question: string,
 	recipeJson: string
-): Promise<[PromptContext, string | null]> {
+): Promise<RecipeAssistanceResponse> {
 	const recipe = JSON.parse(recipeJson) as FullRecipe;
 	const prompt = `
 You are an helpful, experienced culinary assistant helping a user working on a recipe.
@@ -240,10 +311,17 @@ ${question}
 		temperature
 	});
 
-	return ['assistance', response.choices[0].message.content ?? null];
+	const answer = ensureContent(response.choices[0]?.message?.content, PromptContextEnum.ASSISTANCE);
+
+	return [PromptContextEnum.ASSISTANCE, answer];
 }
 
-export async function appendRecipeDetails(recipe: string): Promise<[PromptContext, string | null]> {
+/**
+ * Ask OpenAI to backfill missing metadata (description, tags, timing, etc.) for a recipe draft.
+ *
+ * @returns Tuple of `[PromptContextEnum.ADDENDUM, RecipeAddendum]`.
+ */
+export async function appendRecipeDetails(recipe: string): Promise<RecipeAddendumResponse> {
 	const { title, time, short_description, ingredients, instructions, notes } = JSON.parse(recipe);
 	const prompt = `
 You are an helpful, experienced culinary assistant helping a user working on a recipe.
@@ -289,5 +367,10 @@ notes: ${notes}
 		]
 	});
 
-	return ['addendum', response.choices[0].message.content ?? null];
+	const payload = parseJsonPayload<RecipeAddendum>(
+		response.choices[0]?.message?.content,
+		PromptContextEnum.ADDENDUM
+	);
+
+	return [PromptContextEnum.ADDENDUM, payload];
 }

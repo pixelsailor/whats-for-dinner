@@ -9,33 +9,11 @@ cloud backup, and **Zod** validation. The UI uses components built with **bits-u
 **What's For Dinner** must be able to operate completely offline. Supabase auth, cloud backup, and 
 OpenAI (via the Chat Completions API) should be optional enhancements when specifically supported.
 
-All code and AI-assisted suggestions should follow the practices below.
-
 ---
 
-## Svelte 5 + Runes Best Practices
-
-- Use `$state()` for local component reactivity.
-- Derive computed values using `$derived()` instead of writable stores when possible.
-- Use `$props()` for prop forwarding — never legacy `$$restProps`.
-- Avoid legacy reactive declarations with `$:`.
-- Keep components declarative and minimal; avoid direct DOM manipulation.
-- Split large components into small, focused parts under `src/lib/components/`.
-- When possible, lift state upward or use context instead of prop drilling.
-- Animate transitions and list updates using Svelte’s `animate:` directive or `motion` from `svelte-motion`.
-- Use `<script lang="ts">` and ensure strict typing across all modules.
-- Keep markup accessible — use semantic elements, proper `aria-*` attributes, and keyboard support.
-- Handle Promises in `+page.svelte` with `{#await ...}` blocks so pending, success, and error UI states stay declarative. Reference: [Await Blocks](https://svelte.dev/docs/svelte/await/llms.txt).
-
-### Reactive $: statements
-
-Legacy Svelte components relied on `Reactive $:` statements (e.g. `$: sum = a + b`) to recompute values or run side-effects when referenced state changed. Runes mode replaces those patterns with `$derived` for computed data and `$effect` for imperative reactions, which keeps dependencies explicit and tree-shakable. Do not author new `$:` statements—only interact with existing legacy code to remove or migrate it. For reference, see [Legacy Reactive Assignments](https://svelte.dev/docs/svelte/legacy-reactive-assignments/llms.txt).
-
-This is a serverless app: server functions should use [**remote functions**](https://svelte.dev/docs/kit/remote-functions/llms.txt) compatible with Cloudflare Workers and Netlify
+## Available MCP Tools:
 
 You are able to use the Svelte MCP server, where you have access to comprehensive Svelte 5 and SvelteKit documentation. Here's how to use the available tools effectively:
-
-## Available MCP Tools:
 
 ### 1. list-sections
 
@@ -56,6 +34,32 @@ You MUST use this tool whenever writing Svelte code before sending it to the use
 
 Generates a Svelte Playground link with the provided code.
 After completing the code, ask the user if they want a playground link. Only call this tool after user confirmation and NEVER if code was written to files in their project.
+
+## Svelte 5 + Runes Best Practices
+
+- Always refer to the Svelte MCP server for usage and best practices for implementation.
+- Use `<script lang="ts">` and ensure strict typing across all modules.
+- Use `$state()` for local component reactivity.
+- Derive computed values using `$derived()` instead of writable stores when possible.
+- Use `$props()` for prop forwarding — never legacy `$$restProps`.
+- Avoid using `$effect()` and defer to other runes for reactivity whenever possible.
+- Avoid legacy reactive declarations with `$:`.
+- Keep components declarative and minimal; avoid direct DOM manipulation.
+- Use [Snippets](https://svelte.dev/docs/svelte/snippet/llms.txt) to create reusable chunks of markup inside component templates.
+- When possible, lift state upward or use context instead of prop drilling.
+- Animate transitions and list updates using Svelte’s `animate:` directive or `motion` from `svelte-motion`.
+- Keep markup accessible — use semantic elements, proper `aria-*` attributes, and keyboard support.
+- Handle Promises in `+page.svelte` with `{#await ...}` blocks so pending, success, and error UI states stay declarative. Reference: [Await Blocks](https://svelte.dev/docs/svelte/await/llms.txt).
+
+### Svelte Testing
+
+- Refer to [Svelte Testing documentation](https://svelte.dev/docs/svelte/testing/llms.txt)
+
+### Reactive $: statements
+
+Legacy Svelte components relied on `Reactive $:` statements (e.g. `$: sum = a + b`) to recompute values or run side-effects when referenced state changed. Runes mode replaces those patterns with `$derived` for computed data and `$effect` for imperative reactions, which keeps dependencies explicit and tree-shakable. Do not author new `$:` statements—only interact with existing legacy code to remove or migrate it. For reference, see [Legacy Reactive Assignments](https://svelte.dev/docs/svelte/legacy-reactive-assignments/llms.txt).
+
+This is a serverless app: server functions should use [**remote functions**](https://svelte.dev/docs/kit/remote-functions/llms.txt) compatible with Cloudflare Workers and Netlify
 
 ---
 

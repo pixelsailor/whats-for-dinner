@@ -8,10 +8,12 @@ import { RecipeSchema } from './schema';
 
 /**
  * Requests a OpenAI create a recipe based on the provided _title_ and _description_.
- * @param title The title of the recipe being requested
- * @param desc The short description of the recipe being requested
+ * 
+ * @param title - The title of the recipe being requested
+ * @param desc - The short description of the recipe being requested
  * @param userPreferences - Recipe requirements based on user restrictions/preferences
- * @todo DO NOT USE. Not ready for production yet. There are errors with the zod response object
+ * @returns The full recipe.
+ * @deprecated Use the query function instead.
  */
 export async function getFullRecipe(
 	title: string,

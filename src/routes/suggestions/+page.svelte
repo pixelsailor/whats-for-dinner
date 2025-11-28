@@ -40,7 +40,7 @@
 		})
 	);
 	let canRequestSuggestions = $derived(aiCapability.canUseAI);
-let aiRestrictionMessage = $derived.by(() => {
+	let aiRestrictionMessage = $derived.by(() => {
 		switch (aiCapability.reason) {
 			case 'offline':
 				return 'You are offline. Reconnect to request new recipe ideas.';
@@ -57,15 +57,43 @@ let aiRestrictionMessage = $derived.by(() => {
 
 	let prompt = $derived(page.url.searchParams.get('prompt'));
 
-const hasPrompt = $derived(!!prompt);
+	const hasPrompt = $derived(!!prompt);
 
-let suggestionsStore = $derived(() =>
-	!prompt || !canRequestSuggestions
-		? null
-		: createSuggestionsQuery(prompt, userPreferences, { enabled: true })
-);
+	type SuggestionsQueryStore = Exclude<ReturnType<typeof createSuggestionsQuery>, null>;
+	type SuggestionsResult = Parameters<
+		Parameters<SuggestionsQueryStore['subscribe']>[0]
+	>[0];
 
-let suggestionsResult = $derived.by(() => (suggestionsStore ? $suggestionsStore : null));
+	let suggestionsStore = $state<SuggestionsQueryStore | null>(null);
+	let suggestionsResult = $state<SuggestionsResult | null>(null);
+
+	$effect(() => {
+		const currentPrompt = prompt;
+		if (!currentPrompt || !canRequestSuggestions) {
+			suggestionsStore = null;
+			suggestionsResult = null;
+			return;
+		}
+
+		const store = createSuggestionsQuery(currentPrompt, userPreferences, { enabled: true });
+		if (!store) {
+			suggestionsStore = null;
+			suggestionsResult = null;
+			return;
+		}
+
+		suggestionsStore = store;
+
+		const unsubscribe = store.subscribe((value) => {
+			suggestionsResult = value;
+		});
+
+		return () => {
+			unsubscribe();
+			suggestionsStore = null;
+			suggestionsResult = null;
+		};
+	});
 
 	let working = $state(false);
 
@@ -103,10 +131,10 @@ let suggestionsResult = $derived.by(() => (suggestionsStore ? $suggestionsStore 
 	}
 
 	// Save suggestions to history
-$effect(() => {
-	if (hasPrompt && suggestionsResult?.data?.data) {
-		if (suggestionsResult.data.data && suggestionsResult.data.data[1]) {
-			const summaries = suggestionsResult.data.data[1] as RecipeSummary[];
+	$effect(() => {
+		if (hasPrompt && suggestionsResult?.data?.data) {
+			if (suggestionsResult.data.data && suggestionsResult.data.data[1]) {
+				const summaries = suggestionsResult.data.data[1] as RecipeSummary[];
 				saveSuggestions(summaries);
 			}
 		}

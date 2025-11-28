@@ -2,10 +2,24 @@ import type { PromptContext } from '$lib/types';
 import { sanitizePromptInput } from '$lib/utils';
 import { createQuery } from '@tanstack/svelte-query';
 
+/**
+ * Options for the query.
+ * 
+ * @param enabled - Whether the query is enabled.
+ */
 type QueryOptions = {
 	enabled?: boolean;
 };
 
+/**
+ * Query the API for a recipe.
+ * 
+ * @param action - The action to perform.
+ * @param prompt - The prompt to use for the query.
+ * @param recipe - The recipe to use for the query.
+ * @param preferences - The preferences to use for the query.
+ * @returns The response from the API.
+ */
 async function query({
 	action,
 	prompt,
@@ -40,6 +54,14 @@ async function query({
 // api calls can maintain a consistent usage format but these are not necessary and could hinder
 // sending requests to openai
 
+/**
+ * Create a query for assistance.
+ * 
+ * @param prompt - The prompt to use for the query.
+ * @param recipe - The recipe to use for the query.
+ * @param options - The options to use for the query.
+ * @returns A query for assistance.
+ */
 export function createAssistanceQuery(prompt: string, recipe: string, options?: QueryOptions) {
 	const sanitizedPrompt = sanitizePromptInput(decodeURIComponent(prompt));
 	return createQuery({
@@ -50,7 +72,14 @@ export function createAssistanceQuery(prompt: string, recipe: string, options?: 
 	});
 }
 
-// Using "recipe" on this one so that the POST response doesn't need a unique argument
+/**
+ * Create a query for a full recipe.
+ * 
+ * @param prompt - The prompt to use for the query.
+ * @param recipe - The recipe to use for the query.
+ * @param options - The options to use for the query.
+ * @returns A query for a full recipe.
+ */
 export function createFullRecipeQuery(prompt: string, recipe: string, options?: QueryOptions) {
 	const sanitizedPrompt = sanitizePromptInput(decodeURIComponent(prompt));
 	const sanitizedDesc = sanitizePromptInput(decodeURIComponent(recipe));
@@ -62,6 +91,14 @@ export function createFullRecipeQuery(prompt: string, recipe: string, options?: 
 	});
 }
 
+/**
+ * Create a query for recipe revisions.
+ * 
+ * @param prompt - The prompt to use for the query.
+ * @param recipe - The recipe to use for the query.
+ * @param options - The options to use for the query.
+ * @returns A query for recipe revisions.
+ */
 export function createRevisionQuery(prompt: string, recipe: string, options?: QueryOptions) {
 	const sanitizedPrompt = sanitizePromptInput(decodeURIComponent(prompt));
 	return createQuery({
@@ -72,6 +109,14 @@ export function createRevisionQuery(prompt: string, recipe: string, options?: Qu
 	});
 }
 
+/**
+ * Create a query for recipe suggestions.
+ * 
+ * @param prompt - The prompt to use for the query.
+ * @param preferences - The preferences to use for the query.
+ * @param options - The options to use for the query.
+ * @returns A query for recipe suggestions.
+ */
 export function createSuggestionsQuery(
 	prompt: string | null,
 	preferences?: string,

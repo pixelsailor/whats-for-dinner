@@ -3,6 +3,14 @@ import type { PromptContext } from '$lib/types';
 import { openai } from '.';
 import { RecipeSummarySchema } from './schema';
 
+/**
+ * Get recipe suggestions from OpenAI.
+ * 
+ * @param input - The input to use for the query.
+ * @param userPreferences - The user preferences to use for the query.
+ * @returns The recipe suggestions.
+ * @deprecated Use the query function instead.
+ */
 export async function getRecipeSuggestions(
 	input: string,
 	userPreferences: string

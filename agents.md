@@ -7,7 +7,7 @@ The title of this project is "What's For Dinner." is uses **Svelte 5**, **Svelte
 cloud backup, and **Zod** validation. The UI uses components built with **bits-ui** and **TailwindCSS**.
 
 **What's For Dinner** must be able to operate completely offline. Supabase auth, cloud backup, and 
-OpenAI should be optional enhancements when specifically supported.
+OpenAI (via the Chat Completions API) should be optional enhancements when specifically supported.
 
 All code and AI-assisted suggestions should follow the practices below.
 
@@ -95,6 +95,28 @@ export const recipesStore = liveQuery(() => db.recipes.toArray());
 
 ---
 
+## TanStack Query `createQuery()`
+
+- Use `createQuery` from `@tanstack/svelte-query` whenever remote data should stay in sync with UI state. Call it with an options object or store containing at least a stable `queryKey` and `queryFn`, and optionally `select`, `enabled`, `staleTime`, `gcTime`, `placeholderData`, `initialData`, or suspense helpers. A custom `queryClient` can be passed as the second argument when shared caching is required.
+- The helper returns a store that fulfills the TanStack `CreateQueryResult<TData, TError>` contract (or `DefinedCreateQueryResult` when `initialData`/`placeholderData` guarantee data). Expect shape-aligned fields such as `data`, `error`, `status`, `fetchStatus`, `isPending`, `isSuccess`, `refetch`, and `failureCount`, which you can read reactively inside components.
+- Typical usage keeps the query result outside template logic and derives consumable state with runes:
+  ```
+  import { createQuery } from '@tanstack/svelte-query';
+
+  const recipesQuery = createQuery({
+    queryKey: ['recipes', filters],
+    queryFn: fetchRecipes,
+    placeholderData: []
+  });
+
+  const recipes = $derived(recipesQuery.data ?? []);
+  const refreshRecipes = recipesQuery.refetch;
+  ```
+- Prefer Dexie for durable offline reads and write-behind sync; wrap `queryFn` implementations so they validate responses with Zod and fall back to local cached values when offline. Keep TanStack queries side-effect free—mutations belong in dedicated request helpers or remote functions.  
+Reference: [TanStack Query createQuery](https://tanstack.com/query/v5/docs/framework/svelte/reference/functions/createquery)
+
+---
+
 ## Supabase Auth, Sharing and Cloud Backup
 
 - Uses the `supabaseClient` in `src/lib/supabaseClient.ts` for authentication at login
@@ -157,8 +179,9 @@ export type Recipe = z.infer<typeof RecipeSchema>;
 - Reactive stores use small helpers (see `src/lib/stores/_utils.ts` -> `createLiveQueryStore`) and
 	derived/readable stores in `src/lib/stores/*.ts` (examples: `recipes.ts`, `suggestions.ts`).
 - Cloud sync uses Supabase for authorized users via `src/lib/supabaseClient.ts` (PUBLIC_SUPABASE_* envs).
-- OpenAI integration: server-side wrappers live under `src/lib/server/openai.ts` and higher-level
-	prompt logic in `src/lib/openai/*.ts` (see `recipe.ts`, `schema.ts`). Keep secret keys in server-only
+- OpenAI integration: server-side wrappers live under `src/lib/server/openai.ts` and leverage the OpenAI
+	Chat Completions API for idea summaries, full recipes, revisions, addendums, and Q&A. Higher-level prompt
+	logic lives in `src/lib/openai/*.ts` (see `recipe.ts`, `schema.ts`). Keep secret keys in server-only
 	envs (`$env/static/private`). Example: private key imported as `VITE_OPENAI_API_KEY` in this repo.
 - API routes live under `src/routes/api/*`. Any code that touches secrets (OpenAI, private DB keys)
 	should run in server modules or route handlers, not in client components.

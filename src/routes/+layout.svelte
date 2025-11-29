@@ -23,6 +23,8 @@ import { networkStore } from '$lib/stores/network';
 	import { Avatar, Dialog, DropdownMenu, NavigationMenu } from 'bits-ui';
 	import { PUBLIC_QA_PW, PUBLIC_QA_USER } from '$env/static/public';
 	import { invalidate } from '$app/navigation';
+	import LogoutIcon from '$lib/ui/Icons/LogoutIcon.svelte';
+	import LoginIcon from '$lib/ui/Icons/LoginIcon.svelte';
 	// import { supabase } from '$lib/supabaseClient';
 
 	type Layout =
@@ -216,15 +218,15 @@ let network = $derived($networkStore);
 							class="hover:text-accent-foreground focus:bg-muted focus:text-accent-foreground dark:hover:bg-muted dark:data-[state=open]:bg-muted group inline-flex h-8 w-full items-center bg-transparent px-4 py-2 text-sm font-medium transition-colors hover:bg-white focus:outline-hidden disabled:pointer-events-none disabled:opacity-50"
 							onclick={handleSignOut}
 						>
-							<SettingsIcon size="xs" />
-							<span class="hidden sm:inline"> {session.user.email} </span>
+							<LogoutIcon size="xs" />
+							<span class="hidden sm:inline pl-2"> {session.user.email} </span>
 						</button>
 					{:else}
 						<NavigationMenu.Link
 							class="hover:text-accent-foreground focus:bg-muted focus:text-accent-foreground dark:hover:bg-muted dark:data-[state=open]:bg-muted group inline-flex h-8 items-center bg-transparent px-4 py-2 text-sm font-medium transition-colors hover:bg-white focus:outline-hidden disabled:pointer-events-none disabled:opacity-50"
 							href="/auth"
 						>
-							<SettingsIcon size="xs" />
+							<LoginIcon size="xs" />
 							<span class="hidden sm:inline pl-2">Log in</span>
 						</NavigationMenu.Link>
 					{/if}

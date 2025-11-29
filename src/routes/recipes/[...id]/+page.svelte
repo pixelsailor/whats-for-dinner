@@ -1,11 +1,13 @@
 <script lang="ts">
 	import { Button as BitsButton } from 'bits-ui';
-	import { Tooltip } from "bits-ui";
+	// import { Tooltip } from "bits-ui";
 	import { getContext, onDestroy, onMount } from 'svelte';
 	import { slide } from 'svelte/transition';
 	import SvelteMarkdown from '@humanspeak/svelte-markdown';
 	import { toast } from 'svelte-sonner';
 	import { v4 as uuid } from 'uuid';
+
+	import Tooltip from '$lib/ui/Tooltip.svelte';
 
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
@@ -281,30 +283,22 @@
 	<AppBar.Root>
 		<AppBar.Text primary={recipe?.title || ''} />
 		<AppBar.End>
-			<Tooltip.Provider>
-				<Tooltip.Root>
-					<Tooltip.Trigger>
-						{#snippet child({ props })}
-							<BitsButton.Root {...props}
-								class="h-12 w-12 flex items-center justify-center rounded hover:cursor-pointer hover:bg-gray-200 hover:dark:bg-gray-700"
-								title={isLocked ? 'Unlock recipe' : 'Lock recipe'}
-								onclick={() => {
-									isLocked = !isLocked;
-								}}
-							>
-								{#if isLocked}
-									<LockIcon size="xs" />
-								{:else}
-									<UnlockIcon size="xs" />
-								{/if}
-							</BitsButton.Root>
-						{/snippet}
-					</Tooltip.Trigger>
-					<Tooltip.Content side="bottom" class="animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-(--bits-tooltip-content-transform-origin)">
-						<span class="helper-text">{isLocked ? 'Unlock to make changes' : 'Lock to prevent changes'}</span>
-					</Tooltip.Content>
-				</Tooltip.Root>
-			</Tooltip.Provider>
+			<Tooltip>
+				{#snippet trigger()}
+					<BitsButton.Root
+						class="h-12 w-12 flex items-center justify-center rounded hover:cursor-pointer hover:bg-gray-200 hover:dark:bg-gray-700"
+						title={isLocked ? 'Unlock recipe' : 'Lock recipe'}
+						onclick={() => { isLocked = !isLocked }}
+					>
+						{#if isLocked}
+							<LockIcon size="xs" />
+						{:else}
+							<UnlockIcon size="xs" />
+						{/if}
+					</BitsButton.Root>
+				{/snippet}
+				<span class="helper-text">{isLocked ? 'Unlock to make changes' : 'Lock to prevent changes'}</span>
+			</Tooltip>
 		</AppBar.End>
 	</AppBar.Root>
 </PageHeader>

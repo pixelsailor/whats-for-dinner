@@ -161,36 +161,46 @@ let network = $derived($networkStore);
 			</Button>
 		</AppBar.End>
 	</AppBar.Root>
-	<div class="-my-1 overflow-x-hidden px-5">
-		<List>
-			<ListItem.Root>
-				<ListItem.Link href="/">
-					<ChatbotIcon size="xs" />
-					What's For Dinner?
-				</ListItem.Link>
-			</ListItem.Root>
-			<ListItem.Root>
-				<ListItem.Link href="/recipes">
-					<RecipesIcon size="xs" />
-					My Recipes
-				</ListItem.Link>
-			</ListItem.Root>
-		</List>
-		<div class="mt-8">
+	<div class="overflow-x-hidden w-full px-2">
+		<NavigationMenu.Root orientation="vertical">
+			<NavigationMenu.List>
+				<NavigationMenu.Item>
+					<NavigationMenu.Link
+						href="/"
+						class="sidenav-link hover:bg-gray-200 dark:hover:bg-gray-800"
+					>
+						<ChatbotIcon size="xs" />
+						<span class="sidenav-link__text">What's For Dinner?</span>
+					</NavigationMenu.Link>
+				</NavigationMenu.Item>
+				<NavigationMenu.Item>
+					<NavigationMenu.Link
+						href="/recipes"
+						class="sidenav-link hover:bg-gray-200 dark:hover:bg-gray-800"
+					>
+						<RecipesIcon size="xs" />
+						<span class="sidenav-link__text">My Recipes</span>
+					</NavigationMenu.Link>
+				</NavigationMenu.Item>
+			</NavigationMenu.List>
+		</NavigationMenu.Root>
+		<div class="mt-8 mx-3">
 			<span class="heading-compact text-gray-500">Recent recipes</span>
 		</div>
 		{#if $recentlyOpened.length === 0}
 			<p>Your recently viewed recipes will appear.</p>
 		{:else if $recentlyOpened.length > 0}
-			<List>
-				{#each $recentlyOpened as recipe (recipe.id)}
-					<ListItem.Root>
-						<ListItem.Link href="/recipes/{recipe.id}">
-							{recipe.title}
-						</ListItem.Link>
-					</ListItem.Root>
-				{/each}
-			</List>
+			<NavigationMenu.Root orientation="vertical">
+				<NavigationMenu.List>
+					{#each $recentlyOpened as recipe (recipe.id)}
+						<NavigationMenu.Item>
+							<NavigationMenu.Link href="/recipes/{recipe.id}" class="sidenav-link hover:bg-gray-200 dark:hover:bg-gray-800">
+								<span class="sidenav-link__text">{recipe.title}</span>
+							</NavigationMenu.Link>
+						</NavigationMenu.Item>
+					{/each}
+				</NavigationMenu.List>
+			</NavigationMenu.Root>
 		{/if}
 		{#if !network.online}
 			<div
@@ -200,34 +210,34 @@ let network = $derived($networkStore);
 			</div>
 		{/if}
 	</div>
-	<div class="absolute bottom-0 w-full">
+	<div class="absolute bottom-0 left-0 w-full px-2">
 		<NavigationMenu.Root orientation="vertical">
 			<NavigationMenu.List>
 				<NavigationMenu.Item>
 					<NavigationMenu.Link
-						class="hover:text-accent-foreground focus:bg-muted focus:text-accent-foreground dark:hover:bg-muted dark:data-[state=open]:bg-muted group inline-flex h-8 w-full items-center bg-transparent px-4 py-2 text-sm font-medium transition-colors hover:bg-white focus:outline-hidden disabled:pointer-events-none disabled:opacity-50"
+						class="sidenav-link hover:bg-gray-200 dark:hover:bg-gray-800"
 						href="/preferences"
 					>
 						<SettingsIcon size="xs" />
-						<span class="hidden sm:inline pl-2"> Preferences </span>
+						<span class="sidenav-link__text">Preferences</span>
 					</NavigationMenu.Link>
 				</NavigationMenu.Item>
 				<NavigationMenu.Item>
 					{#if session}
 						<button
-							class="hover:text-accent-foreground focus:bg-muted focus:text-accent-foreground dark:hover:bg-muted dark:data-[state=open]:bg-muted group inline-flex h-8 w-full items-center bg-transparent px-4 py-2 text-sm font-medium transition-colors hover:bg-white focus:outline-hidden disabled:pointer-events-none disabled:opacity-50"
+							class="sidenav-link hover:bg-gray-200 dark:hover:bg-gray-800"
 							onclick={handleSignOut}
 						>
 							<LogoutIcon size="xs" />
-							<span class="hidden sm:inline pl-2"> {session.user.email} </span>
+							<span class="sidenav-link__text">{session.user.email}</span>
 						</button>
 					{:else}
 						<NavigationMenu.Link
-							class="hover:text-accent-foreground focus:bg-muted focus:text-accent-foreground dark:hover:bg-muted dark:data-[state=open]:bg-muted group inline-flex h-8 items-center bg-transparent px-4 py-2 text-sm font-medium transition-colors hover:bg-white focus:outline-hidden disabled:pointer-events-none disabled:opacity-50"
+							class="sidenav-link hover:bg-gray-200 dark:hover:bg-gray-800"
 							href="/auth"
 						>
 							<LoginIcon size="xs" />
-							<span class="hidden sm:inline pl-2">Log in</span>
+							<span class="sidenav-link__text">Log in</span>
 						</NavigationMenu.Link>
 					{/if}
 				</NavigationMenu.Item>
@@ -353,5 +363,24 @@ let network = $derived($networkStore);
 <style>
 	.sidebar {
 		height: 100%;
+	}
+
+	:global(.sidenav-link) {
+		color: currentColor;
+		display: flex;
+		justify-content: flex-start;
+		gap: 1rem;
+		font-size: 0.875rem;
+		width: 100%;
+		align-items: center;
+		border-radius: 0.25rem;
+		padding: 0.5rem 0.75rem;
+	}
+
+	:global(.sidenav-link__text) {
+		display: block;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 </style>

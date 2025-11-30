@@ -26,6 +26,9 @@
 	import { deriveAICapability } from '$lib/utils/capabilities';
 	import LockIcon from '$lib/ui/Icons/LockIcon.svelte';
 	import UnlockIcon from '$lib/ui/Icons/UnlockIcon.svelte';
+	import PxlIconButton from '$lib/ui/PxlIconButton.svelte';
+	import FavoriteFilledIcon from '$lib/ui/Icons/FavoriteFilledIcon.svelte';
+	import FavoriteIcon from '$lib/ui/Icons/FavoriteIcon.svelte';
 
 	const vp: any = getContext('viewport');
 
@@ -283,22 +286,33 @@
 	<AppBar.Root>
 		<AppBar.Text primary={recipe?.title || ''} />
 		<AppBar.End>
-			<Tooltip>
-				{#snippet trigger()}
-					<BitsButton.Root
-						class="h-12 w-12 flex items-center justify-center rounded hover:cursor-pointer hover:bg-gray-200 hover:dark:bg-gray-700"
-						title={isLocked ? 'Unlock recipe' : 'Lock recipe'}
-						onclick={() => { isLocked = !isLocked }}
-					>
-						{#if isLocked}
-							<LockIcon size="xs" />
-						{:else}
-							<UnlockIcon size="xs" />
-						{/if}
-					</BitsButton.Root>
-				{/snippet}
-				<span class="helper-text">{isLocked ? 'Unlock to make changes' : 'Lock to prevent changes'}</span>
-			</Tooltip>
+			{#if recipe}
+				<PxlIconButton
+					aria-label={recipe?.is_favorite ? 'Remove from favorites' : 'Add to favorites'}
+					tooltip={recipe?.is_favorite ? 'Remove from favorites' : 'Add to favorites'}
+					onclick={() => {
+						if (!recipe) return;
+						recipe.is_favorite = !recipe.is_favorite;
+					}}
+				>
+					{#if recipe?.is_favorite}
+						<FavoriteFilledIcon size="xs" />
+					{:else}
+						<FavoriteIcon size="xs" />
+					{/if}
+				</PxlIconButton>
+				<PxlIconButton
+					aria-label={isLocked ? 'Unlock recipe' : 'Lock recipe'}
+					tooltip={isLocked ? 'Unlock to make changes' : 'Lock to prevent changes'}
+					onclick={() => { isLocked = !isLocked }}
+				>
+					{#if isLocked}
+						<LockIcon size="xs" />
+					{:else}
+						<UnlockIcon size="xs" />
+					{/if}
+				</PxlIconButton>
+			{/if}
 		</AppBar.End>
 	</AppBar.Root>
 </PageHeader>

@@ -129,12 +129,7 @@ let network = $derived($networkStore);
 	}
 
 	onMount(() => {
-		// Get preferences
-		// const prefs = await db.preferences.get('preferences');
-		// if (!prefs) {
-		// 	await db.preferences.put({ id: 'preferences' });
-		// }
-
+		// Handle auth state changes
 		const { data } = supabase.auth.onAuthStateChange((_, newSession) => {
 			if (newSession?.expires_at !== session?.expires_at) {
 				invalidate('supabase:auth');
@@ -213,17 +208,17 @@ let network = $derived($networkStore);
 	<div class="absolute bottom-0 left-0 w-full px-2">
 		<NavigationMenu.Root orientation="vertical">
 			<NavigationMenu.List>
-				<NavigationMenu.Item>
-					<NavigationMenu.Link
-						class="sidenav-link hover:bg-gray-200 dark:hover:bg-gray-800"
-						href="/preferences"
-					>
-						<SettingsIcon size="xs" />
-						<span class="sidenav-link__text">Preferences</span>
-					</NavigationMenu.Link>
-				</NavigationMenu.Item>
-				<NavigationMenu.Item>
-					{#if session}
+				{#if session}
+					<NavigationMenu.Item>
+						<NavigationMenu.Link
+							class="sidenav-link hover:bg-gray-200 dark:hover:bg-gray-800"
+							href="/preferences"
+						>
+							<SettingsIcon size="xs" />
+							<span class="sidenav-link__text">Preferences</span>
+						</NavigationMenu.Link>
+					</NavigationMenu.Item>
+					<NavigationMenu.Item>
 						<button
 							class="sidenav-link hover:bg-gray-200 dark:hover:bg-gray-800"
 							onclick={handleSignOut}
@@ -231,7 +226,9 @@ let network = $derived($networkStore);
 							<LogoutIcon size="xs" />
 							<span class="sidenav-link__text">{session.user.email}</span>
 						</button>
-					{:else}
+					</NavigationMenu.Item>
+				{:else}
+					<NavigationMenu.Item>
 						<NavigationMenu.Link
 							class="sidenav-link hover:bg-gray-200 dark:hover:bg-gray-800"
 							href="/auth"
@@ -239,8 +236,8 @@ let network = $derived($networkStore);
 							<LoginIcon size="xs" />
 							<span class="sidenav-link__text">Log in</span>
 						</NavigationMenu.Link>
-					{/if}
-				</NavigationMenu.Item>
+					</NavigationMenu.Item>
+				{/if}
 			</NavigationMenu.List>
 		</NavigationMenu.Root>
 	</div>

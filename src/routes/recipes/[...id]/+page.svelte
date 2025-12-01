@@ -29,6 +29,8 @@
 	import PxlIconButton from '$lib/ui/PxlIconButton.svelte';
 	import FavoriteFilledIcon from '$lib/ui/Icons/FavoriteFilledIcon.svelte';
 	import FavoriteIcon from '$lib/ui/Icons/FavoriteIcon.svelte';
+	import TrashIcon from '$lib/ui/Icons/TrashIcon.svelte';
+	import { goto } from '$app/navigation';
 
 	const vp: any = getContext('viewport');
 
@@ -280,6 +282,23 @@
 		await db.recipes.put(newRecipe);
 		return newRecipe;
 	}
+
+	/**
+	 * Delete a recipe from the database and redirect to the recipes page
+	 * @param id - The id of the recipe to delete
+	 */
+	async function deleteRecipe(id: string) {
+		if (!id) return;
+		try {
+			await db.recipes.delete(id);
+			toast.success(`Recipe deleted`);
+		} catch (err) {
+			toast.error('There was a problem deleting the recipe');
+			console.error(err);
+		} finally {
+			goto('/recipes', { replaceState: true });
+		}
+	}
 </script>
 
 <PageHeader>
@@ -292,7 +311,7 @@
 					tooltip={recipe?.is_favorite ? 'Remove from favorites' : 'Add to favorites'}
 					onclick={() => {
 						if (!recipe) return;
-						recipe.is_favorite = !recipe.is_favorite;
+						recipe!.is_favorite = !recipe.is_favorite;
 					}}
 				>
 					{#if recipe?.is_favorite}
@@ -311,6 +330,13 @@
 					{:else}
 						<UnlockIcon size="xs" />
 					{/if}
+				</PxlIconButton>
+				<PxlIconButton
+					aria-label="Delete recipe"
+					tooltip="Delete recipe"
+					onclick={() => { deleteRecipe(recipe!.id) }}
+				>
+					<TrashIcon size="xs" />
 				</PxlIconButton>
 			{/if}
 		</AppBar.End>

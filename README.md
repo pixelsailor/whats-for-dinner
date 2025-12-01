@@ -24,6 +24,17 @@ A modern, offline-first web application built with Svelte 5 and SvelteKit 2, fea
 - **Fast Performance**: Client-side rendering with serverless backend
 - **Type Safety**: Full TypeScript support with Zod validation
 
+## 🧭 User Experience & Interaction Guidelines
+
+This section defines the expected behavior for common user interactions so that the experience remains consistent across the app. It focuses on what the user sees and can do (toasts, redirects, undo flows), not on specific implementation details.
+
+### Deleting Recipes
+
+- **Immediate soft-delete**: Clicking the delete button on a recipe immediately deletes the recipe from the user's perspective.
+- **Soft-delete implementation**: The recipe MUST NOT be physically removed from the database. Instead, it is marked as deleted by setting the `deleted_at` field to the current timestamp.
+- **Undo via toast**: After a recipe is deleted, a toast message is shown with an option to undo/restore the recipe. Choosing undo removes the `deleted_at` timestamp so the recipe is treated as active again.
+- **Post-delete navigation**: After the delete action is triggered, the user is redirected to the `/recipes` page.
+
 ## 🛠️ Technology Stack
 
 ### Framework & Language
@@ -214,11 +225,11 @@ The custom service worker in [`src/service-worker.js`](src/service-worker.js) ke
 ```
 src/
 ├── lib/
-│   ├── components/      # Reusable Svelte components
+│   ├── api/            # Zod schemas, types, and services for remote and local/offline api functions
+│   ├── components/     # Reusable Svelte components
 │   ├── db/             # Database definitions
 │   │   ├── local.ts    # Primary DB (IndexedDB)
 │   │   └── remote.ts   # Supabase sync logic
-│   ├── openai/         # OpenAI integration & prompts
 │   ├── queries/        # TanStack query functions
 │   ├── stores/         # Reactive stores (recipes, suggestions)
 │   ├── ui/             # UI components (bits-ui based)
@@ -284,8 +295,8 @@ Understanding these dependencies is crucial for generating compatible code:
 - **Svelte 5**: Must use runes syntax, not legacy reactivity patterns
 - **SvelteKit 2 Remote Functions**: Server code must be edge runtime compatible
 - **Dexie**: IndexedDB wrapper with async operations and reactive `liveQuery()`
-- **Flowbite Svelte**: Prefered UI components built with TailwindCSS.
-- **bits-ui**: Legacy headless UI components that compose with TailwindCSS. Deprecated.
+- **bits-ui**: Headless UI components that compose with TailwindCSS for building custom UI library
+- **Flowbite Svelte**: Pre-build UI components built with TailwindCSS as a fallback when bits-ui components aren't available.
 - **OpenAI SDK v6 (Chat Completions)**: Uses the Chat Completions API with streaming responses for recipes
 - **Supabase SSR**: Requires specific setup in hooks and layouts
 - **Zod 4**: Schema-first validation with automatic type inference

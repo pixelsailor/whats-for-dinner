@@ -63,6 +63,12 @@ const supabase: Handle = async ({ event, resolve }) => {
 	});
 };
 
+/**
+ * Authentication Guard
+ * 
+ * Protects routes from unauthorized access.
+ * Redirects to the home page if the user is not authenticated.
+ */
 const authGuard: Handle = async ({ event, resolve }) => {
 	const { session, user } = await event.locals.safeGetSession();
 	event.locals.session = session;

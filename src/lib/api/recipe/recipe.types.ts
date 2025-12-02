@@ -1,3 +1,9 @@
+/**
+ * Recipe Types
+ * 
+ * Types for recipes and recipe management.
+ */
+
 import { z } from 'zod';
 
 import type { RecipeSummarySchema, RecipeSchema, SavedRecipeSchema } from './recipe.schemas';

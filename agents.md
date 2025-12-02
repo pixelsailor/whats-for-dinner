@@ -129,7 +129,7 @@ Reference: [TanStack Query createQuery](https://tanstack.com/query/v5/docs/frame
 
 ## Zod Validation Rules
 
-- Define all schemas in src/lib/schemas/ — one file per domain entity.
+- Define all api schemas in src/lib/api/ — one file per domain entity.
 - Always call .strict() on schemas to reject unexpected keys.
 - Use .safeParse() for user or AI-generated data and handle validation errors gracefully.
 - Derive all TypeScript interfaces from Zod schemas:

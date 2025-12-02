@@ -1,8 +1,8 @@
-# What's For Dinner (WFD) API Service Layer
+# What's For Dinner API Service Layer
 
 ## Overview
 
-The WFD API service layer provides a comprehensive, module architecture for managing all backend interactions within the WFD application.
+The What's For Dinner (referred to herein as WFD) API service layer provides a comprehensive, module architecture for managing all backend interactions within the WFD application.
 This service layer is organized into functional domains, each handling specific business capabilities with well-defined responsibilities and clear separation of concerns.
 
 ## Architectural Principles
@@ -12,6 +12,14 @@ This service layer is organized into functional domains, each handling specific 
 - **Type Safety**: Full TypeScript integration with comprehensive type definitions
 - **Consistent Patterns**: Standardized service patterns across all modules. Both **remote** and **local** requests should conform to standard **Fetch API** models
 - **Monitoring Ready**: Built-in health checks and metrics collection for observability
+
+## Permissions/RBAC Policies
+
+Accessing API services and models requires authorized user permissions. Anonymous/offline users (those without an auth account) do not have access to any remote APIs. _Permissions_ are located in the `user_profiles` supabase table. _User profiles and permissions are not stored locally_.
+
+- **User Profiles**: Available to all authorized users
+- **Cloud Recipe Management**: Requires `cloud_storage` permissions
+- **AI Assisted Recipes**: Requires `ai_assistance` permissions
 
 ## API Service Domains
 
@@ -29,7 +37,7 @@ Refer to Supabase [JavaScript Client Library](https://supabase.com/docs/referenc
 
 ---
 
-### Account Management
+### [Account Management](./account/README.md)
 **User account administration**
 
 Comprehensive account management for application users including subscription options, recipe preferences, theme settings, notifications and SSO configuration.
@@ -54,7 +62,7 @@ Primary recipe management including recipe CRUD workflows and recommendations us
 - Recipe lifecycle management (create, update, delete)
 - Recipe search based on title, tags, and usage (recently added, most popular, haven't made in 2 months, etc)
 
-#### Remote/Cloud Recipe Management
+#### [Remote/Cloud Recipe Management](./cloud/README.md)
 **Recipe workflows for sharing and cloud storage with Supabase**
 
 Provides subscribed users with support for syncing local recipe data with the Supabase cloud for backup, retrieval and recipe sharing via public URLs. Refer to Supabase [JavaScript Client Library](https://supabase.com/docs/reference/javascript/introduction) documentation for **database** guidance.
@@ -62,7 +70,7 @@ Provides subscribed users with support for syncing local recipe data with the Su
 **Key Services**
 - Backup recipes with cloud storage and sync across devices/browsers
 - Share online recipes with public URLs
-- Free local storage with archived recipes that can be stored in the cloud and downloaded later
+- Free up local storage with archived recipes that can be stored in the cloud and downloaded later
 
 #### AI Assisted Recipes
 **AI generated recipes and recipe modifications**

@@ -1,3 +1,9 @@
+/**
+ * Recipe Schemas
+ * 
+ * Zod schemas for recipes and recipe management.
+ */
+
 import { z } from 'zod';
 
 const CATEGORY_TAGS = {
@@ -134,6 +140,8 @@ export const SavedRecipeSchema = RecipeSchema.extend({
   id: z.uuid(),
   /** Creation timestamp. */
   created_at: z.coerce.date(),
+  /** Update timestamp. */
+  updated_at: z.coerce.date().nullable().optional(),
   /** Optional archived timestamp. Cloud backup: Recipe is not saved locally.
    * @todo This would require another db to tracking archived recipes -- supabase users only
    */

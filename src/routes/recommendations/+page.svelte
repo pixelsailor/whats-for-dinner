@@ -165,7 +165,7 @@
 	</AppBar.Root>
 </PageHeader>
 
-<main class="mx-auto min-h-screen max-w-6xl px-4">
+<article class="flex justify-center px-4 pt-24">
 	{#if loading}
 		<div class="mx-auto grid h-screen w-full max-w-3xl place-content-center">
 			<ProgressSpinner size="lg" />
@@ -178,13 +178,28 @@
 			</p>
 		</div>
 	{:else}
-		<div class="flex flex-col lg:flex-row gap-8 py-8">
+		{#if categories.length === 0}
+			<div class="max-w-5xl w-full flex-1">
+				<div class="py-24 text-center">
+					<h1 class="fluid-heading-05 mb-4">No Recommendations Available</h1>
+					<p class="text-gray-600 dark:text-gray-400 mb-6">
+						Start adding recipes to see personalized recommendations!
+					</p>
+					<a 
+						href="/recipes/new" 
+						class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-sm hover:bg-blue-700 transition-colors"
+					>
+						Add your first recipe
+					</a>
+				</div>
+			</div>
+		{:else}
 			<!-- Sidebar Navigation -->
-			<aside class="w-full lg:w-64 flex-shrink-0">
+			<aside class="w-72">
 				<nav class="sticky top-8">
 					<h2 class="fluid-heading-04 mb-4">Categories</h2>
-					<div class="mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-sm">
-						<p class="text-xs text-gray-600 dark:text-gray-400">
+					<div class="mb-4 p-3 bg-gray-100 dark:bg-gray-800 rounded-sm">
+						<p class="helper-text text-gray-600 dark:text-gray-400">
 							Showing {currentMealContext} recipes based on current time. 
 							Recipes without meal tags are included as fallback.
 						</p>
@@ -208,60 +223,45 @@
 			</aside>
 
 			<!-- Main Content -->
-			<div class="flex-1 min-w-0">
-				{#if categories.length === 0}
-					<div class="py-24 text-center">
-						<h1 class="fluid-heading-05 mb-4">No Recommendations Available</h1>
-						<p class="text-gray-600 dark:text-gray-400 mb-6">
-							Start adding recipes to see personalized recommendations!
-						</p>
-						<a 
-							href="/recipes/new" 
-							class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-sm hover:bg-blue-700 transition-colors"
-						>
-							Add Your First Recipe
-						</a>
+			<div class="max-w-5xl w-full flex-1">
+				<div class="mb-8">
+					<h1 class="fluid-heading-05 mb-2">Recipe Recommendations</h1>
+					<p class="text-gray-600 dark:text-gray-400 mb-2">
+						Discover recipes based on your cooking patterns and preferences.
+					</p>
+					<div class="flex items-center gap-2">
+						<span class="text-sm text-gray-500 dark:text-gray-400">Currently showing:</span>
+						<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+							{currentMealContext} recipes
+						</span>
 					</div>
-				{:else}
-					<div class="mb-8">
-						<h1 class="fluid-heading-05 mb-2">Recipe Recommendations</h1>
-						<p class="text-gray-600 dark:text-gray-400 mb-2">
-							Discover recipes based on your cooking patterns and preferences.
-						</p>
-						<div class="flex items-center gap-2">
-							<span class="text-sm text-gray-500 dark:text-gray-400">Currently showing:</span>
-							<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-								{currentMealContext} recipes
+				</div>
+				{#each categories as category}
+					<section id={category.id} class="mb-12 scroll-mt-8">
+						<div class="flex items-center justify-between mb-6">
+							<h2 class="fluid-heading-04">{category.title}</h2>
+							<span class="text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+								{category.recipes.length} recipe{category.recipes.length !== 1 ? 's' : ''}
 							</span>
 						</div>
-					</div>
-					{#each categories as category}
-						<section id={category.id} class="mb-12 scroll-mt-8">
-							<div class="flex items-center justify-between mb-6">
-								<h2 class="fluid-heading-04">{category.title}</h2>
-								<span class="text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
-									{category.recipes.length} recipe{category.recipes.length !== 1 ? 's' : ''}
-								</span>
-							</div>
-							<List size="two-line">
-								{#each category.recipes as recipe, index}
-									{#if index > 0}
-										<hr class="border-gray-200 dark:border-gray-700" />
-									{/if}
-									<ListItem.Root>
-										<ListItem.Link href="/recipes/{recipe.id}">
-											<ListItem.Text 
-												primary={recipe.title} 
-												secondary={recipe.short_description} 
-											/>
-										</ListItem.Link>
-									</ListItem.Root>
-								{/each}
-							</List>
-						</section>
-					{/each}
-				{/if}
+						<List size="two-line">
+							{#each category.recipes as recipe, index}
+								{#if index > 0}
+									<hr class="border-gray-200 dark:border-gray-700" />
+								{/if}
+								<ListItem.Root>
+									<ListItem.Link href="/recipes/{recipe.id}">
+										<ListItem.Text 
+											primary={recipe.title} 
+											secondary={recipe.short_description} 
+										/>
+									</ListItem.Link>
+								</ListItem.Root>
+							{/each}
+						</List>
+					</section>
+				{/each}
 			</div>
-		</div>
+		{/if}
 	{/if}
-</main>
+</article>

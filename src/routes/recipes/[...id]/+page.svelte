@@ -352,7 +352,6 @@
 			<ProgressSpinner size="lg" />
 		</div>
 	{:then recipe}
-		<!-- <Recipe {recipe} onBlur={saveRecipeChanges} /> -->
 		<EditableRecipe {recipe} locked={isLocked} />
 		{#if canUseAI}
 			<div class="fixed right-0 bottom-0 px-4" style:left bind:this={promptRef}>
@@ -405,58 +404,4 @@
 			</div>
 		{/if}
 	{/await}
-	<!-- {#if app.view === 'loading'}
-		<div class="absolute inset-0 grid place-content-center">
-			<ProgressSpinner size="lg" />
-		</div>
-	{:else if app.view === 'idle' && recipe}
-		<Recipe {recipe} />
-		<div class="fixed right-0 bottom-0 px-4" style:left bind:this={promptRef}>
-			<Prompt>
-				{#if conversationMsg}
-					<div
-						class="flex flex-row items-start gap-2"
-						transition:slide={{ duration: 500, axis: 'y' }}
-					>
-						<div class="markdown mb-4 self-center text-sm">
-							<SvelteMarkdown source={conversationMsg} />
-						</div>
-						<Button
-							onClick={() => (conversationMsg = '')}
-							label="Close"
-							size="xs"
-							icon
-							class="-m-2"
-						>
-							<CloseIcon />
-						</Button>
-					</div>
-				{/if}
-				<form
-					class="flex w-full flex-row gap-2"
-					method="POST"
-					use:enhance={() => {
-						waiting = true;
-					}}
-				>
-					<input
-						class="grow p-1 border-none bg-gray-100 dark:bg-gray-900 placeholder:text-gray-500 dark:placeholder:text-gray-400"
-						type="text"
-						name="input"
-						bind:value={promptInput}
-						placeholder="Make changes or ask a recipe related question"
-					/>
-					<input type="hidden" name="recipe" bind:value={recipeJson} />
-					<Button type="submit" label="Submit request" disabled={waiting || !promptInput?.trim()}
-						>{waiting ? 'Thinking...' : 'Submit'}</Button
-					>
-				</form>
-			</Prompt>
-		</div>
-	{:else}
-		<div class="mx-auto grid h-max w-full max-w-3xl place-content-center">
-			<h1 class="fluid-heading-05 my-8">Ah donkey-spittle! There was a problem.</h1>
-			<p class="flex items-center gap-3">A recipe matching the provided ID could not be found.</p>
-		</div>
-	{/if} -->
 </article>

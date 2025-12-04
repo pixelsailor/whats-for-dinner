@@ -183,7 +183,7 @@ let network = $derived($networkStore);
 			<span class="heading-compact text-gray-500">Recent recipes</span>
 		</div>
 		{#if $recentlyOpened.length === 0}
-			<p>Your recently viewed recipes will appear.</p>
+			<p class="m-3 helper-text italic">Your recently viewed recipes will appear here.</p>
 		{:else if $recentlyOpened.length > 0}
 			<NavigationMenu.Root orientation="vertical">
 				<NavigationMenu.List>
@@ -205,7 +205,7 @@ let network = $derived($networkStore);
 			</div>
 		{/if}
 	</div>
-	<div class="absolute bottom-0 left-0 w-full px-2">
+	<div class="absolute bottom-0 left-0 w-full p-2">
 		<NavigationMenu.Root orientation="vertical">
 			<NavigationMenu.List>
 				{#if session}
@@ -247,61 +247,60 @@ let network = $derived($networkStore);
 
 <QueryClientProvider client={queryClient}>
 	<div class="flex h-full w-full flex-row flex-nowrap overflow-x-hidden">
-		{#if vp.layout === 'mobile--expanded'}
-			<!-- Layout when mobile sidenav is expanded -->
-			<div class="sidebar fixed inset-0 z-10 backdrop-blur-md">
+		<div
+			class="flex-none relative w-0"
+			style:width={vp.layout === 'desktop--collapsed' ? 'calc(3.5rem + 1px)' : vp.layout === 'desktop--expanded' ? 'calc(18rem + 1px)' : ''}
+		>
+			{#if vp.layout === 'mobile--expanded'}
+				<!-- Layout when mobile sidenav is expanded -->
+				<div class="sidebar fixed inset-0 z-10 backdrop-blur-md">
+					<div
+						class="h-full w-2xs border-gray-200 bg-gray-100 shadow-md dark:border-gray-700 dark:bg-gray-900"
+					>
+						{@render sidenav()}
+					</div>
+				</div>
+			{:else if vp.layout === 'mobile--collapsed'}
+				<!-- Layout when mobile sidenav is collapsed/hidden -->
+			{:else if vp.layout === 'desktop--collapsed'}
+				<!-- Layout when desktop sidenav is minimized -->
 				<div
-					class="h-full w-2xs border-gray-200 bg-gray-100 shadow-md dark:border-gray-700 dark:bg-gray-900"
+					class="fixed h-full min-h-screen w-min flex-none border-r border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-900"
+				>
+					<AppBar.Root>
+						<AppBar.Start>
+							<Button size="xs" onClick={toggleSidenav} label="Toggle side-nav" icon>
+								<OpenPanelLeftIcon />
+							</Button>
+						</AppBar.Start>
+					</AppBar.Root>
+					<div class="flex flex-col gap-2 p-1">
+						<Button href="/" size="xs" label="Home" icon>
+							<ChatbotIcon />
+						</Button>
+						<Button href="/recipes" size="xs" label="My Recipes" icon>
+							<RecipesIcon />
+						</Button>
+					</div>
+					<div class="fixed bottom-0 px-1 py-2">
+						<Button href="/preferences" size="xs" label="My Recipes" icon>
+							<SettingsIcon />
+						</Button>
+					</div>
+				</div>
+			{:else}
+				<!-- Standard desktop Layout with sidenav expanded -->
+				<div
+					class="fixed h-full min-h-screen w-2xs flex-none border-r border-gray-200 bg-gray-100 shadow-xs dark:border-gray-700 dark:bg-gray-900"
 				>
 					{@render sidenav()}
 				</div>
-			</div>
-		{:else if vp.layout === 'mobile--collapsed'}
-			<!-- Layout when mobile sidenav is collapsed/hidden -->
-		{:else if vp.layout === 'desktop--collapsed'}
-			<!-- Layout when desktop sidenav is minimized -->
-			<div
-				class="fixed h-full min-h-screen w-min flex-none border-r border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-900"
-			>
-				<AppBar.Root>
-					<AppBar.Start>
-						<Button size="xs" onClick={toggleSidenav} label="Toggle side-nav" icon>
-							<OpenPanelLeftIcon />
-						</Button>
-					</AppBar.Start>
-				</AppBar.Root>
-				<div class="flex flex-col gap-2 p-1">
-					<Button href="/" size="xs" label="Home" icon>
-						<ChatbotIcon />
-					</Button>
-					<Button href="/recipes" size="xs" label="My Recipes" icon>
-						<RecipesIcon />
-					</Button>
-				</div>
-				<div class="fixed bottom-0 px-1 py-2">
-					<Button href="/preferences" size="xs" label="My Recipes" icon>
-						<SettingsIcon />
-					</Button>
-				</div>
-			</div>
-		{:else}
-			<!-- Standard desktop Layout with sidenav expanded -->
-			<div
-				class="fixed h-full min-h-screen w-2xs flex-none border-r border-gray-200 bg-gray-100 shadow-xs dark:border-gray-700 dark:bg-gray-900"
-			>
-				{@render sidenav()}
-			</div>
-		{/if}
-
-		<div
-			class={[
-				'main-content body relative h-full min-h-screen w-full',
-				{ 'ml-72': vp.layout === 'desktop--expanded' }
-			]}
-			style:margin-left={vp.layout === 'desktop--collapsed' ? 'calc(3.5rem + 1px)' : ''}
-		>
-			{@render children()}
+			{/if}
 		</div>
+
+		<main class="main-content body relative h-full min-h-screen w-full">
+			{@render children()}
+		</main>
 	</div>
 
 	<!-- <Dialog.Root bind:open={showLoginDialog}>

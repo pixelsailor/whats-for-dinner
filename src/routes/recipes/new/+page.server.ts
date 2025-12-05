@@ -2,20 +2,19 @@ import { appendRecipeDetails, OPENAI_DISABLED_ERROR } from '$lib/server/openai';
 import type { FullRecipe } from '$lib/types';
 import type { Actions } from './$types';
 import { fail } from '@sveltejs/kit';
-import { checkPolicy } from '$lib/utils/permissions';
 
 export const actions: Actions = {
 	default: async ({ request, locals }) => {
-		const session = locals.session;
+		const { session, permissions } = locals;
 
 		if (!session) {
 			return fail(401, { error: 'Authentication required' });
 		}
 
-		const aiPolicy = checkPolicy(session, 'ai_assistance');
+		const aiAllowed = Boolean(permissions?.ai_assistance);
 
-		if (!aiPolicy.allowed) {
-			return fail(403, { error: aiPolicy.reason ?? 'AI access denied' });
+		if (!aiAllowed) {
+			return fail(403, { error: 'AI access denied' });
 		}
 
 		const data = await request.formData();

@@ -14,7 +14,7 @@
 - `hooks.server.ts` reads the permissions cookie and sets `locals.permissions` (or `null` when unauthenticated).
 - `+layout.server.ts` exposes:
   - `permissionFlags` (raw booleans from the session cookie)
-  - `permissions` (compatibility `PolicyResult` objects derived from flags or `checkPolicy` fallback)
+  - `permissions` (compatibility `PolicyResult` objects derived from flags; no fallbacks)
 - Client-side layouts and pages continue to receive `permissions` in `data`; new code can prefer `permissionFlags` for simple boolean checks.
 
 ### Refresh Strategy

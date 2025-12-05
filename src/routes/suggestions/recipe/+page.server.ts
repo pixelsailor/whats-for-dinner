@@ -5,7 +5,6 @@ import {
 } from '$lib/server/openai';
 import { isModificationRequest, sanitizePromptInput } from '$lib/utils';
 import { error, fail, type Actions, type ServerLoad } from '@sveltejs/kit';
-import { checkPolicy } from '$lib/utils/permissions';
 
 /**
  * Load the recipe title and description from the URL.
@@ -27,16 +26,16 @@ export const load: ServerLoad = async ({ url }) => {
 
 export const actions: Actions = {
 	default: async ({ request, locals }) => {
-		const session = locals.session;
+		const { session, permissions } = locals;
 
 		if (!session) {
 			return fail(401, { error: 'Authentication required' });
 		}
 
-		const aiPolicy = checkPolicy(session, 'ai_assistance');
+		const aiAllowed = Boolean(permissions?.ai_assistance);
 
-		if (!aiPolicy.allowed) {
-			return fail(403, { error: aiPolicy.reason ?? 'AI access denied' });
+		if (!aiAllowed) {
+			return fail(403, { error: 'AI access denied' });
 		}
 
 		const data = await request.formData();

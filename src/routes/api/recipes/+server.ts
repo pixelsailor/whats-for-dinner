@@ -15,7 +15,6 @@ import type {
 	RecipeRevisionResponse,
 	RecipeSuggestionsResponse
 } from '$lib/types';
-import { checkPolicy } from '$lib/utils/permissions';
 // import { getRecipeSuggestions } from '$lib/openai/suggestions';
 
 type AiResponse =
@@ -27,16 +26,16 @@ type AiResponse =
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	try {
-		const session = locals.session;
+		const { session, permissions } = locals;
 
 		if (!session) {
 			throw error(401, { message: 'Authentication required' });
 		}
 
-		const aiPolicy = checkPolicy(session, 'ai_assistance');
+		const aiAllowed = Boolean(permissions?.ai_assistance);
 
-		if (!aiPolicy.allowed) {
-			throw error(403, { message: aiPolicy.reason ?? 'AI access denied' });
+		if (!aiAllowed) {
+			throw error(403, { message: 'AI access denied' });
 		}
 
 		const {

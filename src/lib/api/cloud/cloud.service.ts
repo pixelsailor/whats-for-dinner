@@ -13,20 +13,15 @@ import type { UserProfile } from '../account/account.types';
  * @example
  * ```typescript
  * // +page.server.ts
- * import { checkPolicy } from '$lib/utils/permissions';
  * import { CloudService } from '$lib/api/cloud/cloud.service';
- * 
- * export const load: PageServerLoad = async ({ locals: { supabase, safeGetSession }, cookies }) => {
+ *
+ * export const load: PageServerLoad = async ({ locals: { supabase, permissions, safeGetSession } }) => {
  *   const { user } = await safeGetSession();
- *   if (!user) {
+ *   if (!user || !permissions?.cloud_storage) {
  *     return { error: 'Unauthorized' };
  *   }
  *   const cloudService = new CloudService(supabase, user.id);
- *   if (cloudService.hasPermission('cloud-storage')) {
- *     return { cloudService };
- *   } else {
- *     return { error: 'Unauthorized' };
- *   }
+ *   return { cloudService };
  * };
  * ```
  */

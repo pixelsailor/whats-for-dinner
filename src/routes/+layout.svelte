@@ -156,6 +156,7 @@ let network = $derived($networkStore);
 			</Button>
 		</AppBar.End>
 	</AppBar.Root>
+
 	<div class="overflow-x-hidden w-full px-2">
 		<NavigationMenu.Root orientation="vertical">
 			<NavigationMenu.List>

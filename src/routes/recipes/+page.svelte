@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { slide } from 'svelte/transition';
+	import { SvelteSet } from 'svelte/reactivity';
 	import { toast } from 'svelte-sonner';
 	import { MultiSelect } from 'flowbite-svelte'
 
@@ -15,13 +16,15 @@
 	import RecipesIcon from '$lib/ui/Icons/RecipesIcon.svelte';
 	import CloudBackup from '$lib/ui/Icons/CloudBackup.svelte';
 
+	let { data } = $props();
+
 	const commonTags = $derived.by(() => {
-		const tags = new Set<string>();
+		const tags = new SvelteSet<string>();
 		$recipes.data?.forEach((r) => {
 			r.tags.forEach((t) => {
 				tags.add(t);
-			})
-		})
+			});
+		});
 		return Array.from(tags).map((t) => ({ value: t, name: t }));
 	});
 
@@ -84,9 +87,11 @@
 	<AppBar.Root>
 		<AppBar.Text primary="My Recipes" />
 		<AppBar.End>
-			<Button onClick={syncRecipeStore} size="xs" label="Cloud sync" title="Cloud sync" icon>
-				<CloudBackup size="xs" />
-			</Button>
+			{#if data.session}
+				<Button onClick={syncRecipeStore} size="xs" label="Cloud sync" title="Cloud sync" icon>
+					<CloudBackup size="xs" />
+				</Button>
+			{/if}
 			<Button href="/recipes/new" size="xs">
 				<RecipesIcon size="xs" />
 				<span class="ml-2 hidden md:inline">Add a recipe</span>
@@ -126,7 +131,7 @@
 				<MultiSelect items={commonTags} bind:value={selectedTags} placeholder="Filter by tag" />
       </div>
 			<List size="two-line">
-				{#each filteredRecipes! as recipe}
+				{#each filteredRecipes! as recipe (recipe.id)}
 					<hr class="border-gray-200 dark:border-gray-800" />
 					<div transition:slide={{ duration: 300, axis: 'y' }}>
 						<ListItem.Root>

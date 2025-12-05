@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { UserProfile } from './account.types';
+import type { UserPreferences, UserProfile } from './account.types';
 
 /**
  * Account Service
@@ -72,5 +72,40 @@ export class AccountService {
     if (error) throw error;
 
     return data?.[permission] === true;
+  }
+
+  /**
+   * Get the user's preferences.
+   * 
+   * @returns The user's preferences.
+   */
+  async getUserPreferences(): Promise<UserPreferences | null> {
+    const { data, error }: { data: UserProfile | null; error: Error | null } = await this.supabase
+      .from('user_profiles')
+      .select('*')
+      .eq('user_id', this.userId)
+      .single();
+
+    if (error) throw error;
+
+    return data?.preferences ?? null;
+  }
+
+  /**
+   * Update the user's preferences.
+   * 
+   * @param updates - The updates to apply to the user's preferences.
+   * @returns The updated user preferences.
+   */
+  async updateUserPreferences(updates: Partial<UserPreferences>) {
+    const { data, error } = await this.supabase
+      .from('user_profiles')
+      .update({ preferences: updates })
+      .eq('user_id', this.userId)
+      .select();
+
+    if (error) throw error;
+
+    return data;
   }
 }

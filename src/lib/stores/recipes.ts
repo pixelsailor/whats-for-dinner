@@ -1,3 +1,11 @@
+/**
+ * Recipes Store
+ * 
+ * Handles the state for recipes, both active and deleted.
+ * 
+ * Provides a consistent interface for interacting with local recipes, both active and deleted.
+ */
+
 import { liveQuery } from 'dexie';
 import { readable } from 'svelte/store';
 import { db } from '$lib/db';

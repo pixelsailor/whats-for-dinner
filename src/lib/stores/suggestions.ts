@@ -1,3 +1,9 @@
+/**
+ * Suggestions Store
+ * 
+ * Stores AI suggestions locally to maintain a history to facilitate later retrieval and "viewed" status.
+ */
+
 import { db } from '$lib/db';
 import type { RecipeSummary, Suggestion } from '$lib/types';
 import { liveQuery } from 'dexie';

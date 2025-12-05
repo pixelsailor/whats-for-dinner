@@ -1,5 +1,6 @@
 import { PUBLIC_SUPABASE_ANON_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public';
 import { createServerClient } from '@supabase/ssr';
+import { getSessionPermissions } from '$lib/utils/session';
 import { redirect, type Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 
@@ -73,6 +74,7 @@ const authGuard: Handle = async ({ event, resolve }) => {
 	const { session, user } = await event.locals.safeGetSession();
 	event.locals.session = session;
 	event.locals.user = user;
+	event.locals.permissions = session ? getSessionPermissions(event.cookies) : null;
 
 	if (event.locals.session && event.url.pathname === '/auth') {
 		throw redirect(303, '/');

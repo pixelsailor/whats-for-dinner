@@ -33,7 +33,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			throw error(401, { message: 'Authentication required' });
 		}
 
-		const aiPolicy = checkPolicy(session, 'ai-assisted-recipe');
+		const aiPolicy = checkPolicy(session, 'ai_assistance');
 
 		if (!aiPolicy.allowed) {
 			throw error(403, { message: aiPolicy.reason ?? 'AI access denied' });

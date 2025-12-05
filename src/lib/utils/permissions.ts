@@ -7,13 +7,13 @@ export function checkPolicy(session: Session | null, policy: PolicyName): Policy
     return { allowed: false, reason: 'User not authenticated' };
   }
 
-  // All authenticated users get cloud-sync
-  if (policy === 'cloud-sync') {
+  // All authenticated users get cloud storage
+  if (policy === 'cloud_storage') {
     return { allowed: true };
   }
 
-  // Mock ai-assisted-recipe as true for now
-  if (policy === 'ai-assisted-recipe') {
+  // Mock ai assistance as true for now
+  if (policy === 'ai_assistance') {
     return { allowed: true };
   }
 

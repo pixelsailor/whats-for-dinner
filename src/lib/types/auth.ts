@@ -25,10 +25,10 @@ export type Permission = {
 
 /**
  * Policy names for feature permissions.
- * 
- * Values are the column names in the `user_profiles` table.
+ *
+ * Values must match columns in the `user_profiles` table.
  */
-export type PolicyName = 'ai-assistance' | 'cloud-storage';
+export type PolicyName = 'ai_assistance' | 'cloud_storage';
 
 /**
  * Result of a feature permission check.

@@ -15,7 +15,7 @@ export const actions: Actions = {
 			return fail(401, { error: 'Authentication required' });
 		}
 
-		const aiPolicy = checkPolicy(session, 'ai-assisted-recipe');
+		const aiPolicy = checkPolicy(session, 'ai_assistance');
 
 		if (!aiPolicy.allowed) {
 			return fail(403, { error: aiPolicy.reason ?? 'AI access denied' });

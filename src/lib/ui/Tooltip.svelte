@@ -38,8 +38,8 @@ Reusable ui-bits tooltip component.
       {@render trigger()}
     </Tooltip.Trigger>
     <Tooltip.Portal>
-      <Tooltip.Content class="helper-text text-gray-800 bg-gray-200 dark:bg-gray-900 border border-gray-300 dark:border-gray-800 rounded-sm py-1 px-2 shadow-sm">
-        <Tooltip.Arrow class="text-gray-300 dark:text-gray-800" />
+      <Tooltip.Content class="helper-text text-gray-50 bg-gray-600/80 dark:text-gray-900 dark:bg-gray-300/80 border border-gray-600 dark:border-gray-300 rounded-sm py-1 px-2 shadow-sm">
+        <Tooltip.Arrow class="text-gray-600 dark:text-gray-300" />
         {@render children?.()}
       </Tooltip.Content>
     </Tooltip.Portal>

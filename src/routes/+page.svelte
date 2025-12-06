@@ -9,6 +9,9 @@
 	import { AppBar } from '$lib/ui/AppBar';
 	import { networkStore } from '$lib/stores/network';
 	import { deriveAICapability } from '$lib/utils/capabilities';
+	import PxlIconButton from '$lib/ui/PxlIconButton.svelte';
+	import CloudBackupIcon from '$lib/ui/Icons/CloudBackup.svelte';
+	import Dialog from '$lib/ui/Dialog.svelte';
 
 	let { data } = $props();
 	let network = $derived($networkStore);
@@ -58,10 +61,22 @@ let aiRestrictionMessage = $derived.by(() => {
 		const prompt = encodeURIComponent(app.input);
 		goto(`/suggestions?prompt=${prompt}`);
 	}
+
+	let openDialog = $state(false);
 </script>
 
 <PageHeader>
-	<AppBar.Root></AppBar.Root>
+	<AppBar.Root>
+		<AppBar.End>
+			<PxlIconButton
+				aria-label="Open dialog"
+				tooltip="Open dialog"
+				onclick={() => { openDialog = true }}
+			>
+				<CloudBackupIcon size="xs" />
+			</PxlIconButton>
+		</AppBar.End>
+	</AppBar.Root>
 </PageHeader>
 
 <main
@@ -119,3 +134,14 @@ let aiRestrictionMessage = $derived.by(() => {
 		</div>
 	{/if}
 </main>
+
+<!-- Cloud sync dialog -- @todo: update content with sync request -->
+<Dialog bind:open={openDialog}>
+	{#snippet title()}
+		<h1>Dialog Title</h1>
+	{/snippet}
+	{#snippet description()}
+		<p>Dialog Description</p>
+	{/snippet}
+	<div>Dialog Content</div>
+</Dialog>

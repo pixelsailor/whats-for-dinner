@@ -1,3 +1,10 @@
+/**
+ * Remote Database Models
+ * 
+ * These functions have been deprecated in favor of API Service Layer functions within `src/lib/api/*`.
+ * DO NOT use these functions in new code.
+ */
+
 import { createClient } from '@supabase/supabase-js';
 import { PUBLIC_SUPABASE_ANON_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public';
 import type { SavedRecipe } from '$lib/types';
@@ -5,6 +12,11 @@ import { db } from '$lib/db';
 
 export const supabase = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY);
 
+/**
+ * Sync local recipes to remote.
+ * 
+ * @deprecated Use `SyncService.uploadRecipes` instead.
+ */
 export async function syncLocalToRemote(localRecipes: SavedRecipe[], userId: string) {
   for (const recipe of localRecipes) {
     const { error } = await supabase
@@ -19,6 +31,11 @@ export async function syncLocalToRemote(localRecipes: SavedRecipe[], userId: str
   }
 }
 
+/**
+ * Sync remote recipes to local.
+ * 
+ * @deprecated Use `SyncService.downloadRecipes` instead.
+ */
 export async function syncRemoteToLocal(userId: string) {
   const { data, error } = await supabase
     .from('recipes')
@@ -33,6 +50,11 @@ export async function syncRemoteToLocal(userId: string) {
   }
 }
 
+/**
+ * Get a recipe from the remote database.
+ * 
+ * @deprecated Use `SyncService.downloadRecipeById` instead.
+ */
 export async function getRecipeFromRemote(id: string) {
 	// Try as recipe owner
 	const { data, error } = await supabase
@@ -46,6 +68,11 @@ export async function getRecipeFromRemote(id: string) {
   return data;
 }
 
+/**
+ * Get a recipe from the remote database by shared id.
+ * 
+ * @deprecated Use `SyncService.downloadRecipeBySharedId` instead.
+ */
 export async function getRecipeBySharedId(shared_id:string) {
   const { data, error } = await supabase
     .from('recipes')
@@ -55,16 +82,4 @@ export async function getRecipeBySharedId(shared_id:string) {
 
   if (error) throw error;
   return data;
-}
-
-// @TODO: A random ID is error prone and no better than the existing random ID used for recipes
-// Need to add a user ID to the UUID unless there's going to be some kind of error checking and 
-// automatic retry for conflicting IDs. Or use a server function to generate the ID
-export async function createSharedRecipe(recipe:SavedRecipe) {
-  const shared_id = crypto.randomUUID();
-  const { error } = await supabase
-    .from('recipes')
-    .upsert({ ...recipe, shared_id });
-  if (error) throw error;
-  return shared_id;
 }

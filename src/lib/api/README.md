@@ -13,6 +13,63 @@ This service layer is organized into functional domains, each handling specific 
 - **Consistent Patterns**: Standardized service patterns across all modules. Both **remote** and **local** requests should conform to standard **Fetch API** models
 - **Monitoring Ready**: Built-in health checks and metrics collection for observability
 
+## File Structure and Organization Principles
+
+1. Separation of concerns: validation (schemas), types (types), business logic (models), API calls (service)
+2. Single source of truth: types derived from schemas
+3. Encapsulation: internal structure hidden behind `index.ts`
+4. Reusability: common patterns extracted to shared modules
+5. Type safety: validation at runtime, types at compile time
+6. Testability: pure functions in models, service methods are testable units
+
+### `*.schemas.ts` — Validation Schema Definitions
+
+**Purpose**: Centralizes Zod validation schemas for all data structures in this domain.
+
+**Intent**: Single source of truth for validation rules. Defines request/response schemas, entity schemas, and nested structures. Used for runtime validation and type inference.
+
+**Pattern**: All validation logic lives here. Schemas are composable and reusable. Import common/base schemas from shared modules when available.
+
+---
+
+### `*.types.ts` — TypeScript Type Definitions
+
+**Purpose**: Exports TypeScript types derived from validation schemas.
+
+**Intent**: Provides compile-time types by inferring from schemas. Ensures types stay in sync with validation rules.
+
+**Pattern**: Types are inferred from schemas using `z.infer<typeof Schema>`. No manual type definitions. Organized by category (entities, requests, responses).
+
+---
+
+### `*.model.ts` — Business Logic and Utilities
+
+**Purpose**: Domain-specific utilities, type guards, and business logic functions.
+
+**Intent**: Encapsulates domain logic separate from API calls. Provides reusable helpers for working with domain entities.
+
+**Pattern**: Re-exports types and schemas for convenience. Contains pure functions (type guards, formatters, calculators). No side effects or API calls.
+
+---
+
+### `*.service.ts` — API Service Layer
+
+**Purpose**: Injectable service that handles HTTP communication with the backend API.
+
+**Intent**: Abstracts API calls, enforces validation, handles authentication/authorization, and provides a typed interface for components.
+
+**Pattern**: All HTTP operations go through this service. Methods validate requests/responses using schemas. Authorization checks are enforced. Returns Observables. Methods are organized by functional area.
+
+---
+
+### `index.ts` — Module Public API
+
+**Purpose**: Barrel export file that defines the public interface of the module.
+
+**Intent**: Single entry point for consuming the module. Encapsulates internal structure and provides a clean public API.
+
+**Pattern**: Re-exports all public types, schemas, models, and services. No business logic. Consumers import from this file, not individual files.
+
 ## Permissions/RBAC Policies
 
 Accessing API services and models requires authorized user permissions. Anonymous/offline users (those without an auth account) do not have access to any remote APIs. _Permissions_ are located in the `user_profiles` supabase table. _User profiles and permissions are not stored locally_.
@@ -71,6 +128,7 @@ Provides subscribed users with support for syncing local recipe data with the Su
 - Backup recipes with cloud storage and sync across devices/browsers
 - Share online recipes with public URLs
 - Free up local storage with archived recipes that can be stored in the cloud and downloaded later
+- Separation of concerns: `CloudService` (remote-only Supabase), sync model helpers (`cloud.model.ts`), and `SyncService` (orchestrates Dexie + CloudService).
 
 #### AI Assisted Recipes
 **AI generated recipes and recipe modifications**

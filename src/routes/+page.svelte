@@ -1,17 +1,12 @@
 <script lang="ts">
-	import type { RecipeSummary, Viewport } from '$lib/types';
+	import type { RecipeSummary } from '$lib/types';
 	import Button from '$lib/ui/Button/Button.svelte';
 	import Prompt from '$lib/ui/Prompt.svelte';
 	import { goto } from '$app/navigation';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
 	import { getGreeting } from '$lib/greetings';
-	import PageHeader from '$lib/ui/PageHeader.svelte';
-	import { AppBar } from '$lib/ui/AppBar';
 	import { networkStore } from '$lib/stores/network';
 	import { deriveAICapability } from '$lib/utils/capabilities';
-	import PxlIconButton from '$lib/ui/PxlIconButton.svelte';
-	import CloudBackupIcon from '$lib/ui/Icons/CloudBackup.svelte';
-	import Dialog from '$lib/ui/Dialog.svelte';
 
 	let { data } = $props();
 	let network = $derived($networkStore);
@@ -24,7 +19,7 @@
 		})
 	);
 	let canUseAI = $derived(aiCapability.canUseAI);
-let aiRestrictionMessage = $derived.by(() => {
+	let aiRestrictionMessage = $derived.by(() => {
 		switch (aiCapability.reason) {
 			case 'offline':
 				return 'You are offline. Reconnect to request fresh suggestions.';
@@ -61,25 +56,9 @@ let aiRestrictionMessage = $derived.by(() => {
 		const prompt = encodeURIComponent(app.input);
 		goto(`/suggestions?prompt=${prompt}`);
 	}
-
-	let openDialog = $state(false);
 </script>
 
-<PageHeader>
-	<AppBar.Root>
-		<AppBar.End>
-			<PxlIconButton
-				aria-label="Open dialog"
-				tooltip="Open dialog"
-				onclick={() => { openDialog = true }}
-			>
-				<CloudBackupIcon size="xs" />
-			</PxlIconButton>
-		</AppBar.End>
-	</AppBar.Root>
-</PageHeader>
-
-<main
+<div
 	class="mx-auto flex h-screen max-w-5xl items-center px-4 py-24"
 	style:height={app.view === 'suggestions' ? 'auto' : ''}
 >
@@ -133,15 +112,4 @@ let aiRestrictionMessage = $derived.by(() => {
 			<p>{app.error}</p>
 		</div>
 	{/if}
-</main>
-
-<!-- Cloud sync dialog -- @todo: update content with sync request -->
-<Dialog bind:open={openDialog}>
-	{#snippet title()}
-		<h1>Dialog Title</h1>
-	{/snippet}
-	{#snippet description()}
-		<p>Dialog Description</p>
-	{/snippet}
-	<div>Dialog Content</div>
-</Dialog>
+</div>

@@ -163,7 +163,7 @@ export const SavedRecipeSchema = RecipeSchema.extend({
   /** Owner id when synced to the cloud (supabase). */
   owner_id: z.uuid(),
   /** Shared id for public/shared recipes. */
-  shared_id: z.uuid().optional(),
+  shared_id: z.string().optional(),
   /** Whether the recipe has been synced to remote. */
   synced: z.boolean().optional(),
   /** Last sync timestamp. */

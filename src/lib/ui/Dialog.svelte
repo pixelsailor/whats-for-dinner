@@ -6,6 +6,7 @@
     buttonText?: string;
     title: Snippet;
     description: Snippet;
+    actions?: Snippet;
     contentProps?: WithoutChild<Dialog.ContentProps>;
   }
 
@@ -16,6 +17,7 @@
     contentProps,
     title,
     description,
+    actions,
     ...restProps
   }: Props = $props();
 </script>
@@ -59,8 +61,12 @@ See [ui-bits Dialog](https://ui-bits.dev/docs/components/dialog/llms.txt) for mo
       </Dialog.Description>
 
       {@render children?.()}
-      
-      <Dialog.Close class="h-input rounded-input bg-dark text-background shadow-mini hover:bg-dark/95 focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center px-[50px] text-[15px] font-semibold focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98]">Close</Dialog.Close>
+
+      {#if actions}
+        {@render actions()}
+      {:else}
+        <Dialog.Close class="h-input rounded-input bg-dark text-background shadow-mini hover:bg-dark/95 focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center px-[50px] text-[15px] font-semibold focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98]">Close</Dialog.Close>
+      {/if}
     </Dialog.Content>
   </Dialog.Portal>
 </Dialog.Root>

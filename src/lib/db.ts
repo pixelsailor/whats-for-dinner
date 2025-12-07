@@ -1,12 +1,18 @@
 import Dexie, { type Table } from 'dexie';
-import type { SavedRecipe, Suggestion, UserPreferences } from './types';
+import type { Suggestion, SavedRecipe } from './api/recipe';
 
-/** @deprecated - use version at `src/lib/db/local.ts` */
+/**
+ * Local Dexie/IndexedDB Database
+ * 
+ * Master database records for the What's For Dinner application.
+ * 
+ * Stores all recipes (except archived recipes) regardless of user authentication status.
+ * 
+ * By virtue of `ai_assistance` permission requirements, `suggestions` may only be stored for authenticated users.
+ */
 class MealDexie extends Dexie {
 	recipes!: Table<SavedRecipe, string>;
 	suggestions!: Table<Suggestion, string>;
-	// pantry!: Table<PantryItem, string>;
-	preferences!: Table<UserPreferences, string>;
 
 	constructor() {
 		super('meal_assistant');
@@ -15,8 +21,6 @@ class MealDexie extends Dexie {
 			recipes:
 				'id, title, created_at, deleted_at, last_opened, owner_id, shared_id, synced, last_synced_at',
 			suggestions: 'id, created_at, last_opened',
-			// pantry: 'id, name, added_at',
-			preferences: 'id'
 		});
 	}
 }

@@ -3,21 +3,29 @@
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
 	import { db } from '$lib/db';
-	import type { FullRecipe } from '$lib/types.js';
+	import type { Recipe } from '$lib/api/recipe';
 	import Button from '$lib/ui/Button/Button.svelte';
 	import RecipeTime from '$lib/ui/RecipeTime.svelte';
 	import { Slider, type TimeValue } from 'bits-ui';
-	import { getContext } from 'svelte';
+	// import { getContext } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import { v4 as uuid } from 'uuid';
 	import PageHeader from '$lib/ui/PageHeader.svelte';
 	import { AppBar } from '$lib/ui/AppBar';
+	
+	// const vp: any = getContext('viewport');
 
-	const vp: any = getContext('viewport');
+	let { data } = $props();
 
-	const hasAssistedRecipeAccess = true;
+	/**
+	 * Get current user permissions (cloud and AI access) from local storage if available.
+	 * Fallback: if using Supabase, these would be attached to user records in 'profiles'.
+	 * This mechanism assumes local-first/offline by default.
+	 */
+	let hasAssistedRecipeAccess = $derived(data.permissions?.aiAssistedRecipe.allowed ?? false);
+	let hasCloudStorageAccess = $derived(data.permissions?.cloudSync.allowed ?? false);
 
-	let form = $state<FullRecipe>({
+	let form = $state<Recipe>({
 		title: '',
 		description: '',
 		short_description: '',
@@ -55,7 +63,7 @@
 		if (cookTime.minute > 0) {
 			cookStr += `${cookTime.minute} ${cookTime.minute > 1 ? 'minutes' : 'minute'}`
 		}
-		form.time.cook = cookStr;
+		form.time!.cook = cookStr;
 		
 		let prepStr = '';
 		if (prepTime.hour > 0) {
@@ -64,7 +72,7 @@
 		if (prepTime.minute > 0) {
 			prepStr += `${prepTime.minute} ${prepTime.minute > 1 ? 'minutes' : 'minute'}`
 		}
-		form.time.prep = prepStr;
+		form.time!.prep = prepStr;
 	}
 
 	// Checks for empty form values. If false, can cancel server query and handle in browser
@@ -78,8 +86,8 @@
 			'tags'
 		].filter((field) => {
 			const value = field.includes('time.')
-				? form.time[field.split('.')[1] as 'prep' | 'cook' | 'total']
-				: form[field as keyof FullRecipe];
+				? form.time![field.split('.')[1] as 'prep' | 'cook' | 'total']
+				: form[field as keyof Recipe];
 			return !value || (Array.isArray(value) && value.length === 0);
     });
 
@@ -99,18 +107,18 @@
 	/**
 	 * Save to the User's recipe book
 	 */
-	async function saveRecipe(recipe?: FullRecipe) {
+	async function saveRecipe(recipe?: Recipe) {
 		working = true;
 		status = 'saving';
 
-		const now = Date.now();
-		const newRecipe: FullRecipe = JSON.parse(JSON.stringify(recipe || form));
+		const now = new Date();
+		const newRecipe: Recipe = JSON.parse(JSON.stringify(recipe || form));
 
 		db.recipes.add({
 			...newRecipe,
 			id: uuid(),
-			created_at: now,
-			last_opened: now,
+			created_at: now.toISOString(),
+			last_opened: now.toISOString(),
 			version: 1,
 			is_current: true,
 			is_favorite: false,

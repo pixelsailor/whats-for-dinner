@@ -14,7 +14,7 @@ export const SharedRecipeSchema = z.object({
 	/** Recipe id of the recipe being shared. */
 	recipe_id: z.uuid(),
 	/** Timestamp when the shared recipe was created. */
-	created_at: z.coerce.date(),
+	created_at: z.iso.datetime(),
 	/** Timestamp when the shared recipe expires. */
-	expires_at: z.coerce.date().nullable()
+	expires_at: z.iso.datetime().nullable().optional()
 });

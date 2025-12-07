@@ -5,7 +5,7 @@
  */
 
 import { db } from '$lib/db';
-import type { RecipeSummary, Suggestion } from '$lib/types';
+import type { RecipeSummary, Suggestion } from '$lib/api/recipe';
 import { liveQuery } from 'dexie';
 import { readable, writable } from 'svelte/store';
 import { useQueryClient } from '@tanstack/svelte-query';
@@ -71,7 +71,7 @@ const MAX_SUGGESTIONS = 100;
  * @todo - Move this somewhere more appropriate so that it's not in the store file
  */
 export async function saveSuggestions(suggestions: RecipeSummary[]) {
-	const now = Date.now();
+	const now = new Date().toISOString();
 	const enriched: Suggestion[] = suggestions.map((raw) => {
 		const summary = JSON.parse(JSON.stringify(raw)) as RecipeSummary;
 		return {

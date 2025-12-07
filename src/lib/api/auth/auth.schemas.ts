@@ -14,7 +14,7 @@ export const SupabaseUserSchema = z.object({
     providers: z.array(z.string()).optional(),
   }),
   aud: z.string(),
-  created_at: z.string(),
+  created_at: z.iso.datetime(),
   id: z.string(),
   user_metadata: z.any(),
   email: z.string().optional(),

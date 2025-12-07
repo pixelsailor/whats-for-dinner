@@ -88,6 +88,16 @@ export const RecipeSummarySchema = z.object({
 });
 
 /**
+ * Suggestion model used for storing suggestions in the local database. Extends `RecipeSummarySchema`
+ * with metadata used by the app for tracking suggestion creation and last opened.
+ */
+export const SuggestionSchema = RecipeSummarySchema.extend({
+	id: z.string(),
+	created_at: z.iso.datetime(),
+	last_opened: z.iso.datetime().nullable().optional(),
+});
+
+/**
  * Full recipe model used for display and editing. Several fields contain markdown strings.
  * Use `describe` to enforce zodResponseFormat for OpenAI responses.
  */
@@ -139,17 +149,15 @@ export const SavedRecipeSchema = RecipeSchema.extend({
   /** Primary id (UUID). */
   id: z.uuid(),
   /** Creation timestamp. */
-  created_at: z.coerce.date(),
+  created_at: z.iso.datetime(),
   /** Update timestamp. */
-  updated_at: z.coerce.date().nullable().optional(),
-  /** Optional archived timestamp. Cloud backup: Recipe is not saved locally.
-   * @todo This would require another db to tracking archived recipes -- supabase users only
-   */
-  archived: z.coerce.date().optional(),
+  updated_at: z.iso.datetime().nullable().optional(),
+  /** Optional archived timestamp. Cloud backup: Recipe is not saved locally. Requires cloud_storage permission. */
+  archived: z.iso.datetime().nullable().optional(),
   /** Optional deletion timestamp. */
-  deleted_at: z.coerce.date().optional(),
+  deleted_at: z.iso.datetime().nullable().optional(),
   /** Timestamp indicating when the recipe was last opened. */
-  last_opened: z.coerce.date(),
+  last_opened: z.iso.datetime(),
   /** Monotonically increasing version number used for edits.
    * @todo Requires repo of recipe versions -- supabase users only
    */
@@ -160,14 +168,19 @@ export const SavedRecipeSchema = RecipeSchema.extend({
   is_current: z.boolean(),
   /** Whether the recipe is favorited in the UI. */
   is_favorite: z.boolean(),
-  /** Owner id when synced to the cloud (supabase). */
-  owner_id: z.uuid(),
+  /** Owner id when synced to the cloud. Automatically set by supabase trigger functions. */
+  owner_id: z.uuid().optional(),
   /** Shared id for public/shared recipes. */
-  shared_id: z.string().optional(),
+  shared_id: z.string().nullable().optional(),
   /** Whether the recipe has been synced to remote. */
   synced: z.boolean().optional(),
   /** Last sync timestamp. */
-  last_synced_at: z.coerce.date().optional(),
+  last_synced_at: z.iso.datetime().nullable().optional(),
   /** Error message from last sync attempt, if any. */
   sync_error: z.string().optional(),
+});
+
+export const CloudRecipeSchema = SavedRecipeSchema.extend({
+  /** Owner id when synced to the cloud. Automatically set by supabase trigger functions. */
+  owner_id: z.uuid(),
 });

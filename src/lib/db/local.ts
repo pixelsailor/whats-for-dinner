@@ -15,6 +15,8 @@ type Suggestion = RecipeSummary & {
  * Stores all recipes (except archived recipes) regardless of user authentication status.
  * 
  * By virtue of `ai_assistance` permission requirements, `suggestions` may only be stored for authenticated users.
+ * 
+ * @deprecated - use version at `src/lib/db.ts`
  */
 class MealDexie extends Dexie {
 	recipes!: Table<SavedRecipe, string>;

@@ -375,8 +375,11 @@
 		syncing = false;
 	}
 
-const formatSyncTime = (value?: number | Date | null) =>
-	value ? new Date(value).toLocaleString() : 'Never synced';
+	/**
+	 * Format sync time using
+	 */
+	const formatSyncTime = (value?: number | string | Date | null) =>
+		value ? new Date(value).toLocaleString() : 'Never synced';
 </script>
 
 {#snippet sidenav()}
@@ -471,7 +474,7 @@ const formatSyncTime = (value?: number | Date | null) =>
 <svelte:window bind:innerWidth={vp.width} />
 
 <QueryClientProvider client={queryClient}>
-	<div class="flex h-full w-full flex-row flex-nowrap overflow-x-hidden">
+	<div class="flex h-full w-full flex-row">
 		<div
 			class="relative w-0 flex-none"
 			style:width={vp.layout === 'desktop--collapsed'
@@ -525,7 +528,7 @@ const formatSyncTime = (value?: number | Date | null) =>
 			{/if}
 		</div>
 
-		<main class="main-content body relative h-full min-h-screen w-full">
+		<main class="main-content body relative h-full min-h-screen w-full flex-1">
 			{@render children()}
 		</main>
 	</div>

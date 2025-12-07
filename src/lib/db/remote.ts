@@ -26,7 +26,7 @@ export async function syncLocalToRemote(localRecipes: SavedRecipe[], userId: str
       // Optionally update local recipe with sync_error
       await db.recipes.update(recipe.id, { synced: false, sync_error: error.message });
     } else {
-      await db.recipes.update(recipe.id, { synced: true, last_synced_at: Date.now() });
+      await db.recipes.update(recipe.id, { synced: true, last_synced_at: new Date().toISOString() });
     }
   }
 }
@@ -46,7 +46,7 @@ export async function syncRemoteToLocal(userId: string) {
   if (!data) return;
 
   for (const recipe of data) {
-    await db.recipes.put({ ...recipe, synced: true, last_synced_at: Date.now() });
+    await db.recipes.put({ ...recipe, synced: true, last_synced_at: new Date().toISOString() });
   }
 }
 

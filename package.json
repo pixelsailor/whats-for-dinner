@@ -42,7 +42,6 @@
 		"@vitest/browser": "^3.2.4",
 		"eslint": "^9.39.1",
 		"eslint-config-prettier": "^10.1.8",
-		"eslint-plugin-import": "^2.32.0",
 		"eslint-plugin-svelte": "^3.13.1",
 		"flowbite": "^4.0.1",
 		"flowbite-svelte": "^1.29.1",

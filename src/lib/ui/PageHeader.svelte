@@ -7,10 +7,16 @@
 
 	let left = $derived.by(() => {
 		if (vp.device === 'mobile') return '0';
-		return vp.nav === 'expanded' ? 'calc(18rem + 1px)' : 'calc(3.5rem + 1px)';
+		// return vp.nav === 'expanded' ? 'calc(18rem + 1px)' : 'calc(3.75rem + 1px)';
+		return 'auto';
 	});
 </script>
 
-<div class="background-blur-sm fixed top-0 right-0" style:left>
+<!--
+@component PageHeader
+
+Structural component for placing items at the top of the page.
+-->
+<div class="background-blur-sm sticky top-0 right-0 px-5" style:left>
 	{@render children()}
 </div>

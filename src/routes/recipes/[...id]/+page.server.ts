@@ -1,8 +1,8 @@
-import { fail, type Actions } from '@sveltejs/kit';
+import { type Actions, fail } from '@sveltejs/kit';
 import {
+	OPENAI_DISABLED_ERROR,
 	askCookingQuestion,
-	requestRecipeModifications,
-	OPENAI_DISABLED_ERROR
+	requestRecipeModifications
 } from '$lib/server/openai';
 import { isModificationRequest, sanitizePromptInput } from '$lib/utils';
 

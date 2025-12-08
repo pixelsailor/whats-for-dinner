@@ -1,16 +1,16 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
 	// import { marked } from 'marked';
-	import type { FullRecipe } from '$lib/types';
+	import type { Recipe } from '$lib/api/recipe';
 	import SvelteMarkdown from '@humanspeak/svelte-markdown';
 
 	interface EditState {
-		field: keyof FullRecipe | null;
+		field: keyof Recipe | null;
 		originalValue: any;
 	}
 
 // let { recipe = $bindable() }: Props = $props();
-	let { recipe, locked = true }: { recipe: FullRecipe; locked?: boolean } = $props();
+	let { recipe, locked = true }: { recipe: Recipe; locked?: boolean } = $props();
 
 	// State
 	let editState = $state<EditState>({ field: null, originalValue: '' });
@@ -24,8 +24,8 @@
 	});
 
 	const dispatch = createEventDispatcher<{
-		commit: { field: keyof FullRecipe; oldValue: string; newValue: string };
-		cancel: { field: keyof FullRecipe; value: string };
+		commit: { field: keyof Recipe; oldValue: string; newValue: string };
+		cancel: { field: keyof Recipe; value: string };
 	}>();
 
 	$effect(() => {
@@ -35,7 +35,7 @@
 	});
 
 	// Helper functions
-	function startEdit(field: keyof FullRecipe) {
+	function startEdit(field: keyof Recipe) {
 	if (locked) return;
 
 		// Skip editing non-string values for now
@@ -84,7 +84,7 @@
 		editState.originalValue = '';
 	}
 
-	function handleKeydown(event: KeyboardEvent, field: keyof FullRecipe) {
+	function handleKeydown(event: KeyboardEvent, field: keyof Recipe) {
 	if (locked) return;
 
 		if (
@@ -142,12 +142,12 @@
 		adjustTextareaHeight(textarea);
 	}
 
-	function handleEditableClick(field: keyof FullRecipe) {
+	function handleEditableClick(field: keyof Recipe) {
 		if (locked) return;
 		startEdit(field);
 	}
 
-	function handleEditableKeydown(event: KeyboardEvent, field: keyof FullRecipe) {
+	function handleEditableKeydown(event: KeyboardEvent, field: keyof Recipe) {
 	if (locked) return;
 		if (event.key === 'Enter' || event.key === ' ') {
 			event.preventDefault();
@@ -167,7 +167,7 @@
 	// }
 </script>
 
-<article class="recipe-container">
+<div class="recipe-container">
 	<div class="flex flex-col gap-2">
 		<!-- Title -->
 		<header class="recipe-header">
@@ -405,7 +405,7 @@
       </div>
     {/if}
   </section> -->
-</article>
+</div>
 
 <style>
 	.recipe-container {

@@ -1,5 +1,6 @@
 import type { SavedRecipe } from '../recipe/recipe.types';
 import type { SyncConflict, SyncPlan, SyncScenario } from './cloud.types';
+import toMillis from '$lib/utils/toMilliseconds';
 
 /**
  * Cloud Models
@@ -7,20 +8,6 @@ import type { SyncConflict, SyncPlan, SyncScenario } from './cloud.types';
  * Pure helpers for cloud backup and synchronization of recipes.
  * Keep this module side-effect free (no Dexie/Supabase imports).
  */
-
-/**
- * Convert a string, number, or date to milliseconds.
- * 
- * @param value - The value to convert.
- * @returns The milliseconds.
- */
-export const toMillis = (value?: string | number | Date | null): number | undefined => {
-  if (!value) return undefined;
-  if (typeof value === 'number') return value;
-  if (value instanceof Date) return value.getTime();
-  const parsed = Date.parse(value);
-  return Number.isNaN(parsed) ? undefined : parsed;
-};
 
 /**
  * Check if a recipe is active.
@@ -42,7 +29,6 @@ export const isActive = (recipe: SavedRecipe): boolean => !recipe.archived && !r
  * @returns The sync plan.
  */
 export const buildSyncPlan = (localRecipes: SavedRecipe[], remoteRecipes: SavedRecipe[]): SyncPlan => {
-  const localById = new Map(localRecipes.map((recipe) => [recipe.id, recipe]));
   const remoteById = new Map(remoteRecipes.map((recipe) => [recipe.id, recipe]));
 
   const localOnly: SavedRecipe[] = [];
@@ -58,8 +44,8 @@ export const buildSyncPlan = (localRecipes: SavedRecipe[], remoteRecipes: SavedR
 
     remoteById.delete(local.id);
 
-    const localSynced = toMillis(local.last_synced_at);
-    const remoteSynced = toMillis(remote.last_synced_at);
+    const localSynced = toMillis(local.last_synced_at ?? '');
+    const remoteSynced = toMillis(remote.last_synced_at ?? '');
 
     if ((localSynced ?? 0) !== (remoteSynced ?? 0)) {
       conflicts.push({ local, cloud: remote });

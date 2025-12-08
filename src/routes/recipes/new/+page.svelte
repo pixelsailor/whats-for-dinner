@@ -3,7 +3,7 @@
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
 	import { db } from '$lib/db';
-	import type { Recipe } from '$lib/api/recipe';
+	import type { Recipe, SavedRecipe } from '$lib/api/recipe';
 	import Button from '$lib/ui/Button/Button.svelte';
 	import RecipeTime from '$lib/ui/RecipeTime.svelte';
 	import { Slider, type TimeValue } from 'bits-ui';
@@ -12,11 +12,13 @@
 	import { v4 as uuid } from 'uuid';
 	import PageHeader from '$lib/ui/PageHeader.svelte';
 	import { AppBar } from '$lib/ui/AppBar';
-	
+	import { SyncService } from '$lib/api/cloud/sync.service';
+	import { CloudService } from '$lib/api/cloud/cloud.service';
+
 	// const vp: any = getContext('viewport');
-
+	
 	let { data } = $props();
-
+	
 	/**
 	 * Get current user permissions (cloud and AI access) from local storage if available.
 	 * Fallback: if using Supabase, these would be attached to user records in 'profiles'.
@@ -43,6 +45,7 @@
 	let servingRange = $state([1, 10]);
 	let prepTime = $state<TimeValue>(new Time(0,0));
 	let cookTime = $state<TimeValue>(new Time(0,0));
+	let tags = $state<string>('');
 
 	let status = $state<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
@@ -111,10 +114,11 @@
 		working = true;
 		status = 'saving';
 
+		form.tags = tags.split(',').map((tag) => tag.trim());
+
 		const now = new Date();
 		const newRecipe: Recipe = JSON.parse(JSON.stringify(recipe || form));
-
-		db.recipes.add({
+		const savedRecipe: SavedRecipe = {
 			...newRecipe,
 			id: uuid(),
 			created_at: now.toISOString(),
@@ -122,8 +126,11 @@
 			version: 1,
 			is_current: true,
 			is_favorite: false,
-		}).then((id) => {
+		};
+
+		db.recipes.add(savedRecipe).then((id) => {
 			status = 'saved';
+			saveRecipeToCloud(savedRecipe);
 			goto(`/recipes/${id}`, { replaceState: true });
 		},
 		(err) => {
@@ -138,6 +145,17 @@
 	  const textarea = event.target as HTMLTextAreaElement;
 	  textarea.style.height = 'auto';
 	  textarea.style.height = Math.min(textarea.scrollHeight, 420) + 'px';
+	}
+
+	async function saveRecipeToCloud(recipe: SavedRecipe) {
+		if (hasCloudStorageAccess && data.user?.id) {
+			const cloudSyncService = new SyncService(new CloudService(data.supabase, data.user.id));
+			try {
+				await cloudSyncService.uploadRecipe(recipe);
+			} catch (error) {
+				toast.error('Sync failed');
+			}
+		}
 	}
 </script>
 
@@ -248,7 +266,7 @@
 		</div>
 		<div class="form-field mb-4 flex min-h-24 flex-col">
 			<label for="tags" class="label mb-2">Tags</label>
-			<input type="text" class="w-full bg-gray-100 dark:bg-gray-900" id="tags" name="tags" bind:value={form.tags} />
+			<input type="text" class="w-full bg-gray-100 dark:bg-gray-900" id="tags" name="tags" bind:value={tags} />
 		</div>
 		<div class="my-4 border-t border-gray-200 dark:border-gray-800 pt-4">
 			<Button type="submit" size="sm" primary>Save</Button>

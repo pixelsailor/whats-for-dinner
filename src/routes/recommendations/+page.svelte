@@ -1,13 +1,15 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+
+	import type { SavedRecipe } from '$lib/api/recipe';
 	import { db } from '$lib/db';
 	import { getMealContext } from '$lib/getMealContext';
-	import type { SavedRecipe } from '$lib/types';
+	import { AppBar } from '$lib/ui/AppBar';
+	import Button from '$lib/ui/Button/Button.svelte';
 	import { List, ListItem } from '$lib/ui/List';
 	import PageHeader from '$lib/ui/PageHeader.svelte';
-	import { AppBar } from '$lib/ui/AppBar';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
-	import Button from '$lib/ui/Button/Button.svelte';
+	import toMillis from '$lib/utils/toMilliseconds';
 
 	interface RecipeCategory {
 		id: string;
@@ -68,7 +70,7 @@
 
 		// Recently Added (last 30 days, contextual)
 		const recentlyAddedRecipes = activeRecipes.filter(r => {
-			const daysSinceCreated = (now - r.created_at) / msPerDay;
+			const daysSinceCreated = (now - toMillis(r.created_at ?? '')) / msPerDay;
 			return daysSinceCreated <= 30;
 		});
 		const recentlyAdded = shuffleAndTake(
@@ -78,7 +80,7 @@
 
 		// Most Popular in Last Month (recipes opened in last 30 days, contextual)
 		const lastMonth = now - (30 * msPerDay);
-		const popularLastMonthRecipes = activeRecipes.filter(r => r.last_opened >= lastMonth);
+		const popularLastMonthRecipes = activeRecipes.filter(r => toMillis(r.last_opened ?? '') >= lastMonth);
 		const popularLastMonth = shuffleAndTake(
 			filterByMealContext(popularLastMonthRecipes),
 			8
@@ -86,8 +88,8 @@
 
 		// Haven't made in 2 months (but not in the never made category, contextual)
 		const notMadeIn2MonthsRecipes = activeRecipes.filter(r => {
-			const hasBeenOpened = r.last_opened && r.last_opened > 0;
-			return hasBeenOpened && r.last_opened < twoMonthsAgo;
+			const hasBeenOpened = r.last_opened && toMillis(r.last_opened ?? '') > 0;
+			return hasBeenOpened && toMillis(r.last_opened ?? '') < twoMonthsAgo;
 		});
 		const notMadeIn2Months = shuffleAndTake(
 			filterByMealContext(notMadeIn2MonthsRecipes),
@@ -96,8 +98,8 @@
 
 		// Haven't made in over 6 months (but not in the never made category, contextual)
 		const notMadeIn6MonthsRecipes = activeRecipes.filter(r => {
-			const hasBeenOpened = r.last_opened && r.last_opened > 0;
-			return hasBeenOpened && r.last_opened < sixMonthsAgo;
+			const hasBeenOpened = r.last_opened && toMillis(r.last_opened ?? '') > 0;
+			return hasBeenOpened && toMillis(r.last_opened ?? '') < sixMonthsAgo;
 		});
 		const notMadeIn6Months = shuffleAndTake(
 			filterByMealContext(notMadeIn6MonthsRecipes),
@@ -105,7 +107,7 @@
 		);
 
 		// Never made (never opened, contextual)
-		const neverMadeRecipes = activeRecipes.filter(r => !r.last_opened || r.last_opened === 0);
+		const neverMadeRecipes = activeRecipes.filter(r => !r.last_opened || toMillis(r.last_opened ?? '') === 0);
 		const neverMade = shuffleAndTake(
 			filterByMealContext(neverMadeRecipes),
 			8
@@ -165,7 +167,7 @@
 	</AppBar.Root>
 </PageHeader>
 
-<article class="flex justify-center px-4 pt-24">
+<div class="flex gap-8 mx-auto max-w-5xl px-4 lg:px-8 py-8">
 	{#if loading}
 		<div class="mx-auto grid h-screen w-full max-w-3xl place-content-center">
 			<ProgressSpinner size="lg" />
@@ -264,4 +266,4 @@
 			</div>
 		{/if}
 	{/if}
-</article>
+</div>

@@ -478,7 +478,7 @@
 		<div
 			class="relative w-0 flex-none"
 			style:width={vp.layout === 'desktop--collapsed'
-				? 'calc(3.5rem + 1px)'
+				? 'calc(4rem + 1px)'
 				: vp.layout === 'desktop--expanded'
 					? 'calc(18rem + 1px)'
 					: ''}
@@ -521,7 +521,7 @@
 			{:else}
 				<!-- Standard desktop Layout with sidenav expanded -->
 				<div
-					class="fixed h-full min-h-screen w-2xs flex-none border-r border-gray-200 bg-gray-100 shadow-xs dark:border-gray-700 dark:bg-gray-900"
+					class="fixed h-full min-h-screen w-2xs flex-none border-r border-gray-200 bg-gray-100 shadow-xs dark:border-gray-700 dark:bg-gray-900/50"
 				>
 					{@render sidenav()}
 				</div>

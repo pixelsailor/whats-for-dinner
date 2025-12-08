@@ -10,27 +10,30 @@
 	import Tooltip from '$lib/ui/Tooltip.svelte';
 
 	import { enhance } from '$app/forms';
+	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
+
+	import { CloudService, SyncService } from '$lib/api/cloud';
+	import type { SavedRecipe } from '$lib/api/recipe';
 	import { db } from '$lib/db';
-	import { getSavedRecipe } from '$lib/stores/recipes';
-	import type { PromptContext, SavedRecipe, ViewState } from '$lib/types';
-	import Button from '$lib/ui/Button/Button.svelte';
-	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
+	import { getSavedRecipe, singleRecipeStore } from '$lib/stores/recipes';
+	import type { PromptContext, ViewState } from '$lib/types';
 	import { AppBar } from '$lib/ui/AppBar';
-	import PageHeader from '$lib/ui/PageHeader.svelte';
-	import Prompt from '$lib/ui/Prompt.svelte';
-	import CloseIcon from '$lib/ui/Icons/CloseIcon.svelte';
-	// import Recipe from '$lib/ui/Recipe.svelte';
+	import Button from '$lib/ui/Button/Button.svelte';
 	import EditableRecipe from '$lib/ui/EditableRecipe.svelte';
-	import { networkStore } from '$lib/stores/network';
-	import { deriveAICapability } from '$lib/utils/capabilities';
+	import CloseIcon from '$lib/ui/Icons/CloseIcon.svelte';
+	import FavoriteIcon from '$lib/ui/Icons/FavoriteIcon.svelte';
+	import FavoriteFilledIcon from '$lib/ui/Icons/FavoriteFilledIcon.svelte';
 	import LockIcon from '$lib/ui/Icons/LockIcon.svelte';
 	import UnlockIcon from '$lib/ui/Icons/UnlockIcon.svelte';
 	import PxlIconButton from '$lib/ui/PxlIconButton.svelte';
-	import FavoriteFilledIcon from '$lib/ui/Icons/FavoriteFilledIcon.svelte';
-	import FavoriteIcon from '$lib/ui/Icons/FavoriteIcon.svelte';
+	import PageHeader from '$lib/ui/PageHeader.svelte';
+	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
+	import Prompt from '$lib/ui/Prompt.svelte';
 	import TrashIcon from '$lib/ui/Icons/TrashIcon.svelte';
-	import { goto } from '$app/navigation';
+	// import Recipe from '$lib/ui/Recipe.svelte';
+	import { networkStore } from '$lib/stores/network';
+	import { deriveAICapability } from '$lib/utils/capabilities';
 
 	const vp: any = getContext('viewport');
 
@@ -79,7 +82,18 @@
 		error: ''
 	});
 
-	let recipe = $state<SavedRecipe>();
+	// let recipe = $state<SavedRecipe | undefined>();
+	let recipeStore = $derived.by(() => {
+		if (!id) return undefined;
+
+		if (isShared) {
+			throw new Error('Shared recipes not yet supported');
+		} else {
+			return singleRecipeStore(id);
+		}
+	});
+
+	let recipe = $derived($recipeStore?.data);
 
 	// Responsible for passing the recipe to the FormData
 	let recipeJson = $derived(recipe ? JSON.stringify(recipe) : '');
@@ -91,10 +105,10 @@
 	// Waiting for a response to an OpenAI request
 	let waiting = $state(false);
 
-	let left = $derived.by(() => {
-		if (vp.device === 'mobile') return '0';
-		return vp.nav === 'expanded' ? 'calc(18rem + 1px)' : 'calc(3.5rem + 1px)';
-	});
+	// let left = $derived.by(() => {
+	// 	if (vp.device === 'mobile') return '0';
+	// 	return vp.nav === 'expanded' ? 'calc(18rem + 1px)' : 'calc(3.5rem + 1px)';
+	// });
 
 	let promptRef = $state<HTMLElement>();
 
@@ -104,25 +118,22 @@
 
 	let isLocked = $state(true);
 
-	async function loadRecipe(id: string): Promise<SavedRecipe> {
-		if (isShared) {
-			throw new Error("Shared recipes not yet supported");
-		} else {
-			// return getSavedRecipe(id);
-			const r = await getSavedRecipe(id);
-			recipe = r;
-
-			// Clear any existing timer then set a new one to update last_opened
+	/**
+	 * Update the recipe's last_opened timestamp and save it to the cloud
+	 */
+	$effect(() => {
+		if (recipe) {
 			if (openedTimer) {
 				clearTimeout(openedTimer);
 				openedTimer = null;
 			}
 			openedTimer = window.setTimeout(async () => {
 				try {
-					const ts = Date.now();
+					const ts = new Date().toISOString();
 					await db.recipes.update(id, { last_opened: ts });
 					if (recipe && recipe.id === id) {
 						recipe = { ...recipe, last_opened: ts } as SavedRecipe;
+						await saveRecipeToCloud(recipe);
 					}
 				} catch (err) {
 					console.error('Error updating last_opened:', err);
@@ -130,43 +141,72 @@
 					openedTimer = null;
 				}
 			}, markAsOpenedDelay);
-			return r;
 		}
-		// if (isShared) {
-		// 	try {
-		// 		const res = await fetch(`/api/share/${id}`);
-		// 		if (!res.ok) throw new Error(await res.text());
+	});
+
+	// async function loadRecipe(id: string): Promise<SavedRecipe> {
+	// 	if (isShared) {
+	// 		throw new Error("Shared recipes not yet supported");
+	// 	} else {
+	// 		// return getSavedRecipe(id);
+	// 		const r = await getSavedRecipe(id);
+	// 		recipe = r;
+
+	// 		// Clear any existing timer then set a new one to update last_opened
+	// 		if (openedTimer) {
+	// 			clearTimeout(openedTimer);
+	// 			openedTimer = null;
+	// 		}
+	// 		openedTimer = window.setTimeout(async () => {
+	// 			try {
+	// 				const ts = new Date().toISOString();
+	// 				await db.recipes.update(id, { last_opened: ts });
+	// 				if (recipe && recipe.id === id) {
+	// 					recipe = { ...recipe, last_opened: ts } as SavedRecipe;
+	// 				}
+	// 			} catch (err) {
+	// 				console.error('Error updating last_opened:', err);
+	// 			} finally {
+	// 				openedTimer = null;
+	// 			}
+	// 		}, markAsOpenedDelay);
+	// 		return r;
+	// 	}
+	// 	// if (isShared) {
+	// 	// 	try {
+	// 	// 		const res = await fetch(`/api/share/${id}`);
+	// 	// 		if (!res.ok) throw new Error(await res.text());
 				
-		// 		const data = await res.json();
-		// 		console.log('remote', data);
+	// 	// 		const data = await res.json();
+	// 	// 		console.log('remote', data);
 				
-		// 		if (data.recipe) {
-		// 			recipe = data.recipe;
-		// 			app.view = 'idle';
-		// 		} else {
-		// 			app.error = data.error || 'Recipe not found or unavailable.';
-		// 			app.view = 'error';
-		// 		}
-		// 	} catch (err) {
-		// 		console.log(err);
+	// 	// 		if (data.recipe) {
+	// 	// 			recipe = data.recipe;
+	// 	// 			app.view = 'idle';
+	// 	// 		} else {
+	// 	// 			app.error = data.error || 'Recipe not found or unavailable.';
+	// 	// 			app.view = 'error';
+	// 	// 		}
+	// 	// 	} catch (err) {
+	// 	// 		console.log(err);
 				
-		// 		app.error = 'Recipe not found or unavailable';
-		// 		app.view = 'error';
-		// 	}
-		// } else {
-		// 	const localRecipe = await getSavedRecipe(id);
-		// 	console.log('local', localRecipe);
+	// 	// 		app.error = 'Recipe not found or unavailable';
+	// 	// 		app.view = 'error';
+	// 	// 	}
+	// 	// } else {
+	// 	// 	const localRecipe = await getSavedRecipe(id);
+	// 	// 	console.log('local', localRecipe);
 			
-		// 	if (localRecipe) {
-		// 		recipe = localRecipe;
-		// 		app.view = 'idle';
-		// 		db.recipes.update(id, { last_opened: Date.now() });
-		// 	} else {
-		// 		app.error = 'A recipe matching the provided ID could not be found.';
-		// 		app.view = 'error';
-		// 	}
-		// }
-	}
+	// 	// 	if (localRecipe) {
+	// 	// 		recipe = localRecipe;
+	// 	// 		app.view = 'idle';
+	// 	// 		db.recipes.update(id, { last_opened: Date.now() });
+	// 	// 	} else {
+	// 	// 		app.error = 'A recipe matching the provided ID could not be found.';
+	// 	// 		app.view = 'error';
+	// 	// 	}
+	// 	// }
+	// }
 
 
 // 	async function loadRecipe(id: string): Promise<SavedRecipe> {
@@ -210,9 +250,9 @@
 		if (openedTimer) clearTimeout(openedTimer);
 	});
 	
-	$effect(() => {
-		loadRecipe(id);
-	});
+	// $effect(() => {
+	// 	loadRecipe(id);
+	// });
 
 	// React to user prompts
 	$effect(() => {
@@ -233,7 +273,7 @@
 				conversationMsg = message;
 			} else {
 				// clone the snapshot to avoid "DataCloneError" in `saveModifiedRecipe()`
-				const original = structuredClone($state.snapshot(recipe)) as SavedRecipe;
+				const originalRecipe = structuredClone($state.snapshot(recipe)) as SavedRecipe;
 
 				try {
 					recipe = JSON.parse(message) as SavedRecipe;
@@ -242,7 +282,7 @@
 						duration: Number.POSITIVE_INFINITY,
 						action: {
 							label: 'Save changes',
-							onClick: () => saveModifiedRecipe(original, structuredClone($state.snapshot(recipe!)))
+							onClick: () => saveModifiedRecipe(originalRecipe)
 						}
 					});
 				} catch (err) {
@@ -262,25 +302,63 @@
 		
 	}
 
-	async function saveModifiedRecipe(original: SavedRecipe, updated: SavedRecipe) {
+	/**
+	 * Save the modified recipe to the database
+	 * @param recipe - The recipe to save
+	 */
+	async function saveModifiedRecipe(recipe: SavedRecipe) {
+		const now = new Date().toISOString();
+		recipe.updated_at = now;
+
+		db.recipes.update(recipe.id, recipe)
+			.then(async () => {
+				await saveRecipeToCloud(recipe);
+				toast.success('Recipe saved');
+			})
+			.catch((err) => {
+				toast.error('There was a problem saving the recipe');
+				console.error(err);
+			});
+	}
+
+	/**
+	 * Save the modified recipe as a new version. Currently unused.
+	 * 
+	 * @param original - The original recipe
+	 * @param updated - The updated recipe
+	 * @returns The new recipe
+	 * 
+	 * @todo This will require keeping a recipe for each version and I'm not sure if it's worth it
+	 */
+	async function saveModifiedRecipeAsNew(original: SavedRecipe, updated: SavedRecipe) {
 		await db.recipes.update(original.id, { is_current: false });
 
-		const version = original.version + 1;
-		const now = Date.now();
+		const now = new Date().toISOString();
 		const newRecipe: SavedRecipe = {
 			...updated,
 			id: uuid(),
-			version,
 			parent_id: original.parent_id ?? original.id,
-			// archived: 0,
-			// deleted_at: 0,
+			version: original.version + 1,
 			is_current: true,
 			created_at: now,
-			last_opened: now
+			last_opened: now,
 		};
 
 		await db.recipes.put(newRecipe);
 		return newRecipe;
+	}
+
+	async function saveRecipeToCloud(recipe: SavedRecipe): Promise<void> {
+		if (data.permissions?.cloudSync.allowed && data.user?.id) {
+			const cloudSyncService = new SyncService(new CloudService(data.supabase, data.user.id));
+			try {
+				return cloudSyncService.uploadRecipe(recipe);
+			} catch (error) {
+				toast.error('Sync failed');
+			}
+		} else {
+			return Promise.resolve();
+		}
 	}
 
 	/**
@@ -344,17 +422,24 @@
 </PageHeader>
 
 <article
-	class="mx-auto max-w-5xl px-4 pt-24"
+	class="mx-auto max-w-5xl px-4 lg:px-8 py-8"
 	style:padding-bottom={`calc(${promptHeight}px + 1.5rem)`}
 >
-	{#await loadRecipe(id)}
+	{#if $recipeStore?.loading}
 		<div class="absolute inset-0 grid place-content-center">
 			<ProgressSpinner size="lg" />
 		</div>
-	{:then recipe}
+	{:else if $recipeStore?.error}
+		<div class="mx-auto grid h-screen w-full max-w-3xl place-content-center gap-6">
+			<h1 class="fluid-heading-05">Ah donkey-spittle! There was a problem.</h1>
+			<p class="flex items-center gap-3">
+				<span class="fluid-heading-03">{$recipeStore.error.name}</span><span>|</span><span>{$recipeStore.error?.message}</span>
+			</p>
+		</div>
+	{:else if recipe}
 		<EditableRecipe {recipe} locked={isLocked} />
 		{#if canUseAI}
-			<div class="fixed right-0 bottom-0 px-4" style:left bind:this={promptRef}>
+			<div class="fixed right-0 bottom-0 px-4" bind:this={promptRef}>
 				<Prompt>
 					{#if conversationMsg}
 						<div
@@ -403,5 +488,5 @@
 				{aiRestrictionMessage()}
 			</div>
 		{/if}
-	{/await}
+	{/if}
 </article>

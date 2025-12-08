@@ -45,14 +45,25 @@ export async function getSavedRecipe(id: string): Promise<SavedRecipe> {
 	return recipe;
 }
 
-/** Returns a single recipe by id */
-export const singleRecipeStore = createLiveQueryStore(async () => {
-	const recipe = await db.recipes.get('id') as SavedRecipe | undefined;
-	if (!recipe) {
-		throw new Error(`Recipe with id "${'id'}" not found.`);
-	}
-	return recipe;
-});
+/**
+ * Returns a single recipe by id
+ * 
+ * @param id - The id of the recipe to return.
+ * @returns A store that contains the recipe.
+ * @example
+ * ```typescript
+ * const recipe = singleRecipeStore('123');
+ * $recipe.data; // { id: '123', name: 'Recipe 1' }
+ * ```
+ */
+export const singleRecipeStore = (id: string) =>
+	createLiveQueryStore(async () => {
+		const recipe = await db.recipes.get(id) as SavedRecipe | undefined;
+		if (!recipe) {
+			throw new Error(`Recipe with id "${id}" not found.`);
+		}
+		return recipe;
+	});
 
 /** Returns recipes that have been deleted */
 export const deletedRecipes = createLiveQueryStore(async () => {

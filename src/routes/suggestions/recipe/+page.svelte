@@ -164,10 +164,10 @@
 	let recipeJson = $derived.by(() => (fullRecipe ? JSON.stringify(fullRecipe) : ''));
 
 	// Account for sidenav width and adjust accordingly
-	let left = $derived.by(() => {
-		if (vp.device === 'mobile') return '0';
-		return vp.nav === 'expanded' ? 'calc(18rem + 1px)' : 'calc(3.5rem + 1px)';
-	});
+	// let left = $derived.by(() => {
+	// 	if (vp.device === 'mobile') return '0';
+	// 	return vp.nav === 'expanded' ? 'calc(18rem + 1px)' : 'calc(3.5rem + 1px)';
+	// });
 
 	let status = $state<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
@@ -370,7 +370,7 @@
 			<BookmarkIcon size="xs" />
 			Save to My Recipes
 		</Button>
-		<div class="fixed right-0 bottom-0 px-4" style:left bind:this={promptRef}>
+		<div class="fixed right-0 bottom-0 px-4" bind:this={promptRef}>
 			<Prompt>
 				{#if conversationMsg}
 					<div

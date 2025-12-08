@@ -39,11 +39,11 @@ See [ui-bits Dialog](https://ui-bits.dev/docs/components/dialog/llms.txt) for mo
 -->
 
 <Dialog.Root bind:open {...restProps}>
-  <Dialog.Trigger
+  <!-- <Dialog.Trigger
     class="rounded-input bg-dark text-background shadow-mini hover:bg-dark/95 focus-visible:ring-foreground focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex h-12 items-center justify-center whitespace-nowrap px-[21px] text-[15px] font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98]"
   >
     {buttonText}
-  </Dialog.Trigger>
+  </Dialog.Trigger> -->
   <Dialog.Portal>
     <Dialog.Overlay
       class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80"

@@ -9,7 +9,6 @@
 		originalValue: any;
 	}
 
-// let { recipe = $bindable() }: Props = $props();
 	let { recipe, locked = true }: { recipe: Recipe; locked?: boolean } = $props();
 
 	// State
@@ -17,10 +16,12 @@
 	let textareaRef: HTMLTextAreaElement | null = $state(null);
 
 	let recipeTime = $derived.by(() => {
-		if (recipe?.time) {
-			return new Map(Object.entries(recipe.time));
-		}
-		return undefined;
+		if (!recipe) return undefined;
+		const times = new Map();
+		times.set('prep_time', recipe.prep_time);
+		times.set('cook_time', recipe.cook_time);
+		times.set('total_time', recipe.total_time);
+		return times;
 	});
 
 	const dispatch = createEventDispatcher<{
@@ -153,7 +154,12 @@
 			event.preventDefault();
 			startEdit(field);
 		}
-}
+	}
+
+	/** Replace underscores with spaces and capitalize the first letter */
+	function humanizeColumn(column: string): string {
+		return column.charAt(0).toUpperCase() + column.slice(1).replace('_', ' ');
+	}
 
 	// function renderMarkdown(content: string): string {
 	//   return marked(content, { breaks: true });
@@ -235,7 +241,7 @@
 		{#if recipeTime}
 			<ul class="px-2">
 				{#each recipeTime as time (time[0])}
-					<li class="my-1"><span class="heading">{time[0]} time:</span> <span>{time[1]}</span></li>
+					<li class="my-1"><span class="heading">{humanizeColumn(time[0])} time:</span> <span>{time[1]}</span></li>
 				{/each}
 			</ul>
 		{/if}

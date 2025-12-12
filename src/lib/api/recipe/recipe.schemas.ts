@@ -1,13 +1,13 @@
 /**
  * Recipe Schemas
- * 
+ *
  * Zod schemas for recipes and recipe management.
  */
 
 import { z } from 'zod';
 
 const CATEGORY_TAGS = {
-	course: ['breakfast', 'brunch', 'lunch', 'dinner', 'dessert', 'snack', 'beverage'],
+	course: ['breakfast', 'brunch', 'lunch', 'dinner', 'dessert', 'snack', 'beverage', 'main', 'side', 'light-meal'],
 	cuisine: [
 		'american',
 		'brazillian',
@@ -76,15 +76,18 @@ const CATEGORY_TAGS = {
 
 // Create a case-insensitive lookup map
 const ALL_TAGS = Object.values(CATEGORY_TAGS).flat();
-const TAG_LOOKUP = new Map(ALL_TAGS.map((tag) => [tag.toLowerCase(), tag]));
+// const TAG_LOOKUP = new Map(ALL_TAGS.map((tag) => [tag.toLowerCase(), tag]));
 
 /**
  * Summary of a recipe used in lists and cards.
  */
 export const RecipeSummarySchema = z.object({
-  title: z.string().min(1).describe('Recipe title in plain text, no headings or formating.'),
-  short_description: z.string().optional().describe('Single sentence describing the recipe. Used in short form summaries.'),
-  id: z.uuid().optional(),
+	title: z.string().min(1).describe('Recipe title in plain text, no headings or formating.'),
+	short_description: z
+		.string()
+		.optional()
+		.describe('Single sentence describing the recipe. Used in short form summaries.'),
+	id: z.uuid().optional()
 });
 
 /**
@@ -94,7 +97,7 @@ export const RecipeSummarySchema = z.object({
 export const SuggestionSchema = RecipeSummarySchema.extend({
 	id: z.string(),
 	created_at: z.iso.datetime(),
-	last_opened: z.iso.datetime().nullable().optional(),
+	last_opened: z.iso.datetime().nullable().optional()
 });
 
 /**
@@ -102,85 +105,92 @@ export const SuggestionSchema = RecipeSummarySchema.extend({
  * Use `describe` to enforce zodResponseFormat for OpenAI responses.
  */
 export const RecipeSchema = RecipeSummarySchema.extend({
-  description: z.string().optional().describe('Two to three sentence description with additional commentary or suggested pairings'),
-  ingredients: z
-    .string()
-    .min(1)
-    .describe(
-      "Markdown dash-space list of ingredients. Optional '### Section' headings allowed for multi-part recipes. DO NOT use 'Ingredients' as a heading. No bullets (•)."
-    ),
-  instructions: z.string()
-    .min(1)
-    .describe("Markdown numbered list of instructions. Optional '### Section' headings allowed for multi-part recipes. DO NOT use 'Instructions' as a heading. No H1/H2 headings."),
-  tags: z.
-    array(z.string().min(1))
-    .describe('Use lowercase, hyphenate multi-word tags')
-    .refine(
-      (tags: string[]) => {
-        return tags.some((t) => {
-          const clean = t.trim().toLowerCase();
-          return TAG_LOOKUP.has(clean) || ALL_TAGS.some((tag) => tag.toLowerCase().includes(clean));
-        });
-      },
-      { message: 'At least one recognized tag from any category is required.' }
-    )
-    .transform((tags: string[]) =>
-      tags.map((t) => {
-        const clean = t.trim().toLowerCase();
-        return TAG_LOOKUP.get(clean) || ALL_TAGS.find((tag) => tag.toLowerCase().includes(clean)) || t;
-      })
-    ),
-  yield: z.string().optional().describe(
-    "Number of servings for meals (e.g. 2 to 4 servings) or volume for sauces, dressings or similar, e.g. '2 cups"
-  ),
-  time: z.object({
-    prep: z.string().optional().describe('Preparation time, may include marinating or chilling.'),
-    cook: z.string().optional(),
-    total: z.string().optional(),
-  }).optional(),
-  notes: z.string().optional().describe('Plain Markdown. DO NOT use "Notes" as the heading.')
+	description: z
+		.string()
+		.optional()
+		.describe('Two to three sentence description with additional commentary or suggested pairings'),
+	ingredients: z
+		.string()
+		.min(1)
+		.describe(
+			"Markdown dash-space list of ingredients. Optional '### Section' headings allowed for multi-part recipes. DO NOT use 'Ingredients' as a heading. No bullets (•)."
+		),
+	instructions: z
+		.string()
+		.min(1)
+		.describe(
+			"Markdown numbered list of instructions. Optional '### Section' headings allowed for multi-part recipes. DO NOT use 'Instructions' as a heading. No H1/H2 headings."
+		),
+	tags: z
+		.array(z.string().min(1))
+		.describe(`Use lowercase, hyphenate multi-word tags. Use at least one tag from the following course tags: ${CATEGORY_TAGS.course.join(', ')}. Additional tags encouraged. Available tags include: ${ALL_TAGS.join(', ')}.`),
+		// .refine(
+		// 	(tags: string[]) => {
+		// 		return tags.some((t) => {
+		// 			const clean = t.trim().toLowerCase();
+		// 			return TAG_LOOKUP.has(clean) || ALL_TAGS.some((tag) => tag.toLowerCase().includes(clean));
+		// 		});
+		// 	},
+		// 	{ message: 'At least one recognized tag from any category is required.' }
+		// )
+		// .transform((tags: string[]) =>
+		// 	tags.map((t) => {
+		// 		const clean = t.trim().toLowerCase();
+		// 		return TAG_LOOKUP.get(clean) || ALL_TAGS.find((tag) => tag.toLowerCase().includes(clean)) || t;
+		// 	})
+		// ),
+	yield: z
+		.string()
+		.optional()
+		.describe(
+			"Number of servings for meals (e.g. 2 to 4 servings) or volume for sauces, dressings or similar, e.g. '2 cups"
+		),
+	prep_time: z.string().optional().describe('Preparation time, may include marinating or chilling.'),
+	cook_time: z.string().optional().describe('Cooking time'),
+	total_time: z.string().optional().describe('Total time: preparation + cooking'),
+	notes: z.string().optional().describe('Plain Markdown. DO NOT use "Notes" as the heading.')
 });
 
 /**
- * Saved recipe model used for storage. Extends `RecipeSchema` with metadata used by the app for 
+ * Saved recipe model used for storage. Extends `RecipeSchema` with metadata used by the app for
  * recommendations, syncing, versioning, and sharing.
  */
 export const SavedRecipeSchema = RecipeSchema.extend({
-  /** Primary id (UUID). */
-  id: z.uuid(),
-  /** Creation timestamp. */
-  created_at: z.iso.datetime(),
-  /** Update timestamp. */
-  updated_at: z.iso.datetime().nullable().optional(),
-  /** Optional archived timestamp. Cloud backup: Recipe is not saved locally. Requires cloud_storage permission. */
-  archived: z.iso.datetime().nullable().optional(),
-  /** Optional deletion timestamp. */
-  deleted_at: z.iso.datetime().nullable().optional(),
-  /** Timestamp indicating when the recipe was last opened. */
-  last_opened: z.iso.datetime(),
-  /** Monotonically increasing version number used for edits.
-   * @todo Requires repo of recipe versions -- supabase users only
-   */
-  version: z.number(),
-  /** Parent id for version history (if applicable). */
-  parent_id: z.uuid().optional(),
-  /** Marks whether this row is the current active version. */
-  is_current: z.boolean(),
-  /** Whether the recipe is favorited in the UI. */
-  is_favorite: z.boolean(),
-  /** Owner id when synced to the cloud. Automatically set by supabase trigger functions. */
-  owner_id: z.uuid().optional(),
-  /** Shared id for public/shared recipes. */
-  shared_id: z.string().nullable().optional(),
-  /** Whether the recipe has been synced to remote. */
-  synced: z.boolean().optional(),
-  /** Last sync timestamp. */
-  last_synced_at: z.iso.datetime().nullable().optional(),
-  /** Error message from last sync attempt, if any. */
-  sync_error: z.string().optional(),
+	/** Primary id (UUID). */
+	id: z.uuid(),
+	/** Creation timestamp. */
+	created_at: z.iso.datetime(),
+	/** Update timestamp. */
+	updated_at: z.iso.datetime().nullable().optional(),
+	/** Optional archived timestamp. Cloud backup: Recipe is not saved locally. Requires cloud_storage permission. */
+	archived: z.iso.datetime().nullable().optional(),
+	/** Optional deletion timestamp. */
+	deleted_at: z.iso.datetime().nullable().optional(),
+	/** Timestamp indicating when the recipe was last opened. */
+	last_opened: z.iso.datetime(),
+	/** Monotonically increasing version number used for edits.
+	 * @todo Requires repo of recipe versions -- supabase users only
+	 */
+	version: z.number(),
+	/** Parent id for version history (if applicable). */
+	parent_id: z.uuid().optional(),
+	/** Marks whether this row is the current active version. */
+	is_current: z.boolean(),
+	/** Whether the recipe is favorited in the UI. */
+	is_favorite: z.boolean(),
+	/** Owner id when synced to the cloud. Automatically set by supabase trigger functions. */
+	owner_id: z.uuid().optional(),
+	/** Shared id for public/shared recipes. */
+	shared_id: z.string().nullable().optional(),
+	/** Whether the recipe has been synced to remote. */
+	synced: z.boolean().optional(),
+	/** Last sync timestamp. */
+	last_synced_at: z.iso.datetime().nullable().optional(),
+	/** Error message from last sync attempt, if any. */
+	sync_error: z.string().optional()
 });
 
 export const CloudRecipeSchema = SavedRecipeSchema.extend({
-  /** Owner id when synced to the cloud. Automatically set by supabase trigger functions. */
-  owner_id: z.uuid(),
+	/** Owner id when synced to the cloud. Automatically set by supabase trigger functions. */
+	owner_id: z.uuid()
 });

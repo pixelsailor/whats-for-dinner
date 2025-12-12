@@ -147,11 +147,9 @@ Respond ONLY with valid JSON in the following format:
   "instructions": "markdown string (DO NOT wrap with triple backticks or code blocks)",
   "tags": ["string", ...],
   "yield": "e.g. 'Serves 4'",
-  "time": {
-      "prep": "string (can include time marinating or chilling)",
-      "cook": "string",
-      "total": "string"
-  },
+	"prep_time": "string (can include time marinating or chilling)",
+	"cook_time": "string",
+	"total_time": "string",
   "notes": "markdown string (optional, DO NOT wrap with code blocks)"
 }
 
@@ -225,11 +223,9 @@ You must respond ONLY with a full updated version of the recipe in JSON format t
   "instructions": "markdown",
   "tags": ["string", ...],
   "yield": "e.g. 'Serves 4'",
-  "time": {
-      "prep": "string (to include time marinating or chilling)",
-      "cook": "string",
-      "total": "string"
-  },
+  "prep_time": "string (to include time marinating or chilling)",
+  "cook_time": "string",
+  "total_time": "string",
   "notes": "markdown string (optional)"
 }
 
@@ -334,11 +330,9 @@ The response should use the following JSON format:
   "description": "string",
   "tags": ["string", ...],
   "yield": "e.g. 'Serves 4'",
-  "time": {
-      "prep": "string (to include time marinating or chilling)",
-      "cook": "string",
-      "total": "string"
-  }
+  "prep_time": "string (to include time marinating or chilling)",
+  "cook_time": "string",
+  "total_time": "string",
 }
 
 Only return valid JSON for the missing fields — do not include any commentary, code blocks, or explanations.

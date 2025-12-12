@@ -32,11 +32,9 @@
 		description: '',
 		short_description: '',
 		yield: '',
-		time: {
-			prep: '',
-			cook: '',
-			total: ''
-		},
+		prep_time: '',
+		cook_time: '',
+		total_time: '',
 		ingredients: '',
 		instructions: '',
 		tags: []
@@ -66,7 +64,7 @@
 		if (cookTime.minute > 0) {
 			cookStr += `${cookTime.minute} ${cookTime.minute > 1 ? 'minutes' : 'minute'}`
 		}
-		form.time!.cook = cookStr;
+		form.cook_time = cookStr;
 		
 		let prepStr = '';
 		if (prepTime.hour > 0) {
@@ -75,7 +73,7 @@
 		if (prepTime.minute > 0) {
 			prepStr += `${prepTime.minute} ${prepTime.minute > 1 ? 'minutes' : 'minute'}`
 		}
-		form.time!.prep = prepStr;
+		form.prep_time = prepStr;
 	}
 
 	// Checks for empty form values. If false, can cancel server query and handle in browser
@@ -83,14 +81,12 @@
 		const missingFields = [
 			'short_description',
 			'yield',
-			'time.prep',
-			'time.cook',
-			'time.total',
+			'prep_time',
+			'cook_time',
+			'total_time',
 			'tags'
 		].filter((field) => {
-			const value = field.includes('time.')
-				? form.time![field.split('.')[1] as 'prep' | 'cook' | 'total']
-				: form[field as keyof Recipe];
+			const value = form[field as keyof Recipe];
 			return !value || (Array.isArray(value) && value.length === 0);
     });
 
@@ -118,9 +114,11 @@
 
 		const now = new Date();
 		const newRecipe: Recipe = JSON.parse(JSON.stringify(recipe || form));
+		const recipeId = await generateUniqueRecipeId();
+
 		const savedRecipe: SavedRecipe = {
 			...newRecipe,
-			id: uuid(),
+			id: recipeId,
 			created_at: now.toISOString(),
 			last_opened: now.toISOString(),
 			version: 1,
@@ -157,13 +155,26 @@
 			}
 		}
 	}
+
+	async function checkForIdCollision(id: string): Promise<boolean> {
+		const recipe = await db.recipes.get(id);
+		return recipe !== null;
+	}
+
+	async function generateUniqueRecipeId(): Promise<string> {
+		const candidate = uuid();
+		if (await checkForIdCollision(candidate)) {
+			return generateUniqueRecipeId();
+		}
+		return candidate;
+	}
 </script>
 
 <PageHeader>
 	<AppBar.Root />
 </PageHeader>
 
-<article class="mx-auto max-w-5xl px-4 pt-24">
+<div class="mx-auto max-w-5xl px-4 lg:px-8 py-8">
 	<h1 class="fluid-heading-05 mb-16">Create a new recipe</h1>
 	<form method="POST" use:enhance={({ formData, cancel }) => {
 		status = 'saving';
@@ -272,7 +283,7 @@
 			<Button type="submit" size="sm" primary>Save</Button>
 		</div>
 	</form>
-</article>
+</div>
 
 <style>
 	.form-field {

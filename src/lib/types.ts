@@ -72,6 +72,7 @@ export type OpenAiApiResponse<TPayload> = ApiResponse<OpenAiResponse<TPayload>>;
 
 /**
  * Minimal recipe metadata used for lists and suggestions.
+ * @deprecated Use `RecipeSummary` from `src/lib/api/recipe` instead.
  */
 export type RecipeSummary = {
 	/** Recipe title. */
@@ -82,6 +83,7 @@ export type RecipeSummary = {
 
 /**
  * Suggestion returned by the LLM or suggestion engine.
+ * @deprecated Use `Suggestion` from `src/lib/api/recipe` instead.
  */
 export type Suggestion = RecipeSummary & {
 	/** Unique identifier for the suggestion. */
@@ -94,6 +96,7 @@ export type Suggestion = RecipeSummary & {
 
 /**
  * Full recipe model used for storage and editing. Several fields contain markdown strings.
+ * @deprecated Use `Recipe` from `src/lib/api/recipe` instead.
  */
 export type FullRecipe = {
 	/** Title of the recipe. */
@@ -144,6 +147,7 @@ export type RecipeAddendumResponse = OpenAiResponse<RecipeAddendum>;
 /**
  * Recipe as stored in the local DB (IndexedDB via Dexie). Extends `FullRecipe` with
  * metadata used by the app for syncing, versioning and UI.
+ * @deprecated Use `SavedRecipe` from `src/lib/api/recipe` instead.
  */
 export type SavedRecipe = FullRecipe & {
 	/** Primary id (UUID). */
@@ -183,7 +187,7 @@ export type SavedRecipe = FullRecipe & {
 };
 
 /**
- * Single pantry item stored locally.
+ * Single pantry item stored locally. Not used in the app.
  */
 export type PantryItem = {
 	id: string;
@@ -193,6 +197,7 @@ export type PantryItem = {
 
 /**
  * Per-user preference object. Used to tailor prompts and suggestions.
+ * @deprecated Use `UserPreferences` from `src/lib/api/user` instead.
  */
 export type UserPreferences = {
 	id: string;

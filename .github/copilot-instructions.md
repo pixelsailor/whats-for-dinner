@@ -12,8 +12,7 @@ Quick commands
 - Tests: `pnpm run test` (Vitest)
 
 Architecture highlights (what matters to agents)
-- Client-first SvelteKit app. Local data lives in IndexedDB via Dexie: `src/lib/db/local.ts` (primary) and
-	the deprecated `src/lib/local.ts` (avoid editing unless migrating schema).
+- Client-first SvelteKit app. Local data lives in IndexedDB via Dexie: `src/lib/db.ts`
 - Reactive stores use small helpers (see `src/lib/stores/_utils.ts` -> `createLiveQueryStore`) and
 	derived/readable stores in `src/lib/stores/*.ts` (examples: `recipes.ts`, `suggestions.ts`).
 - Cloud sync uses Supabase for authorized users via `src/lib/supabaseClient.ts` (PUBLIC_SUPABASE_* envs).
@@ -45,7 +44,7 @@ Tests & CI hints
 	for future E2E tests.
 
 Files you will consult/modify most often
-- Local DB schema: `src/lib/db.ts` (and `src/lib/db/local.ts` is deprecated)
+- Local DB schema: `src/lib/db.ts`
 - Stores & helpers: `src/lib/stores/_utils.ts`, `src/lib/stores/*.ts`
 - OpenAI logic & schema: `src/lib/openai/*.ts`, `src/lib/server/openai.ts`
 - Supabase client: `src/lib/supabaseClient.ts`
@@ -60,7 +59,6 @@ Quick examples for common edits
 		`src/lib/server/openai.ts`). Keep prompt composition and parsing near `src/lib/openai/`.
 
 Small gotchas
-- There is a deprecated duplicate DB file at `src/lib/db.ts`. Prefer `src/lib/db/local.ts`.
 - Prompts in `src/lib/openai/*` expect strict JSON output and often use Zod schemas. Follow
 	the schema formats strictly (examples in `recipe.ts` and `schema.ts`).
 - The repo uses `svelte-kit sync` in the `prepare`/`check` scripts—ensure you run `pnpm run check`

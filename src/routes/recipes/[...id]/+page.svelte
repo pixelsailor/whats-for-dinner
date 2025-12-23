@@ -22,6 +22,7 @@
 	import Button from '$lib/ui/Button/Button.svelte';
 	import EditableRecipe from '$lib/ui/EditableRecipe.svelte';
 	import CloseIcon from '$lib/ui/Icons/CloseIcon.svelte';
+	import CloudBackupIcon from '$lib/ui/Icons/CloudBackupIcon.svelte';
 	import FavoriteIcon from '$lib/ui/Icons/FavoriteIcon.svelte';
 	import FavoriteFilledIcon from '$lib/ui/Icons/FavoriteFilledIcon.svelte';
 	import LockIcon from '$lib/ui/Icons/LockIcon.svelte';
@@ -37,7 +38,7 @@
 
 	const vp: any = getContext('viewport');
 
-	const markAsOpenedDelay = 2 * 60 * 1000;
+	const markAsOpenedDelay = 5 * 60 * 1000;
 
 	let { data, form } = $props();
 
@@ -82,7 +83,6 @@
 		error: ''
 	});
 
-	// let recipe = $state<SavedRecipe | undefined>();
 	let recipeStore = $derived.by(() => {
 		if (!id) return undefined;
 
@@ -93,6 +93,7 @@
 		}
 	});
 
+	/** The current recipe from the store */
 	let recipe = $derived($recipeStore?.data);
 
 	// Responsible for passing the recipe to the FormData
@@ -302,11 +303,19 @@
 		
 	}
 
+	function toggleFavorite() {
+		console.log('toggleFavorite');
+		if (!recipe) return;
+		recipe.is_favorite = !recipe.is_favorite;
+		saveModifiedRecipe(recipe);
+	}
+
 	/**
 	 * Save the modified recipe to the database
 	 * @param recipe - The recipe to save
 	 */
 	async function saveModifiedRecipe(recipe: SavedRecipe) {
+		console.log('saveModifiedRecipe', recipe);
 		const now = new Date().toISOString();
 		recipe.updated_at = now;
 
@@ -383,7 +392,12 @@
 	<AppBar.Root>
 		<AppBar.Text primary={recipe?.title || ''} />
 		<AppBar.End>
-			{#if recipe}
+			{#if recipe }
+				{#if data.permissions?.cloudSync.allowed && network.online}
+					<PxlIconButton aria-label="Sync recipe" tooltip="Sync recipe" onclick={() => saveRecipeToCloud(recipe!)}>
+						<CloudBackupIcon size="xs" />
+					</PxlIconButton>
+				{/if}
 				<PxlIconButton
 					aria-label={recipe?.is_favorite ? 'Remove from favorites' : 'Add to favorites'}
 					tooltip={recipe?.is_favorite ? 'Remove from favorites' : 'Add to favorites'}

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher } from 'svelte';
+	import { createEventDispatcher, onMount } from 'svelte';
 	// import { marked } from 'marked';
 	import type { Recipe } from '$lib/api/recipe';
 	import SvelteMarkdown from '@humanspeak/svelte-markdown';
@@ -15,13 +15,18 @@
 	let editState = $state<EditState>({ field: null, originalValue: '' });
 	let textareaRef: HTMLTextAreaElement | null = $state(null);
 
-	let recipeTime = $derived.by(() => {
-		if (!recipe) return undefined;
-		const times = new Map();
-		times.set('prep_time', recipe.prep_time);
-		times.set('cook_time', recipe.cook_time);
-		times.set('total_time', recipe.total_time);
-		return times;
+	// Handle recipe times
+	let prepTimeHours = $derived(() => recipe?.prep_time ? Math.floor(recipe.prep_time / 60) : 0);
+	let prepTimeMinutes = $derived(() => recipe?.prep_time ? recipe.prep_time % 60 : 0);
+	let cookTimeHours = $derived(() => recipe?.cook_time ? Math.floor(recipe.cook_time / 60) : 0);
+	let cookTimeMinutes = $derived(() => recipe?.cook_time ? recipe.cook_time % 60 : 0);
+
+	// Inferred total time
+	let totalTime: string = $derived.by(() => {
+		const totalTime = prepTimeMinutes() + cookTimeMinutes() + prepTimeHours() * 60 + cookTimeHours() * 60;
+		const totalHours = Math.floor(totalTime / 60);
+		const totalMinutes = totalTime % 60;
+		return `${totalHours}h ${totalMinutes}m`;
 	});
 
 	const dispatch = createEventDispatcher<{
@@ -34,18 +39,23 @@
 			cancelEdit();
 		}
 	});
+	
+	onMount(() => {
+		// Convert legacy time object to time fields
+		if (recipe && recipe.time) {
+			recipe.prep_time = recipe.time.prep ? parseInt(recipe.time.prep.split(':')[0].trim()) * 60 + parseInt(recipe.time.prep.split(':')[1].trim()) : 0;
+			recipe.cook_time = recipe.time.cook ? parseInt(recipe.time.cook.split(':')[0].trim()) * 60 + parseInt(recipe.time.cook.split(':')[1].trim()) : 0;
+		}
+	});
 
 	// Helper functions
 	function startEdit(field: keyof Recipe) {
-	if (locked) return;
-
-		// Skip editing non-string values for now
-		if (typeof field !== 'string') return;
+		if (locked) return;
 
 		if (editState.field) return; // Already editing something
 
 		editState.field = field;
-		editState.originalValue = recipe[field] as string;
+		editState.originalValue = recipe[field];
 
 		// Focus textarea after DOM update for markdown fields
 		if (field === 'ingredients' || field === 'instructions') {
@@ -64,8 +74,7 @@
 
 		const field = editState.field;
 		const oldValue = editState.originalValue;
-		// force string value
-		const newValue = recipe[field] as string;
+		const newValue = recipe[field];
 
 		editState.field = null;
 		editState.originalValue = '';
@@ -171,6 +180,11 @@
 	// 		.map((tag) => tag.trim())
 	// 		.filter((tag) => tag.length > 0);
 	// }
+
+	function selectAll(event: Event) {
+		const input = event.target as HTMLInputElement;
+		input.select();
+	}
 </script>
 
 <div class="recipe-container">
@@ -206,6 +220,24 @@
 				</div>
 			{/if}
 		</header>
+		{#if !locked}
+			<section class="recipe-short-description-section">
+				<h2 class="fluid-heading-02 px-2">Short description</h2>
+				{#if editState.field === 'short_description'}
+					<div class="edit-container">
+						<textarea class="short-description-textarea" bind:value={recipe.short_description} onblur={handleBlur} oninput={handleTextareaInput} placeholder="Enter short description..."></textarea>
+						<div class="button-group">
+							<button class="commit-btn" onclick={commitEdit}>✓</button>
+							<button class="cancel-btn" onclick={cancelEdit}>✕</button>
+						</div>
+					</div>
+				{:else}
+					<div class="recipe-short-description editable hover:bg-gray-100 hover:dark:bg-gray-900/40" role="button" tabindex={locked ? -1 : 0} aria-disabled={locked} onclick={() => handleEditableClick('short_description')} onkeydown={(event) => handleEditableKeydown(event, 'short_description')}>
+						{recipe.short_description || 'Click to add short description'}
+					</div>
+				{/if}
+			</section>
+		{/if}
 		<!-- Description -->
 		<section class="recipe-description-section">
 			{#if editState.field === 'description'}
@@ -233,18 +265,42 @@
 					onclick={() => handleEditableClick('description')}
 					onkeydown={(event) => handleEditableKeydown(event, 'description')}
 				>
-					{recipe.description || 'Click to add description'}
+					{recipe.description}
 				</div>
 			{/if}
 		</section>
 		<p class="px-2">{recipe.yield}</p>
-		{#if recipeTime}
-			<ul class="px-2">
-				{#each recipeTime as time (time[0])}
-					<li class="my-1"><span class="heading">{humanizeColumn(time[0])} time:</span> <span>{time[1]}</span></li>
-				{/each}
-			</ul>
-		{/if}
+		<ul class="px-2">
+			<li class="my-1 flex flex-row gap-2 items-center">
+				<span class="heading">Prep time:</span>
+				{#if editState.field === 'prep_time'}
+					<input type="number" id="prepHours" name="prep_time_hours" bind:value={prepTimeHours} class="w-16" min="0" onfocus={(event) => selectAll(event)} />
+					<span>:</span>
+					<input type="number" id="prepMinutes" name="prep_time_minutes" bind:value={prepTimeMinutes} class="w-16" min="0" max="59" onfocus={(event) => selectAll(event)} />
+					<div class="flex gap-2 flex-row">
+						<button class="commit-btn" onclick={commitEdit}>✓</button>
+						<button class="cancel-btn" onclick={cancelEdit}>✕</button>
+					</div>
+				{:else}
+					<span role="button" tabindex={locked ? -1 : 0} aria-disabled={locked} onclick={() => startEdit('prep_time')} onkeydown={(event) => handleEditableKeydown(event, 'prep_time')}>{prepTimeHours()}h {prepTimeMinutes()}m</span>
+				{/if}
+			</li>
+			<li class="my-1 flex flex-row gap-2 items-center">
+				<span class="heading">Cook time:</span>
+				{#if editState.field === 'cook_time'}
+					<input type="number" id="cookHours" name="cook_time_hours" bind:value={cookTimeHours} class="w-16" min="0" onfocus={(event) => selectAll(event)} />
+					<span>:</span>
+					<input type="number" id="cookMinutes" name="cook_time_minutes" bind:value={cookTimeMinutes} class="w-16" min="0" max="59" onfocus={(event) => selectAll(event)} />
+					<div class="flex gap-2 flex-row">
+						<button class="commit-btn" onclick={commitEdit}>✓</button>
+						<button class="cancel-btn" onclick={cancelEdit}>✕</button>
+					</div>
+				{:else}
+					<span role="button" tabindex={locked ? -1 : 0} aria-disabled={locked} onclick={() => startEdit('cook_time')} onkeydown={(event) => handleEditableKeydown(event, 'cook_time')}>{cookTimeHours()}h {cookTimeMinutes()}m</span>
+				{/if}
+			</li>
+			<li class="my-1"><span class="heading">Total time:</span> <span>{totalTime}</span></li>
+		</ul>
 	</div>
 
 	<!-- Ingredients -->
@@ -463,6 +519,7 @@
 	}
 
 	.description-textarea,
+	.short-description-textarea,
 	.ingredients-textarea,
 	.instructions-textarea,
 	.notes-textarea {
@@ -477,6 +534,10 @@
 		outline: none;
 		resize: none;
 		overflow: hidden;
+	}
+
+	.short-description-textarea {
+		min-height: 2rem;
 	}
 
 	/* .tags-list {

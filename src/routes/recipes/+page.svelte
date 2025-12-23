@@ -10,7 +10,7 @@
 	import { AppBar } from '$lib/ui/AppBar';
 	import Button from '$lib/ui/Button/Button.svelte';
 	import { List, ListItem } from '$lib/ui/List';
-	import CloudBackup from '$lib/ui/Icons/CloudBackup.svelte';
+	import CloudBackupIcon from '$lib/ui/Icons/CloudBackupIcon.svelte';
 	import RecipesIcon from '$lib/ui/Icons/RecipesIcon.svelte';
 	import TrashIcon from '$lib/ui/Icons/TrashIcon.svelte';
 	import PageHeader from '$lib/ui/PageHeader.svelte';
@@ -96,7 +96,7 @@
 		<AppBar.End>
 			{#if data.session}
 				<Button onClick={syncRecipeStore} size="xs" label="Cloud sync" title="Cloud sync" icon>
-					<CloudBackup size="xs" />
+					<CloudBackupIcon size="xs" />
 				</Button>
 			{/if}
 			<Button href="/recipes/new" size="xs">

@@ -30,12 +30,25 @@
 	let containerRef = $state<HTMLElement>();
 </script>
 
+<!--
+@component
+# PxlSelect
+ui-bits based select component
+
+_Reference: bits-ui [Select](https://bits-ui.com/docs/components/select/llms.txt)_
+
+## Usage
+- Basic Usage
+```html
+<PxlSelect bind:value={value} sItems={sItems} />
+```
+-->
 <Select.Root bind:value={value as never} {...restProps}>
 	<div
 		class="label my-1 flex h-12 w-full flex-row flex-nowrap items-stretch rounded-sm border border-gray-200 dark:border-gray-700 dark:bg-gray-900"
 		bind:this={containerRef}
 	>
-		<Select.Trigger class="grow px-4 py-1 hover:cursor-pointer hover:dark:bg-gray-800">
+		<Select.Trigger class="grow px-4 py-1 bg-white dark:bg-black hover:cursor-pointer hover:dark:bg-gray-800">
 			<div class="text-left">{selectedLabel}</div>
 		</Select.Trigger>
 		{#if value && value.length > 0}

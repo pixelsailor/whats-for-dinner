@@ -5,7 +5,7 @@
  * Uses pure sync logic from `cloud.model.ts` (buildSyncPlan) and keeps Dexie
  * concerns out of `CloudService`.
  */
-import { db } from '$lib/db/local';
+import { db } from '$lib/db';
 import type { SavedRecipe } from '$lib/api/recipe/recipe.types';
 import { CloudService } from './cloud.service';
 import { buildSyncPlan, isActive } from './cloud.model';

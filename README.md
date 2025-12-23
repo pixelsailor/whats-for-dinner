@@ -55,7 +55,8 @@ This section defines the expected behavior for common user interactions so that 
 
 ### Backend & Services
 - **Supabase** - Authentication, database, and real-time subscriptions
-- **OpenAI Chat Completions API** - AI-powered recipe summaries, full recipes, revisions, and Q&A
+- **OpenAI Chat Completions API** - DEPRECATED. AI-powered recipe summaries, full recipes, revisions, and Q&A
+- **OpenAI Responses API** - AI-powered recipe summaries, full recipes, revisions, and Q&A using **Structured Outputs**
 - **Zod** - Runtime type validation and schema definition
 
 ### Development & Testing
@@ -202,6 +203,184 @@ pnpm test:unit
 4. **External Services** → OpenAI Chat Completions (AI), Supabase (auth/sync)
 5. **Cloud Sync** → Optional synchronization for authenticated users
 
+## Routing API Requests
+
+SvelteKit provides two primary patterns for handling server-side requests: **`+server.ts`** (API endpoints) and **`+page.server.ts`** (page-specific server logic). Understanding when to use each is crucial for maintaining a clean, secure, and maintainable codebase.
+
+### `+server.ts` - Standalone API Endpoints
+
+**Location**: `src/routes/api/*/+server.ts`
+
+**Purpose**: Create reusable REST API endpoints that can be called from anywhere (client components, external services, or other pages).
+
+**Characteristics**:
+- Exports HTTP method handlers (`GET`, `POST`, `PUT`, `DELETE`, etc.)
+- Accepts JSON, FormData, or any HTTP body format
+- Returns JSON, text, or any HTTP response
+- Can be called via `fetch()` from client-side code
+- Ideal for remote third-party API integrations (e.g., OpenAI)
+
+**When to Use**:
+- ✅ Creating reusable API endpoints consumed by multiple pages
+- ✅ Building a public or internal REST API
+- ✅ Handling requests from external services or clients
+- ✅ Integrating with remote APIs (OpenAI, Supabase, etc.)
+- ✅ When you need explicit HTTP methods and status codes
+- ✅ When the endpoint serves a general purpose beyond a single page
+
+**Example**: `/api/recipes/+server.ts`
+```typescript
+import { error, json, type RequestHandler } from '@sveltejs/kit';
+import { getFullRecipe, OPENAI_DISABLED_ERROR } from '$lib/server/openai';
+
+export const POST: RequestHandler = async ({ request, locals }) => {
+  const { session, permissions } = locals;
+  
+  if (!session) {
+    throw error(401, { message: 'Authentication required' });
+  }
+  
+  const { action, prompt, recipe } = await request.json();
+  const response = await getFullRecipe(prompt, recipe);
+  
+  return json({ success: true, data: response });
+};
+```
+
+**Client Usage**:
+```typescript
+const response = await fetch('/api/recipes', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ action: 'detail', prompt, recipe })
+});
+```
+
+### `+page.server.ts` - Page-Specific Server Logic
+
+**Location**: `src/routes/[page]/+page.server.ts` (alongside the page component)
+
+**Purpose**: Handle form submissions and load page-specific data for a particular route.
+
+**Characteristics**:
+- Exports `actions` (for form submissions) and/or `load` (for data loading)
+- Works with SvelteKit's form handling (`$form` stores)
+- Returns data that SvelteKit merges into page props
+- Supports progressive enhancement (works without JavaScript)
+- Tightly coupled to a specific page route
+
+**When to Use**:
+- ✅ Handling form submissions for a specific page
+- ✅ Loading page-specific data that's only needed for that route
+- ✅ When you want progressive enhancement (forms work without JS)
+- ✅ When the logic is truly page-specific and won't be reused
+- ✅ When you prefer SvelteKit's built-in form handling patterns
+
+**Example**: `/recipes/[id]/+page.server.ts`
+```typescript
+import { type Actions, fail } from '@sveltejs/kit';
+import { askCookingQuestion } from '$lib/server/openai';
+
+export const actions: Actions = {
+  default: async ({ request, locals }) => {
+    const { session, permissions } = locals;
+    
+    if (!session) {
+      return fail(401, { error: 'Authentication required' });
+    }
+    
+    const data = await request.formData();
+    const message = data.get('input') as string;
+    const recipe = data.get('recipe') as string;
+    
+    const response = await askCookingQuestion(message, recipe);
+    return { type: response[0], message: response[1] };
+  }
+};
+```
+
+**Form Usage**:
+```svelte
+<form method="POST" use:enhance={({ formData, cancel }) => {
+  // Handle form submission
+  return async ({ result, update }) => {
+    if (result.type === 'success') {
+      // Access result.data from the action
+    }
+    await update();
+  };
+}}>
+  <input name="input" />
+  <button type="submit">Submit</button>
+</form>
+```
+
+### Decision Matrix
+
+| Scenario | Use `+server.ts` | Use `+page.server.ts` |
+|----------|------------------|----------------------|
+| Reusable API endpoint | ✅ | ❌ |
+| Form submission for one page | ❌ | ✅ |
+| Remote third-party API calls | ✅ | ⚠️ (can work, but less ideal) |
+| Progressive enhancement needed | ❌ | ✅ |
+| Called from multiple pages | ✅ | ❌ |
+| Called from client-side `fetch()` | ✅ | ❌ |
+| Page-specific data loading | ❌ | ✅ |
+| Building a REST API | ✅ | ❌ |
+
+### Best Practices
+
+#### For Remote API Integrations (e.g., OpenAI)
+
+**Always use `+server.ts`** when calling remote REST APIs:
+
+1. **Security**: API keys must stay server-side. `+server.ts` ensures secrets never reach the client.
+2. **Reusability**: One endpoint can serve multiple pages and use cases.
+3. **Flexibility**: Better control over request/response format, error handling, and retries.
+
+```typescript
+// ✅ Good: API endpoint in /api/recipes/+server.ts
+export const POST: RequestHandler = async ({ request, locals }) => {
+  // API key stays server-side
+  const response = await fetch('https://api.openai.com/v1/...', {
+    headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}` }
+  });
+  return json({ data: await response.json() });
+};
+
+// ❌ Bad: Never call remote APIs directly from client
+// This would expose your API key!
+```
+
+#### File Organization
+
+- **API Endpoints**: Place all `+server.ts` files in `src/routes/api/*`
+  - Example: `src/routes/api/recipes/+server.ts`
+  - Example: `src/routes/api/share/[token]/+server.ts`
+
+- **Page Actions**: Place `+page.server.ts` alongside the page component
+  - Example: `src/routes/recipes/[id]/+page.server.ts`
+  - Example: `src/routes/suggestions/recipe/+page.server.ts`
+
+#### Serverless Considerations
+
+Both file types work in serverless environments (Vercel Edge, Netlify Functions), but:
+
+- **`+server.ts`**: Better for caching and CDN optimization
+- **`+page.server.ts`**: Benefits from SvelteKit's built-in form handling and progressive enhancement
+- Both have access to `locals`, private env vars, and server-only code
+- Both are deployed as serverless functions
+
+### Current Codebase Patterns
+
+This project uses both patterns appropriately:
+
+- **`/api/recipes/+server.ts`**: Reusable REST endpoint for AI operations (called from multiple pages)
+- **`/recipes/[id]/+page.server.ts`**: Page-specific form action for recipe chat interface
+- **`/suggestions/recipe/+page.server.ts`**: Page-specific form action for recipe suggestions
+
+**Standardization Goal**: Migrate page-specific actions that call remote APIs to use `+server.ts` endpoints when the logic could be reused, while keeping `+page.server.ts` for truly page-specific form handling.
+
 ## 📴 Offline Service Worker
 
 The custom service worker in [`src/service-worker.js`](src/service-worker.js) keeps the PWA usable offline by combining cache-first static assets with network-first content fetches:
@@ -225,20 +404,24 @@ The custom service worker in [`src/service-worker.js`](src/service-worker.js) ke
 ```
 src/
 ├── lib/
-│   ├── api/            # Zod schemas, types, and services for remote and local/offline api functions
-│   ├── components/     # Reusable Svelte components
-│   ├── db/             # Database definitions
-│   │   ├── local.ts    # Primary DB (IndexedDB)
-│   │   └── remote.ts   # Supabase sync logic
-│   ├── queries/        # TanStack query functions
-│   ├── stores/         # Reactive stores (recipes, suggestions)
-│   ├── ui/             # UI components (bits-ui based)
-│   ├── types/          # TypeScript type definitions
-│   └── utils/          # Shared utility functions
+│   ├── api/              # Zod schemas, types, and services for remote and local/offline api functions
+│   ├── components/       # Reusable Svelte components
+│   ├── db/               # Database definitions -- deprecated
+│   │   ├── local.ts      # Primary DB (IndexedDB)
+│   │   └── remote.ts     # Supabase sync logic
+│   ├── queries/          # TanStack query functions
+│   ├── stores/           # Reactive stores (recipes, suggestions)
+│   ├── ui/               # UI components (bits-ui based)
+│   │   └── constants.ts  # Shared immutable variable constants
+│   ├── types/            # TypeScript type definitions -- deprecated
+│   ├── utils/            # Shared utility functions
+│   ├── db.ts             # Local Dexie database class
+│   └── types.ts          # Common type definitions, not API related
 ├── routes/
-│   ├── api/            # API endpoints (server-side)
-│   └── [pages]         # SvelteKit routes
-└── hooks.server.ts     # Server hooks (auth, etc.)
+│   ├── api/              # REST API endpoints
+│   └── [pages]           # SvelteKit routes
+├── hooks.server.ts       # Server hooks (auth, session, permissions, etc.)
+└── service-worker.js     # Offline service worker
 ```
 
 ## 🚀 Building & Deployment

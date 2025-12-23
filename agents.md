@@ -179,8 +179,7 @@ export type Recipe = z.infer<typeof RecipeSchema>;
 
 ## Architecture highlights (what matters to agents)
 
-- Client-first SvelteKit app. Local data lives in IndexedDB via Dexie: `src/lib/db/local.ts` (primary) and
-	the deprecated `src/lib/db.ts` (avoid editing unless migrating schema).
+- Client-first SvelteKit app. Local data lives in IndexedDB via Dexie: `src/lib/db.ts`
 - Reactive stores use small helpers (see `src/lib/stores/_utils.ts` -> `createLiveQueryStore`) and
 	derived/readable stores in `src/lib/stores/*.ts` (examples: `recipes.ts`, `suggestions.ts`).
 - Cloud sync uses Supabase for authorized users via `src/lib/supabaseClient.ts` (PUBLIC_SUPABASE_* envs).

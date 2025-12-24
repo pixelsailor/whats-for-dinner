@@ -131,7 +131,7 @@
 	$effect(() => {
 		if (recipe) {
 			app.view = 'idle';
-			
+
 			if (openedTimer) {
 				clearTimeout(openedTimer);
 				openedTimer = null;
@@ -320,17 +320,14 @@
 	// 	}
 	// });
 
-	function saveRecipeChanges() {
-		console.log('saveRecipeChanges');
-		
+	/**
+	 * Toggle the recipe's `is_favorite` status
+	 */
+	function toggleFavorite() {
+		if (!recipe) return;
+		recipe.is_favorite = !recipe.is_favorite;
+		saveChanges(true);
 	}
-
-	// function toggleFavorite() {
-	// 	console.log('toggleFavorite');
-	// 	if (!recipe) return;
-	// 	recipe.is_favorite = !recipe.is_favorite;
-	// 	saveModifiedRecipe(recipe);
-	// }
 
 	/**
 	 * Save the modified recipe to the database
@@ -384,8 +381,10 @@
 	 * 
 	 * If available, upload the recipe to the cloud and sync the local database.
 	 * If unavailable or the upload fails, save the recipe locally.
+	 * 
+	 * @param disableToast - If true, successful toast notifications will not be shown
 	 */
-	async function saveChanges() {
+	async function saveChanges(disableToast: boolean = false) {
 		if (!recipe) return;
 		app.view = 'loading';
 
@@ -409,7 +408,9 @@
 			if (syncError) {
 				toast.info('Recipe saved locally but failed to sync to cloud');
 			} else {
-				toast.success('Recipe saved');
+				if (!disableToast) {
+					toast.success('Recipe saved');
+				}
 			}
 		} catch (err) {
 			console.error('Local save failed', err);
@@ -466,7 +467,12 @@
 		<AppBar.Text primary={recipe?.title || ''} />
 		<AppBar.End>
 			{#if recipe }
-				{#if app.view === 'loading'}
+				<!-- {#if app.view === 'loading'}
+					<div class="grid place-content-center w-10 h-10">
+						<ProgressSpinner size="xs" />
+					</div>
+				{/if} -->
+				{#if openedTimer}
 					<div class="grid place-content-center w-10 h-10">
 						<ProgressSpinner size="xs" />
 					</div>
@@ -479,10 +485,7 @@
 				<PxlIconButton
 					aria-label={recipe?.is_favorite ? 'Remove from favorites' : 'Add to favorites'}
 					tooltip={recipe?.is_favorite ? 'Remove from favorites' : 'Add to favorites'}
-					onclick={() => {
-						if (!recipe) return;
-						recipe!.is_favorite = !recipe.is_favorite;
-					}}
+					onclick={toggleFavorite}
 				>
 					{#if recipe?.is_favorite}
 						<FavoriteFilledIcon size="xs" />
@@ -490,7 +493,7 @@
 						<FavoriteIcon size="xs" />
 					{/if}
 				</PxlIconButton>
-				<PxlIconButton
+				<!-- <PxlIconButton
 					aria-label={isLocked ? 'Unlock recipe' : 'Lock recipe'}
 					tooltip={isLocked ? 'Unlock to make changes' : 'Lock to prevent changes'}
 					onclick={() => { isLocked = !isLocked }}
@@ -500,7 +503,7 @@
 					{:else}
 						<UnlockIcon size="xs" />
 					{/if}
-				</PxlIconButton>
+				</PxlIconButton> -->
 				<PxlIconButton
 					aria-label="Delete recipe"
 					tooltip="Delete recipe"

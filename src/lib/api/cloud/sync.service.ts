@@ -86,18 +86,17 @@ export class SyncService {
    * @returns The id of the uploaded recipe.
    */
   async uploadRecipeAndSyncLocal(recipe: SavedRecipe): Promise<string | null> {
-    const uploaded = await this.cloud.uploadLocalRecipe(recipe);
-    if (!uploaded) return null;
-
-    const updatedLocal: SavedRecipe = {
-      ...uploaded,
+    const payload: SavedRecipe = {
+      ...recipe,
       synced: true,
       sync_error: undefined,
     };
+    const uploaded = await this.cloud.uploadLocalRecipe(payload);
+    if (!uploaded) return null;
 
     // Update the local database with the uploaded recipe
-    await db.recipes.put(updatedLocal);
-    return updatedLocal.id;
+    await db.recipes.put(uploaded);
+    return uploaded.id;
   }
 
   /**
@@ -107,16 +106,15 @@ export class SyncService {
    */
   async uploadRecipes(recipes: SavedRecipe[]): Promise<void> {
     if (!recipes.length) return;
-
-    const uploaded = await this.cloud.uploadAllLocalRecipes(recipes);
-
-    const updatedLocals: SavedRecipe[] = (uploaded ?? recipes).map((recipe) => ({
+    const payload: SavedRecipe[] = recipes.map((recipe) => ({
       ...recipe,
       synced: true,
       sync_error: undefined,
     }));
+    const uploaded = await this.cloud.uploadAllLocalRecipes(payload);
+    if (!uploaded) return;
 
-    await db.recipes.bulkPut(updatedLocals);
+    await db.recipes.bulkPut(uploaded);
   }
 
   /**

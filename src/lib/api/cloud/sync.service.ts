@@ -57,12 +57,15 @@ export class SyncService {
 
   /**
    * Upload a single recipe to the cloud.
+   * This method has limited functionality as it does not update the local database.
+   * For cloud-only uploads, consider using the CloudService.uploadLocalRecipe method instead.
    * 
    * @param recipe - The recipe to upload.
+   * @returns The id of the uploaded recipe.
    */
-  async uploadRecipe(recipe: SavedRecipe): Promise<void> {
+  async uploadRecipe(recipe: SavedRecipe): Promise<string | null> {
     const uploaded = await this.cloud.uploadLocalRecipe(recipe);
-    if (!uploaded) return;
+    if (!uploaded) return null;
 
     const updatedLocal: SavedRecipe = {
       ...uploaded,
@@ -70,7 +73,31 @@ export class SyncService {
       sync_error: undefined,
     };
 
+    return updatedLocal.id;
+  }
+
+  /**
+   * Upload a single recipe to the cloud.
+   * Automatically updates/syncs the local database with the uploaded recipe.
+   * 
+   * Supabase will automatically update the `last_synced_at` timestamp.
+   * 
+   * @param recipe - The recipe to upload.
+   * @returns The id of the uploaded recipe.
+   */
+  async uploadRecipeAndSyncLocal(recipe: SavedRecipe): Promise<string | null> {
+    const uploaded = await this.cloud.uploadLocalRecipe(recipe);
+    if (!uploaded) return null;
+
+    const updatedLocal: SavedRecipe = {
+      ...uploaded,
+      synced: true,
+      sync_error: undefined,
+    };
+
+    // Update the local database with the uploaded recipe
     await db.recipes.put(updatedLocal);
+    return updatedLocal.id;
   }
 
   /**

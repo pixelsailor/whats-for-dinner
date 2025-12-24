@@ -1,7 +1,7 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import randomBytes from '$lib/utils/randombytes';
 
-import type { SavedRecipe } from '../recipe/recipe.types';
+import type { Recipe, SavedRecipe } from '../recipe/recipe.types';
 
 type AugmentedSavedRecipe = SavedRecipe & {
   last_synced_at: string;
@@ -156,7 +156,7 @@ export class CloudService {
    * 
    * @param recipe - The recipe to sync.
    */
-  async uploadLocalRecipe(recipe: SavedRecipe): Promise<SavedRecipe | null> {
+  async uploadLocalRecipe(recipe: Recipe | SavedRecipe): Promise<SavedRecipe> {
     const { data, error } = await this.supabase
       .from('recipes')
       .upsert(recipe)

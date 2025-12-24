@@ -7,8 +7,12 @@ import { CloudService } from '$lib/api/cloud';
 
 /**
  * Manually update the recipe data with required properties for local storage
+ * 
+ * @param recipe - The recipe to update.
+ * @param error - The error message if the recipe could not be saved to the cloud.
+ * @returns The updated recipe.
  */
-function prepRecipeData(recipe: Recipe | SavedRecipe): SavedRecipe {
+function prepLocalRecipeData(recipe: Recipe | SavedRecipe, error?: string): SavedRecipe {
   const now = new Date();
   const newRecipe: SavedRecipe = {
     ...recipe,
@@ -18,9 +22,18 @@ function prepRecipeData(recipe: Recipe | SavedRecipe): SavedRecipe {
     version: 1,
     is_current: true,
     is_favorite: false,
+    synced: false,
+    sync_error: error ?? undefined,
   };
   return newRecipe;
 };
+
+function convertTimeToMinutes(hours: string, minutes: string): string {
+  const hoursInt = parseInt(hours.trim());
+  const minutesInt = parseInt(minutes.trim());
+  const time = hoursInt * 60 + minutesInt;
+  return time.toString();
+}
 
 export const actions: Actions = {
   /**
@@ -35,23 +48,26 @@ export const actions: Actions = {
 
     const data = await request.formData();
 
-    const prepTime: number = parseInt(data.get('prep_time_hours')?.toString().trim() ?? '0') * 60 + parseInt(data.get('prep_time_minutes')?.toString().trim() ?? '0');
-    const cookTime: number = parseInt(data.get('cook_time_hours')?.toString().trim() ?? '0') * 60 + parseInt(data.get('cook_time_minutes')?.toString().trim() ?? '0');
+    const prepTime: string[] = [convertTimeToMinutes(data.get('prep_time_hours')?.toString().trim() ?? '0', data.get('prep_time_minutes')?.toString().trim() ?? '0')];
+    const cookTime: string[] = [convertTimeToMinutes(data.get('cook_time_hours')?.toString().trim() ?? '0', data.get('cook_time_minutes')?.toString().trim() ?? '0')];
 
+    // Initialize the recipe data with the default values -- assumes cloud storage is available
     let recipe: Recipe | SavedRecipe = {
 			title: data.get('title')?.toString().trim() ?? '',
 			short_description: data.get('short_description')?.toString().trim() ?? '',
 			description: data.get('description')?.toString().trim() ?? '',
 			yield: data.get('yield')?.toString().trim() ?? '',
       prep_time: prepTime,
-      cook_time: cookTime,
+      cook_time: cookTime,  
 			ingredients: data.get('ingredients')?.toString().trim() ?? '',
 			instructions: data.get('instructions')?.toString().trim() ?? '',
 			notes: data.get('notes')?.toString().trim() ?? '',
 			tags: data.get('tags')?.toString().split(',') || [],
       is_current: true,
       is_favorite: false,
-      version: 1
+      version: 1,
+      synced: true,
+      sync_error: undefined,
 		};
 
 		const aiAllowed = Boolean(permissions?.ai_assistance);
@@ -85,13 +101,13 @@ export const actions: Actions = {
         // return fail(500, { error: 'There was a problem saving the recipe' });
 
         // In the event of an error, prep for local storage by updating remaining properties
-        savedRecipe = prepRecipeData(recipe);
+        savedRecipe = prepLocalRecipeData(recipe, err instanceof Error ? err.message : 'Unknown error');
       }
     } else {
       console.log('Cloud storage is not allowed');
       
       // If cloud storage is unavailable, prep for local storage by updating remaining properties
-      savedRecipe = prepRecipeData(recipe);
+      savedRecipe = prepLocalRecipeData(recipe);
     }
 
     return savedRecipe;

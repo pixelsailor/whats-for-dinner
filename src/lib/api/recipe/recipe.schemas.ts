@@ -149,10 +149,9 @@ export const RecipeSchema = RecipeSummarySchema.extend({
 	  prep: z.string().optional().describe('Preparation time, may include marinating or chilling.'),
 	  cook: z.string().optional(),
 	  total: z.string().optional(),
-	}).optional().describe('Support for legacy "time" object. Use "prep_time", "cook_time", and "total_time" instead.'),
-	prep_time: z.number().nullable().optional().describe('Preparation time in minutes, may include marinating or chilling.'),
-	cook_time: z.number().nullable().optional().describe('Cooking time in minutes'),
-	total_time: z.number().nullable().optional().describe('Total time: preparation + cooking. Ignored -- calculated from prep_time and cook_time.'),
+	}).optional().describe('Support for legacy "time" object. Deprecated. Use "prep_time" and "cook_time" instead.'),
+	prep_time: z.array(z.string()).optional().describe('Preparation time in minutes, may include marinating or chilling. Use a tuple for range values, e.g. "10-15 minutes" is represented as ["10", "15"]'),
+	cook_time: z.array(z.string()).optional().describe('Cooking time in minutes. Use a tuple for range values, e.g. "10-15 minutes" is represented as ["10", "15"]'),
 	notes: z.string().optional().describe('Plain Markdown. DO NOT use "Notes" as the heading.')
 });
 

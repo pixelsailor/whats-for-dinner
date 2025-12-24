@@ -56,14 +56,13 @@ export async function getSavedRecipe(id: string): Promise<SavedRecipe> {
  * $recipe.data; // { id: '123', name: 'Recipe 1' }
  * ```
  */
-export const singleRecipeStore = (id: string) =>
-	createLiveQueryStore(async () => {
-		const recipe = await db.recipes.get(id) as SavedRecipe | undefined;
-		if (!recipe) {
-			throw new Error(`Recipe with id "${id}" not found.`);
-		}
-		return recipe;
-	});
+export const singleRecipeStore = (id: string) => createLiveQueryStore(async () => {
+	const recipe = await db.recipes.get(id) as SavedRecipe | undefined;
+	if (!recipe) {
+		throw new Error(`Recipe with id "${id}" not found.`);
+	}
+	return recipe;
+});
 
 /** Returns recipes that have been deleted */
 export const deletedRecipes = createLiveQueryStore(async () => {

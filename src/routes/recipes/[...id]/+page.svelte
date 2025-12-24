@@ -16,17 +16,17 @@
 	import { CloudService, SyncService } from '$lib/api/cloud';
 	import type { SavedRecipe } from '$lib/api/recipe';
 	import { db } from '$lib/db';
-	import { getSavedRecipe, singleRecipeStore } from '$lib/stores/recipes';
+	import { singleRecipeStore } from '$lib/stores/recipes';
 	import type { PromptContext, ViewState } from '$lib/types';
 	import { AppBar } from '$lib/ui/AppBar';
-	import Button from '$lib/ui/Button/Button.svelte';
+	// import Button from '$lib/ui/Button/Button.svelte';
 	import EditableRecipe from '$lib/ui/EditableRecipe.svelte';
 	// import CloseIcon from '$lib/ui/Icons/CloseIcon.svelte';
 	import CloudBackupIcon from '$lib/ui/Icons/CloudBackupIcon.svelte';
 	import FavoriteIcon from '$lib/ui/Icons/FavoriteIcon.svelte';
 	import FavoriteFilledIcon from '$lib/ui/Icons/FavoriteFilledIcon.svelte';
-	import LockIcon from '$lib/ui/Icons/LockIcon.svelte';
-	import UnlockIcon from '$lib/ui/Icons/UnlockIcon.svelte';
+	// import LockIcon from '$lib/ui/Icons/LockIcon.svelte';
+	// import UnlockIcon from '$lib/ui/Icons/UnlockIcon.svelte';
 	import PxlIconButton from '$lib/ui/PxlIconButton.svelte';
 	import PageHeader from '$lib/ui/PageHeader.svelte';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
@@ -131,6 +131,8 @@
 	$effect(() => {
 		if (recipe) {
 			app.view = 'idle';
+
+			runMigration()
 
 			if (openedTimer) {
 				clearTimeout(openedTimer);
@@ -273,10 +275,6 @@
 		if (openedTimer) clearTimeout(openedTimer);
 	});
 	
-	// $effect(() => {
-	// 	loadRecipe(id);
-	// });
-
 	// React to user prompts
 	// $effect(() => {
 	// 	if (form && form.error === undefined) {
@@ -460,6 +458,128 @@
 			console.error(err);
 		}
 	}
+
+	/**
+	 * Check if the recipe uses old `time` object. Run the migration if necessary.
+	*/
+	function runMigration() {
+		if (!recipe) {
+			return;
+		} else if (recipe.prep_time && recipe.cook_time) {
+			if (recipe.prep_time.length && typeof recipe.prep_time !== 'string' && recipe.cook_time.length && typeof recipe.cook_time !== 'string') {
+				return;
+			}
+		}
+		console.log('runMigration', recipe.prep_time, recipe.cook_time);
+
+		// Convert recipes that used number values for prep and cook times to string arrays
+		if (typeof recipe.prep_time === 'number') {
+			recipe.prep_time = [(recipe.prep_time as number).toString()];
+		}
+		if (typeof recipe.cook_time === 'number') {
+			recipe.cook_time = [(recipe.cook_time as number).toString()];
+		}
+
+		if (recipe?.time && (recipe.prep_time === undefined || recipe.cook_time === undefined)) {
+			recipe.prep_time = recipe.time.prep ? convertAiTime(recipe.time.prep) : ['0'];
+			recipe.cook_time = recipe.time.cook ? convertAiTime(recipe.time.cook) : ['0'];
+			recipe.time = undefined;
+		}
+		
+		console.log('prep_time', recipe.prep_time);
+		console.log('cook_time', recipe.cook_time);
+		
+		saveChanges(true);
+	}
+
+	/**
+	 * Convert a AI generated time string to minutes
+	 * 
+	 * Example: "10-15 minutes" -> ["10", "15"]
+	 * Example: "10 minutes" -> ["10"]
+	 * Example: "10 hours" -> ["600"]
+	 * Example: "10 hours 10 minutes" -> ["610"]
+	 * Example: "10 minutes to 1 hour 10 minutes" -> ["10", "70"]
+	 * Example: "0h 10m" -> ["10"]
+	 * Example: "1:25" -> ["85"]
+	 * 
+	 * The original AI generated recipes lacked a definitive structure for time related fields.
+	 * This function parses the string and returns the time in minutes.
+	 * 
+	 * @param value - The time string to convert
+	 * @returns The time in minutes. Tuples are returned for ranges.
+	 */
+	function convertAiTime(value: string | undefined): string[] {
+		if (!value) return ['0'];
+
+		console.log('convertAiTime', value);
+		const ALPHA_RX = /^[a-zA-Z]+$/;
+		// const DIGITS_RX = /^[0-9]+$/;
+		const HOURS_RX = /(\d+)\s?h|(\d+):/;
+		const MINUTES_RX = /(\d+)\s?m|\d+:(\d+)/;
+
+		let isRange = false;
+		let isHours = false;
+		let isMinutes = false;
+
+		let times: string[] = [];
+
+		if (value.includes('-') || value.includes('to')) {
+			isRange = true;
+		}
+		if (value.includes('hours')) {
+			isHours = true;
+		}
+		if (value.includes('minutes')) {
+			isMinutes = true;
+		}
+
+		if (isRange) {
+			const splitOn = value.includes('-') ? '-' : 'to';
+			value.split(splitOn).forEach(time => {
+				// If the value does not contain any alphabetic characters we can't determine the unit of
+				// measure, so we'll mark it with a `!` and return after checking the other value.
+				if (!ALPHA_RX.test(time)) {
+					times.push(`!${time}`);
+				} else {
+					let hours = 0;
+					let minutes = 0;
+					if (isHours) {
+						// Convert hours to minutes
+						hours = parseInt(HOURS_RX.exec(time)?.[1] ?? '0');
+					}
+					if (isMinutes) {
+						// get minutes
+						minutes = parseInt(MINUTES_RX.exec(time)?.[1] ?? '0');
+					}
+					times.push((hours * 60 + minutes).toString());
+				}
+			});
+
+			// Check back on the first value to see if it was flagged.
+			if (times[0].startsWith('!')) {
+				// get the value without the `!`
+				const verified = times[0].substring(1);
+				// If the second value is greater than 59, we can assume it's in hours and convert it to minutes.
+				if (parseInt(times[1]) > 59) {
+					times[0] = `${parseInt(verified) * 60}`;
+				}
+			}
+		} else {
+			let hours = 0;
+			let minutes = 0;
+			if (isHours) {
+				hours = parseInt(HOURS_RX.exec(value)?.[1] ?? '0');
+			}
+			if (isMinutes) {
+				minutes = parseInt(MINUTES_RX.exec(value)?.[1] ?? '0');
+			}
+			times.push((hours * 60 + minutes).toString());
+		}
+
+		console.log('convertAiTime', value, times);
+		return times;
+	}
 </script>
 
 <PageHeader>
@@ -467,12 +587,7 @@
 		<AppBar.Text primary={recipe?.title || ''} />
 		<AppBar.End>
 			{#if recipe }
-				<!-- {#if app.view === 'loading'}
-					<div class="grid place-content-center w-10 h-10">
-						<ProgressSpinner size="xs" />
-					</div>
-				{/if} -->
-				{#if openedTimer}
+				{#if app.view === 'loading'}
 					<div class="grid place-content-center w-10 h-10">
 						<ProgressSpinner size="xs" />
 					</div>

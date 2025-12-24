@@ -16,18 +16,20 @@
 	let textareaRef: HTMLTextAreaElement | null = $state(null);
 
 	// Handle recipe times
-	let prepTimeHours = $derived(() => recipe?.prep_time ? Math.floor(recipe.prep_time / 60) : 0);
-	let prepTimeMinutes = $derived(() => recipe?.prep_time ? recipe.prep_time % 60 : 0);
-	let cookTimeHours = $derived(() => recipe?.cook_time ? Math.floor(recipe.cook_time / 60) : 0);
-	let cookTimeMinutes = $derived(() => recipe?.cook_time ? recipe.cook_time % 60 : 0);
+	// let prepTimeHours = $derived.by<number>(() => recipe?.prep_time && typeof recipe.prep_time === 'number' ? Math.floor(recipe.prep_time / 60) : 0);
+	// let prepTimeMinutes = $derived.by<number>(() => recipe?.prep_time && typeof recipe.prep_time === 'number' ? recipe.prep_time % 60 : 0);
+	// let cookTimeHours = $derived.by<number>(() => recipe?.cook_time && typeof recipe.cook_time === 'number' ? Math.floor(recipe.cook_time / 60) : 0);
+	// let cookTimeMinutes = $derived.by<number>(() => recipe?.cook_time && typeof recipe.cook_time === 'number' ? recipe.cook_time % 60 : 0);
 
-	// Inferred total time
-	let totalTime: string = $derived.by(() => {
-		const totalTime = prepTimeMinutes() + cookTimeMinutes() + prepTimeHours() * 60 + cookTimeHours() * 60;
-		const totalHours = Math.floor(totalTime / 60);
-		const totalMinutes = totalTime % 60;
-		return `${totalHours}h ${totalMinutes}m`;
-	});
+	// // Inferred total time
+	// let totalTime = $derived.by<string>(() => {
+	// 	const totalTime = prepTimeMinutes + cookTimeMinutes + prepTimeHours * 60 + cookTimeHours * 60;
+	// 	const totalHours = Math.floor(totalTime / 60);
+	// 	const totalMinutes = totalTime % 60;
+	// 	const total = `${totalHours}h ${totalMinutes}m`;
+	// 	console.log('totalTime', totalTime, totalHours, totalMinutes, total);
+	// 	return total;
+	// });
 
 	const dispatch = createEventDispatcher<{
 		commit: { field: keyof Recipe; oldValue: string; newValue: string };
@@ -40,13 +42,13 @@
 		}
 	});
 	
-	onMount(() => {
-		// Convert legacy time object to time fields
-		if (recipe && recipe.time) {
-			recipe.prep_time = recipe.time.prep ? parseInt(recipe.time.prep.split(':')[0].trim()) * 60 + parseInt(recipe.time.prep.split(':')[1].trim()) : 0;
-			recipe.cook_time = recipe.time.cook ? parseInt(recipe.time.cook.split(':')[0].trim()) * 60 + parseInt(recipe.time.cook.split(':')[1].trim()) : 0;
-		}
-	});
+	// onMount(() => {
+	// 	// Convert legacy time object to time fields
+	// 	if (recipe && recipe.time) {
+	// 		recipe.prep_time = recipe.time.prep ? parseInt(recipe.time.prep.split(':')[0].trim()) * 60 + parseInt(recipe.time.prep.split(':')[1].trim()) : 0;
+	// 		recipe.cook_time = recipe.time.cook ? parseInt(recipe.time.cook.split(':')[0].trim()) * 60 + parseInt(recipe.time.cook.split(':')[1].trim()) : 0;
+	// 	}
+	// });
 
 	// Helper functions
 	function startEdit(field: keyof Recipe) {
@@ -185,6 +187,17 @@
 		const input = event.target as HTMLInputElement;
 		input.select();
 	}
+
+	function humanizeTime(time: string): string {
+		const hours = Math.floor(parseInt(time) / 60);
+		const minutes = parseInt(time) % 60;
+		
+		if (hours > 0) {
+			return `${hours} hours ${minutes} minutes`;
+		} else {
+			return `${minutes} minutes`;
+		}
+	}
 </script>
 
 <div class="recipe-container">
@@ -273,7 +286,13 @@
 		<ul class="px-2">
 			<li class="my-1 flex flex-row gap-2 items-center">
 				<span class="heading">Prep time:</span>
-				{#if editState.field === 'prep_time'}
+				{#if recipe.prep_time && recipe.prep_time.length > 1}
+					<span>{humanizeTime(recipe.prep_time[0])} to {humanizeTime(recipe.prep_time[1])}</span>
+				{:else}
+					<span>{humanizeTime(recipe.prep_time?.[0] ?? '')}</span>
+				{/if}
+				<!-- TODO: Add prep time editing -->
+				<!-- {#if editState.field === 'prep_time'}
 					<input type="number" id="prepHours" name="prep_time_hours" bind:value={prepTimeHours} class="w-16" min="0" onfocus={(event) => selectAll(event)} />
 					<span>:</span>
 					<input type="number" id="prepMinutes" name="prep_time_minutes" bind:value={prepTimeMinutes} class="w-16" min="0" max="59" onfocus={(event) => selectAll(event)} />
@@ -283,11 +302,16 @@
 					</div>
 				{:else}
 					<span role="button" tabindex={locked ? -1 : 0} aria-disabled={locked} onclick={() => startEdit('prep_time')} onkeydown={(event) => handleEditableKeydown(event, 'prep_time')}>{prepTimeHours()}h {prepTimeMinutes()}m</span>
-				{/if}
+				{/if} -->
 			</li>
 			<li class="my-1 flex flex-row gap-2 items-center">
 				<span class="heading">Cook time:</span>
-				{#if editState.field === 'cook_time'}
+				{#if recipe.cook_time && recipe.cook_time.length > 1}
+					<span>{humanizeTime(recipe.cook_time[0])} to {humanizeTime(recipe.cook_time[1])}</span>
+				{:else}
+					<span>{humanizeTime(recipe.cook_time?.[0] ?? '')}</span>
+				{/if}
+				<!-- {#if editState.field === 'cook_time'}
 					<input type="number" id="cookHours" name="cook_time_hours" bind:value={cookTimeHours} class="w-16" min="0" onfocus={(event) => selectAll(event)} />
 					<span>:</span>
 					<input type="number" id="cookMinutes" name="cook_time_minutes" bind:value={cookTimeMinutes} class="w-16" min="0" max="59" onfocus={(event) => selectAll(event)} />
@@ -297,9 +321,9 @@
 					</div>
 				{:else}
 					<span role="button" tabindex={locked ? -1 : 0} aria-disabled={locked} onclick={() => startEdit('cook_time')} onkeydown={(event) => handleEditableKeydown(event, 'cook_time')}>{cookTimeHours()}h {cookTimeMinutes()}m</span>
-				{/if}
+				{/if} -->
 			</li>
-			<li class="my-1"><span class="heading">Total time:</span> <span>{totalTime}</span></li>
+			<!-- <li class="my-1"><span class="heading">Total time:</span> <span>{humanizeTime(totalTime)}</span></li> -->
 		</ul>
 	</div>
 

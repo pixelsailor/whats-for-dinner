@@ -1,29 +1,26 @@
 <script lang="ts">
-	// import { Time } from '@internationalized/date';
-	// import { type TimeValue, TimeField } from 'bits-ui';
 	import { toast } from 'svelte-sonner';
-	import { v4 as uuid } from 'uuid';
 	
+	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
 	
-	import { SyncService } from '$lib/api/cloud/sync.service';
-	import { CloudService } from '$lib/api/cloud/cloud.service';
 	import type { Recipe, SavedRecipe } from '$lib/api/recipe';
-	import { db } from '$lib/db';
+	import { db } from '$lib/db.js';
 	import Button from '$lib/ui/Button/Button.svelte';
 	// import RecipeTime from '$lib/ui/RecipeTime.svelte';
 	// import PageHeader from '$lib/ui/PageHeader.svelte';
 	// import { AppBar } from '$lib/ui/AppBar';
 
 	let { data } = $props();
-	
+
+	let status = $state<'idle' | 'saving' | 'saved' | 'error'>('idle');
+
 	/**
 	 * Get current user permissions (cloud and AI access) from local storage if available.
 	 * Fallback: if using Supabase, these would be attached to user records in 'profiles'.
 	 * This mechanism assumes local-first/offline by default.
 	 */
 	let hasAssistedRecipeAccess = $derived(data.permissions?.aiAssistedRecipe.allowed ?? false);
-	let hasCloudStorageAccess = $derived(data.permissions?.cloudSync.allowed ?? false);
 
 	let form = $state<Recipe>({
 		title: '',
@@ -35,7 +32,8 @@
 		total_time: null,
 		ingredients: '',
 		instructions: '',
-		tags: []
+		tags: [],
+		notes: '',
 	});
 
 	let servingRange = $state([1, 10]);
@@ -43,117 +41,14 @@
 	let prepTimeMinutes = $state<number>(0);
 	let cookTimeHours = $state<number>(0);
 	let cookTimeMinutes = $state<number>(0);
-	let tags = $state<string>('');
 
-	let status = $state<'idle' | 'saving' | 'saved' | 'error'>('idle');
+	let tags = $state<string>('');
 
 	// Parse the `Slider` component as a string
 	// function insertServingValue(): string {
 	// 	form.yield = 'Serves ' + ((servingRange[1] - servingRange[0] === 0) ? `${servingRange[0]}` : servingRange.join(' to '));
 	// 	return form.yield;
 	// }
-
-	/**
-	 * Convert form fields from hours and minutes to a string format
-	 */
-	// function humanizeTimes() {
-	// 	let cookStr = '';
-	// 	if (cookTime.hour > 0) {
-	// 		cookStr += `${cookTime.hour} ${cookTime.hour > 1 ? 'hours ' : 'hour '}`
-	// 	}
-	// 	if (cookTime.minute > 0) {
-	// 		cookStr += `${cookTime.minute} ${cookTime.minute > 1 ? 'minutes' : 'minute'}`
-	// 	}
-	// 	form.cook_time = cookStr;
-		
-	// 	let prepStr = '';
-	// 	if (prepTime.hour > 0) {
-	// 		prepStr += `${prepTime.hour} ${prepTime.hour > 1 ? 'hours ' : 'hour '}`
-	// 	}
-	// 	if (prepTime.minute > 0) {
-	// 		prepStr += `${prepTime.minute} ${prepTime.minute > 1 ? 'minutes' : 'minute'}`
-	// 	}
-	// 	form.prep_time = prepStr;
-	// }
-
-	// Checks for empty form values. If false, can cancel server query and handle in browser
-	// function hasEmptyFields(): boolean {
-	// 	const missingFields = [
-	// 		'short_description',
-	// 		'yield',
-	// 		'prep_time',
-	// 		'cook_time',
-	// 		'total_time',
-	// 		'tags'
-	// 	].filter((field) => {
-	// 		const value = form[field as keyof Recipe];
-	// 		return !value || (Array.isArray(value) && value.length === 0);
-  //   });
-
-	// 	return missingFields.length > 0;
-	// }
-
-	// function updateRecipe(response: string) {
-	// 	const aiFields = JSON.parse(response);
-	// 	const formFields = JSON.parse(JSON.stringify(form));
-	// 	const recipe = {
-	// 		...formFields,
-	// 		...aiFields
-	// 	};
-	// 	saveRecipe(recipe);
-	// }
-
-	/**
-	 * Save to the User's recipe book
-	 */
-	async function saveRecipe(recipe?: Recipe) {
-		console.log('saveRecipe');
-		status = 'saving';
-
-		if (hasAssistedRecipeAccess) {
-			toast.info('AI assisted recipes are not yet available');
-			
-			// TODO: Send recipe to AI service for assistance. Should add details for missing fields
-			// including short_description, description, tags, yield, prep_time, and cook_time.
-		}
-
-		form.tags = tags.split(',').map((tag) => tag.trim());
-
-		const now = new Date();
-		const newRecipe: Recipe = JSON.parse(JSON.stringify(recipe || form)); // Clone proxy object
-		const recipeId = await generateUniqueRecipeId();
-		
-		newRecipe.prep_time = prepTimeHours * 60 + prepTimeMinutes;
-		newRecipe.cook_time = cookTimeHours * 60 + cookTimeMinutes;
-
-		const savedRecipe: SavedRecipe = {
-			...newRecipe,
-			id: recipeId,
-			
-			created_at: now.toISOString(),
-			last_opened: now.toISOString(),
-			version: 1,
-			is_current: true,
-			is_favorite: false,
-		};
-
-		try {
-			const id = await db.recipes.add(savedRecipe);
-			status = 'saved';
-			if (hasCloudStorageAccess && data.user?.id) {
-				const cloudSyncService = new SyncService(new CloudService(data.supabase, data.user.id));
-				cloudSyncService.uploadRecipe(savedRecipe).catch((error) => {
-					toast.error('Saved locally, sync failed');
-					console.error('err', error);
-				});
-			}
-			goto(`/recipes/${id}`, { replaceState: true });
-		} catch (err) {
-			console.error('err', err);
-			toast.error('Save failed');
-			status = 'error';
-		}
-	}
 
 	// Auto-resize textarea to fit content up to max-height
 	function autoResize(event: Event) {
@@ -162,52 +57,11 @@
 	  textarea.style.height = Math.min(textarea.scrollHeight, 420) + 'px';
 	}
 
-	async function saveRecipeToCloud(recipe: SavedRecipe) {
-		if (hasCloudStorageAccess && data.user?.id) {
-			const cloudSyncService = new SyncService(new CloudService(data.supabase, data.user.id));
-			try {
-				await cloudSyncService.uploadRecipe(recipe);
-			} catch (error) {
-				toast.error('Sync failed');
-			}
-		}
-	}
-
-	async function checkForIdCollision(id: string): Promise<boolean> {
-		const recipe = await db.recipes.get(id);
-		return !!recipe;
-	}
-
-	async function generateUniqueRecipeId(): Promise<string> {
-		const candidate = uuid();
-		if (await checkForIdCollision(candidate)) {
-			return generateUniqueRecipeId();
-		}
-		return candidate;
-	}
-
 	function validateForm(): string | null {
 		if (!form.title.trim()) return 'Title is required';
 		if (!form.ingredients.trim()) return 'Ingredients are required';
 		if (!form.instructions.trim()) return 'Instructions are required';
 		return null;
-	}
-
-	async function handleSubmit(event: Event) {
-		event.preventDefault();
-		status = 'saving';
-
-		// insertServingValue();
-		// humanizeTimes();
-
-		const validationError = validateForm();
-		if (validationError) {
-			status = 'error';
-			toast.error(validationError);
-			return;
-		}
-
-		await saveRecipe();
 	}
 
 	function selectAll(event: Event) {
@@ -218,7 +72,27 @@
 
 <div class="mx-auto max-w-5xl px-4 lg:px-8 py-8">
 	<h1 class="fluid-heading-05 mb-16">Create a new recipe</h1>
-	<form onsubmit={handleSubmit}>
+	<form method="POST" use:enhance={({ cancel }) => {
+		status = 'saving';
+		// const validationError = validateForm();
+		// if (validationError) {
+		// 	status = 'error';
+		// 	toast.error(validationError);
+		// 	cancel();
+		// 	return;
+		// }
+		return async ({ result }) => {
+			if (result.type === 'success' && result.data) {
+				await db.recipes.add(result.data as SavedRecipe);
+				status = 'saved';
+				toast.success('Recipe saved');
+				goto(`/recipes/${result.data?.id ?? ''}`, { replaceState: true });
+			} else {
+				status = 'error';
+				toast.error('Recipe save failed');
+			}
+		}
+	}}>
 		<div class="form-field mb-4 flex min-h-24 flex-col">
 			<label for="title" class="label mb-2">Recipe title <span class="required">*</span></label>
 			<input type="text" id="title" name="title" class="fluid-heading-04 bg-gray-100 dark:bg-gray-900" required bind:value={form.title} />

@@ -1,15 +1,15 @@
 <script lang="ts">
-	import { Button as BitsButton } from 'bits-ui';
+	// import { Button as BitsButton } from 'bits-ui';
 	// import { Tooltip } from "bits-ui";
-	import { getContext, onDestroy, onMount } from 'svelte';
-	import { slide } from 'svelte/transition';
-	import SvelteMarkdown from '@humanspeak/svelte-markdown';
+	import { getContext, onDestroy } from 'svelte';
+	// import { slide } from 'svelte/transition';
+	// import SvelteMarkdown from '@humanspeak/svelte-markdown';
 	import { toast } from 'svelte-sonner';
-	import { v4 as uuid } from 'uuid';
+	// import { v4 as uuid } from 'uuid';
 
-	import Tooltip from '$lib/ui/Tooltip.svelte';
+	// import Tooltip from '$lib/ui/Tooltip.svelte';
 
-	import { enhance } from '$app/forms';
+	// import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 
@@ -21,7 +21,7 @@
 	import { AppBar } from '$lib/ui/AppBar';
 	import Button from '$lib/ui/Button/Button.svelte';
 	import EditableRecipe from '$lib/ui/EditableRecipe.svelte';
-	import CloseIcon from '$lib/ui/Icons/CloseIcon.svelte';
+	// import CloseIcon from '$lib/ui/Icons/CloseIcon.svelte';
 	import CloudBackupIcon from '$lib/ui/Icons/CloudBackupIcon.svelte';
 	import FavoriteIcon from '$lib/ui/Icons/FavoriteIcon.svelte';
 	import FavoriteFilledIcon from '$lib/ui/Icons/FavoriteFilledIcon.svelte';
@@ -30,7 +30,7 @@
 	import PxlIconButton from '$lib/ui/PxlIconButton.svelte';
 	import PageHeader from '$lib/ui/PageHeader.svelte';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
-	import Prompt from '$lib/ui/Prompt.svelte';
+	// import Prompt from '$lib/ui/Prompt.svelte';
 	import TrashIcon from '$lib/ui/Icons/TrashIcon.svelte';
 	// import Recipe from '$lib/ui/Recipe.svelte';
 	import { networkStore } from '$lib/stores/network';
@@ -41,6 +41,9 @@
 	const markAsOpenedDelay = 5 * 60 * 1000;
 
 	let { data, form } = $props();
+
+	let cloudService: CloudService | undefined = $state(undefined);
+	let syncService: SyncService | undefined = $state(undefined);
 
 	let network = $derived($networkStore);
 	let aiCapability = $derived(
@@ -67,16 +70,19 @@
 		}
 	});
 
+	let hasCloudStorageAccess = $derived(data.permissions?.cloudSync.allowed ?? false);
+	// let hasAIAssistanceAccess = $derived(data.permissions?.aiAssistedRecipe.allowed ?? false);
+
 	let path = $derived(page.params.id as string);
 
 	let isShared = $derived(path.startsWith('shared/'));
 	let id = $derived(isShared ? path.split('/')[1] : path);
 
-	let promptInput = $state<string>();
+	// let promptInput = $state<string>();
 
-	let promptType = $state<PromptContext>();
+	// let promptType = $state<PromptContext>();
 
-	let conversationMsg = $state<string>();
+	// let conversationMsg = $state<string>();
 
 	let app = $state({
 		view: 'loading' as ViewState,
@@ -94,7 +100,7 @@
 	});
 
 	/** The current recipe from the store */
-	let recipe = $derived($recipeStore?.data);
+	let recipe = $derived<SavedRecipe | undefined>($recipeStore?.data ?? undefined);
 
 	// Responsible for passing the recipe to the FormData
 	let recipeJson = $derived(recipe ? JSON.stringify(recipe) : '');
@@ -124,6 +130,8 @@
 	 */
 	$effect(() => {
 		if (recipe) {
+			app.view = 'idle';
+			
 			if (openedTimer) {
 				clearTimeout(openedTimer);
 				openedTimer = null;
@@ -131,10 +139,11 @@
 			openedTimer = window.setTimeout(async () => {
 				try {
 					const ts = new Date().toISOString();
-					await db.recipes.update(id, { last_opened: ts });
-					if (recipe && recipe.id === id) {
+					if (hasCloudStorageAccess && syncService) {
 						recipe = { ...recipe, last_opened: ts } as SavedRecipe;
-						await saveRecipeToCloud(recipe);
+						await syncService.uploadRecipeAndSyncLocal(recipe!);
+					} else {
+						await db.recipes.update(id, { last_opened: ts });
 					}
 				} catch (err) {
 					console.error('Error updating last_opened:', err);
@@ -246,6 +255,19 @@
 // 					openedTimer = null;
 // 				}
 // 			});
+	
+	/**
+	 * Manage services for cloud and sync operations
+	 */
+	$effect(() => {
+		if (data.user?.id) {
+			cloudService = new CloudService(data.supabase, data.user.id);
+			syncService = new SyncService(cloudService);
+		} else if (cloudService || syncService) {
+			cloudService = undefined;
+			syncService = undefined;
+		}
+	});
 
 	onDestroy(() => {
 		if (openedTimer) clearTimeout(openedTimer);
@@ -256,79 +278,79 @@
 	// });
 
 	// React to user prompts
-	$effect(() => {
-		if (form && form.error === undefined) {
-			if (form.message === lastFormMessage) return;
+	// $effect(() => {
+	// 	if (form && form.error === undefined) {
+	// 		if (form.message === lastFormMessage) return;
 
-			const { type, message } = form;
-			promptType = type;
-			if (typeof message !== 'string') {
-				console.warn('Unexpected non-string form message payload', message);
-				return;
-			}
+	// 		const { type, message } = form;
+	// 		promptType = type;
+	// 		if (typeof message !== 'string') {
+	// 			console.warn('Unexpected non-string form message payload', message);
+	// 			return;
+	// 		}
 
-			lastFormMessage = message;
-			waiting = false;
+	// 		lastFormMessage = message;
+	// 		waiting = false;
 
-			if (type === 'assistance') {
-				conversationMsg = message;
-			} else {
-				// clone the snapshot to avoid "DataCloneError" in `saveModifiedRecipe()`
-				const originalRecipe = structuredClone($state.snapshot(recipe)) as SavedRecipe;
+	// 		if (type === 'assistance') {
+	// 			conversationMsg = message;
+	// 		} else {
+	// 			// clone the snapshot to avoid "DataCloneError" in `saveModifiedRecipe()`
+	// 			const originalRecipe = structuredClone($state.snapshot(recipe)) as SavedRecipe;
 
-				try {
-					recipe = JSON.parse(message) as SavedRecipe;
-					toast.dismiss();
-					toast.success(`"${recipe.title}" has unsaved changes`, {
-						duration: Number.POSITIVE_INFINITY,
-						action: {
-							label: 'Save changes',
-							onClick: () => saveModifiedRecipe(originalRecipe)
-						}
-					});
-				} catch (err) {
-					console.error(err);
-					toast.error('There was a problem parsing the recipe JSON');
-				}
-			}
-		} else if (form && form.error) {
-			waiting = false;
-			console.error(form.error);
-			toast.error(`${form.error}`);
-		}
-	});
+	// 			try {
+	// 				recipe = JSON.parse(message) as SavedRecipe;
+	// 				toast.dismiss();
+	// 				toast.success(`"${recipe.title}" has unsaved changes`, {
+	// 					duration: Number.POSITIVE_INFINITY,
+	// 					action: {
+	// 						label: 'Save changes',
+	// 						onClick: () => saveModifiedRecipe(originalRecipe)
+	// 					}
+	// 				});
+	// 			} catch (err) {
+	// 				console.error(err);
+	// 				toast.error('There was a problem parsing the recipe JSON');
+	// 			}
+	// 		}
+	// 	} else if (form && form.error) {
+	// 		waiting = false;
+	// 		console.error(form.error);
+	// 		toast.error(`${form.error}`);
+	// 	}
+	// });
 
 	function saveRecipeChanges() {
 		console.log('saveRecipeChanges');
 		
 	}
 
-	function toggleFavorite() {
-		console.log('toggleFavorite');
-		if (!recipe) return;
-		recipe.is_favorite = !recipe.is_favorite;
-		saveModifiedRecipe(recipe);
-	}
+	// function toggleFavorite() {
+	// 	console.log('toggleFavorite');
+	// 	if (!recipe) return;
+	// 	recipe.is_favorite = !recipe.is_favorite;
+	// 	saveModifiedRecipe(recipe);
+	// }
 
 	/**
 	 * Save the modified recipe to the database
 	 * @param recipe - The recipe to save
 	 */
-	async function saveModifiedRecipe(recipe: SavedRecipe) {
-		console.log('saveModifiedRecipe', recipe);
-		const now = new Date().toISOString();
-		recipe.updated_at = now;
+	// async function saveModifiedRecipe(recipe: SavedRecipe) {
+	// 	console.log('saveModifiedRecipe', recipe);
+	// 	const now = new Date().toISOString();
+	// 	recipe.updated_at = now;
 
-		db.recipes.update(recipe.id, recipe)
-			.then(async () => {
-				await saveRecipeToCloud(recipe);
-				toast.success('Recipe saved');
-			})
-			.catch((err) => {
-				toast.error('There was a problem saving the recipe');
-				console.error(err);
-			});
-	}
+	// 	db.recipes.update(recipe.id, recipe)
+	// 		.then(async () => {
+	// 			await saveRecipeToCloud(recipe);
+	// 			toast.success('Recipe saved');
+	// 		})
+	// 		.catch((err) => {
+	// 			toast.error('There was a problem saving the recipe');
+	// 			console.error(err);
+	// 		});
+	// }
 
 	/**
 	 * Save the modified recipe as a new version. Currently unused.
@@ -339,34 +361,75 @@
 	 * 
 	 * @todo This will require keeping a recipe for each version and I'm not sure if it's worth it
 	 */
-	async function saveModifiedRecipeAsNew(original: SavedRecipe, updated: SavedRecipe) {
-		await db.recipes.update(original.id, { is_current: false });
+	// async function saveModifiedRecipeAsNew(original: SavedRecipe, updated: SavedRecipe) {
+	// 	await db.recipes.update(original.id, { is_current: false });
 
-		const now = new Date().toISOString();
-		const newRecipe: SavedRecipe = {
-			...updated,
-			id: uuid(),
-			parent_id: original.parent_id ?? original.id,
-			version: original.version + 1,
-			is_current: true,
-			created_at: now,
-			last_opened: now,
-		};
+	// 	const now = new Date().toISOString();
+	// 	const newRecipe: SavedRecipe = {
+	// 		...updated,
+	// 		id: uuid(),
+	// 		parent_id: original.parent_id ?? original.id,
+	// 		version: original.version + 1,
+	// 		is_current: true,
+	// 		created_at: now,
+	// 		last_opened: now,
+	// 	};
 
-		await db.recipes.put(newRecipe);
-		return newRecipe;
-	}
+	// 	await db.recipes.put(newRecipe);
+	// 	return newRecipe;
+	// }
 
-	async function saveRecipeToCloud(recipe: SavedRecipe): Promise<void> {
-		if (data.permissions?.cloudSync.allowed && data.user?.id) {
-			const cloudSyncService = new SyncService(new CloudService(data.supabase, data.user.id));
+	/**
+	 * Save recipe changes
+	 * 
+	 * If available, upload the recipe to the cloud and sync the local database.
+	 * If unavailable or the upload fails, save the recipe locally.
+	 */
+	async function saveChanges() {
+		if (!recipe) return;
+		app.view = 'loading';
+
+		let candidate: SavedRecipe | undefined = undefined;
+		let syncError = false;
+
+		if (hasCloudStorageAccess && cloudService) {
 			try {
-				return cloudSyncService.uploadRecipe(recipe);
-			} catch (error) {
-				toast.error('Sync failed');
+				candidate = await cloudService.uploadLocalRecipe(recipe);
+			} catch (err) {
+				console.error('Cloud save failed; continuing locally', err);
+				syncError = true;
+				candidate = {...recipe, updated_at: new Date().toISOString()};
 			}
 		} else {
-			return Promise.resolve();
+			candidate = {...recipe, updated_at: new Date().toISOString()};
+		}
+
+		try {
+			await db.recipes.put(candidate);
+			if (syncError) {
+				toast.info('Recipe saved locally but failed to sync to cloud');
+			} else {
+				toast.success('Recipe saved');
+			}
+		} catch (err) {
+			console.error('Local save failed', err);
+			toast.error('There was a problem saving the recipe');
+		} finally {
+			app.view = 'idle';
+		}
+	}
+
+	/**
+	 * Upload a recipe to the cloud. SyncService will automatically update the local database.
+	 */
+	async function saveRecipeToCloud(recipe: SavedRecipe): Promise<void> {
+		if (hasCloudStorageAccess && syncService) {
+			try {
+				await syncService.uploadRecipeAndSyncLocal(recipe);
+			} catch (error) {
+				toast.error('Sync failed');
+				console.error(error);
+			}
 		}
 	}
 
@@ -375,15 +438,25 @@
 	 * @param id - The id of the recipe to delete
 	 */
 	async function deleteRecipe(id: string) {
-		if (!id) return;
+		if (!id || !recipe || (recipe.id !== id)) return;
+
+		let candidate: SavedRecipe | undefined = undefined;
 		try {
-			await db.recipes.delete(id);
+			candidate = {...recipe, deleted_at: new Date().toISOString()};
+			if (hasCloudStorageAccess && cloudService) {
+				try {
+					candidate = await cloudService.uploadLocalRecipe(candidate);
+				} catch (err) {
+					// Continue with local delete even if cloud upload fails
+					console.error('Cloud delete failed; continuing locally', err);
+				}
+			}
+			await db.recipes.put(candidate);
 			toast.success(`Recipe deleted`);
+			goto('/recipes', { replaceState: true });
 		} catch (err) {
 			toast.error('There was a problem deleting the recipe');
 			console.error(err);
-		} finally {
-			goto('/recipes', { replaceState: true });
 		}
 	}
 </script>
@@ -393,7 +466,12 @@
 		<AppBar.Text primary={recipe?.title || ''} />
 		<AppBar.End>
 			{#if recipe }
-				{#if data.permissions?.cloudSync.allowed && network.online}
+				{#if app.view === 'loading'}
+					<div class="grid place-content-center w-10 h-10">
+						<ProgressSpinner size="xs" />
+					</div>
+				{/if}
+				{#if hasCloudStorageAccess && syncService && network.online}
 					<PxlIconButton aria-label="Sync recipe" tooltip="Sync recipe" onclick={() => saveRecipeToCloud(recipe!)}>
 						<CloudBackupIcon size="xs" />
 					</PxlIconButton>
@@ -444,7 +522,7 @@
 			<ProgressSpinner size="lg" />
 		</div>
 	{:else if $recipeStore?.error}
-		<div class="mx-auto grid h-screen w-full max-w-3xl place-content-center gap-6">
+		<div class="mx-auto grid w-full max-w-3xl place-content-center gap-6">
 			<h1 class="fluid-heading-05">Ah donkey-spittle! There was a problem.</h1>
 			<p class="flex items-center gap-3">
 				<span class="fluid-heading-03">{$recipeStore.error.name}</span><span>|</span><span>{$recipeStore.error?.message}</span>
@@ -453,7 +531,7 @@
 	{:else if recipe}
 		<EditableRecipe {recipe} locked={isLocked} />
 		{#if canUseAI}
-			<div class="fixed right-0 bottom-0 px-4" bind:this={promptRef}>
+			<!-- <div class="fixed right-0 bottom-0 px-4" bind:this={promptRef}>
 				<Prompt>
 					{#if conversationMsg}
 						<div
@@ -494,7 +572,7 @@
 						>
 					</form>
 				</Prompt>
-			</div>
+			</div> -->
 		{:else if aiRestrictionMessage}
 			<div
 				class="mt-6 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-500 dark:bg-amber-950 dark:text-amber-100"

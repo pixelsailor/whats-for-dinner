@@ -39,7 +39,11 @@ export default [
 				'ignoreMemberSort': false,
 				'memberSyntaxSortOrder': ['none', 'all', 'multiple', 'single'],
 				'allowSeparatedGroups': false
-			}]
+			}],
+			'@typescript-eslint/no-unused-vars': [
+        'warn',
+        { argsIgnorePattern: '^_', destructuredArrayIgnorePattern: '^_' },
+      ],
 		}
 	}
 ];

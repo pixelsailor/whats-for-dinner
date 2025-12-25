@@ -57,7 +57,6 @@ export type RecipeAddendum = {
 	yield?: string;
 	prep_time?: string;
 	cook_time?: string;
-	total_time?: string;
 };
 
 export type RecipeSuggestionsResponse = z.infer<typeof RecipeSuggestionsResponseSchema>;

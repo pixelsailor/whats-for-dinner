@@ -1,3 +1,11 @@
+/**
+ * OpenAI Server
+ * 
+ * Server-side functions for interacting with the OpenAI API.
+ * 
+ * @deprecated Use the functions from $lib/api/ai instead.
+ * @see $lib/api/ai/ai.model.ts
+ */
 import type {
 	FullRecipe,
 	PromptContext,
@@ -149,7 +157,6 @@ Respond ONLY with valid JSON in the following format:
   "yield": "e.g. 'Serves 4'",
 	"prep_time": "string (can include time marinating or chilling)",
 	"cook_time": "string",
-	"total_time": "string",
   "notes": "markdown string (optional, DO NOT wrap with code blocks)"
 }
 
@@ -225,7 +232,6 @@ You must respond ONLY with a full updated version of the recipe in JSON format t
   "yield": "e.g. 'Serves 4'",
   "prep_time": "string (to include time marinating or chilling)",
   "cook_time": "string",
-  "total_time": "string",
   "notes": "markdown string (optional)"
 }
 
@@ -332,7 +338,6 @@ The response should use the following JSON format:
   "yield": "e.g. 'Serves 4'",
   "prep_time": "string (to include time marinating or chilling)",
   "cook_time": "string",
-  "total_time": "string",
 }
 
 Only return valid JSON for the missing fields — do not include any commentary, code blocks, or explanations.

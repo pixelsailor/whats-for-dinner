@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getRecipeFromRemote, getRecipeBySharedId } from '$lib/db/remote';
+import { getRecipeBySharedId, getRecipeFromRemote } from '$lib/db/remote';
 
 /** Get cloud recipe */
 export const GET: RequestHandler = async ({ url }) => {

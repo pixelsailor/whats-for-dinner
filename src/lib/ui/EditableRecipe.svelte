@@ -173,9 +173,9 @@
 	}
 
 	/** Replace underscores with spaces and capitalize the first letter */
-	function humanizeColumn(column: string): string {
-		return column.charAt(0).toUpperCase() + column.slice(1).replace('_', ' ');
-	}
+	// function humanizeColumn(column: string): string {
+	// 	return column.charAt(0).toUpperCase() + column.slice(1).replace('_', ' ');
+	// }
 
 	// function renderMarkdown(content: string): string {
 	//   return marked(content, { breaks: true });

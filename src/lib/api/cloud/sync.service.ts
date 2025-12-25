@@ -6,7 +6,7 @@
  * concerns out of `CloudService`.
  */
 import { db } from '$lib/db';
-import type { SavedRecipe } from '$lib/api/recipe/recipe.types';
+import type { SavedRecipe } from '$lib/api/recipe';
 import { CloudService } from './cloud.service';
 import { buildSyncPlan, isActive } from './cloud.model';
 import type { SyncConflict, SyncPlan } from './cloud.types';
@@ -64,7 +64,8 @@ export class SyncService {
    * @returns The id of the uploaded recipe.
    */
   async uploadRecipe(recipe: SavedRecipe): Promise<string | null> {
-    const uploaded = await this.cloud.uploadLocalRecipe(recipe);
+    const payload = this.stripLegacyRecipeProps(recipe);
+    const uploaded = await this.cloud.uploadLocalRecipe(payload);
     if (!uploaded) return null;
 
     const updatedLocal: SavedRecipe = {
@@ -87,7 +88,7 @@ export class SyncService {
    */
   async uploadRecipeAndSyncLocal(recipe: SavedRecipe): Promise<string | null> {
     const payload: SavedRecipe = {
-      ...recipe,
+      ...this.stripLegacyRecipeProps(recipe),
       synced: true,
       sync_error: undefined,
     };
@@ -107,7 +108,7 @@ export class SyncService {
   async uploadRecipes(recipes: SavedRecipe[]): Promise<void> {
     if (!recipes.length) return;
     const payload: SavedRecipe[] = recipes.map((recipe) => ({
-      ...recipe,
+      ...this.stripLegacyRecipeProps(recipe),
       synced: true,
       sync_error: undefined,
     }));
@@ -146,6 +147,15 @@ export class SyncService {
     } else {
       await this.downloadRecipes([conflict.cloud]);
     }
+  }
+
+  /**
+   * Remove legacy properties that should not be persisted in the cloud.
+   */
+  private stripLegacyRecipeProps(recipe: SavedRecipe): SavedRecipe {
+    const { total_time, ...rest } = recipe as SavedRecipe & { total_time?: unknown };
+    void total_time;
+    return rest as SavedRecipe;
   }
 
   /**

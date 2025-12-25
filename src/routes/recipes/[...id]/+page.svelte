@@ -143,6 +143,10 @@
 					const ts = new Date().toISOString();
 					if (hasCloudStorageAccess && syncService) {
 						recipe = { ...recipe, last_opened: ts } as SavedRecipe;
+						// TODO: Remove this once test data has been updated
+						if ((recipe as unknown as any).total_time) {
+							delete (recipe as unknown as any).total_time;
+						}
 						await syncService.uploadRecipeAndSyncLocal(recipe!);
 					} else {
 						await db.recipes.update(id, { last_opened: ts });

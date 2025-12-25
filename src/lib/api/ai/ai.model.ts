@@ -1,3 +1,13 @@
+/**
+ * AI Model
+ * 
+ * Legacy model for the AI using OpenAI's Chat Completion API. This is a work in progress. Continue
+ * to use the deprecated function from $lib/openai until this is complete.
+ * 
+ * @todo Replace with new Open AI Response API.
+ * @todo Use structured JSON responses with zod schemas.
+ * @todo Refactor responses without context tuples.
+ */
 import type {
 	FullRecipe,
 	PromptContext,
@@ -149,7 +159,6 @@ Respond ONLY with valid JSON in the following format:
   "yield": "e.g. 'Serves 4'",
 	"prep_time": "string (can include time marinating or chilling)",
 	"cook_time": "string",
-	"total_time": "string"
   "notes": "markdown string (optional, DO NOT wrap with code blocks)"
 }
 
@@ -225,7 +234,6 @@ You must respond ONLY with a full updated version of the recipe in JSON format t
   "yield": "e.g. 'Serves 4'",
 	"prep_time": "string (to include time marinating or chilling)",
 	"cook_time": "string",
-	"total_time": "string",
   "notes": "markdown string (optional)"
 }
 
@@ -332,7 +340,6 @@ The response should use the following JSON format:
   "yield": "e.g. 'Serves 4'",
 	"prep_time": "string (to include time marinating or chilling)",
 	"cook_time": "string",
-	"total_time": "string",
 }
 
 Only return valid JSON for the missing fields — do not include any commentary, code blocks, or explanations.

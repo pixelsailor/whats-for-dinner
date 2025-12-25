@@ -1,5 +1,19 @@
+/**
+ * OpenAI Schemas
+ * 
+ * Schemas for the OpenAI API.
+ * 
+ * @deprecated Use the schemas from $lib/api/recipe instead.
+ * @see $lib/api/recipe/recipe.schemas.ts
+ */
+
 import { z } from 'zod';
 
+/**
+ * Category tags.
+ * 
+ * @deprecated Use the tags from $lib/api/recipe instead.
+ */
 const CATEGORY_TAGS = {
 	course: ['breakfast', 'brunch', 'lunch', 'dinner', 'dessert', 'snack', 'beverage'],
 	cuisine: [
@@ -72,6 +86,12 @@ const CATEGORY_TAGS = {
 const ALL_TAGS = Object.values(CATEGORY_TAGS).flat();
 const TAG_LOOKUP = new Map(ALL_TAGS.map((tag) => [tag.toLowerCase(), tag]));
 
+/**
+ * Recipe schema.
+ * 
+ * @deprecated Use the schema from $lib/api/recipe instead.
+ * @see $lib/api/recipe/recipe.schemas.ts
+ */
 export const RecipeSchema = z.object({
 	title: z.string().min(1).describe('Recipe title in plain text, no headings or formating.'),
 	short_description: z

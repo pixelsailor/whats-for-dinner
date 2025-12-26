@@ -1,0 +1,83 @@
+/* Button styles */
+
+.button {
+  @apply rounded-input inline-flex flex-row gap-3 bg-dark-10 text-black dark:bg-muted border border-transparent hover:bg-dark-10/80
+  h-input cursor-pointer items-center justify-center px-6 font-semibold active:scale-[0.98] active:transition-all;
+
+  &.primary {
+    @apply bg-accent text-accent-foreground hover:bg-accent/80
+    dark:bg-accent dark:text-accent-foreground dark:hover:bg-accent/80;
+  }
+
+  &.warn {
+    @apply bg-tertiary hover:bg-tertiary/80;
+  }
+
+  &.danger {
+    @apply bg-destructive hover:bg-destructive/80;
+  }
+
+  &.raised {
+    @apply shadow-sm;
+  }
+}
+
+.button.outlined {
+  @apply bg-transparent border-1 border-dark-40 text-dark hover:bg-muted dark:border-contrast;
+
+  &.primary {
+    @apply border-accent text-current hover:bg-muted;
+  }
+
+  &.warn {
+    @apply text-tertiary border-tertiary hover:bg-tertiary/10;
+  }
+
+  &.danger {
+    @apply text-destructive border-destructive hover:bg-destructive/10;
+  }
+}
+
+.button.text {
+  @apply bg-transparent text-current hover:bg-muted;
+
+  &.primary {
+    @apply text-accent hover:bg-muted;
+  }
+
+  &.warn {
+    @apply text-tertiary hover:bg-tertiary/10;
+  }
+
+  &.danger {
+    @apply text-destructive hover:bg-destructive/10;
+  }
+}
+
+.button.icon {
+  @apply rounded-full p-0 w-11 h-11 relative;
+
+  .svg {
+    color: currentColor;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.button.narrow {
+  @apply px-input-sm;
+}
+
+.button:disabled {
+  @apply bg-dark-10 text-dark-40 opacity-50 cursor-not-allowed pointer-events-none;
+
+  &.outlined {
+    @apply border-dark-10 bg-transparent text-dark-40;
+  }
+
+  &.text {
+    @apply bg-transparent text-dark-40 hover:bg-muted;
+  }
+}

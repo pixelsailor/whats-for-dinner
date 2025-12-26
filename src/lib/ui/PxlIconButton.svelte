@@ -58,24 +58,23 @@ _Reference: bits-ui [Tooltip](https://bits-ui.com/docs/components/tooltip/llms.t
 	<Tooltip.Provider delayDuration={300} ignoreNonKeyboardFocus={true}>
 		<Tooltip.Root open={open}>
 			<Tooltip.Trigger
-				class="pxl-icon-button hover:bg-gray-200 hover:shadow-sm dark:hover:bg-gray-900"
+				class="button icon text z-0"
 				style={`border-radius: ${shape === 'circle' ? '9999px' : '0.125rem'};`}
 				{...triggerProps}
 			>
 				{@render children()}
 			</Tooltip.Trigger>
 			<Tooltip.Portal>
-				<Tooltip.Content sideOffset={4} class="helper-text text-gray-50 bg-gray-600/80 dark:text-gray-900 dark:bg-gray-300/80 border border-gray-600 dark:border-gray-300 rounded-sm py-1 px-2 shadow-md">
+				<Tooltip.Content sideOffset={4} class="text-helper-text text-gray-50 bg-gray-600/80 dark:text-gray-900 dark:bg-gray-300/80 border border-gray-600 dark:border-gray-300 rounded-sm px-2 shadow-md">
 					<Tooltip.Arrow class="text-gray-600 dark:text-gray-300" />
-					<span class="helper-text">{tooltip}</span>
+					<span class="text-helper-text">{tooltip}</span>
 				</Tooltip.Content>
 			</Tooltip.Portal>
 		</Tooltip.Root>
 	</Tooltip.Provider>
 {:else}
 	<Button.Root
-		class="pxl-icon-button hover:bg-gray-200 hover:shadow-sm dark:hover:bg-gray-900"
-		style={`border-radius: ${shape === 'circle' ? '9999px' : '0.125rem'};`}
+		class="button icon text"
 		{...props}
 	>
 		{@render children()}
@@ -92,8 +91,6 @@ _Reference: bits-ui [Tooltip](https://bits-ui.com/docs/components/tooltip/llms.t
 		color: currentColor;
 		border: 1px solid transparent;
 		border-radius: 0.25rem;
-		font-size: 0.875rem;
-		font-weight: 500;
 		cursor: pointer;
 		backdrop-filter: opacity(0);
 		transition: backdrop-filter 0.9s ease-in-out;

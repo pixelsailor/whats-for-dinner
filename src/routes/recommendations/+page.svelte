@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { Button } from 'bits-ui';
 
 	import type { SavedRecipe } from '$lib/api/recipe';
 	import { db } from '$lib/db';
 	import { getMealContext } from '$lib/getMealContext';
 	import { AppBar } from '$lib/ui/AppBar';
-	import Button from '$lib/ui/Button/Button.svelte';
+	// import Button from '$lib/ui/Button/Button.svelte';
 	import { List, ListItem } from '$lib/ui/List';
 	import PageHeader from '$lib/ui/PageHeader.svelte';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
@@ -155,14 +156,13 @@
 	<AppBar.Root>
 		<AppBar.Text primary="Recommendations" />
 		<AppBar.End>
-			<Button 
-				size="xs" 
-				onClick={loadRecommendations} 
+			<Button.Root
+				class="button"
+				onclick={loadRecommendations} 
 				disabled={loading}
-				label="Refresh recommendations"
 			>
 				Refresh
-			</Button>
+			</Button.Root>
 		</AppBar.End>
 	</AppBar.Root>
 </PageHeader>

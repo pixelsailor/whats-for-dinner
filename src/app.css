@@ -175,6 +175,10 @@
 	--font-mono: "Source Code Pro", "monospace";
 	--font-alt: "Courier", "sans-serif";
 	--font-display: "Cal Sans", "sans-serif"; */
+
+	--text-helper-text: 0.75rem;
+	--text-label: 0.875rem;
+	--text-body: 1rem;
  
 	@keyframes accordion-down {
 		from {

@@ -1,7 +1,7 @@
 /* Button styles */
 
 .button {
-  @apply rounded-input inline-flex flex-row gap-3 bg-dark-10 text-black dark:bg-muted border border-transparent hover:bg-dark-10/80
+  @apply rounded-input inline-flex flex-row gap-3 bg-dark-10 text-black text-label dark:bg-muted border border-transparent hover:bg-dark-10/80
   h-input cursor-pointer items-center justify-center px-6 font-semibold active:scale-[0.98] active:transition-all;
 
   &.primary {

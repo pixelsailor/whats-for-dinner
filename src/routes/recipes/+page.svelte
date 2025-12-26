@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Button } from 'bits-ui';
 	import { slide } from 'svelte/transition';
 	import { SvelteSet } from 'svelte/reactivity';
 	import { toast } from 'svelte-sonner';
@@ -8,10 +9,11 @@
 	import { recipes } from '$lib/stores/recipes';
 	
 	import { AppBar } from '$lib/ui/AppBar';
-	import Button from '$lib/ui/Button/Button.svelte';
+	// import Button.Root from '$lib/ui/Button.Root/Button.Root.svelte';
+	import PxlIconButton from '$lib/ui/PxlIconButton.svelte';
 	import { List, ListItem } from '$lib/ui/List';
 	import CloudBackupIcon from '$lib/ui/Icons/CloudBackupIcon.svelte';
-	import RecipesIcon from '$lib/ui/Icons/RecipesIcon.svelte';
+	import DocumentAddIcon from '$lib/ui/Icons/DocumentAddIcon.svelte';
 	import TrashIcon from '$lib/ui/Icons/TrashIcon.svelte';
 	import PageHeader from '$lib/ui/PageHeader.svelte';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
@@ -94,19 +96,18 @@
 	<AppBar.Root>
 		<AppBar.Text primary="My Recipes" />
 		<AppBar.End>
-			{#if data.session}
-				<Button onClick={syncRecipeStore} size="xs" label="Cloud sync" title="Cloud sync" icon>
-					<CloudBackupIcon size="xs" />
-				</Button>
-			{/if}
-			<Button href="/recipes/new" size="xs">
-				<RecipesIcon size="xs" />
-				<span class="ml-2 hidden md:inline">Add a recipe</span>
-			</Button>
-			<Button title="Trash bin" href="/recipes/trash" size="xs">
+			<Button.Root href="/recipes/new" aria-label="Add a recipe" class="button text narrow">
+				<DocumentAddIcon size="xs" />
+				<span class="hidden md:inline">Add a recipe</span>
+			</Button.Root>
+			<PxlIconButton aria-label="Open trash" href="/recipes/trash" tooltip="Open trash">
 				<TrashIcon size="xs" />
-				<span class="ml-2 hidden md:inline">Trash</span>
-			</Button>
+			</PxlIconButton>
+			{#if data.session}
+				<PxlIconButton onclick={syncRecipeStore} aria-label="Sync recipes" tooltip="Sync recipes">
+					<CloudBackupIcon size="xs" />
+				</PxlIconButton>
+			{/if}
 		</AppBar.End>
 	</AppBar.Root>
 </PageHeader>
@@ -143,15 +144,14 @@
 							<ListItem.Text primary={recipe.title} secondary={recipe.short_description} />
 						</ListItem.Link>
 						<ListItem.SecondaryAction>
-							<Button
-								title="Delete recipe"
-								onClick={() => deleteRecipe(recipe.id, recipe.title)}
-								label="Delete recipe"
-								size="xs"
-								icon
+							<PxlIconButton
+								aria-label="Delete recipe"
+								tooltip="Delete recipe"
+								tooltipPosition="left"
+								onclick={() => deleteRecipe(recipe.id, recipe.title)}
 							>
-								<TrashIcon />
-							</Button>
+								<TrashIcon size="xs" />
+							</PxlIconButton>
 						</ListItem.SecondaryAction>
 					</ListItem.Root>
 				</div>

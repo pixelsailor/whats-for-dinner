@@ -1,6 +1,8 @@
 <script lang="ts">
+	import { Button } from 'bits-ui';
+
 	import type { RecipeSummary } from '$lib/types';
-	import Button from '$lib/ui/Button/Button.svelte';
+	// import Button from '$lib/ui/Button/Button.svelte';
 	import Prompt from '$lib/ui/Prompt.svelte';
 	import { goto } from '$app/navigation';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
@@ -80,29 +82,28 @@
 							placeholder="Ask for event ideas, regional recipes, or just list ingredients"
 							disabled={working}
 						/>
-						<Button
+						<Button.Root
 							type="submit"
-							class="-mr-1"
-							label="Submit request"
+							class="button text narrow"
 							disabled={working || !app.input.trim()}
 						>
 							{working ? 'Thinking...' : 'Get ideas'}
-						</Button>
+						</Button.Root>
 					</form>
 				</Prompt>
 			{:else if aiRestrictionMessage}
 				<p class="text-center text-gray-500">{aiRestrictionMessage}</p>
 			{/if}
 			<div class="mt-2 flex flex-row justify-center gap-4">
-				<Button href="/suggestions" cue="text" size="sm">
+				<Button.Root href="/suggestions" class="button text">
 					Recent Suggestions
-				</Button>
-				<Button href="/recommendations" cue="text" size="sm">
+				</Button.Root>
+				<Button.Root href="/recommendations" class="button text">
 					Recommended
-				</Button>
-				<Button href="/recipes" cue="text" size="sm">
+				</Button.Root>
+				<Button.Root href="/recipes" class="button text">
 					Surprise Me!
-				</Button>
+				</Button.Root>
 			</div>
 		</div>
 	{:else if app.view === 'error'}

@@ -39,6 +39,7 @@
 
 	let { data, form } = $props();
 
+	let currentUserId = $state<string | undefined>(undefined);
 	let cloudService: CloudService | undefined = $state(undefined);
 	let syncService: SyncService | undefined = $state(undefined);
 
@@ -103,8 +104,10 @@
 	// let recipeJson = $derived(recipe ? JSON.stringify(recipe) : '');
 
 	// Timer used to update the recipe's last_opened after a short delay
-	// let openedTimer: ReturnType<typeof setTimeout> | null = null;
 	let openedTimer: number | null = null;
+
+	let lastOpened = $state<string | undefined>();
+	
 
 	// Waiting for a response to an OpenAI request
 	let waiting = $state(false);
@@ -129,6 +132,8 @@
 		if (recipe) {
 			app.view = 'idle';
 
+			if (recipe.last_opened === lastOpened && openedTimer !== null) return;
+
 			if (openedTimer) {
 				clearTimeout(openedTimer);
 				openedTimer = null;
@@ -136,13 +141,13 @@
 			openedTimer = window.setTimeout(async () => {
 				try {
 					const ts = new Date().toISOString();
+
+					// Update the tracked value before making changes
+					lastOpened = ts;
+
 					if (hasCloudStorageAccess && syncService) {
-						recipe = { ...recipe, last_opened: ts } as SavedRecipe;
-						// TODO: Remove this once test data has been updated
-						if ((recipe as unknown as any).total_time) {
-							delete (recipe as unknown as any).total_time;
-						}
-						await syncService.uploadRecipeAndSyncLocal(recipe!);
+						const openedRecipe = { ...recipe, last_opened: ts } as SavedRecipe;
+						await syncService.uploadRecipeAndSyncLocal(openedRecipe);
 					} else {
 						await db.recipes.update(id, { last_opened: ts });
 					}
@@ -261,12 +266,16 @@
 	 * Manage services for cloud and sync operations
 	 */
 	$effect(() => {
-		if (data.user?.id) {
-			cloudService = new CloudService(data.supabase, data.user.id);
+		const userId = data.user?.id;
+		
+		if (userId && userId !== currentUserId) {
+			cloudService = new CloudService(data.supabase, userId);
 			syncService = new SyncService(cloudService);
-		} else if (cloudService || syncService) {
+			currentUserId = userId;
+		} else if (!userId && currentUserId) {
 			cloudService = undefined;
 			syncService = undefined;
+			currentUserId = undefined;
 		}
 	});
 
@@ -548,11 +557,11 @@
 						<ProgressSpinner size="xs" />
 					</div>
 				{/if}
-				{#if hasCloudStorageAccess && syncService && network.online}
+				<!-- {#if hasCloudStorageAccess && syncService && network.online}
 					<PxlIconButton aria-label="Sync recipe" tooltip="Sync recipe" onclick={() => saveRecipeToCloud(recipe!)}>
 						<CloudBackupIcon size="xs" />
 					</PxlIconButton>
-				{/if}
+				{/if} -->
 				<PxlIconButton
 					aria-label={recipe?.is_favorite ? 'Remove from favorites' : 'Add to favorites'}
 					tooltip={recipe?.is_favorite ? 'Remove from favorites' : 'Add to favorites'}
@@ -576,8 +585,8 @@
 					{/if}
 				</PxlIconButton> -->
 				<PxlIconButton
-					aria-label="Delete recipe"
-					tooltip="Delete recipe"
+					aria-label="Move to trash"
+					tooltip="Move to trash"
 					onclick={() => { deleteRecipe(recipe!.id) }}
 				>
 					<TrashIcon size="xs" />

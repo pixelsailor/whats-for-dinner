@@ -110,11 +110,11 @@ export type FullRecipe = {
 	/** Instructions as a markdown string (numbered list recommended). */
 	instructions: string; // markdown
 	/** Estimated times for the recipe. Values are human readable (e.g., '30 min'). */
-	time: {
-		prep: string;
-		cook: string;
-		total: string;
-	};
+	// time: {
+	// 	prep: string;
+	// 	cook: string;
+	// 	total: string;
+	// };
 	/** Array of tag tokens (cuisine, diet, method, etc.). */
 	tags: string[];
 	/** Yield string (e.g., 'Serves 4'). */

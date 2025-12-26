@@ -140,23 +140,9 @@ export const RecipeSchema = z.object({
 		.describe(
 			"Number of servings for meals (e.g. 2 to 4 servings) or volume for sauces, dressings or similar, e.g. '2 cups"
 		),
-	time: z
-		.object({
-			prep: z
-				.string()
-				.nullable()
-				.optional()
-				.describe('Preparation time, may include marinating or chilling.'),
-			cook: z.string().nullable().optional(),
-			total: z.string().nullable().optional()
-		})
-		.nullable()
-		.optional(),
-	notes: z
-		.string()
-		.nullable()
-		.optional()
-		.describe('Plain Markdown. DO NOT use "Notes" as the heading.')
+		prep_time: z.array(z.string()).optional().describe('Preparation time in minutes, may include marinating or chilling. Use a tuple for range values, e.g. "10-15 minutes" is represented as ["10", "15"]'),
+		cook_time: z.array(z.string()).optional().describe('Cooking time in minutes. Use a tuple for range values, e.g. "10-15 minutes" is represented as ["10", "15"]'),
+		notes: z.string().optional().describe('Plain Markdown. DO NOT use "Notes" as the heading.')
 });
 
 export type Recipe = z.infer<typeof RecipeSchema>;

@@ -7,11 +7,9 @@
 	import { MIN_DESKTOP_SIZE } from '$lib/constants';
 	import { recentlyOpened } from '$lib/stores/recipes';
 	import { networkStore } from '$lib/stores/network';
-	import { List, ListItem } from '$lib/ui/List';
 	import { AppBar } from '$lib/ui/AppBar';
 	import Button from '$lib/ui/Button/Button.svelte';
 	import Dialog from '$lib/ui/Dialog.svelte';
-	import MenuIcon from '$lib/ui/Icons/MenuIcon.svelte';
 	import RecipesIcon from '$lib/ui/Icons/RecipesIcon.svelte';
 	import CollapseSidenavIcon from '$lib/ui/Icons/CollapseSidenavIcon.svelte';
 	import '../app.css';

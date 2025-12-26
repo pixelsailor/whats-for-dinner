@@ -1,11 +1,8 @@
 <script lang="ts">
-	// import { Button as BitsButton } from 'bits-ui';
 	// import { Tooltip } from "bits-ui";
 	import { getContext, onDestroy } from 'svelte';
-	// import { slide } from 'svelte/transition';
 	// import SvelteMarkdown from '@humanspeak/svelte-markdown';
 	import { toast } from 'svelte-sonner';
-	// import { v4 as uuid } from 'uuid';
 
 	// import Tooltip from '$lib/ui/Tooltip.svelte';
 
@@ -103,7 +100,7 @@
 	let recipe = $derived<SavedRecipe | undefined>($recipeStore?.data ?? undefined);
 
 	// Responsible for passing the recipe to the FormData
-	let recipeJson = $derived(recipe ? JSON.stringify(recipe) : '');
+	// let recipeJson = $derived(recipe ? JSON.stringify(recipe) : '');
 
 	// Timer used to update the recipe's last_opened after a short delay
 	// let openedTimer: ReturnType<typeof setTimeout> | null = null;
@@ -131,8 +128,6 @@
 	$effect(() => {
 		if (recipe) {
 			app.view = 'idle';
-
-			runMigration()
 
 			if (openedTimer) {
 				clearTimeout(openedTimer);
@@ -464,39 +459,6 @@
 	}
 
 	/**
-	 * Check if the recipe uses old `time` object. Run the migration if necessary.
-	*/
-	function runMigration() {
-		if (!recipe) {
-			return;
-		} else if (recipe.prep_time && recipe.cook_time) {
-			if (recipe.prep_time.length && typeof recipe.prep_time !== 'string' && recipe.cook_time.length && typeof recipe.cook_time !== 'string') {
-				return;
-			}
-		}
-		console.log('runMigration', recipe.prep_time, recipe.cook_time);
-
-		// Convert recipes that used number values for prep and cook times to string arrays
-		if (typeof recipe.prep_time === 'number') {
-			recipe.prep_time = [(recipe.prep_time as number).toString()];
-		}
-		if (typeof recipe.cook_time === 'number') {
-			recipe.cook_time = [(recipe.cook_time as number).toString()];
-		}
-
-		if (recipe?.time && (recipe.prep_time === undefined || recipe.cook_time === undefined)) {
-			recipe.prep_time = recipe.time.prep ? convertAiTime(recipe.time.prep) : ['0'];
-			recipe.cook_time = recipe.time.cook ? convertAiTime(recipe.time.cook) : ['0'];
-			recipe.time = undefined;
-		}
-		
-		console.log('prep_time', recipe.prep_time);
-		console.log('cook_time', recipe.cook_time);
-		
-		saveChanges(true);
-	}
-
-	/**
 	 * Convert a AI generated time string to minutes
 	 * 
 	 * Example: "10-15 minutes" -> ["10", "15"]
@@ -516,74 +478,64 @@
 	function convertAiTime(value: string | undefined): string[] {
 		if (!value) return ['0'];
 
-		console.log('convertAiTime', value);
 		const ALPHA_RX = /^[a-zA-Z]+$/;
-		// const DIGITS_RX = /^[0-9]+$/;
-		const HOURS_RX = /(\d+)\s?h|(\d+):/;
-		const MINUTES_RX = /(\d+)\s?m|\d+:(\d+)/;
+		const HOURS_RX = /(\d+)\s?h|(\d+):/g;
+		const MINUTES_RX = /(\d+)\s?m|\d+:(\d+)/g;
 
 		let isRange = false;
 		let isHours = false;
-		let isMinutes = false;
 
 		let times: string[] = [];
 
 		if (value.includes('-') || value.includes('to')) {
 			isRange = true;
 		}
-		if (value.includes('hours')) {
-			isHours = true;
-		}
-		if (value.includes('minutes')) {
-			isMinutes = true;
-		}
 
 		if (isRange) {
-			const splitOn = value.includes('-') ? '-' : 'to';
-			value.split(splitOn).forEach(time => {
-				// If the value does not contain any alphabetic characters we can't determine the unit of
-				// measure, so we'll mark it with a `!` and return after checking the other value.
-				if (!ALPHA_RX.test(time)) {
-					times.push(`!${time}`);
-				} else {
-					let hours = 0;
-					let minutes = 0;
-					if (isHours) {
-						// Convert hours to minutes
-						hours = parseInt(HOURS_RX.exec(time)?.[1] ?? '0');
+			// Handle ranges with a single unit of time, e.g. "10-15 minutes"
+			if (value.includes('-')) {
+				if (value.includes('hours')) isHours = true;
+				value.split('-').forEach(time => {
+					if (!ALPHA_RX.test(time)) {
+						times.push(isHours ? `${time} * 60` : `${time}`);
+					} else {
+						let hours = parseInt(HOURS_RX.exec(time)?.[1] ?? '0');
+						let minutes = parseInt(MINUTES_RX.exec(time)?.[1] ?? '0');
+						times.push((hours * 60 + minutes).toString());
 					}
-					if (isMinutes) {
-						// get minutes
-						minutes = parseInt(MINUTES_RX.exec(time)?.[1] ?? '0');
-					}
+				});
+			} else {
+				// Handle ranges with two units of time, e.g. "45 minutes to 1 hour 10 minutes"
+				value.split('to').forEach(time => {
+					let hours = parseInt(HOURS_RX.exec(time)?.[1] ?? '0');
+					let minutes = parseInt(MINUTES_RX.exec(time)?.[1] ?? '0');
 					times.push((hours * 60 + minutes).toString());
-				}
-			});
-
-			// Check back on the first value to see if it was flagged.
-			if (times[0].startsWith('!')) {
-				// get the value without the `!`
-				const verified = times[0].substring(1);
-				// If the second value is greater than 59, we can assume it's in hours and convert it to minutes.
-				if (parseInt(times[1]) > 59) {
-					times[0] = `${parseInt(verified) * 60}`;
-				}
+				});
 			}
 		} else {
-			let hours = 0;
-			let minutes = 0;
-			if (isHours) {
-				hours = parseInt(HOURS_RX.exec(value)?.[1] ?? '0');
-			}
-			if (isMinutes) {
-				minutes = parseInt(MINUTES_RX.exec(value)?.[1] ?? '0');
-			}
+			let hours = parseInt(HOURS_RX.exec(value)?.[1] ?? '0');
+			let minutes = parseInt(MINUTES_RX.exec(value)?.[1] ?? '0');
 			times.push((hours * 60 + minutes).toString());
 		}
 
 		console.log('convertAiTime', value, times);
 		return times;
 	}
+
+	/** Reduce the string to a single number of minutes */
+	// function fixMisconvertedTime(value: string): string {
+	// 	console.log('fixMisconvertedTime', value);
+	// 	const isHours = value.includes('hours');
+	// 	const DIGITS_RX = /[0-9]+/;
+		
+	// 	const time = parseInt(DIGITS_RX.exec(value)?.[0] ?? '0');
+	// 	if (!time) return value;
+	// 	if (isHours) {
+	// 		return (time * 60).toString();
+	// 	} else {
+	// 		return time.toString();
+	// 	}
+	// }
 </script>
 
 <PageHeader>

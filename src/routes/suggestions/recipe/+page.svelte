@@ -3,7 +3,8 @@
 	import { beforeNavigate, goto } from '$app/navigation';
 	import { db } from '$lib/db';
 	import { sanitizePromptInput } from '$lib/utils';
-	import type { FullRecipe, OpenAiApiResponse, PromptContext } from '$lib/types.js';
+	import type { OpenAiApiResponse, PromptContext } from '$lib/api/ai';
+	import type { FullRecipe } from '$lib/api/recipe';
 	import { AppBar } from '$lib/ui/AppBar';
 	import Button from '$lib/ui/Button/Button.svelte';
 	import BackIcon from '$lib/ui/Icons/BackIcon.svelte';
@@ -207,7 +208,7 @@
 
 			await db.suggestions.update(suggestionId, {
 				...safeRecipe,
-				last_opened: Date.now()
+				last_opened: Date.now().toString()
 			});
 		} catch (error) {
 			console.error('Failed to save full recipe to suggestions:', error);
@@ -227,7 +228,7 @@
 				return;
 			}
 
-			const now = Date.now();
+			const now = new Date().toISOString();
 			const clonedRecipe: FullRecipe = JSON.parse(JSON.stringify(fullRecipe));
 			const newRecipe = {
 				...clonedRecipe,

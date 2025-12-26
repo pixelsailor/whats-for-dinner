@@ -64,8 +64,7 @@ export class SyncService {
    * @returns The id of the uploaded recipe.
    */
   async uploadRecipe(recipe: SavedRecipe): Promise<string | null> {
-    const payload = this.stripLegacyRecipeProps(recipe);
-    const uploaded = await this.cloud.uploadLocalRecipe(payload);
+    const uploaded = await this.cloud.uploadLocalRecipe(recipe);
     if (!uploaded) return null;
 
     const updatedLocal: SavedRecipe = {
@@ -88,7 +87,7 @@ export class SyncService {
    */
   async uploadRecipeAndSyncLocal(recipe: SavedRecipe): Promise<string | null> {
     const payload: SavedRecipe = {
-      ...this.stripLegacyRecipeProps(recipe),
+      ...recipe,
       synced: true,
       sync_error: undefined,
     };
@@ -108,7 +107,7 @@ export class SyncService {
   async uploadRecipes(recipes: SavedRecipe[]): Promise<void> {
     if (!recipes.length) return;
     const payload: SavedRecipe[] = recipes.map((recipe) => ({
-      ...this.stripLegacyRecipeProps(recipe),
+      ...recipe,
       synced: true,
       sync_error: undefined,
     }));
@@ -147,15 +146,6 @@ export class SyncService {
     } else {
       await this.downloadRecipes([conflict.cloud]);
     }
-  }
-
-  /**
-   * Remove legacy properties that should not be persisted in the cloud.
-   */
-  private stripLegacyRecipeProps(recipe: SavedRecipe): SavedRecipe {
-    const { total_time, ...rest } = recipe as SavedRecipe & { total_time?: unknown };
-    void total_time;
-    return rest as SavedRecipe;
   }
 
   /**

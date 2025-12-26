@@ -7,7 +7,7 @@
  */
 
 import { z } from 'zod';
-import type { SupabaseUserSchema, SignInResponseSchema } from './auth.schemas';
+import type { SignInResponseSchema, SupabaseUserSchema } from './auth.schemas';
 
 export type SupabaseUser = z.infer<typeof SupabaseUserSchema>;
 export type SignInResponse = z.infer<typeof SignInResponseSchema>;

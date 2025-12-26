@@ -34,7 +34,6 @@ export const RecipeAddendumSchema = z.object({
 	yield: z.string().optional(),
   prep_time: z.string().optional(),
   cook_time: z.string().optional(),
-  total_time: z.string().optional(),
 });
 
 export const RecipeSuggestionsResponseSchema = z.array(RecipeSummarySchema);

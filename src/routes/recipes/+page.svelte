@@ -100,14 +100,14 @@
 				<DocumentAddIcon size="xs" />
 				<span class="hidden md:inline">Add a recipe</span>
 			</Button.Root>
-			<PxlIconButton aria-label="Open trash" href="/recipes/trash" tooltip="Open trash">
+			<Button.Root href="/recipes/trash" aria-label="Open trash" class="button icon text">
 				<TrashIcon size="xs" />
-			</PxlIconButton>
-			{#if data.session}
-				<PxlIconButton onclick={syncRecipeStore} aria-label="Sync recipes" tooltip="Sync recipes">
+			</Button.Root>
+			<!-- {#if data.session}
+				<PxlIconButton onClick={syncRecipeStore} aria-label="Sync recipes" tooltip="Sync recipes">
 					<CloudBackupIcon size="xs" />
 				</PxlIconButton>
-			{/if}
+			{/if} -->
 		</AppBar.End>
 	</AppBar.Root>
 </PageHeader>

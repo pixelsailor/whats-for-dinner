@@ -39,7 +39,7 @@
 }
 
 .button.text {
-  @apply bg-transparent text-current hover:bg-muted;
+  @apply bg-transparent text-current hover:bg-muted dark:hover:bg-muted/10;
 
   &.primary {
     @apply text-accent hover:bg-muted;

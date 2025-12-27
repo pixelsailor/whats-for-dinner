@@ -24,7 +24,13 @@
 	import LogoutIcon from '$lib/ui/Icons/LogoutIcon.svelte';
 	import LoginIcon from '$lib/ui/Icons/LoginIcon.svelte';
 	import type { SavedRecipe } from '$lib/api/recipe/recipe.types';
-	import { CloudService, SyncService, type SyncConflict, type SyncPlan } from '$lib/api/cloud';
+	import {
+		CloudService,
+		SyncService,
+		type ConflictResolution,
+		type EnhancedSyncPlan,
+		type SyncConflict
+	} from '$lib/api/cloud';
 	import { resetSyncStore, syncStore, updateSyncStore } from '$lib/stores/sync';
 	import { get } from 'svelte/store';
 
@@ -114,8 +120,8 @@
 	let success = $state('');
 
 	let openCloudSyncDialog = $state(false);
-	let syncDialogMode = $state<'none' | 'first-sync' | 'conflict' | 'per-recipe'>('none');
-	let syncPlan = $state<SyncPlan | null>(null);
+	let syncDialogMode = $state<'none' | 'first-sync' | 'per-recipe'>('none');
+	let syncPlan = $state<EnhancedSyncPlan | null>(null);
 	let conflictQueue = $state<SyncConflict[]>([]);
 	let currentConflict = $derived(conflictQueue[0] ?? null);
 	let syncing = $state(false);
@@ -195,7 +201,11 @@
 				progress: {
 					uploaded: 0,
 					downloaded: 0,
-					total: plan.localOnly.length + plan.cloudOnly.length + plan.conflicts.length
+					total:
+						plan.localOnly.length +
+						plan.cloudOnly.length +
+						(plan.autoResolvable?.length ?? 0) +
+						(plan.manualConflicts?.length ?? 0)
 				}
 			});
 
@@ -211,7 +221,7 @@
 		}
 	}
 
-	async function handlePlan(plan: SyncPlan, syncService: SyncService) {
+	async function handlePlan(plan: EnhancedSyncPlan, syncService: SyncService) {
 		if (plan.scenario === 'empty') {
 			updateSyncStore({ status: 'complete' });
 			syncing = false;
@@ -236,13 +246,23 @@
 		}
 
 		// has-conflicts
-		conflictQueue = plan.conflicts;
-		updateSyncStore({ status: 'awaiting-confirmation' });
-		syncDialogMode = 'conflict';
-		openCloudSyncDialog = true;
+		if (plan.autoResolvable?.length) {
+			updateSyncStore({ status: 'syncing' });
+			await resolveAutoConflicts(plan.autoResolvable, syncService);
+		}
+
+		if (plan.manualConflicts?.length) {
+			conflictQueue = plan.manualConflicts;
+			updateSyncStore({ status: 'awaiting-confirmation' });
+			syncDialogMode = 'per-recipe';
+			openCloudSyncDialog = true;
+			return;
+		}
+
+		await syncNonConflicts(plan, syncService);
 	}
 
-	async function syncNonConflicts(plan: SyncPlan, syncService: SyncService) {
+	async function syncNonConflicts(plan: EnhancedSyncPlan, syncService: SyncService) {
 		updateSyncStore({ status: 'syncing' });
 		if (plan.localOnly.length > 0) {
 			await performUpload(plan.localOnly, syncService);
@@ -314,45 +334,20 @@
 		finishSync();
 	}
 
-	async function handleConflictChoice(choice: 'upload-all' | 'download-all' | 'ask-each') {
-		if (!syncPlan || !session) return;
-		const syncService = new SyncService(new CloudService(supabase, session.user.id));
-
-		if (choice === 'upload-all') {
-			updateSyncStore({ status: 'syncing' });
-			openCloudSyncDialog = false;
-			const uploadList = [...syncPlan.localOnly, ...syncPlan.conflicts.map((c) => c.local)];
-			await performUpload(uploadList, syncService);
-			if (syncPlan.cloudOnly.length > 0) {
-				await performDownload(syncPlan.cloudOnly, syncService);
-			}
-			finishSync();
-			return;
-		}
-
-		if (choice === 'download-all') {
-			updateSyncStore({ status: 'syncing' });
-			openCloudSyncDialog = false;
-			const downloadList = [...syncPlan.cloudOnly, ...syncPlan.conflicts.map((c) => c.cloud)];
-			await performDownload(downloadList, syncService);
-			if (syncPlan.localOnly.length > 0) {
-				await performUpload(syncPlan.localOnly, syncService);
-			}
-			finishSync();
-			return;
-		}
-
-		// ask each
-		syncDialogMode = 'per-recipe';
-		conflictQueue = syncPlan.conflicts;
-		openCloudSyncDialog = true;
-	}
-
 	async function resolveCurrentConflict(action: 'upload' | 'download') {
 		if (!currentConflict || !session) return;
 		const syncService = new SyncService(new CloudService(supabase, session.user.id));
 		await syncService.resolveConflict(currentConflict, action);
 		conflictQueue = conflictQueue.slice(1);
+		updateSyncStore((state) => ({
+			...state,
+			progress: {
+				...state.progress,
+				uploaded: action === 'upload' ? state.progress.uploaded + 1 : state.progress.uploaded,
+				downloaded:
+					action === 'download' ? state.progress.downloaded + 1 : state.progress.downloaded
+			}
+		}));
 
 		if (conflictQueue.length === 0 && syncPlan) {
 			openCloudSyncDialog = false;
@@ -369,8 +364,28 @@
 
 	function finishSync() {
 		updateSyncStore({ status: 'complete' });
-		toast.success('Cloud sync completed');
+		toast.success('Sync completed');
 		syncing = false;
+	}
+
+	async function resolveAutoConflicts(conflicts: ConflictResolution[], syncService: SyncService) {
+		if (!conflicts.length) return;
+		await syncService.resolveConflictsAutomatically(conflicts);
+
+		const uploads = conflicts.filter((item) => item.action === 'upload').length;
+		const downloads = conflicts.filter((item) => item.action === 'download').length;
+		updateSyncStore((state) => ({
+			...state,
+			progress: {
+				...state.progress,
+				uploaded: state.progress.uploaded + uploads,
+				downloaded: state.progress.downloaded + downloads
+			}
+		}));
+
+		toast.success(
+			`Automatically resolved ${conflicts.length} conflict${conflicts.length === 1 ? '' : 's'}`
+		);
 	}
 
 	/**
@@ -536,8 +551,6 @@
 		{#snippet title()}
 			{#if syncDialogMode === 'first-sync'}
 				<h1>Sync recipes to the cloud?</h1>
-			{:else if syncDialogMode === 'conflict'}
-				<h1>Resolve sync conflicts</h1>
 			{:else if syncDialogMode === 'per-recipe'}
 				<h1>Choose which version to keep</h1>
 			{:else}
@@ -548,10 +561,6 @@
 			{#if syncDialogMode === 'first-sync'}
 				<p>
 					We found {syncPlan?.localOnly.length ?? 0} recipe(s) on this device. Upload them to your cloud account?
-				</p>
-			{:else if syncDialogMode === 'conflict'}
-				<p>
-					We found {syncPlan?.conflicts.length ?? 0} recipe(s) with different versions in cloud and device storage.
 				</p>
 			{:else if syncDialogMode === 'per-recipe' && currentConflict}
 				<p>
@@ -586,12 +595,6 @@
 						Skip
 					</Button>
 					<Button size="sm" onClick={handleFirstSyncConfirm}>Upload to cloud</Button>
-				</div>
-			{:else if syncDialogMode === 'conflict'}
-				<div class="flex flex-col gap-2">
-					<Button size="sm" onClick={() => handleConflictChoice('upload-all')}>Upload all from device</Button>
-					<Button size="sm" onClick={() => handleConflictChoice('download-all')}>Download all from cloud</Button>
-					<Button size="sm" onClick={() => handleConflictChoice('ask-each')}>Ask for each recipe</Button>
 				</div>
 			{:else if syncDialogMode === 'per-recipe' && currentConflict}
 				<div class="flex flex-col gap-2">

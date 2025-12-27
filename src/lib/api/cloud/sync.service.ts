@@ -9,7 +9,11 @@ import { db } from '$lib/db';
 import type { SavedRecipe } from '$lib/api/recipe';
 import { CloudService } from './cloud.service';
 import { buildSyncPlan, isActive } from './cloud.model';
-import type { SyncConflict, SyncPlan } from './cloud.types';
+import type {
+  ConflictResolution,
+  EnhancedSyncPlan,
+  SyncConflict,
+} from './cloud.types';
 
 /**
  * Sync service for syncing recipes between local and remote.
@@ -46,7 +50,7 @@ export class SyncService {
    * 
    * @returns The sync plan.
    */
-  async buildPlan(): Promise<SyncPlan> {
+  async buildPlan(): Promise<EnhancedSyncPlan> {
     const [localRecipes, remoteRecipes] = await Promise.all([
       this.getLocalActiveRecipes(),
       this.getRemoteActiveRecipes(),
@@ -57,30 +61,40 @@ export class SyncService {
 
   /**
    * Upload a single recipe to the cloud.
-   * This method has limited functionality as it does not update the local database.
-   * For cloud-only uploads, consider using the CloudService.uploadLocalRecipe method instead.
+   * This method has limited functionality as it only update the local database if the upload fails.
    * 
    * @param recipe - The recipe to upload.
    * @returns The id of the uploaded recipe.
    */
   async uploadRecipe(recipe: SavedRecipe): Promise<string | null> {
-    const uploaded = await this.cloud.uploadLocalRecipe(recipe);
-    if (!uploaded) return null;
-
-    const updatedLocal: SavedRecipe = {
-      ...uploaded,
+    const payload: SavedRecipe = {
+      ...recipe,
       synced: true,
       sync_error: undefined,
     };
 
-    return updatedLocal.id;
+    try {
+      const uploaded = await this.cloud.uploadLocalRecipe(payload);
+      if (!uploaded) return null;
+      return uploaded.id;
+    } catch (err) {
+      const failed: SavedRecipe = {
+        ...recipe,
+        updated_at: new Date().toISOString(),
+        synced: false,
+        sync_error: err instanceof Error ? err.message : 'Unknown sync error',
+      };
+      await db.recipes.put(failed);
+      return failed.id;
+    }
   }
 
   /**
    * Upload a single recipe to the cloud.
-   * Automatically updates/syncs the local database with the uploaded recipe.
+   * Automatically updates/syncs the local database with the uploaded response. Uploads that fail
+   * are automatically saved locally with the current timestamp.
    * 
-   * Supabase will automatically update the `last_synced_at` timestamp.
+   * Supabase will automatically update the `last_synced_at` and `updated_at` timestamps.
    * 
    * @param recipe - The recipe to upload.
    * @returns The id of the uploaded recipe.
@@ -91,16 +105,27 @@ export class SyncService {
       synced: true,
       sync_error: undefined,
     };
-    const uploaded = await this.cloud.uploadLocalRecipe(payload);
-    if (!uploaded) return null;
+    try {
+      const uploaded = await this.cloud.uploadLocalRecipe(payload);
+      if (!uploaded) return null;
 
-    // Update the local database with the uploaded recipe
-    await db.recipes.put(uploaded);
-    return uploaded.id;
+      // Update the local database with the uploaded recipe
+      await db.recipes.put(uploaded);
+      return uploaded.id;
+    } catch (err) {
+      const failed: SavedRecipe = {
+        ...recipe,
+        updated_at: new Date().toISOString(),
+        synced: false,
+        sync_error: err instanceof Error ? err.message : 'Unknown sync error',
+      };
+      await db.recipes.put(failed);
+      return failed.id;
+    }
   }
 
   /**
-   * Upload recipes to the cloud.
+   * Upload recipes to the cloud and silently sync the local database.
    * 
    * @param recipes - The recipes to upload.
    */
@@ -111,10 +136,21 @@ export class SyncService {
       synced: true,
       sync_error: undefined,
     }));
-    const uploaded = await this.cloud.uploadAllLocalRecipes(payload);
-    if (!uploaded) return;
+    try {
+      const uploaded = await this.cloud.uploadAllLocalRecipes(payload);
+      if (!uploaded) return;
 
-    await db.recipes.bulkPut(uploaded);
+      await db.recipes.bulkPut(uploaded);
+    } catch (err) {
+      const now = new Date().toISOString();
+      const failed = recipes.map((recipe) => ({
+        ...recipe,
+        updated_at: now,
+        synced: false,
+        sync_error: err instanceof Error ? err.message : 'Unknown sync error',
+      }));
+      await db.recipes.bulkPut(failed);
+    }
   }
 
   /**
@@ -145,6 +181,26 @@ export class SyncService {
       await this.uploadRecipes([conflict.local]);
     } else {
       await this.downloadRecipes([conflict.cloud]);
+    }
+  }
+
+  /**
+   * Resolve conflicts automatically when an action is already chosen.
+   */
+  async resolveConflictsAutomatically(conflicts: ConflictResolution[]): Promise<void> {
+    if (!conflicts.length) return;
+    const uploads = conflicts
+      .filter((item) => item.action === 'upload')
+      .map((item) => item.conflict.local);
+    const downloads = conflicts
+      .filter((item) => item.action === 'download')
+      .map((item) => item.conflict.cloud);
+
+    if (uploads.length) {
+      await this.uploadRecipes(uploads);
+    }
+    if (downloads.length) {
+      await this.downloadRecipes(downloads);
     }
   }
 

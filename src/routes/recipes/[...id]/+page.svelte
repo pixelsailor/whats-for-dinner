@@ -336,53 +336,6 @@
 	}
 
 	/**
-	 * Save the modified recipe to the database
-	 * @param recipe - The recipe to save
-	 */
-	// async function saveModifiedRecipe(recipe: SavedRecipe) {
-	// 	console.log('saveModifiedRecipe', recipe);
-	// 	const now = new Date().toISOString();
-	// 	recipe.updated_at = now;
-
-	// 	db.recipes.update(recipe.id, recipe)
-	// 		.then(async () => {
-	// 			await saveRecipeToCloud(recipe);
-	// 			toast.success('Recipe saved');
-	// 		})
-	// 		.catch((err) => {
-	// 			toast.error('There was a problem saving the recipe');
-	// 			console.error(err);
-	// 		});
-	// }
-
-	/**
-	 * Save the modified recipe as a new version. Currently unused.
-	 * 
-	 * @param original - The original recipe
-	 * @param updated - The updated recipe
-	 * @returns The new recipe
-	 * 
-	 * @todo This will require keeping a recipe for each version and I'm not sure if it's worth it
-	 */
-	// async function saveModifiedRecipeAsNew(original: SavedRecipe, updated: SavedRecipe) {
-	// 	await db.recipes.update(original.id, { is_current: false });
-
-	// 	const now = new Date().toISOString();
-	// 	const newRecipe: SavedRecipe = {
-	// 		...updated,
-	// 		id: uuid(),
-	// 		parent_id: original.parent_id ?? original.id,
-	// 		version: original.version + 1,
-	// 		is_current: true,
-	// 		created_at: now,
-	// 		last_opened: now,
-	// 	};
-
-	// 	await db.recipes.put(newRecipe);
-	// 	return newRecipe;
-	// }
-
-	/**
 	 * Save recipe changes
 	 * 
 	 * If available, upload the recipe to the cloud and sync the local database.
@@ -427,20 +380,6 @@
 	}
 
 	/**
-	 * Upload a recipe to the cloud. SyncService will automatically update the local database.
-	 */
-	async function saveRecipeToCloud(recipe: SavedRecipe): Promise<void> {
-		if (hasCloudStorageAccess && syncService) {
-			try {
-				await syncService.uploadRecipeAndSyncLocal(recipe);
-			} catch (error) {
-				toast.error('Sync failed');
-				console.error(error);
-			}
-		}
-	}
-
-	/**
 	 * Delete a recipe from the database and redirect to the recipes page
 	 * @param id - The id of the recipe to delete
 	 */
@@ -448,22 +387,33 @@
 		if (!id || !recipe || (recipe.id !== id)) return;
 
 		let candidate: SavedRecipe | undefined = undefined;
-		try {
-			candidate = {...recipe, deleted_at: new Date().toISOString()};
-			if (hasCloudStorageAccess && cloudService) {
-				try {
-					candidate = await cloudService.uploadLocalRecipe(candidate);
-				} catch (err) {
-					// Continue with local delete even if cloud upload fails
-					console.error('Cloud delete failed; continuing locally', err);
-				}
+		let syncError = false;
+		
+		const now = new Date().toISOString();
+
+		if (hasCloudStorageAccess && cloudService) {
+			app.view = 'loading';
+			try {
+				candidate = await cloudService.uploadLocalRecipe({ ...recipe, deleted_at: now });
+			} catch (err) {
+				console.error('Sync failed; continuing locally', err);
+				syncError = true;
+				candidate = {...recipe, deleted_at: now, updated_at: now, synced: false, sync_error: err instanceof Error ? err.message : 'Unknown error'};
+			} finally {
+				app.view = 'idle';
 			}
+		} else {
+			candidate = {...recipe, deleted_at: now, updated_at: now};
+		}
+
+		try {
 			await db.recipes.put(candidate);
-			toast.success(`Recipe deleted`);
+			if (syncError) {
+				toast.info('Recipe was moved to the trash locally but failed to sync to cloud');
+			}
 			goto('/recipes', { replaceState: true });
 		} catch (err) {
-			toast.error('There was a problem deleting the recipe');
-			console.error(err);
+			toast.error('There was a problem moving the recipe to the trash');
 		}
 	}
 

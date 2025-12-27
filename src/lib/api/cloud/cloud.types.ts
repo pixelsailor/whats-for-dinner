@@ -25,3 +25,14 @@ export type SyncPlan = {
   conflicts: SyncConflict[];
   matched: SavedRecipe[];
 };
+
+export type ConflictResolution = {
+  conflict: SyncConflict;
+  action: 'upload' | 'download' | 'manual';
+  reason: string;
+};
+
+export type EnhancedSyncPlan = SyncPlan & {
+  autoResolvable: ConflictResolution[];
+  manualConflicts: SyncConflict[];
+};

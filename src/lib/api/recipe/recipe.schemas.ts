@@ -162,9 +162,9 @@ export const RecipeSchema = RecipeSummarySchema.extend({
 export const SavedRecipeSchema = RecipeSchema.extend({
 	/** Primary id (UUID). */
 	id: z.uuid(),
-	/** Creation timestamp. */
+	/** Creation timestamp. Automatically set by supabase trigger functions. */
 	created_at: z.iso.datetime(),
-	/** Update timestamp. */
+	/** Update timestamp. Automatically set by supabase trigger functions. */
 	updated_at: z.iso.datetime().nullable().optional(),
 	/** Optional archived timestamp. Cloud backup: Recipe is not saved locally. Requires cloud_storage permission. */
 	archived: z.iso.datetime().nullable().optional(),
@@ -188,7 +188,7 @@ export const SavedRecipeSchema = RecipeSchema.extend({
 	shared_id: z.string().nullable().optional(),
 	/** Whether the recipe has been synced to remote. */
 	synced: z.boolean().optional(),
-	/** Last sync timestamp. */
+	/** Last sync timestamp. Automatically set by supabase trigger functions. */
 	last_synced_at: z.iso.datetime().nullable().optional(),
 	/** Error message from last sync attempt, if any. */
 	sync_error: z.string().optional()

@@ -19,7 +19,7 @@
 	// import Button from '$lib/ui/Button/Button.svelte';
 	import EditableRecipe from '$lib/ui/EditableRecipe.svelte';
 	// import CloseIcon from '$lib/ui/Icons/CloseIcon.svelte';
-	import CloudBackupIcon from '$lib/ui/Icons/CloudBackupIcon.svelte';
+	// import CloudBackupIcon from '$lib/ui/Icons/CloudBackupIcon.svelte';
 	import FavoriteIcon from '$lib/ui/Icons/FavoriteIcon.svelte';
 	import FavoriteFilledIcon from '$lib/ui/Icons/FavoriteFilledIcon.svelte';
 	// import LockIcon from '$lib/ui/Icons/LockIcon.svelte';
@@ -107,7 +107,6 @@
 	let openedTimer: number | null = null;
 
 	let lastOpened = $state<string | undefined>();
-	
 
 	// Waiting for a response to an OpenAI request
 	let waiting = $state(false);
@@ -126,7 +125,9 @@
 	let isLocked = $state(true);
 
 	/**
-	 * Update the recipe's last_opened timestamp and save it to the cloud
+	 * Update the recipe's last_opened timestamp and save it to the cloud.
+	 * Use caution as updating the recipe's last_opened timestamp will trigger `$effect`
+	 * to run, which will cause a loop.
 	 */
 	$effect(() => {
 		if (recipe) {
@@ -160,114 +161,16 @@
 		}
 	});
 
-	// async function loadRecipe(id: string): Promise<SavedRecipe> {
-	// 	if (isShared) {
-	// 		throw new Error("Shared recipes not yet supported");
-	// 	} else {
-	// 		// return getSavedRecipe(id);
-	// 		const r = await getSavedRecipe(id);
-	// 		recipe = r;
-
-	// 		// Clear any existing timer then set a new one to update last_opened
-	// 		if (openedTimer) {
-	// 			clearTimeout(openedTimer);
-	// 			openedTimer = null;
-	// 		}
-	// 		openedTimer = window.setTimeout(async () => {
-	// 			try {
-	// 				const ts = new Date().toISOString();
-	// 				await db.recipes.update(id, { last_opened: ts });
-	// 				if (recipe && recipe.id === id) {
-	// 					recipe = { ...recipe, last_opened: ts } as SavedRecipe;
-	// 				}
-	// 			} catch (err) {
-	// 				console.error('Error updating last_opened:', err);
-	// 			} finally {
-	// 				openedTimer = null;
-	// 			}
-	// 		}, markAsOpenedDelay);
-	// 		return r;
-	// 	}
-	// 	// if (isShared) {
-	// 	// 	try {
-	// 	// 		const res = await fetch(`/api/share/${id}`);
-	// 	// 		if (!res.ok) throw new Error(await res.text());
-				
-	// 	// 		const data = await res.json();
-	// 	// 		console.log('remote', data);
-				
-	// 	// 		if (data.recipe) {
-	// 	// 			recipe = data.recipe;
-	// 	// 			app.view = 'idle';
-	// 	// 		} else {
-	// 	// 			app.error = data.error || 'Recipe not found or unavailable.';
-	// 	// 			app.view = 'error';
-	// 	// 		}
-	// 	// 	} catch (err) {
-	// 	// 		console.log(err);
-				
-	// 	// 		app.error = 'Recipe not found or unavailable';
-	// 	// 		app.view = 'error';
-	// 	// 	}
-	// 	// } else {
-	// 	// 	const localRecipe = await getSavedRecipe(id);
-	// 	// 	console.log('local', localRecipe);
-			
-	// 	// 	if (localRecipe) {
-	// 	// 		recipe = localRecipe;
-	// 	// 		app.view = 'idle';
-	// 	// 		db.recipes.update(id, { last_opened: Date.now() });
-	// 	// 	} else {
-	// 	// 		app.error = 'A recipe matching the provided ID could not be found.';
-	// 	// 		app.view = 'error';
-	// 	// 	}
-	// 	// }
-	// }
-
-
-// 	async function loadRecipe(id: string): Promise<SavedRecipe> {
-// 		if (isShared) {
-// 			throw new Error('Shared recipes not yet supported');
-// 		} else {
-// 			const r = await getSavedRecipe(id);
-// 			recipe = r;
-// 			// Clear any existing timer then set a new one to update last_opened
-// 			if (openedTimer) {
-// 				clearTimeout(openedTimer as unknown as number);
-// 				openedTimer = null;
-// 			}
-// // 		app.error = 'A recipe matching the provided ID could not be found.';
-// 			openedTimer = setTimeout(async () => {
-// 				try {
-// 					const ts = Date.now();
-// 					await db.recipes.update(id, { last_opened: ts });
-// 					if (recipe && recipe.id === id) {
-// 						recipe = { ...recipe, last_opened: ts } as SavedRecipe;
-// 					}
-// 				} catch (err) {
-// 					console.error('Error updating last_opened:', err);
-// 				} finally {
-// 					openedTimer = null;
-// 				}
-// 			}, 20000);
-// // 		app.view = 'error';
-// 			return r;
-// 		}
-// 	}
-// 		// 	}
-// 			onDestroy(() => {
-// 				if (openedTimer) {
-// 					clearTimeout(openedTimer as unknown as number);
-// 					openedTimer = null;
-// 				}
-// 			});
-	
 	/**
-	 * Manage services for cloud and sync operations
+	 * Manage services for cloud and sync operations.
+	 *
+	 * This effect is triggered when the user is logged in or logged out.
+	 * Use `$effect` with caution: updating the `cloudService` or `syncService` will trigger
+	 * a re-render, which will cause a loop.
 	 */
 	$effect(() => {
 		const userId = data.user?.id;
-		
+
 		if (userId && userId !== currentUserId) {
 			cloudService = new CloudService(data.supabase, userId);
 			syncService = new SyncService(cloudService);
@@ -282,7 +185,7 @@
 	onDestroy(() => {
 		if (openedTimer) clearTimeout(openedTimer);
 	});
-	
+
 	// React to user prompts
 	// $effect(() => {
 	// 	if (form && form.error === undefined) {
@@ -337,10 +240,10 @@
 
 	/**
 	 * Save recipe changes
-	 * 
+	 *
 	 * If available, upload the recipe to the cloud and sync the local database.
 	 * If unavailable or the upload fails, save the recipe locally.
-	 * 
+	 *
 	 * @param disableToast - If true, successful toast notifications will not be shown
 	 */
 	async function saveChanges(disableToast: boolean = false) {
@@ -356,10 +259,10 @@
 			} catch (err) {
 				console.error('Cloud save failed; continuing locally', err);
 				syncError = true;
-				candidate = {...recipe, updated_at: new Date().toISOString()};
+				candidate = { ...recipe, updated_at: new Date().toISOString() };
 			}
 		} else {
-			candidate = {...recipe, updated_at: new Date().toISOString()};
+			candidate = { ...recipe, updated_at: new Date().toISOString() };
 		}
 
 		try {
@@ -384,11 +287,11 @@
 	 * @param id - The id of the recipe to delete
 	 */
 	async function deleteRecipe(id: string) {
-		if (!id || !recipe || (recipe.id !== id)) return;
+		if (!id || !recipe || recipe.id !== id) return;
 
 		let candidate: SavedRecipe | undefined = undefined;
 		let syncError = false;
-		
+
 		const now = new Date().toISOString();
 
 		if (hasCloudStorageAccess && cloudService) {
@@ -398,12 +301,12 @@
 			} catch (err) {
 				console.error('Sync failed; continuing locally', err);
 				syncError = true;
-				candidate = {...recipe, deleted_at: now, updated_at: now, synced: false, sync_error: err instanceof Error ? err.message : 'Unknown error'};
+				candidate = { ...recipe, deleted_at: now, updated_at: now, synced: false, sync_error: err instanceof Error ? err.message : 'Unknown error' };
 			} finally {
 				app.view = 'idle';
 			}
 		} else {
-			candidate = {...recipe, deleted_at: now, updated_at: now};
+			candidate = { ...recipe, deleted_at: now, updated_at: now };
 		}
 
 		try {
@@ -419,7 +322,7 @@
 
 	/**
 	 * Convert a AI generated time string to minutes
-	 * 
+	 *
 	 * Example: "10-15 minutes" -> ["10", "15"]
 	 * Example: "10 minutes" -> ["10"]
 	 * Example: "10 hours" -> ["600"]
@@ -427,10 +330,10 @@
 	 * Example: "10 minutes to 1 hour 10 minutes" -> ["10", "70"]
 	 * Example: "0h 10m" -> ["10"]
 	 * Example: "1:25" -> ["85"]
-	 * 
+	 *
 	 * The original AI generated recipes lacked a definitive structure for time related fields.
 	 * This function parses the string and returns the time in minutes.
-	 * 
+	 *
 	 * @param value - The time string to convert
 	 * @returns The time in minutes. Tuples are returned for ranges.
 	 */
@@ -454,7 +357,7 @@
 			// Handle ranges with a single unit of time, e.g. "10-15 minutes"
 			if (value.includes('-')) {
 				if (value.includes('hours')) isHours = true;
-				value.split('-').forEach(time => {
+				value.split('-').forEach((time) => {
 					if (!ALPHA_RX.test(time)) {
 						times.push(isHours ? `${time} * 60` : `${time}`);
 					} else {
@@ -465,7 +368,7 @@
 				});
 			} else {
 				// Handle ranges with two units of time, e.g. "45 minutes to 1 hour 10 minutes"
-				value.split('to').forEach(time => {
+				value.split('to').forEach((time) => {
 					let hours = parseInt(HOURS_RX.exec(time)?.[1] ?? '0');
 					let minutes = parseInt(MINUTES_RX.exec(time)?.[1] ?? '0');
 					times.push((hours * 60 + minutes).toString());
@@ -480,30 +383,15 @@
 		console.log('convertAiTime', value, times);
 		return times;
 	}
-
-	/** Reduce the string to a single number of minutes */
-	// function fixMisconvertedTime(value: string): string {
-	// 	console.log('fixMisconvertedTime', value);
-	// 	const isHours = value.includes('hours');
-	// 	const DIGITS_RX = /[0-9]+/;
-		
-	// 	const time = parseInt(DIGITS_RX.exec(value)?.[0] ?? '0');
-	// 	if (!time) return value;
-	// 	if (isHours) {
-	// 		return (time * 60).toString();
-	// 	} else {
-	// 		return time.toString();
-	// 	}
-	// }
 </script>
 
 <PageHeader>
 	<AppBar.Root>
 		<AppBar.Text primary={recipe?.title || ''} />
 		<AppBar.End>
-			{#if recipe }
+			{#if recipe}
 				{#if app.view === 'loading'}
-					<div class="grid place-content-center w-10 h-10">
+					<div class="grid h-10 w-10 place-content-center">
 						<ProgressSpinner size="xs" />
 					</div>
 				{/if}
@@ -537,7 +425,9 @@
 				<PxlIconButton
 					aria-label="Move to trash"
 					tooltip="Move to trash"
-					onclick={() => { deleteRecipe(recipe!.id) }}
+					onclick={() => {
+						deleteRecipe(recipe!.id);
+					}}
 				>
 					<TrashIcon size="xs" />
 				</PxlIconButton>
@@ -546,10 +436,7 @@
 	</AppBar.Root>
 </PageHeader>
 
-<article
-	class="mx-auto max-w-5xl px-4 lg:px-8 py-8"
-	style:padding-bottom={`calc(${promptHeight}px + 1.5rem)`}
->
+<article class="mx-auto max-w-5xl px-4 py-8 lg:px-8" style:padding-bottom={`calc(${promptHeight}px + 1.5rem)`}>
 	{#if $recipeStore?.loading}
 		<div class="absolute inset-0 grid place-content-center">
 			<ProgressSpinner size="lg" />

@@ -18,21 +18,18 @@ export type SyncConflict = {
   cloud: SavedRecipe;
 };
 
-export type SyncPlan = {
-  scenario: SyncScenario;
-  localOnly: SavedRecipe[];
-  cloudOnly: SavedRecipe[];
-  conflicts: SyncConflict[];
-  matched: SavedRecipe[];
-};
-
 export type ConflictResolution = {
   conflict: SyncConflict;
   action: 'upload' | 'download' | 'manual';
   reason: string;
 };
 
-export type EnhancedSyncPlan = SyncPlan & {
+export type SyncPlan = {
+  scenario: SyncScenario;
+  localOnly: SavedRecipe[];
+  cloudOnly: SavedRecipe[];
+  conflicts: SyncConflict[];
+  matched: SavedRecipe[];
   autoResolvable: ConflictResolution[];
   manualConflicts: SyncConflict[];
 };

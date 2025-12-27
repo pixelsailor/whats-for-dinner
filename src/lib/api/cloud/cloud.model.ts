@@ -1,7 +1,6 @@
 import type { SavedRecipe } from '../recipe/recipe.types';
 import type {
   ConflictResolution,
-  EnhancedSyncPlan,
   SyncConflict,
   SyncPlan,
   SyncScenario,
@@ -101,7 +100,7 @@ export const categorizeConflict = (conflict: SyncConflict): ConflictResolution =
 export const buildSyncPlan = (
   localRecipes: SavedRecipe[],
   remoteRecipes: SavedRecipe[],
-): EnhancedSyncPlan => {
+): SyncPlan => {
   const remoteById = new Map(remoteRecipes.map((recipe) => [recipe.id, recipe]));
 
   const localOnly: SavedRecipe[] = [];

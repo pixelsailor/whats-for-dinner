@@ -11,8 +11,8 @@ import { CloudService } from './cloud.service';
 import { buildSyncPlan, isActive } from './cloud.model';
 import type {
   ConflictResolution,
-  EnhancedSyncPlan,
   SyncConflict,
+  SyncPlan,
 } from './cloud.types';
 
 /**
@@ -50,7 +50,7 @@ export class SyncService {
    * 
    * @returns The sync plan.
    */
-  async buildPlan(): Promise<EnhancedSyncPlan> {
+  async buildPlan(): Promise<SyncPlan> {
     const [localRecipes, remoteRecipes] = await Promise.all([
       this.getLocalActiveRecipes(),
       this.getRemoteActiveRecipes(),

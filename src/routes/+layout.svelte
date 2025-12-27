@@ -28,7 +28,7 @@
 		CloudService,
 		SyncService,
 		type ConflictResolution,
-		type EnhancedSyncPlan,
+		type SyncPlan,
 		type SyncConflict
 	} from '$lib/api/cloud';
 	import { resetSyncStore, syncStore, updateSyncStore } from '$lib/stores/sync';
@@ -121,7 +121,7 @@
 
 	let openCloudSyncDialog = $state(false);
 	let syncDialogMode = $state<'none' | 'first-sync' | 'per-recipe'>('none');
-	let syncPlan = $state<EnhancedSyncPlan | null>(null);
+	let syncPlan = $state<SyncPlan | null>(null);
 	let conflictQueue = $state<SyncConflict[]>([]);
 	let currentConflict = $derived(conflictQueue[0] ?? null);
 	let syncing = $state(false);
@@ -221,7 +221,7 @@
 		}
 	}
 
-	async function handlePlan(plan: EnhancedSyncPlan, syncService: SyncService) {
+	async function handlePlan(plan: SyncPlan, syncService: SyncService) {
 		if (plan.scenario === 'empty') {
 			updateSyncStore({ status: 'complete' });
 			syncing = false;
@@ -262,7 +262,7 @@
 		await syncNonConflicts(plan, syncService);
 	}
 
-	async function syncNonConflicts(plan: EnhancedSyncPlan, syncService: SyncService) {
+	async function syncNonConflicts(plan: SyncPlan, syncService: SyncService) {
 		updateSyncStore({ status: 'syncing' });
 		if (plan.localOnly.length > 0) {
 			await performUpload(plan.localOnly, syncService);

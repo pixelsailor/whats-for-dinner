@@ -6,7 +6,6 @@ export type {
   SyncPlan,
   SyncScenario,
   ConflictResolution,
-  EnhancedSyncPlan,
 } from './cloud.types';
 export type { SharedRecipe } from './cloud.types';
 

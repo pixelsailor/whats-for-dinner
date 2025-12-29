@@ -1,12 +1,17 @@
 <script lang="ts">
+	import { Button } from 'bits-ui';
+
 	import { enhance } from '$app/forms';
 	import { beforeNavigate, goto } from '$app/navigation';
+	import { page } from '$app/state';
+
 	import { db } from '$lib/db';
 	import { sanitizePromptInput } from '$lib/utils';
-	import type { OpenAiApiResponse, PromptContext } from '$lib/api/ai';
-	import type { FullRecipe } from '$lib/api/recipe';
+	// import type { PromptContext } from '$lib/api/ai';
+	import { createFullRecipeQuery } from '$lib/api/ai/ai.queries'; // Do not import via index.ts -- Creates an "impossible situation"
+	import type { Recipe as FullRecipe, SavedRecipe } from '$lib/api/recipe';
+
 	import { AppBar } from '$lib/ui/AppBar';
-	import Button from '$lib/ui/Button/Button.svelte';
 	import BackIcon from '$lib/ui/Icons/BackIcon.svelte';
 	import BookmarkIcon from '$lib/ui/Icons/BookmarkIcon.svelte';
 	import CloseIcon from '$lib/ui/Icons/CloseIcon.svelte';
@@ -14,18 +19,28 @@
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
 	import Prompt from '$lib/ui/Prompt.svelte';
 	import Recipe from '$lib/ui/Recipe.svelte';
-	import SvelteMarkdown from '@humanspeak/svelte-markdown';
 	import { getContext, onDestroy } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import { slide } from 'svelte/transition';
-	import { v4 as uuid } from 'uuid';
 	import { networkStore } from '$lib/stores/network';
 	import { deriveAICapability } from '$lib/utils/capabilities';
+	import type { ViewState } from '$lib/types.js';
+	import { CloudService, SyncService } from '$lib/api/cloud';
 
-	const vp: any = getContext('viewport');
+	// const vp: any = getContext('viewport');
 
 	let { data, form } = $props();
+
+	let app = $state({
+		view: 'loading' as ViewState,
+		error: ''
+	});
+
+	let currentUserId = $state<string | undefined>(undefined);
+	let cloudService: CloudService | undefined = $state(undefined);
+	let syncService: SyncService | undefined = $state(undefined);
 	
+	// let userPreferences = $derived(data.session?.user?.user_metadata?.preferences || '');
 	let network = $derived($networkStore);
 	let aiCapability = $derived(
 		deriveAICapability({
@@ -51,141 +66,100 @@
 		}
 	});
 
-	type RecipeRequestState = {
-		data: OpenAiApiResponse<FullRecipe> | null;
-		isPending: boolean;
-		isError: boolean;
-		error: string | null;
-	};
+	let hasCloudStorageAccess = $derived(data.permissions?.cloudSync.allowed ?? false);
 
-	const initialRecipeState = (): RecipeRequestState => ({
-		data: null,
-		isPending: false,
-		isError: false,
-		error: null
-	});
+	/** Recipe title and description from the URL params */
+	const title = $derived(page.url.searchParams.get('title'));
+	const description = $derived(page.url.searchParams.get('description'));
+	const hasPrompt = $derived(!!title && !!description);
 
-	const decodeParam = (value: string): string => {
-		try {
-			return decodeURIComponent(value);
-		} catch {
-			return value;
-		}
-	};
+	type RecipeQueryStore = Exclude<ReturnType<typeof createFullRecipeQuery>, null>;
+	type RecipeResult = Parameters<
+		Parameters<RecipeQueryStore['subscribe']>[0]
+		>[0];
 
-	let recipeQueryState = $state<RecipeRequestState>(initialRecipeState());
+	let recipeQueryStore = $state<RecipeQueryStore | null>(null);
+	let recipeQueryResult = $state<RecipeResult | null>(null);
 
-	let recipeFromQuery = $derived.by<FullRecipe | null>(() => {
-		const payload = recipeQueryState.data?.data;
-		return payload ? (payload[1] as FullRecipe) : null;
-	});
+	let recipe = $derived((recipeQueryResult?.data as unknown as FullRecipe) || null);
 
+	/**
+	 * Manage services for cloud and sync operations.
+	 *
+	 * This effect is triggered when the user is logged in or logged out.
+	 * Use `$effect` with caution: updating the `cloudService` or `syncService` will trigger
+	 * a re-render, which will cause a loop.
+	 */
 	$effect(() => {
-		const rawTitle = data.recipe.title;
-		const rawDescription = data.recipe.description ?? '';
+		const userId = data.user?.id;
+		if (userId && userId !== currentUserId) {
+			cloudService = new CloudService(data.supabase, userId);
+			syncService = new SyncService(cloudService);
+			currentUserId = userId;
+		} else if (!userId && currentUserId) {
+			cloudService = undefined;
+			syncService = undefined;
+			currentUserId = undefined;
+		}
+	});
 
-		if (!canUseAI) {
-			recipeQueryState = initialRecipeState();
+	/**
+	 * Request the full recipe from the AI API.
+	 *
+	 * This effect is triggered when the title and description are set.
+	 * Use `$effect` with caution: updating the `recipeQueryStore` or `recipeQueryResult` will trigger
+	 * a re-render, which will cause a loop.
+	 */
+	$effect(() => {
+		const currentTitle = title ? sanitizePromptInput(encodeURIComponent(title)) : null;
+		const currentDescription = description ? sanitizePromptInput(encodeURIComponent(description)) : null;
+		if (!currentTitle || !currentDescription || !canUseAI) {
+			recipeQueryStore = null;
+			recipeQueryResult = null;
 			return;
 		}
 
-		const sanitizedPrompt = sanitizePromptInput(decodeParam(rawTitle ?? ''));
-		const sanitizedDesc = sanitizePromptInput(decodeParam(rawDescription));
-
-		if (!sanitizedPrompt.length) {
-			recipeQueryState = {
-				data: null,
-				isPending: false,
-				isError: true,
-				error: 'A recipe title is required.'
-			};
+		const store = createFullRecipeQuery({
+			title: currentTitle,
+			description: currentDescription
+		});
+		if (!store) {
+			recipeQueryStore = null;
+			recipeQueryResult = null;
 			return;
 		}
 
-		const controller = new AbortController();
+		recipeQueryStore = store;
 
-		recipeQueryState = {
-			data: null,
-			isPending: true,
-			isError: false,
-			error: null
+		const unsubscribe = store.subscribe((value) => {
+			recipeQueryResult = value;
+		});
+
+		return () => {
+			unsubscribe();
+			recipeQueryStore = null;
+			recipeQueryResult = null;
 		};
-
-		const fetchRecipe = async () => {
-			try {
-				const response = await fetch('/api/recipes', {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify({
-						action: 'detail',
-						prompt: sanitizedPrompt,
-						recipe: sanitizedDesc
-					}),
-					signal: controller.signal
-				});
-
-				const payload = (await response.json()) as OpenAiApiResponse<FullRecipe>;
-
-				if (!response.ok) {
-					throw new Error(payload?.error?.message ?? 'Failed to load recipe details.');
-				}
-
-				recipeQueryState = {
-					data: payload,
-					isPending: false,
-					isError: false,
-					error: null
-				};
-			} catch (error) {
-				if (controller.signal.aborted) return;
-				recipeQueryState = {
-					data: null,
-					isPending: false,
-					isError: true,
-					error:
-						error instanceof Error
-							? error.message
-							: 'Unable to request recipe details right now.'
-				};
-			}
-		};
-
-		void fetchRecipe();
-
-		return () => controller.abort();
 	});
 
 	let overriddenRecipe = $state<FullRecipe | null>(null);
-	let fullRecipe = $derived(overriddenRecipe ?? recipeFromQuery ?? null);
+	// let fullRecipe = $derived(overriddenRecipe ?? recipeFromQuery ?? null);
 	let hasUnsavedChanges = $derived(Boolean(overriddenRecipe));
 
 	// Responsible for passing the recipe to the FormData
-	let recipeJson = $derived.by(() => (fullRecipe ? JSON.stringify(fullRecipe) : ''));
+	let recipeJson = $derived.by(() => (recipe ? JSON.stringify(recipe) : ''));
 
-	// Account for sidenav width and adjust accordingly
-	// let left = $derived.by(() => {
-	// 	if (vp.device === 'mobile') return '0';
-	// 	return vp.nav === 'expanded' ? 'calc(18rem + 1px)' : 'calc(3.5rem + 1px)';
-	// });
+	// let promptInput = $state<string>();
 
-	let status = $state<'idle' | 'saving' | 'saved' | 'error'>('idle');
-
-	// True when a request is being processed
-	let working = $state(false);
-
-	let promptInput = $state<string>();
-
-	let promptType = $state<PromptContext>();
+	// let promptType = $state<PromptContext>();
 
 	let promptRef = $state<HTMLElement>();
 
 	let promptHeight = $derived(promptRef?.clientHeight);
 
-	let conversationMsg = $state<string>();
+	// let conversationMsg = $state<string>();
 
-	let lastFormMessage: string | undefined = undefined;
+	// let lastFormMessage: string | undefined = undefined;
 
 	// Timeout for saving full recipe to suggestions after 2 minutes
 	let saveTimeout: number | null = null;
@@ -198,180 +172,198 @@
 	 * Save full recipe to suggestions table after 2 minutes
 	 */
 	async function saveFullRecipeToSuggestions() {
-		if (!fullRecipe || !data.recipe.title) return;
+		// if (!fullRecipe || !data.recipe.title) return;
 
-		try {
-			// Convert title to suggestion ID using same logic as saveSuggestions
-			const suggestionId = data.recipe.title.toLowerCase().replaceAll(' ', '-');
+		// try {
+		// 	// Convert title to suggestion ID using same logic as saveSuggestions
+		// 	const suggestionId = data.recipe.title.toLowerCase().replaceAll(' ', '-');
 
-			const safeRecipe = JSON.parse(JSON.stringify(fullRecipe)) as FullRecipe;
+		// 	const safeRecipe = JSON.parse(JSON.stringify(fullRecipe)) as FullRecipe;
 
-			await db.suggestions.update(suggestionId, {
-				...safeRecipe,
-				last_opened: Date.now().toString()
-			});
-		} catch (error) {
-			console.error('Failed to save full recipe to suggestions:', error);
-		}
+		// 	await db.suggestions.update(suggestionId, {
+		// 		...safeRecipe,
+		// 		last_opened: Date.now().toString()
+		// 	});
+		// } catch (error) {
+		// 	console.error('Failed to save full recipe to suggestions:', error);
+		// }
 	}
 
 	/**
 	 * Save to the User's recipe book
 	 */
 	async function saveRecipe() {
-		working = true;
+		if (!recipe) return;
+		app.view = 'loading';
 
-		try {
-			if (!fullRecipe) {
-				toast.error('No recipe available to save');
-				working = false;
-				return;
+		let candidate: SavedRecipe | undefined = undefined;
+		let syncError = false;
+
+		if (hasCloudStorageAccess && cloudService) {
+			try {
+				candidate = await cloudService.uploadLocalRecipe(recipe);
+				await db.recipes.put(candidate);
+				toast.success('Recipe saved');
+				goto(`/recipes/${candidate.id}`, { replaceState: true });
+			} catch (err) {
+				console.error('Cloud save failed; continuing locally', err);
+				syncError = true;
+
+				candidate = createSavedRecipe(recipe, err instanceof Error ? err.message : 'Unknown sync error');
+				await db.recipes.put(candidate);
+				toast.info('Recipe saved locally but failed to sync to cloud');
+			} finally {
+				app.view = 'idle';
 			}
-
-			const now = new Date().toISOString();
-			const clonedRecipe: FullRecipe = JSON.parse(JSON.stringify(fullRecipe));
-			const newRecipe = {
-				...clonedRecipe,
-				id: uuid(),
-				created_at: now,
-				last_opened: now,
-				version: 1,
-				is_current: true,
-				is_favorite: false
-			};
-
-			const recipeId = await db.recipes.put(newRecipe);
-			
-			status = 'saved';
-			goto(`/recipes/${recipeId}`, { replaceState: true });
-		} catch (err) {
-			console.error('Save failed', err);
-			status = 'error';
-			working = false;
-			toast.error('Save failed');
+		} else {
+			candidate = createSavedRecipe(recipe);
+			await db.recipes.put(candidate);
+			toast.success('Recipe saved');
+			goto(`/recipes/${candidate.id}`, { replaceState: true });
 		}
+
+	}
+
+	function createSavedRecipe(recipe: FullRecipe, error?: string): SavedRecipe {
+		const now = new Date().toISOString();
+		return {
+			...recipe,
+			created_at: now,
+			updated_at: now,
+			synced: false,
+			sync_error: error ?? null,
+			id: crypto.randomUUID(),
+			archived: null,
+			deleted_at: null,
+			last_opened: now,
+			version: 1,
+			is_current: true,
+			is_favorite: false,
+			owner_id: null,
+			shared_id: null,
+			last_synced_at: null,
+			parent_id: null,
+		};
 	}
 
 	// Handle prompt responses
-	$effect(() => {
-		if (form && form.error === undefined) {
-			if (form.message === lastFormMessage) return;
+	// $effect(() => {
+	// 	if (form && form.error === undefined) {
+	// 		if (form.message === lastFormMessage) return;
 
-			const { type, message } = form;
-			if (typeof message !== 'string') {
-				console.error('Unexpected AI payload', message);
-				toast.error('There was a problem parsing the recipe response');
-				working = false;
-				return;
-			}
+	// 		const { type, message } = form;
+	// 		if (typeof message !== 'string') {
+	// 			console.error('Unexpected AI payload', message);
+	// 			toast.error('There was a problem parsing the recipe response');
+	// 			working = false;
+	// 			return;
+	// 		}
 
-			const messageText = message;
-			promptType = type;
-			lastFormMessage = messageText;
-			working = false;
+	// 		const messageText = message;
+	// 		promptType = type;
+	// 		lastFormMessage = messageText;
+	// 		working = false;
 
-			if (type === 'assistance') {
-				conversationMsg = messageText;
-			} else {
-				try {
-					overriddenRecipe = JSON.parse(messageText) as FullRecipe;
-					toast.success(`"${overriddenRecipe.title}" updated`);
-				} catch (err) {
-					console.error(err);
-					toast.error('There was a problem parsing the recipe JSON');
-				}
-			}
-		} else if (form && form.error) {
-			working = false;
-			console.error(form.error);
-			toast.error(`${form.error}`);
-		}
-	});
+	// 		if (type === 'assistance') {
+	// 			conversationMsg = messageText;
+	// 		} else {
+	// 			try {
+	// 				overriddenRecipe = JSON.parse(messageText) as FullRecipe;
+	// 				toast.success(`"${overriddenRecipe.title}" updated`);
+	// 			} catch (err) {
+	// 				console.error(err);
+	// 				toast.error('There was a problem parsing the recipe JSON');
+	// 			}
+	// 		}
+	// 	} else if (form && form.error) {
+	// 		working = false;
+	// 		console.error(form.error);
+	// 		toast.error(`${form.error}`);
+	// 	}
+	// });
 
 	// Start timeout to save full recipe to suggestions after 2 minutes
-	$effect(() => {
-		if (fullRecipe && data.recipe.title) {
-			// Clear any existing timeout
-			if (saveTimeout) {
-				clearTimeout(saveTimeout);
-			}
+	// $effect(() => {
+	// 	if (fullRecipe && data.recipe.title) {
+	// 		// Clear any existing timeout
+	// 		if (saveTimeout) {
+	// 			clearTimeout(saveTimeout);
+	// 		}
 
-			// Start new 2-minute timeout
-			saveTimeout = window.setTimeout(() => {
-				saveFullRecipeToSuggestions();
-			}, 2 * 60 * 1000); // 2 minutes
-		}
+	// 		// Start new 2-minute timeout
+	// 		saveTimeout = window.setTimeout(() => {
+	// 			saveFullRecipeToSuggestions();
+	// 		}, 2 * 60 * 1000); // 2 minutes
+	// 	}
 
-		// Cleanup timeout on unmount
-		return () => {
-			if (saveTimeout) {
-				clearTimeout(saveTimeout);
-				saveTimeout = null;
-			}
-		};
-	});
+	// 	// Cleanup timeout on unmount
+	// 	return () => {
+	// 		if (saveTimeout) {
+	// 			clearTimeout(saveTimeout);
+	// 			saveTimeout = null;
+	// 		}
+	// 	};
+	// });
 
 	onDestroy(() => {
 		if (saveTimeout) clearTimeout(saveTimeout);
 	});
 
-	beforeNavigate(({ cancel }) => {
-		if (hasUnsavedChanges) {
-			const shouldLeave = confirm(
-				'You have unsaved changes. Are you sure you want to leave this page?'
-			);
-			if (!shouldLeave) {
-				cancel();
-			}
-		}
-	});
+	// beforeNavigate(({ cancel }) => {
+	// 	if (hasUnsavedChanges) {
+	// 		const shouldLeave = confirm(
+	// 			'You have unsaved changes. Are you sure you want to leave this page?'
+	// 		);
+	// 		if (!shouldLeave) {
+	// 			cancel();
+	// 		}
+	// 	}
+	// });
 </script>
 
-<PageHeader>
-	<AppBar.Root>
-		{#if recipeQueryState?.data}
-			<Button onClick={goBack} label="Go back to recipe suggetions" size="sm">
-				<BackIcon size="xs" />
-				Back to suggestions
-			</Button>
-		{:else if !canUseAI}
-			<AppBar.Text primary="AI unavailable" />
-		{:else}
-			<AppBar.Text primary="Checking the pantry..." />
-		{/if}
-		{#if recipeQueryState?.data}
-			<AppBar.End>
-				<Button onClick={saveRecipe} label="Save recipe" disabled={!canUseAI}>
-					<BookmarkIcon size="xs" />
-					Save recipe
-				</Button>
-			</AppBar.End>
-		{/if}
-	</AppBar.Root>
-</PageHeader>
-<article
-	class="mx-auto max-w-5xl px-4 pt-24"
+<div
+	class="grid h-screen"
+	style:place-content={recipeQueryResult?.isSuccess ? 'start stretch' : 'center'}
 	style:padding-bottom={`calc(${promptHeight}px + 1.5rem)`}
 >
 	{#if !canUseAI}
-		<div class="mx-auto grid h-max w-full max-w-3xl place-content-center text-center">
-			<h1 class="fluid-heading-05 my-8">AI recipe details unavailable</h1>
-			<p>{aiRestrictionMessage}</p>
+		<div
+			class="mb-6 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-500 dark:bg-amber-950 dark:text-amber-100"
+		>
+			{aiRestrictionMessage}
 		</div>
-	{:else if recipeQueryState?.isError}
+	{:else if recipeQueryResult?.isError}
 		<div class="mx-auto grid h-max w-full max-w-3xl place-content-center">
 			<h1 class="fluid-heading-05 my-8">Ah donkey-spittle! There was a problem.</h1>
 			<p class="flex items-center gap-3">
 				A recipe matching the provided title could not be found.
 			</p>
 		</div>
-	{:else if recipeQueryState?.data && fullRecipe}
-		<Recipe recipe={fullRecipe} />
-		<Button onClick={saveRecipe} label="Save to My Recipes" disabled={working} size="sm">
+	{:else if recipeQueryResult?.data && recipe}
+		<div>
+			<PageHeader>
+				<AppBar.Root>
+					<Button.Root onclick={goBack} class="button text narrow -ml-2">
+						<BackIcon size="xs" />
+						<span>Back to suggestions</span>
+					</Button.Root>
+					<AppBar.End>
+						<Button.Root onclick={saveRecipe} class="button text narrow mr-2">
+							<BookmarkIcon size="xs" />
+							<span>Save recipe</span>
+						</Button.Root>
+					</AppBar.End>
+				</AppBar.Root>
+			</PageHeader>
+			<article class="mx-auto max-w-5xl px-4 py-8 lg:px-8">
+				<Recipe recipe={recipe} />
+			</article>
+		</div>
+		<!-- <Button onClick={saveRecipe} label="Save to My Recipes" disabled={working} size="sm">
 			<BookmarkIcon size="xs" />
 			Save to My Recipes
-		</Button>
-		<div class="fixed right-0 bottom-0 px-4" bind:this={promptRef}>
+		</Button> -->
+		<!-- <div class="fixed right-0 bottom-0 px-4" bind:this={promptRef}>
 			<Prompt>
 				{#if conversationMsg}
 					<div
@@ -412,10 +404,8 @@
 					>
 				</form>
 			</Prompt>
-		</div>
+		</div> -->
 	{:else}
-		<div class="absolute inset-0 grid place-content-center">
-			<ProgressSpinner size="lg" />
-		</div>
+		<ProgressSpinner size="lg" />
 	{/if}
-</article>
+</div>

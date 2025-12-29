@@ -1,80 +1,66 @@
-import {
-	askCookingQuestion,
-	requestRecipeModifications,
-	OPENAI_DISABLED_ERROR
-} from '$lib/server/openai';
-import { isModificationRequest, sanitizePromptInput } from '$lib/utils';
-import { error, fail, type Actions, type ServerLoad } from '@sveltejs/kit';
+import type { PageServerLoad } from './$types';
 
-/**
- * Load the recipe title and description from the URL.
- * This is used to populate the form when the user clicks on a suggestion.
- */
-export const load: ServerLoad = async ({ url }) => {
-	const encodedTitle = url.searchParams.get('title');
-	const encodedDesc = url.searchParams.get('desc');
-
-	if (!encodedTitle) error(404, 'No title provided');
+export const load: PageServerLoad = async ({ parent }) => {
+	const { session, permissions, featureFlags } = await parent();
 
 	return {
-		recipe: {
-			title: encodedTitle,
-			description: encodedDesc ?? 'no description given'
-		}
+		session,
+		permissions,
+		featureFlags
 	};
 };
 
-export const actions: Actions = {
-	default: async ({ request, locals }) => {
-		const { session, permissions } = locals;
+// export const actions: Actions = {
+// 	default: async ({ request, locals }) => {
+// 		const { session, permissions } = locals;
 
-		if (!session) {
-			return fail(401, { error: 'Authentication required' });
-		}
+// 		if (!session) {
+// 			return fail(401, { error: 'Authentication required' });
+// 		}
 
-		const aiAllowed = Boolean(permissions?.ai_assistance);
+// 		const aiAllowed = Boolean(permissions?.ai_assistance);
 
-		if (!aiAllowed) {
-			return fail(403, { error: 'AI access denied' });
-		}
+// 		if (!aiAllowed) {
+// 			return fail(403, { error: 'AI access denied' });
+// 		}
 
-		const data = await request.formData();
-		const message = sanitizePromptInput(data.get('input') as string);
-		const recipe = data.get('recipe') as string;
+// 		const data = await request.formData();
+// 		const message = sanitizePromptInput(data.get('input') as string);
+// 		const recipe = data.get('recipe') as string;
 
-		if (!message) {
-			return fail(400, { error: 'A query is required', message });
-		}
-		if (!recipe) {
-			return fail(400, { error: `The recipe was not provided.` });
-		}
+// 		if (!message) {
+// 			return fail(400, { error: 'A query is required', message });
+// 		}
+// 		if (!recipe) {
+// 			return fail(400, { error: `The recipe was not provided.` });
+// 		}
 
-		const queryFn = isModificationRequest(message)
-			? requestRecipeModifications
-			: askCookingQuestion;
+// 		const queryFn = isModificationRequest(message)
+// 			? requestRecipeModifications
+// 			: askCookingQuestion;
 
-		try {
-			const response = await queryFn(message.trim(), recipe);
-			if (response && response[1] != null) {
-				const [type, message] = response;
-				return { type, message };
-			} else {
-				return fail(502, { error: 'Invalid response from AI', message });
-			}
-		} catch (error) {
-			if (error instanceof Error && error.message === OPENAI_DISABLED_ERROR) {
-				return fail(503, {
-					error: 'AI service is unavailable right now',
-					message
-				});
-			}
+// 		try {
+// 			const response = await queryFn(message.trim(), recipe);
+// 			if (response && response[1] != null) {
+// 				const [type, message] = response;
+// 				return { type, message };
+// 			} else {
+// 				return fail(502, { error: 'Invalid response from AI', message });
+// 			}
+// 		} catch (error) {
+// 			if (error instanceof Error && error.message === OPENAI_DISABLED_ERROR) {
+// 				return fail(503, {
+// 					error: 'AI service is unavailable right now',
+// 					message
+// 				});
+// 			}
 
-			console.error('Network error:', error);
+// 			console.error('Network error:', error);
 
-			return fail(500, {
-				error: 'Network error: Unable to connect to the API',
-				message
-			});
-		}
-	}
-} satisfies Actions;
+// 			return fail(500, {
+// 				error: 'Network error: Unable to connect to the API',
+// 				message
+// 			});
+// 		}
+// 	}
+// } satisfies Actions;

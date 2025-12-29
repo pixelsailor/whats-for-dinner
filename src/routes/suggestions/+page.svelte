@@ -37,7 +37,7 @@
 		error: ''
 	});
 
-	let userPreferences = $derived(data.preferences || '');
+	// let userPreferences = $derived(data.preferences || '');
 	let network = $derived($networkStore);
 	let aiCapability = $derived(
 		deriveAICapability({
@@ -74,12 +74,8 @@
 
 	let suggestionsStore = $state<SuggestionsQueryStore | null>(null);
 	let suggestionsResult = $state<SuggestionsResult | null>(null);
-	// let suggestionsError = $derived.by(() => suggestionsResult?.error ?? null);
-	// let suggestions = $derived<RecipeSuggestion[] | null>((suggestionsResult?.data?.data as RecipeSuggestionsResponse) || null);
 	
-	let remoteSuggestions = $derived((suggestionsResult?.data?.data as unknown as RecipeSuggestionsResponse)?.suggestions || null);
-
-	$inspect('suggestionsResult', suggestionsResult);
+	let suggestions = $derived((suggestionsResult?.data as unknown as RecipeSuggestionsResponse)?.suggestions || null);
 
 	$effect(() => {
 		const currentPrompt = prompt;
@@ -89,15 +85,12 @@
 			return;
 		}
 
-		const store = createSuggestionsQuery({ prompt: currentPrompt, preferences: userPreferences });
+		const store = createSuggestionsQuery({ prompt: currentPrompt });
 		if (!store) {
 			suggestionsStore = null;
 			suggestionsResult = null;
 			return;
 		}
-
-		console.log('store', store);
-		
 
 		suggestionsStore = store;
 
@@ -165,7 +158,7 @@
 		// include the `short_description` otherwise AI will write a new one and the generated
 		// recipe may very from the description
 		const desc = encodeURIComponent(recipe.short_description);
-		goto(`/suggestions/recipe?title=${title}&desc=${desc}`);
+		goto(`/suggestions/recipe?title=${title}&description=${desc}`);
 	}
 
 	function getMoreSuggestions() {}
@@ -173,7 +166,7 @@
 
 <div
 	class="grid h-screen mx-auto max-w-5xl px-4 py-8 lg:px-8"
-	style:place-content={suggestionsResult?.isSuccess ? 'start' : 'center'}
+	style:place-content={suggestionsResult?.isSuccess ? 'start stretch' : 'center'}
 >
 	{#if aiRestrictionMessage}
 		<div
@@ -199,13 +192,13 @@
 						>
 					</p>
 				</div>
-			{:else if remoteSuggestions}
-				<div class="py-24">
+			{:else if suggestions}
+				<div>
 					<h1 class="fluid-heading-04 mb-8">
 						Here are some ideas for, <span class="italic">"{prompt}"</span>
 					</h1>
 					<List size="three-line">
-						{#each remoteSuggestions as summary (summary.title)}
+						{#each suggestions as summary (summary.title)}
 							<hr />
 							<ListItem.Root>
 								<ListItem.Button

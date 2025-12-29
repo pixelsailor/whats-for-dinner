@@ -13,7 +13,6 @@ import { RecipeSchema } from '../recipe';
  * OpenAI structured output schema for a recipe suggestion.
  */
 export const AiSuggestionSchema = z.object({
-	id: z.uuid(),
 	title: z.string().describe('The title of the recipe.'),
 	short_description: z.string().describe('A short, single sentence description of the recipe.'),
 });

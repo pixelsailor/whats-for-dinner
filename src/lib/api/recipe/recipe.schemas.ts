@@ -82,21 +82,18 @@ const ALL_TAGS = Object.values(CATEGORY_TAGS).flat();
 // const TAG_LOOKUP = new Map(ALL_TAGS.map((tag) => [tag.toLowerCase(), tag]));
 
 /**
- * Summary of a recipe used in lists and cards.
+ * Summary of a recipe used in lists and cards. Use AiSuggestionSchema for OpenAI responses. See $lib/api/ai/ai.schemas.ts
  */
 export const RecipeSummarySchema = z.object({
-	id: z.uuid().nullable(),
-	title: z.string().min(1).describe('Recipe title in plain text, no headings or formating.'),
-	short_description: z
-		.string()
-		.describe('Single sentence describing the recipe. Used in short form summaries.'),
+	title: z.string(),
+	short_description: z.string()
 });
 
 /**
  * Suggestion model used for storing suggestions in the local database. Extends `RecipeSummarySchema`
  * with metadata used by the app for tracking suggestion creation and last opened.
  */
-export const SuggestionSchema = RecipeSummarySchema.extend({
+export const SuggestionHistorySchema = RecipeSummarySchema.extend({
 	id: z.uuid(),
 	created_at: z.iso.datetime(),
 	last_opened: z.iso.datetime().nullable().optional()

@@ -4,11 +4,12 @@
  * Stores AI suggestions locally to maintain a history to facilitate later retrieval and "viewed" status.
  */
 
-import { db } from '$lib/db';
-import type { RecipeSummary, Suggestion } from '$lib/api/recipe';
+import { useQueryClient } from '@tanstack/svelte-query';
 import { liveQuery } from 'dexie';
 import { readable, writable } from 'svelte/store';
-import { useQueryClient } from '@tanstack/svelte-query';
+
+import type { RecipeSummary, Suggestion } from '$lib/api/recipe';
+import { db } from '$lib/db';
 
 // @TODO is this used?
 export const suggestionMap = writable<Map<string, RecipeSummary>>(new Map());
@@ -76,7 +77,6 @@ export async function saveSuggestions(suggestions: RecipeSummary[]) {
 		const summary = JSON.parse(JSON.stringify(raw)) as RecipeSummary;
 		return {
 			...summary,
-			id: summary.title.toLowerCase().replaceAll(' ', '-'),
 			created_at: now
 		};
 	});

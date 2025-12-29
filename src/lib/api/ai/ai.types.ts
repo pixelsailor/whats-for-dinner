@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type {
+	AiSuggestionSchema,
 	RecipeAddendumResponseSchema,
 	RecipeDetailResponseSchema,
 	RecipeRevisionResponseSchema,
@@ -40,7 +41,7 @@ export type ApiResponse<T> = {
 /**
  * Pairing of the originating prompt context with the parsed payload coming back from OpenAI.
  */
-export type OpenAiResponse<TPayload> = [PromptContext, TPayload];
+export type OpenAiResponse<TPayload> = TPayload;
 
 /**
  * API payload returned by `/api/recipes` when wrapping OpenAI responses.
@@ -59,6 +60,7 @@ export type RecipeAddendum = {
 	cook_time?: string;
 };
 
+export type RecipeSuggestion = z.infer<typeof AiSuggestionSchema>;
 export type RecipeSuggestionsResponse = z.infer<typeof RecipeSuggestionsResponseSchema>;
 export type RecipeDetailResponse = z.infer<typeof RecipeDetailResponseSchema>;
 export type RecipeRevisionResponse = z.infer<typeof RecipeRevisionResponseSchema>;

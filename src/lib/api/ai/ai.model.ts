@@ -8,25 +8,25 @@
  * @todo Use structured JSON responses with zod schemas.
  * @todo Refactor responses without context tuples.
  */
-import type {
-	FullRecipe,
-	PromptContext,
-	RecipeAddendum,
-	RecipeAddendumResponse,
-	RecipeAssistanceResponse,
-	RecipeDetailResponse,
-	RecipeRevisionResponse,
-	RecipeSuggestionsResponse,
-	RecipeSummary
-} from '$lib/types';
-import { PromptContextEnum } from '$lib/types';
-import type { ChatCompletionMessageParam } from 'openai/resources';
+// import type { ChatCompletionMessageParam } from 'openai/resources';
 import { OpenAI } from 'openai';
+import { zodTextFormat } from 'openai/helpers/zod';
+
 import { VITE_OPENAI_API_KEY } from '$env/static/private';
 
-const model = 'gpt-4.1-nano';
-
-const temperature = 0.4;
+import {
+	type PromptContext,
+	type RecipeAddendum,
+	type RecipeAddendumResponse,
+	type RecipeAssistanceResponse,
+	type RecipeDetailResponse,
+	RecipeDetailResponseSchema,
+	type RecipeRevisionResponse,
+	type RecipeSuggestionsResponse,
+	RecipeSuggestionsResponseSchema,
+} from '$lib/api/ai';
+import { PromptContextEnum } from '$lib/types';
+import { type Recipe, RecipeSchema, type RecipeSummary, RecipeSummarySchema } from '$lib/api/recipe';
 
 export const OPENAI_DISABLED_ERROR = 'OPENAI_DISABLED';
 
@@ -74,54 +74,31 @@ function parseJsonPayload<TPayload>(raw: ChatContent, context: PromptContext): T
 
 /**
  * Request 4-8 high-level recipe suggestions for a given prompt.
- *
- * @returns Tuple where the first item is the prompt context and the second item is
- * a parsed array of `RecipeSummary` objects.
  */
-export async function getRecipeSuggestions(
+export async function generateRecipeSuggestions(
 	input: string,
 	userPreferences: string
-): Promise<RecipeSuggestionsResponse> {
-	const messages: ChatCompletionMessageParam[] = [
-		{
-			role: 'system',
-			content: `You are a meal planner. Response with a JSON array of 4-8 recipe ideas based on the users's input.
-			Pay attention to the user's request. Meal ideas should be assumed unless otherwise specified.
-			${userPreferences}
-
-			Each item should include:
-      - title (string)
-      - short_description (string)
-      - estimated_time (e.g., "30 min")
-      - tags (e.g., ["vegetarian", "quick"])
-      
-      DO NOT include anything outside of the JSON response.`
-		},
-		{
-			role: 'user',
-			content: input
-		},
-	];
+): Promise<string | Error> {
+	const instructions = `
+		You are a meal planner. Response with a JSON array of 4-8 recipe ideas based on the users's input. DO NOT include anything outside of the JSON response.
+		The recipes should take into consideration the user's preferences and dietary restrictions as follows: ${userPreferences}
+	`;
 
 	try {
 		const openai = getOpenAI();
-		// const response = await openai.responses.parse({
-		// 	model,
-		// 	input: messages,
-		// 	text: zodResponseFormat(SummaryResponse, 'summary')
-		// });
-		const response = await openai.chat.completions.create({
-			model,
-			messages,
-			temperature,
+		const response = await openai.responses.create({
+			model: 'gpt-5-nano',
+			instructions,
+			input,
+			text: {
+				format: zodTextFormat(RecipeSuggestionsResponseSchema, 'suggestions')
+			}
 		});
 
-		const payload = parseJsonPayload<RecipeSummary[]>(
-			response.choices[0]?.message?.content,
-			PromptContextEnum.SUMMARIES
-		);
-
-		return [PromptContextEnum.SUMMARIES, payload];
+		// return JSON.parse(response.output_text) as RecipeSuggestionsResponse;
+		return response.output_text;
+		// const payload = response.output_text;
+		// return [PromptContextEnum.SUMMARIES, payload];
 	} catch (error) {
 		console.error('OpenAI API error:', error);
 		throw error;
@@ -129,38 +106,18 @@ export async function getRecipeSuggestions(
 }
 
 /**
- * Request a complete `FullRecipe` for a suggestion the user wants to expand.
- *
- * @returns Tuple of `[PromptContextEnum.DETAIL, FullRecipe]`.
+ * Request a complete `Recipe` based on the provided title and description.
  */
-export async function getFullRecipe(
+export async function generateRecipe(
 	title: string,
 	desc: string,
 	userPreferences?: string
-): Promise<RecipeDetailResponse> {
-	const messages: ChatCompletionMessageParam[] = [
-		{
-			role: 'system',
-			content: `You are an expert culinary assistant. You are thoughtful about flavor profiles,
+): Promise<string | Error> {
+	const instructions = `You are an expert culinary assistant. You are thoughtful about flavor profiles,
 ingredients and traditional preparation methods. Consider the steps necessary during preparation
 -- whether items that will be combined should be prepared/cooked separately, at the same time. Be
 considerate of the total time an item may spend cooking if additional items are added that must be
-cooked together. For measured ingredients, dry ingredients should be listed before wet.
-${userPreferences}
-Respond ONLY with valid JSON in the following format:
-      
-{
-  "title": "string",
-  "short_description": "string (use the user's provided description)",
-  "description": "string (can be a long form of the user's description with additional commentary or suggested pairings)",
-  "ingredients": "markdown string (DO NOT wrap with triple backticks or code blocks)",
-  "instructions": "markdown string (DO NOT wrap with triple backticks or code blocks)",
-  "tags": ["string", ...],
-  "yield": "e.g. 'Serves 4'",
-	"prep_time": "string (can include time marinating or chilling)",
-	"cook_time": "string",
-  "notes": "markdown string (optional, DO NOT wrap with code blocks)"
-}
+cooked together. The recipes should take into consideration the user's preferences and dietary restrictions as follows: ${userPreferences}
 
 Formatting Guidelines:
 - Use clean, readable Markdown **within** the 'ingredients', 'instructions', and 'notes' strings.
@@ -181,38 +138,34 @@ Formatting Guidelines:
 - DO NOT include any emojis or non-ASCII characters.
 
 Keep your formatting consistent and minimal.
-`
-		},
-		{
-			role: 'user',
-			content: `Give me the full recipe for, "${title}", as described by, "${desc}"`
-		}
-	];
+`;
+	const input = `Provide a complete recipe for, "${title}", as described by, "${desc}"`;
 
 	try {
 		const openai = getOpenAI();
-		const response = await openai.chat.completions.create({
-			model,
-			messages,
-			temperature
+		const response = await openai.responses.create({
+			model: 'gpt-5-mini',
+			instructions,
+			input,
+			text: {
+				format: zodTextFormat(RecipeSchema, 'recipedetail')
+			}
 		});
 
-		const payload = parseJsonPayload<FullRecipe>(
-			response.choices[0]?.message?.content,
-			PromptContextEnum.DETAIL
-		);
-
-		return [PromptContextEnum.DETAIL, payload];
-	} catch (err) {
-		console.error('OpenAI API error:', err);
-		throw err;
+		// return JSON.parse(response.output_text) as RecipeSuggestionsResponse;
+		return response.output_text;
+		// const payload = response.output_text;
+		// return [PromptContextEnum.SUMMARIES, payload];
+	} catch (error) {
+		console.error('OpenAI API error:', error);
+		throw error;
 	}
 }
 
 /**
  * Ask OpenAI to revise an existing recipe using the provided prompt.
  *
- * @returns Tuple of `[PromptContextEnum.REVISION, FullRecipe]`.
+ * @returns Tuple of `[PromptContextEnum.REVISION, Recipe]`.
  */
 export async function requestRecipeModifications(
 	input: string,
@@ -262,7 +215,7 @@ Here is the user's modification request:
 			temperature: 1.0
 		});
 
-		const payload = parseJsonPayload<FullRecipe>(
+		const payload = parseJsonPayload<Recipe>(
 			response.choices[0]?.message?.content,
 			PromptContextEnum.REVISION
 		);
@@ -283,7 +236,7 @@ export async function askCookingQuestion(
 	question: string,
 	recipeJson: string
 ): Promise<RecipeAssistanceResponse> {
-	const recipe = JSON.parse(recipeJson) as FullRecipe;
+	const recipe = JSON.parse(recipeJson) as Recipe;
 	const prompt = `
 You are an helpful, experienced culinary assistant helping a user working on a recipe.
 When they ask a question, consider the recipe they provide and answer with helpful, conversational cooking advice.

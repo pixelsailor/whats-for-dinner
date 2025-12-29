@@ -1,5 +1,5 @@
 import Dexie, { type Table } from 'dexie';
-import type { SavedRecipe, Suggestion } from './api/recipe/recipe.types';
+import type { SavedRecipe, Suggestion } from './api/recipe';
 
 /**
  * Local Dexie/IndexedDB Database

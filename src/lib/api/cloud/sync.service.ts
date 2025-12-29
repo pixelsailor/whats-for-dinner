@@ -70,7 +70,7 @@ export class SyncService {
     const payload: SavedRecipe = {
       ...recipe,
       synced: true,
-      sync_error: undefined,
+      sync_error: null,
     };
 
     try {
@@ -103,7 +103,7 @@ export class SyncService {
     const payload: SavedRecipe = {
       ...recipe,
       synced: true,
-      sync_error: undefined,
+      sync_error: null,
     };
     try {
       const uploaded = await this.cloud.uploadLocalRecipe(payload);
@@ -134,7 +134,7 @@ export class SyncService {
     const payload: SavedRecipe[] = recipes.map((recipe) => ({
       ...recipe,
       synced: true,
-      sync_error: undefined,
+      sync_error: null,
     }));
     try {
       const uploaded = await this.cloud.uploadAllLocalRecipes(payload);
@@ -164,7 +164,7 @@ export class SyncService {
     const normalized = recipes.map((recipe) => ({
       ...recipe,
       synced: true,
-      sync_error: undefined,
+      sync_error: null,
     }));
 
     await db.recipes.bulkPut(normalized);

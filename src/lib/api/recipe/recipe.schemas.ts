@@ -2,6 +2,9 @@
  * Recipe Schemas
  *
  * Zod schemas for recipes and recipe management.
+ * 
+ * To ensure compatibility with the OpenAI Response API, all fields must be required.
+ * "Optional" field may be nullable.
  */
 
 import { z } from 'zod';
@@ -82,12 +85,11 @@ const ALL_TAGS = Object.values(CATEGORY_TAGS).flat();
  * Summary of a recipe used in lists and cards.
  */
 export const RecipeSummarySchema = z.object({
+	id: z.uuid().nullable(),
 	title: z.string().min(1).describe('Recipe title in plain text, no headings or formating.'),
 	short_description: z
 		.string()
-		.optional()
 		.describe('Single sentence describing the recipe. Used in short form summaries.'),
-	id: z.uuid().optional()
 });
 
 /**
@@ -95,7 +97,7 @@ export const RecipeSummarySchema = z.object({
  * with metadata used by the app for tracking suggestion creation and last opened.
  */
 export const SuggestionSchema = RecipeSummarySchema.extend({
-	id: z.string(),
+	id: z.uuid(),
 	created_at: z.iso.datetime(),
 	last_opened: z.iso.datetime().nullable().optional()
 });
@@ -107,6 +109,7 @@ export const SuggestionSchema = RecipeSummarySchema.extend({
 export const RecipeSchema = RecipeSummarySchema.extend({
 	description: z
 		.string()
+		.nullable()
 		.optional()
 		.describe('Two to three sentence description with additional commentary or suggested pairings'),
 	ingredients: z
@@ -141,18 +144,12 @@ export const RecipeSchema = RecipeSummarySchema.extend({
 		// ),
 	yield: z
 		.string()
-		.optional()
 		.describe(
 			"Number of servings for meals (e.g. 2 to 4 servings) or volume for sauces, dressings or similar, e.g. '2 cups"
 		),
-	time: z.object({
-	  prep: z.string().optional().describe('Preparation time, may include marinating or chilling.'),
-	  cook: z.string().optional(),
-	  total: z.string().optional(),
-	}).optional().describe('Support for legacy "time" object. Deprecated. Use "prep_time" and "cook_time" instead.'),
-	prep_time: z.array(z.string()).optional().describe('Preparation time in minutes, may include marinating or chilling. Use a tuple for range values, e.g. "10-15 minutes" is represented as ["10", "15"]'),
-	cook_time: z.array(z.string()).optional().describe('Cooking time in minutes. Use a tuple for range values, e.g. "10-15 minutes" is represented as ["10", "15"]'),
-	notes: z.string().optional().describe('Plain Markdown. DO NOT use "Notes" as the heading.')
+	prep_time: z.array(z.string()).describe('Preparation time in minutes, may include marinating or chilling. Use a tuple for range values, e.g. "10-15 minutes" is represented as ["10", "15"]'),
+	cook_time: z.array(z.string()).describe('Cooking time in minutes. Use a tuple for range values, e.g. "10-15 minutes" is represented as ["10", "15"]'),
+	notes: z.string().nullable().describe('Plain Markdown. DO NOT use "Notes" as the heading.')
 });
 
 /**
@@ -165,11 +162,11 @@ export const SavedRecipeSchema = RecipeSchema.extend({
 	/** Creation timestamp. Automatically set by supabase trigger functions. */
 	created_at: z.iso.datetime(),
 	/** Update timestamp. Automatically set by supabase trigger functions. */
-	updated_at: z.iso.datetime().nullable().optional(),
+	updated_at: z.iso.datetime().nullable(),
 	/** Optional archived timestamp. Cloud backup: Recipe is not saved locally. Requires cloud_storage permission. */
-	archived: z.iso.datetime().nullable().optional(),
+	archived: z.iso.datetime().nullable(),
 	/** Optional deletion timestamp. */
-	deleted_at: z.iso.datetime().nullable().optional(),
+	deleted_at: z.iso.datetime().nullable(),
 	/** Timestamp indicating when the recipe was last opened. */
 	last_opened: z.iso.datetime(),
 	/** Monotonically increasing version number used for edits.
@@ -177,21 +174,21 @@ export const SavedRecipeSchema = RecipeSchema.extend({
 	 */
 	version: z.number(),
 	/** Parent id for version history (if applicable). */
-	parent_id: z.uuid().optional(),
+	parent_id: z.uuid().nullable(),
 	/** Marks whether this row is the current active version. */
 	is_current: z.boolean(),
 	/** Whether the recipe is favorited in the UI. */
 	is_favorite: z.boolean(),
 	/** Owner id when synced to the cloud. Automatically set by supabase trigger functions. */
-	owner_id: z.uuid().optional(),
+	owner_id: z.uuid().nullable(),
 	/** Shared id for public/shared recipes. */
-	shared_id: z.string().nullable().optional(),
+	shared_id: z.string().nullable(),
 	/** Whether the recipe has been synced to remote. */
-	synced: z.boolean().optional(),
+	synced: z.boolean().nullable(),
 	/** Last sync timestamp. Automatically set by supabase trigger functions. */
-	last_synced_at: z.iso.datetime().nullable().optional(),
+	last_synced_at: z.iso.datetime().nullable(),
 	/** Error message from last sync attempt, if any. */
-	sync_error: z.string().optional()
+	sync_error: z.string().nullable()
 });
 
 export const CloudRecipeSchema = SavedRecipeSchema.extend({

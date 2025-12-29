@@ -381,6 +381,20 @@ This project uses both patterns appropriately:
 
 **Standardization Goal**: Migrate page-specific actions that call remote APIs to use `+server.ts` endpoints when the logic could be reused, while keeping `+page.server.ts` for truly page-specific form handling.
 
+## AI Assisted Requests
+
+### AI Suggestions Workflow
+
+**Outgoing request**
+1. User input is passed to `src/routes/suggestions` via url search params.
+2. A truthy value in search params triggers a call to `createSuggestionsQuery()` in `$lib/ai/ai.queries.ts`.
+3. Query function makes a `fetch` request to the **suggestions** endpoint, `src/routes/api/suggestions/+server.ts`.
+4. **suggestions** uses a _Request Handler_ to call OpenAI with the `generateRecipeSuggestions()` callback and await the response.
+
+**Incoming responst**
+5. The _Request Handler_ then returns the OpenAI response as a **Response**, parsing the data.
+6. `$lib/ai/ai.queries.ts` passes along the Response JSON as a Response and stores it as a QueryResponse
+
 ## 📴 Offline Service Worker
 
 The custom service worker in [`src/service-worker.js`](src/service-worker.js) keeps the PWA usable offline by combining cache-first static assets with network-first content fetches:

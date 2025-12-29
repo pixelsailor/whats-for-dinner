@@ -1,15 +1,16 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { createSuggestionsQuery } from '$lib/queries/recipes.js';
+	// import { createSuggestionsQuery as createSuggestionsQueryRecipes } from '$lib/queries/recipes';
+	import { createSuggestionsQuery } from '$lib/api/ai/ai.queries';
 	// import { recommendedRecipes } from '$lib/stores/recommendations.js';
 	import {
 		bulkDeleteSuggestions,
 		saveSuggestions,
 		suggestionHistory,
 		getViewedStatus
-	} from '$lib/stores/suggestions.js';
-	import type { RecipeSummary, Suggestion } from '$lib/types';
+	} from '$lib/stores/suggestions';
+	import type { RecipeSummary, Suggestion } from '$lib/api/recipe';
 	// import { AppBar } from '$lib/ui/AppBar/index.js';
 	import Button from '$lib/ui/Button/Button.svelte';
 	// import TrashIcon from '$lib/ui/Icons/TrashIcon.svelte';
@@ -19,6 +20,8 @@
 	import ViewedBadge from '$lib/ui/ViewedBadge.svelte';
 	import { networkStore } from '$lib/stores/network';
 	import { deriveAICapability } from '$lib/utils/capabilities';
+	import type { ViewState } from '$lib/types.js';
+	import type { RecipeSuggestion, RecipeSuggestionsResponse } from '$lib/api/ai';
 
 	/**
 	 * `/routes/suggestions` is for handling LLM responses. While it uses the User's local preference
@@ -29,7 +32,12 @@
 
 	let { data } = $props();
 
-	let userPreferences = $state(data.preferences || '');
+	let app = $state({
+		view: 'loading' as ViewState | 'suggestions' | 'history',
+		error: ''
+	});
+
+	let userPreferences = $derived(data.preferences || '');
 	let network = $derived($networkStore);
 	let aiCapability = $derived(
 		deriveAICapability({
@@ -55,8 +63,8 @@
 		}
 	});
 
-	let prompt = $derived(page.url.searchParams.get('prompt'));
-
+	/** Recipe title and description from the URL params */
+	const prompt = $derived(page.url.searchParams.get('prompt'));
 	const hasPrompt = $derived(!!prompt);
 
 	type SuggestionsQueryStore = Exclude<ReturnType<typeof createSuggestionsQuery>, null>;
@@ -64,13 +72,14 @@
 		Parameters<SuggestionsQueryStore['subscribe']>[0]
 	>[0];
 
-let suggestionsStore = $state<SuggestionsQueryStore | null>(null);
-let suggestionsResult = $state<SuggestionsResult | null>(null);
-let suggestionsError = $derived.by(() => suggestionsResult?.error ?? null);
-let remoteSuggestions = $derived.by<RecipeSummary[] | null>(() => {
-	const payload = suggestionsResult?.data?.data;
-	return payload ? (payload[1] as RecipeSummary[]) : null;
-});
+	let suggestionsStore = $state<SuggestionsQueryStore | null>(null);
+	let suggestionsResult = $state<SuggestionsResult | null>(null);
+	// let suggestionsError = $derived.by(() => suggestionsResult?.error ?? null);
+	// let suggestions = $derived<RecipeSuggestion[] | null>((suggestionsResult?.data?.data as RecipeSuggestionsResponse) || null);
+	
+	let remoteSuggestions = $derived((suggestionsResult?.data?.data as unknown as RecipeSuggestionsResponse)?.suggestions || null);
+
+	$inspect('suggestionsResult', suggestionsResult);
 
 	$effect(() => {
 		const currentPrompt = prompt;
@@ -80,16 +89,20 @@ let remoteSuggestions = $derived.by<RecipeSummary[] | null>(() => {
 			return;
 		}
 
-		const store = createSuggestionsQuery(currentPrompt, userPreferences, { enabled: true });
+		const store = createSuggestionsQuery({ prompt: currentPrompt, preferences: userPreferences });
 		if (!store) {
 			suggestionsStore = null;
 			suggestionsResult = null;
 			return;
 		}
 
+		console.log('store', store);
+		
+
 		suggestionsStore = store;
 
 		const unsubscribe = store.subscribe((value) => {
+			console.log('store subscription as results', value);
 			suggestionsResult = value;
 		});
 
@@ -136,11 +149,11 @@ let remoteSuggestions = $derived.by<RecipeSummary[] | null>(() => {
 	}
 
 	// Save suggestions to history
-	$effect(() => {
-		if (hasPrompt && remoteSuggestions) {
-			saveSuggestions(remoteSuggestions);
-		}
-	});
+	// $effect(() => {
+	// 	if (hasPrompt && suggestions) {
+	// 		saveSuggestions(suggestions);
+	// 	}
+	// });
 
 	function getFullRecipe(recipe: RecipeSummary) {
 		if (!canRequestSuggestions) {
@@ -158,7 +171,10 @@ let remoteSuggestions = $derived.by<RecipeSummary[] | null>(() => {
 	function getMoreSuggestions() {}
 </script>
 
-<main class="mx-auto min-h-screen max-w-5xl px-4">
+<div
+	class="grid h-screen mx-auto max-w-5xl px-4 py-8 lg:px-8"
+	style:place-content={suggestionsResult?.isSuccess ? 'start' : 'center'}
+>
 	{#if aiRestrictionMessage}
 		<div
 			class="mb-6 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-500 dark:bg-amber-950 dark:text-amber-100"
@@ -166,25 +182,26 @@ let remoteSuggestions = $derived.by<RecipeSummary[] | null>(() => {
 			{aiRestrictionMessage}
 		</div>
 	{/if}
+
 	{#if hasPrompt}
 		{#if !canRequestSuggestions}
-			<div class="mx-auto grid h-screen w-full max-w-3xl place-content-center gap-6 text-center">
+			<div>
 				<h1 class="fluid-heading-05">AI suggestions are unavailable.</h1>
 				<p>{aiRestrictionMessage}</p>
 			</div>
 		{:else if suggestionsResult}
-			{#if suggestionsError}
-				<div class="mx-auto grid h-screen w-full max-w-3xl place-content-center gap-6">
+			{#if suggestionsResult.isError}
+				<div class="flex flex-col gap-6">
 					<h1 class="fluid-heading-05">Ah donkey-spittle! There was a problem.</h1>
-					<p class="flex items-center gap-3">
-						<span class="fluid-heading-03">{suggestionsError.name}</span><span>|</span><span
-							>{suggestionsError?.message}</span
+					<p class="flex items-center gap-3 text-dark">
+						<span class="fluid-heading-03">{(suggestionsResult.error as unknown as { status: number })?.status}</span><span>|</span><span
+							>{(suggestionsResult.error as unknown as { body: { message: string } })?.body?.message}</span
 						>
 					</p>
 				</div>
 			{:else if remoteSuggestions}
 				<div class="py-24">
-					<h1 class="fluid-heading-05 mb-8">
+					<h1 class="fluid-heading-04 mb-8">
 						Here are some ideas for, <span class="italic">"{prompt}"</span>
 					</h1>
 					<List size="three-line">
@@ -201,15 +218,6 @@ let remoteSuggestions = $derived.by<RecipeSummary[] | null>(() => {
 							</ListItem.Root>
 						{/each}
 					</List>
-					<div class="my-8">
-						<Button
-							onClick={getMoreSuggestions}
-							label="Get more ideas"
-							disabled={!canRequestSuggestions}
-						>
-							Get more ideas
-						</Button>
-					</div>
 				</div>
 			{:else}
 				<div class="mx-auto grid h-screen w-full max-w-3xl place-content-center">
@@ -259,4 +267,4 @@ let remoteSuggestions = $derived.by<RecipeSummary[] | null>(() => {
 			{/if}
 		</div>
 	{/if}
-</main>
+</div>

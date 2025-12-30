@@ -15,34 +15,17 @@
 	let editState = $state<EditState>({ field: null, originalValue: '' });
 	let textareaRef: HTMLTextAreaElement | null = $state(null);
 
-	// Handle recipe times
-	// let prepTimeHours = $derived.by<number>(() => recipe?.prep_time && typeof recipe.prep_time === 'number' ? Math.floor(recipe.prep_time / 60) : 0);
-	// let prepTimeMinutes = $derived.by<number>(() => recipe?.prep_time && typeof recipe.prep_time === 'number' ? recipe.prep_time % 60 : 0);
-	// let cookTimeHours = $derived.by<number>(() => recipe?.cook_time && typeof recipe.cook_time === 'number' ? Math.floor(recipe.cook_time / 60) : 0);
-	// let cookTimeMinutes = $derived.by<number>(() => recipe?.cook_time && typeof recipe.cook_time === 'number' ? recipe.cook_time % 60 : 0);
-
 	// Inferred total time
 	let totalTime = $derived.by<string>(() => {
 		const minDuration = parseInt(recipe.prep_time?.[0] ?? '0') + parseInt(recipe.cook_time?.[0] ?? '0');
 		const maxDuration = parseInt(recipe.prep_time?.[1] ?? '0') + parseInt(recipe.cook_time?.[1] ?? '0');
 
 		if (maxDuration > 0) {
-			return humanizeDuration(minDuration) + ' to ' + humanizeDuration(maxDuration);
+      return humanizeTime([minDuration.toString(), maxDuration.toString()]);
 		} else {
-			return humanizeDuration(minDuration);
+			return humanizeTime([minDuration.toString()]);
 		}
 	});
-
-	/** Renders a duration in the format of "X hours Y minutes" or "Y minutes" */
-	function humanizeDuration(duration: number): string {
-		const hours = Math.floor(duration / 60);
-		const minutes = duration % 60;
-		if (hours > 0) {
-			return `${hours} ${hours === 1 ? 'hours' : 'hour'} ${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
-		} else {
-			return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
-		}
-	}
 
 	const dispatch = createEventDispatcher<{
 		commit: { field: keyof Recipe; oldValue: string; newValue: string };
@@ -193,14 +176,35 @@
 		input.select();
 	}
 
-	function humanizeTime(time: string): string {
-		const hours = Math.floor(parseInt(time) / 60);
-		const minutes = parseInt(time) % 60;
-		
+	/**
+   * Determines how to interpret a time range returning either a hyphen or 'to' separator
+   * @param time - The time range to interpret
+   */
+	 function humanizeTime(time: string[]): string {
+    if (!time || time.length === 0) return '';
+    if (time.length === 1) {
+      return humanizeDuration(parseInt(time[0]));
+    } else {
+      if (parseInt(time[1]) < 60) {
+        return humanizeDuration(parseInt(time[0]), false) + '-' + humanizeDuration(parseInt(time[1]));
+      } else {
+        return humanizeDuration(parseInt(time[0])) + ' to ' + humanizeDuration(parseInt(time[1]));
+      }
+    }
+  }
+
+	/** Renders a duration in the format of "X hours Y minutes" or "Y minutes" */
+	function humanizeDuration(duration: number, showUnits = true): string {
+		const hours = Math.floor(duration / 60);
+		const minutes = duration % 60;
 		if (hours > 0) {
-			return `${hours} hours ${minutes} minutes`;
+			return `${hours} ${hours === 1 ? 'hours' : 'hour'} ${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
 		} else {
-			return `${minutes} minutes`;
+      if (showUnits) {
+        return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
+      } else {
+        return minutes.toString();
+      }
 		}
 	}
 </script>
@@ -288,48 +292,13 @@
 			{/if}
 		</section>
 		<p class="px-2">{recipe.yield}</p>
-		<ul class="px-2">
-			<li class="my-1 flex flex-row gap-2 items-center">
-				<span class="heading">Prep time:</span>
-				{#if recipe.prep_time && recipe.prep_time.length > 1}
-					<span>{humanizeTime(recipe.prep_time[0])} to {humanizeTime(recipe.prep_time[1])}</span>
-				{:else}
-					<span>{humanizeTime(recipe.prep_time?.[0] ?? '')}</span>
-				{/if}
-				<!-- TODO: Add prep time editing -->
-				<!-- {#if editState.field === 'prep_time'}
-					<input type="number" id="prepHours" name="prep_time_hours" bind:value={prepTimeHours} class="w-16" min="0" onfocus={(event) => selectAll(event)} />
-					<span>:</span>
-					<input type="number" id="prepMinutes" name="prep_time_minutes" bind:value={prepTimeMinutes} class="w-16" min="0" max="59" onfocus={(event) => selectAll(event)} />
-					<div class="flex gap-2 flex-row">
-						<button class="commit-btn" onclick={commitEdit}>✓</button>
-						<button class="cancel-btn" onclick={cancelEdit}>✕</button>
-					</div>
-				{:else}
-					<span role="button" tabindex={locked ? -1 : 0} aria-disabled={locked} onclick={() => startEdit('prep_time')} onkeydown={(event) => handleEditableKeydown(event, 'prep_time')}>{prepTimeHours()}h {prepTimeMinutes()}m</span>
-				{/if} -->
-			</li>
-			<li class="my-1 flex flex-row gap-2 items-center">
-				<span class="heading">Cook time:</span>
-				{#if recipe.cook_time && recipe.cook_time.length > 1}
-					<span>{humanizeTime(recipe.cook_time[0])} to {humanizeTime(recipe.cook_time[1])}</span>
-				{:else}
-					<span>{humanizeTime(recipe.cook_time?.[0] ?? '')}</span>
-				{/if}
-				<!-- {#if editState.field === 'cook_time'}
-					<input type="number" id="cookHours" name="cook_time_hours" bind:value={cookTimeHours} class="w-16" min="0" onfocus={(event) => selectAll(event)} />
-					<span>:</span>
-					<input type="number" id="cookMinutes" name="cook_time_minutes" bind:value={cookTimeMinutes} class="w-16" min="0" max="59" onfocus={(event) => selectAll(event)} />
-					<div class="flex gap-2 flex-row">
-						<button class="commit-btn" onclick={commitEdit}>✓</button>
-						<button class="cancel-btn" onclick={cancelEdit}>✕</button>
-					</div>
-				{:else}
-					<span role="button" tabindex={locked ? -1 : 0} aria-disabled={locked} onclick={() => startEdit('cook_time')} onkeydown={(event) => handleEditableKeydown(event, 'cook_time')}>{cookTimeHours()}h {cookTimeMinutes()}m</span>
-				{/if} -->
-			</li>
-			<li class="my-1"><span class="heading">Total time:</span> <span>{totalTime}</span></li>
-		</ul>
+		<div class="grid grid-cols-[6rem_minmax(0,1fr)] gap-1 align-baseline mx-2">
+			<span class="heading">Prep time:</span>
+			<span>{humanizeTime(recipe.prep_time)}</span>
+			<span class="heading">Cook time:</span>
+			<span>{humanizeTime(recipe.cook_time)}</span>
+			<span class="heading">Total time:</span><span>{totalTime}</span>
+		</div>
 	</div>
 
 	<!-- Ingredients -->
@@ -406,7 +375,7 @@
 				onkeydown={(event) => handleEditableKeydown(event, 'instructions')}
 			>
 				{#if recipe.instructions}
-					<div class="instructionns__content markdown">
+					<div class="instructions__content markdown">
 						<SvelteMarkdown source={recipe.instructions} />
 					</div>
 				{:else}
@@ -444,7 +413,7 @@
 				onkeydown={(event) => handleEditableKeydown(event, 'notes')}
 			>
 				{#if recipe.notes}
-					<div class="instructionns__content markdown">
+					<div class="notes__content markdown">
 						<SvelteMarkdown source={recipe.notes} />
 					</div>
 				{:else}
@@ -508,7 +477,7 @@
 	.editable,
 	.editable-wrapper {
 		cursor: pointer;
-		padding: 0.5rem;
+		padding: 0 0.5rem;
 		border-radius: 4px;
 		transition: background-color 0.2s ease;
 		min-height: 1.5em;

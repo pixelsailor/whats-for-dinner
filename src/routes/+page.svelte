@@ -70,7 +70,7 @@
 		</div>
 	{:else if app.view === 'idle'}
 		<div class="mx-auto w-full max-w-3xl">
-			<h1 class="fluid-heading-06 my-4 text-center">{getGreeting()}</h1>
+			<h1 class="display-small my-4 text-center">{getGreeting()}</h1>
 			{#if canUseAI}
 				<Prompt style="margin-bottom: 0">
 					<form class="flex w-full flex-row gap-2" onsubmit={getSuggestions}>
@@ -108,7 +108,7 @@
 		</div>
 	{:else if app.view === 'error'}
 		<div class="error">
-			<p class="my-4 font-bold">Ah donkeyspittle! There was a problem.</p>
+			<h1 class="my-4 headline-medium">Ah donkeyspittle! There was a problem.</h1>
 			<p class="my-4">Refresh the browser and try again.</p>
 			<p>{app.error}</p>
 		</div>

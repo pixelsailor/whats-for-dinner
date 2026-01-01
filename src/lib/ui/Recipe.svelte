@@ -82,7 +82,7 @@
 <ul class="inline-flex gap-2 mb-4 h-12 items-center">
   {#each recipe.tags as tag}
     <li>
-      <span class="tag label lowercase px-2 py-1 border rounded bg-gray-100 border-gray-200 dark:bg-gray-700 dark:border-gray-600">{tag}</span>
+      <span class="tag label-medium lowercase">{tag}</span>
     </li>
   {/each}
 </ul>

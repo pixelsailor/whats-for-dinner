@@ -32,7 +32,7 @@
 	let { data, form } = $props();
 
 	let app = $state({
-		view: 'loading' as ViewState,
+		status: 'loading' as ViewState,
 		error: ''
 	});
 
@@ -82,6 +82,8 @@
 	let recipeQueryResult = $state<RecipeResult | null>(null);
 
 	let recipe = $derived((recipeQueryResult?.data as unknown as FullRecipe) || null);
+
+	let savedSuggestion = $state<Partial<SavedRecipe> | null>(null);
 
 	/**
 	 * Manage services for cloud and sync operations.
@@ -133,12 +135,38 @@
 
 		const unsubscribe = store.subscribe((value) => {
 			recipeQueryResult = value;
+			app.status = 'idle';
 		});
 
 		return () => {
 			unsubscribe();
 			recipeQueryStore = null;
 			recipeQueryResult = null;
+		};
+	});
+
+	/**
+	 * Start timeout to save full recipe to suggestions after 30 seconds
+	 */
+	$effect(() => {
+		if (recipe && !savedSuggestion) {
+			// Clear any existing timeout
+			if (saveTimeout) {
+				clearTimeout(saveTimeout);
+			}
+
+			// Start new 30-second timeout
+			saveTimeout = window.setTimeout(() => {
+				saveFullRecipeToSuggestions();
+			}, 10 * 1000); // 30 seconds
+		}
+
+		// Cleanup timeout on unmount
+		return () => {
+			if (saveTimeout) {
+				clearTimeout(saveTimeout);
+				saveTimeout = null;
+			}
 		};
 	});
 
@@ -172,21 +200,19 @@
 	 * Save full recipe to suggestions table after 2 minutes
 	 */
 	async function saveFullRecipeToSuggestions() {
-		// if (!fullRecipe || !data.recipe.title) return;
+		if (!recipe) return;
 
-		// try {
-		// 	// Convert title to suggestion ID using same logic as saveSuggestions
-		// 	const suggestionId = data.recipe.title.toLowerCase().replaceAll(' ', '-');
-
-		// 	const safeRecipe = JSON.parse(JSON.stringify(fullRecipe)) as FullRecipe;
-
-		// 	await db.suggestions.update(suggestionId, {
-		// 		...safeRecipe,
-		// 		last_opened: Date.now().toString()
-		// 	});
-		// } catch (error) {
-		// 	console.error('Failed to save full recipe to suggestions:', error);
-		// }
+		let recipeToSave: Partial<SavedRecipe> = {
+			...JSON.parse(JSON.stringify(recipe)),
+			id: crypto.randomUUID(),
+			last_opened: Date.now().toString()
+		};
+		try {
+			await db.suggestions.put(recipeToSave);
+			savedSuggestion = recipeToSave;
+		} catch (error) {
+			console.error('Failed to save full recipe to suggestions:', error);
+		}
 	}
 
 	/**
@@ -194,7 +220,7 @@
 	 */
 	async function saveRecipe() {
 		if (!recipe) return;
-		app.view = 'loading';
+		app.status = 'loading';
 
 		let candidate: SavedRecipe | undefined = undefined;
 		let syncError = false;
@@ -213,7 +239,7 @@
 				await db.recipes.put(candidate);
 				toast.info('Recipe saved locally but failed to sync to cloud');
 			} finally {
-				app.view = 'idle';
+				app.status = 'idle';
 			}
 		} else {
 			candidate = createSavedRecipe(recipe);
@@ -282,29 +308,6 @@
 	// 	}
 	// });
 
-	// Start timeout to save full recipe to suggestions after 2 minutes
-	// $effect(() => {
-	// 	if (fullRecipe && data.recipe.title) {
-	// 		// Clear any existing timeout
-	// 		if (saveTimeout) {
-	// 			clearTimeout(saveTimeout);
-	// 		}
-
-	// 		// Start new 2-minute timeout
-	// 		saveTimeout = window.setTimeout(() => {
-	// 			saveFullRecipeToSuggestions();
-	// 		}, 2 * 60 * 1000); // 2 minutes
-	// 	}
-
-	// 	// Cleanup timeout on unmount
-	// 	return () => {
-	// 		if (saveTimeout) {
-	// 			clearTimeout(saveTimeout);
-	// 			saveTimeout = null;
-	// 		}
-	// 	};
-	// });
-
 	onDestroy(() => {
 		if (saveTimeout) clearTimeout(saveTimeout);
 	});
@@ -348,6 +351,16 @@
 						<span>Back to suggestions</span>
 					</Button.Root>
 					<AppBar.End>
+						{#if app.status === 'loading'}
+							<div class="grid h-10 w-10 place-content-center">
+								<ProgressSpinner size="xs" />
+							</div>
+						{/if}
+						{#if savedSuggestion}
+							<div class="grid h-10 place-content-center">
+								<span class="tag subtle label-small uppercase">Viewed</span>
+							</div>
+						{/if}
 						<Button.Root onclick={saveRecipe} class="button text narrow mr-2">
 							<BookmarkIcon size="xs" />
 							<span>Save recipe</span>

@@ -140,12 +140,43 @@
 		);
 	}
 
+	// Track what's been saved to prevent duplicates and infinite loops
+	let lastSavedPrompt = $state<string | null>(null);
+	let lastSavedSuggestionKeys = $state<Set<string>>(new Set());
+
+	// Create a unique key for a suggestion (title + description)
+	function getSuggestionKey(suggestion: RecipeSummary): string {
+		return `${suggestion.title}|${suggestion.short_description}`;
+	}
+
 	// Save suggestions to history
-	// $effect(() => {
-	// 	if (hasPrompt && suggestions) {
-	// 		saveSuggestions(suggestions);
-	// 	}
-	// });
+	$effect(() => {
+		if (!hasPrompt || !suggestions || suggestions.length === 0) {
+			return;
+		}
+
+		const currentPrompt = prompt;
+		const currentSuggestionKeys = new Set(suggestions.map(getSuggestionKey));
+
+		// Check if we've already saved these suggestions for this prompt
+		const isSamePrompt = currentPrompt === lastSavedPrompt;
+		const hasSameKeys = 
+			currentSuggestionKeys.size === lastSavedSuggestionKeys.size &&
+			[...currentSuggestionKeys].every((key) => lastSavedSuggestionKeys.has(key));
+
+		if (isSamePrompt && hasSameKeys) {
+			// Already saved these suggestions for this prompt, skip
+			return;
+		}
+
+		// Save suggestions and update tracking state
+		saveSuggestions(suggestions).then(() => {
+			lastSavedPrompt = currentPrompt;
+			lastSavedSuggestionKeys = currentSuggestionKeys;
+		}).catch((error) => {
+			console.error('Failed to save suggestions:', error);
+		});
+	});
 
 	function getFullRecipe(recipe: RecipeSummary) {
 		if (!canRequestSuggestions) {

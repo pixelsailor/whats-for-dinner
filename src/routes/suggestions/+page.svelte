@@ -1,9 +1,8 @@
 <script lang="ts">
+	import { Button } from 'bits-ui';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	// import { createSuggestionsQuery as createSuggestionsQueryRecipes } from '$lib/queries/recipes';
 	import { createSuggestionsQuery } from '$lib/api/ai/ai.queries';
-	// import { recommendedRecipes } from '$lib/stores/recommendations.js';
 	import {
 		bulkDeleteSuggestions,
 		saveSuggestions,
@@ -12,7 +11,6 @@
 	} from '$lib/stores/suggestions';
 	import type { RecipeSummary, Suggestion } from '$lib/api/recipe';
 	// import { AppBar } from '$lib/ui/AppBar/index.js';
-	import Button from '$lib/ui/Button/Button.svelte';
 	// import TrashIcon from '$lib/ui/Icons/TrashIcon.svelte';
 	import { List, ListItem } from '$lib/ui/List';
 	// import PageHeader from '$lib/ui/PageHeader.svelte';
@@ -80,6 +78,7 @@
 	$effect(() => {
 		const currentPrompt = prompt;
 		if (!currentPrompt || !canRequestSuggestions) {
+			app.view = 'idle';
 			suggestionsStore = null;
 			suggestionsResult = null;
 			return;
@@ -95,8 +94,8 @@
 		suggestionsStore = store;
 
 		const unsubscribe = store.subscribe((value) => {
-			console.log('store subscription as results', value);
 			suggestionsResult = value;
+			app.view = 'idle';
 		});
 
 		return () => {
@@ -106,7 +105,7 @@
 		};
 	});
 
-	let working = $state(false);
+	// let working = $state(false);
 
 	let search = $state<string>();
 
@@ -153,7 +152,7 @@
 			return;
 		}
 
-		working = true;
+		app.view = 'loading';
 		const title = encodeURIComponent(recipe.title);
 		// include the `short_description` otherwise AI will write a new one and the generated
 		// recipe may very from the description
@@ -197,20 +196,20 @@
 					<h1 class="fluid-heading-04 mb-8">
 						Here are some ideas for, <span class="italic">"{prompt}"</span>
 					</h1>
-					<List size="three-line">
+					<div class="list">
 						{#each suggestions as summary (summary.title)}
 							<hr />
-							<ListItem.Root>
-								<ListItem.Button
-									onClick={() => getFullRecipe(summary)}
-									disabled={working || !canRequestSuggestions}
-								>
-									<ListItem.Text primary={summary.title} secondary={summary.short_description} />
+							<Button.Root onclick={() => getFullRecipe(summary)} disabled={app.view === 'loading' || !canRequestSuggestions} class="listitem button text narrow">
+								<span class="listitem__content">
+									<span class="title-medium">{summary.title}</span>
+									<span class="body-medium text-foreground-alt dark:text-foreground-alt">{summary.short_description}</span>
+								</span>
+								<span class="listitem__end">
 									<ViewedBadge viewed={getViewedStatus(summary, summary.title).isViewed} />
-								</ListItem.Button>
-							</ListItem.Root>
+								</span>
+							</Button.Root>
 						{/each}
-					</List>
+					</div>
 				</div>
 			{:else}
 				<div class="mx-auto grid h-screen w-full max-w-3xl place-content-center">
@@ -223,7 +222,7 @@
 			</div>
 		{/if}
 	{:else}
-		<div class="py-24">
+		<div class="py-24 w-full">
 			<h1 class="fluid-heading-05 mb-4">Suggestion History</h1>
 			{#if $suggestionHistory.length > 0}
 				<div class="my-12 w-full">
@@ -236,25 +235,25 @@
 				</div>
 			{/if}
 			{#if filteredSuggestions.length > 0}
-				<List>
+				<div class="list">
 					{#each groupedSuggestions as group (group.date)}
-						<h3 class="heading mt-6 mb-2 dark:text-gray-400">{group.date}</h3>
-						{#each group.suggestions as summary (summary.title)}
-							<ListItem.Root>
-								<ListItem.Button
-									onClick={() => getFullRecipe(summary)}
-									disabled={working || !canRequestSuggestions}
-								>
-									<ListItem.Text primary={summary.title} secondary={summary.short_description} />
+						<h3 class="title-small mt-6 mb-2"><strong>{group.date}</strong></h3>
+						{#each suggestions as summary (summary.title)}
+							<hr />
+							<Button.Root onclick={() => getFullRecipe(summary)} disabled={app.view === 'loading' || !canRequestSuggestions} class="listitem button text narrow">
+								<span class="listitem__content">
+									<span class="title-medium">{summary.title}</span>
+									<span class="body-medium text-foreground-alt dark:text-foreground-alt">{summary.short_description}</span>
+								</span>
+								<span class="listitem__end">
 									<ViewedBadge viewed={getViewedStatus(summary, summary.title).isViewed} />
-								</ListItem.Button>
-							</ListItem.Root>
-							<hr class="border-gray-200 dark:border-gray-700" />
+								</span>
+							</Button.Root>
 						{/each}
 					{/each}
-				</List>
+				</div>
 			{:else}
-				<p>
+				<p class="body-medium">
 					Your suggestion history will appear year after you start requesting recipe suggestions.
 				</p>
 			{/if}

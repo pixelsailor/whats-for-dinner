@@ -52,14 +52,15 @@
 	--border-input-hover: hsla(240 6% 10% / 0.4);
 	--border-card: hsla(240 6% 10% / 0.1);
 	--dark: hsl(240 6% 10%);
+	--dark-foreground: hsl(0 0% 100% / 0.8);
 	--dark-10: hsla(240 6% 10% / 0.1);
 	--dark-40: hsla(240 6% 10% / 0.4);
 	--dark-04: hsla(240 6% 10% / 0.04);
-	--accent: var(--dark);
-	--accent-foreground: hsl(0 0% 100%);
+	--accent: var(hsla(240 6% 10%));
+	--accent-foreground: hsl(0 0% 100% / 0.8);
 	--destructive: hsl(347 77% 50%);
 	--tertiary: hsl(37.7 92.1% 50.2%);
-	--line: hsl(0 0% 100%);
+	--line: hsl(0 0% 90.92%);
  
 	/* black */
 	--contrast: hsl(0 0% 0%);
@@ -74,38 +75,41 @@
 	--shadow-date-field-focus: 0px 0px 0px 3px rgba(24, 24, 27, 0.17);
 }
  
-.dark {
-	/* Colors */
-	--background: hsl(0 0% 5%);
-	--background-alt: hsl(0 0% 8%);
-	--foreground: hsl(0 0% 95%);
-	--foreground-alt: hsl(0 0% 70%);
-	--muted: hsl(240 4% 16%);
-	--muted-foreground: hsla(0 0% 100% / 0.4);
-	--border: hsl(0 0% 96%);
-	--border-input: hsla(0 0% 96% / 0.17);
-	--border-input-hover: hsla(0 0% 96% / 0.4);
-	--border-card: hsla(0 0% 96% / 0.1);
-	--dark: hsl(0 0% 96%);
-	--dark-40: hsl(0 0% 96% / 0.4);
-	--dark-10: hsl(0 0% 96% / 0.1);
-	--dark-04: hsl(0 0% 96% / 0.04);
-	--accent: var(--dark);
-	--accent-foreground: hsl(0 0% 5%);
-	--destructive: hsl(350 89% 60%);
-	--line: hsl(0 0% 9.02%);
-	--tertiary: hsl(61.3 100% 82.2%);
-	/* white */
-	--contrast: hsl(0 0% 100%);
- 
-	/* Shadows */
-	--shadow-mini: 0px 1px 0px 1px rgba(0, 0, 0, 0.3);
-	--shadow-mini-inset: 0px 1px 0px 0px rgba(0, 0, 0, 0.5) inset;
-	--shadow-popover: 0px 7px 12px 3px hsla(0deg 0% 0% / 30%);
-	--shadow-kbd: 0px 2px 0px 0px rgba(255, 255, 255, 0.07);
-	--shadow-btn: 0px 1px 0px 1px rgba(0, 0, 0, 0.2);
-	--shadow-card: 0px 2px 0px 1px rgba(0, 0, 0, 0.4);
-	--shadow-date-field-focus: 0px 0px 0px 3px rgba(244, 244, 245, 0.1);
+@media (prefers-color-scheme: dark) {
+	:root {
+		/* Colors */
+		--background: hsl(0 0% 5%);
+		--background-alt: hsl(0 0% 8%);
+		--foreground: hsl(0 0% 95%);
+		--foreground-alt: hsl(0 0% 70%);
+		--muted: hsl(240 4% 16%);
+		--muted-foreground: hsla(0 0% 100% / 0.4);
+		--border: hsl(0 0% 96%);
+		--border-input: hsla(0 0% 96% / 0.17);
+		--border-input-hover: hsla(0 0% 96% / 0.4);
+		--border-card: hsla(0 0% 96% / 0.1);
+		--dark: hsl(0 0% 96%);
+		--dark-foreground: hsl(0 0% 5% / 0.8);
+		--dark-40: hsl(0 0% 96% / 0.4);
+		--dark-10: hsl(0 0% 96% / 0.1);
+		--dark-04: hsl(0 0% 96% / 0.04);
+		--accent: var(hsla(0 0% 96%));
+		--accent-foreground: hsl(0 0% 5% / 0.8);
+		--destructive: hsl(350 89% 60%);
+		--line: hsl(0 0% 15%);
+		--tertiary: hsl(61.3 100% 82.2%);
+		/* white */
+		--contrast: hsl(0 0% 100%);
+	
+		/* Shadows */
+		--shadow-mini: 0px 1px 0px 1px rgba(0, 0, 0, 0.3);
+		--shadow-mini-inset: 0px 1px 0px 0px rgba(0, 0, 0, 0.5) inset;
+		--shadow-popover: 0px 7px 12px 3px hsla(0deg 0% 0% / 30%);
+		--shadow-kbd: 0px 2px 0px 0px rgba(255, 255, 255, 0.07);
+		--shadow-btn: 0px 1px 0px 1px rgba(0, 0, 0, 0.2);
+		--shadow-card: 0px 2px 0px 1px rgba(0, 0, 0, 0.4);
+		--shadow-date-field-focus: 0px 0px 0px 3px rgba(244, 244, 245, 0.1);
+	}
 }
  
 @theme inline {
@@ -120,6 +124,7 @@
 	--color-border-input-hover: var(--border-input-hover);
 	--color-border-card: var(--border-card);
 	--color-dark: var(--dark);
+	--color-dark-foreground: var(--dark-foreground);
 	--color-dark-10: var(--dark-10);
 	--color-dark-40: var(--dark-40);
 	--color-dark-04: var(--dark-04);
@@ -323,6 +328,10 @@
 	::selection {
 		background: #fdffa4;
 		color: black;
+	}
+
+	hr {
+		@apply border-line dark:border-line;
 	}
 }
  

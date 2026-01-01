@@ -5,8 +5,8 @@
   h-input cursor-pointer items-center justify-center px-6 font-semibold active:scale-[0.98] active:transition-all;
 
   &.primary {
-    @apply bg-accent text-accent-foreground hover:bg-accent/80
-    dark:bg-accent dark:text-accent-foreground dark:hover:bg-accent/80;
+    @apply bg-dark text-dark-foreground hover:bg-dark/80
+    dark:bg-dark dark:text-dark-foreground dark:hover:bg-dark/80;
   }
 
   &.warn {
@@ -26,7 +26,7 @@
   @apply bg-transparent border-1 border-dark-40 text-dark hover:bg-muted dark:border-contrast;
 
   &.primary {
-    @apply border-accent text-current hover:bg-muted;
+    @apply border-dark text-current hover:bg-muted;
   }
 
   &.warn {
@@ -39,10 +39,10 @@
 }
 
 .button.text {
-  @apply bg-transparent text-current hover:bg-muted dark:hover:bg-muted/10;
+  @apply bg-transparent text-current hover:bg-muted dark:hover:bg-dark-04;
 
   &.primary {
-    @apply text-accent hover:bg-muted;
+    @apply text-dark hover:bg-muted;
   }
 
   &.warn {

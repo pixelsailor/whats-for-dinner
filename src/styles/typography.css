@@ -186,3 +186,42 @@
   font-weight: 600;
   letter-spacing: 0;
 }
+
+/* Lists */
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
+.listitem,
+.listitem.button {
+  justify-content: space-between;
+  height: auto;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 0;
+}
+
+.listitem__content {
+  display: block;
+  overflow: hidden;
+  text-align: left;
+
+  & > * {
+    display: block;
+  }
+}
+
+.listitem__end {
+  display: flex;
+  flex-direction: row;
+  flex: 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-right: -0.75rem;
+
+  & > .button.text {
+    @apply hover:bg-background;
+  }
+}

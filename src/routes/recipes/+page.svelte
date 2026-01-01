@@ -135,27 +135,29 @@
 			/>
 			<MultiSelect items={tags} bind:value={selectedTags} placeholder="Filter by tag" />
 		</div>
-		<List size="two-line">
+		<div class="list">
 			{#each filteredRecipes! as recipe (recipe.id)}
-				<hr class="border-gray-200 dark:border-gray-800" />
-				<div transition:slide={{ duration: 300, axis: 'y' }}>
-					<ListItem.Root>
-						<ListItem.Link href="/recipes/{recipe.id}">
-							<ListItem.Text primary={recipe.title} secondary={recipe.short_description} />
-						</ListItem.Link>
-						<ListItem.SecondaryAction>
-							<PxlIconButton
-								aria-label="Delete recipe"
-								tooltip="Delete recipe"
-								tooltipPosition="left"
-								onclick={() => deleteRecipe(recipe.id, recipe.title)}
-							>
-								<TrashIcon size="xs" />
-							</PxlIconButton>
-						</ListItem.SecondaryAction>
-					</ListItem.Root>
-				</div>
+				<hr />
+				<Button.Root href="/recipes/{recipe.id}" class="listitem button text narrow">
+					<span class="listitem__content">
+						<span class="title-medium">{recipe.title}</span>
+						<span class="body-medium text-foreground-alt dark:text-foreground-alt">{recipe.short_description}</span>
+					</span>
+					<span class="listitem__end">
+						<PxlIconButton
+							aria-label="Delete recipe"
+							tooltip="Delete recipe"
+							tooltipPosition="left"
+							onclick={(event: MouseEvent) => {
+								event.stopPropagation();
+								deleteRecipe(recipe.id, recipe.title);
+							}}
+						>
+							<TrashIcon size="xs" />
+						</PxlIconButton>
+					</span>
+				</Button.Root>
 			{/each}
-		</List>
+		</div>
 	{/if}
 </div>

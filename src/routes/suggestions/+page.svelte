@@ -2,38 +2,41 @@
 	import { Button } from 'bits-ui';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
+	import { liveQuery } from 'dexie';
+	
 	import { createSuggestionsQuery } from '$lib/api/ai/ai.queries';
+	import type { RecipeSuggestion, RecipeSuggestionsResponse } from '$lib/api/ai';
+	import type { RecipeSummary } from '$lib/api/recipe';
+
+	import { db } from '$lib/db';
+	import { networkStore } from '$lib/stores/network';
 	import {
 		bulkDeleteSuggestions,
+		deleteSuggestion,
 		saveSuggestions,
 		suggestionHistory,
 		getViewedStatus
 	} from '$lib/stores/suggestions';
-	import type { RecipeSummary, Suggestion } from '$lib/api/recipe';
-	// import { AppBar } from '$lib/ui/AppBar/index.js';
-	// import TrashIcon from '$lib/ui/Icons/TrashIcon.svelte';
-	import { List, ListItem } from '$lib/ui/List';
-	// import PageHeader from '$lib/ui/PageHeader.svelte';
+	import type { ViewState } from '$lib/types.js';
+
+	import { AppBar } from '$lib/ui/AppBar/index.js';
+	import TrashIcon from '$lib/ui/Icons/TrashIcon.svelte';
+	import PageHeader from '$lib/ui/PageHeader.svelte';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
 	import ViewedBadge from '$lib/ui/ViewedBadge.svelte';
-	import { networkStore } from '$lib/stores/network';
+	import { sanitizePromptInput, generateSuggestionId } from '$lib/utils.js';
 	import { deriveAICapability } from '$lib/utils/capabilities';
-	import type { ViewState } from '$lib/types.js';
-	import type { RecipeSuggestion, RecipeSuggestionsResponse } from '$lib/api/ai';
-
-	/**
-	 * `/routes/suggestions` is for handling LLM responses. While it uses the User's local preference
-	 * data for customizing the suggestion prompt, this page requires LLM API access at all times.
-	 * `/routes/recommendations` on the other hand is completely in browser and should not have
-	 * a server requirement.
-	 */
 
 	let { data } = $props();
 
 	let app = $state({
-		view: 'loading' as ViewState | 'suggestions' | 'history',
+		view: '' as 'prompt-results' | 'history',
+		status: 'loading' as ViewState,
 		error: ''
 	});
+
+	/** Track what's been saved to prevent duplicates and infinite loops */
+	let savedPromptKey = $state<string | null>(null);
 
 	// let userPreferences = $derived(data.preferences || '');
 	let network = $derived($networkStore);
@@ -65,47 +68,71 @@
 	const prompt = $derived(page.url.searchParams.get('prompt'));
 	const hasPrompt = $derived(!!prompt);
 
-	type SuggestionsQueryStore = Exclude<ReturnType<typeof createSuggestionsQuery>, null>;
-	type SuggestionsResult = Parameters<
-		Parameters<SuggestionsQueryStore['subscribe']>[0]
-	>[0];
-
-	let suggestionsStore = $state<SuggestionsQueryStore | null>(null);
-	let suggestionsResult = $state<SuggestionsResult | null>(null);
-	
-	let suggestions = $derived((suggestionsResult?.data as unknown as RecipeSuggestionsResponse)?.suggestions || null);
-
-	$effect(() => {
-		const currentPrompt = prompt;
-		if (!currentPrompt || !canRequestSuggestions) {
-			app.view = 'idle';
-			suggestionsStore = null;
-			suggestionsResult = null;
-			return;
+	/** Create the suggestions query store */
+	let suggestionsQueryStore = $derived.by(() => {
+		const currentPrompt = prompt ? sanitizePromptInput(encodeURIComponent(prompt)) : null;
+		if (!currentPrompt) return null;
+		try {
+			return createSuggestionsQuery({ prompt: currentPrompt });
+		} catch (error) {
+			console.error('Failed to create suggestions query:', error);
+			return null;
 		}
-
-		const store = createSuggestionsQuery({ prompt: currentPrompt });
-		if (!store) {
-			suggestionsStore = null;
-			suggestionsResult = null;
-			return;
-		}
-
-		suggestionsStore = store;
-
-		const unsubscribe = store.subscribe((value) => {
-			suggestionsResult = value;
-			app.view = 'idle';
-		});
-
-		return () => {
-			unsubscribe();
-			suggestionsStore = null;
-			suggestionsResult = null;
-		};
 	});
 
-	// let working = $state(false);
+	/** Subscribe to the suggestions query store */
+	let suggestionsResult = $derived($suggestionsQueryStore);
+	
+	/** Get the AI response and compute deterministic IDs */
+	let aiSuggestions = $derived.by<RecipeSummary[] | null>(() => {
+		const aiSummaries = (suggestionsResult?.data as unknown as RecipeSuggestionsResponse)?.suggestions;
+		if (!aiSummaries || !prompt) return null;
+		
+		// Generate deterministic IDs based on prompt + title
+		return aiSummaries.map((summary) => ({
+			id: generateSuggestionId(prompt, summary.title),
+			created_at: new Date().toISOString(),
+			title: summary.title,
+			short_description: summary.short_description,
+			last_opened: undefined
+		}));
+	});
+
+	/** IDs of the current prompt's suggestions */
+	let currentSuggestionIds = $derived(aiSuggestions?.map(s => s.id) ?? []);
+
+	/** Live query for suggestions from Dexie based on current IDs */
+	let suggestionsFromDb = $state<RecipeSummary[]>([]);
+	
+	/** Render these suggestions - from DB for prompt results */
+	let suggestions = $derived(hasPrompt && currentSuggestionIds.length > 0 ? suggestionsFromDb : null);
+
+	/** Save suggestions to Dexie when AI returns results (once per prompt) */
+	$effect(() => {
+		if (aiSuggestions && prompt) {
+			const promptKey = `${prompt}:${aiSuggestions.map(s => s.title).sort().join(',')}`;
+			if (promptKey !== savedPromptKey) {
+				savedPromptKey = promptKey;
+				saveSuggestions(aiSuggestions);
+			}
+		}
+	});
+
+	/** Subscribe to Dexie for the current prompt's suggestions */
+	$effect(() => {
+		if (currentSuggestionIds.length === 0) {
+			suggestionsFromDb = [];
+			return;
+		}
+
+		const subscription = liveQuery(() => 
+			db.suggestions.bulkGet(currentSuggestionIds)
+		).subscribe((results) => {
+			suggestionsFromDb = results.filter((s): s is RecipeSummary => s !== undefined);
+		});
+
+		return () => subscription.unsubscribe();
+	});
 
 	let search = $state<string>();
 
@@ -120,7 +147,7 @@
 
 	// Group suggestions by day
 	let groupedSuggestions = $derived.by(() => {
-		const groups: Record<string, Suggestion[]> = {};
+		const groups: Record<string, RecipeSummary[]> = {};
 		for (const s of filteredSuggestions) {
 			const day = new Date(s.created_at).toLocaleDateString();
 			if (!groups[day]) groups[day] = [];
@@ -129,6 +156,22 @@
 		return Object.entries(groups)
 			.sort(([a], [b]) => new Date(b).getTime() - new Date(a).getTime()) // newest first
 			.map(([date, suggestions]) => ({ date, suggestions }));
+	});
+
+	/** Manage the UI state based on the query store status */
+	$effect(() => {
+		if (suggestionsResult) {
+			if (suggestionsResult.isSuccess && suggestions) {
+				app.status = 'idle';
+			} else if (suggestionsResult.isError) {
+				app.status = 'error';
+				app.error = (suggestionsResult.error as unknown as { body: { message: string } })?.body?.message ?? 'Unknown error';
+			}
+		} else if (hasPrompt) {
+			app.status = 'loading';
+		} else {
+			app.status = 'idle';
+		}
 	});
 
 	// Filter suggestions
@@ -140,63 +183,28 @@
 		);
 	}
 
-	// Track what's been saved to prevent duplicates and infinite loops
-	let lastSavedPrompt = $state<string | null>(null);
-	let lastSavedSuggestionKeys = $state<Set<string>>(new Set());
-
-	// Create a unique key for a suggestion (title + description)
-	function getSuggestionKey(suggestion: RecipeSummary): string {
-		return `${suggestion.title}|${suggestion.short_description}`;
-	}
-
-	// Save suggestions to history
-	$effect(() => {
-		if (!hasPrompt || !suggestions || suggestions.length === 0) {
-			return;
-		}
-
-		const currentPrompt = prompt;
-		const currentSuggestionKeys = new Set(suggestions.map(getSuggestionKey));
-
-		// Check if we've already saved these suggestions for this prompt
-		const isSamePrompt = currentPrompt === lastSavedPrompt;
-		const hasSameKeys = 
-			currentSuggestionKeys.size === lastSavedSuggestionKeys.size &&
-			[...currentSuggestionKeys].every((key) => lastSavedSuggestionKeys.has(key));
-
-		if (isSamePrompt && hasSameKeys) {
-			// Already saved these suggestions for this prompt, skip
-			return;
-		}
-
-		// Save suggestions and update tracking state
-		saveSuggestions(suggestions).then(() => {
-			lastSavedPrompt = currentPrompt;
-			lastSavedSuggestionKeys = currentSuggestionKeys;
-		}).catch((error) => {
-			console.error('Failed to save suggestions:', error);
-		});
-	});
-
+	/** Request the full recipe from the API */
 	function getFullRecipe(recipe: RecipeSummary) {
 		if (!canRequestSuggestions) {
 			return;
 		}
-
-		app.view = 'loading';
+		const sid = encodeURIComponent(recipe.id);
 		const title = encodeURIComponent(recipe.title);
 		// include the `short_description` otherwise AI will write a new one and the generated
-		// recipe may very from the description
+		// recipe may vary from the description
 		const desc = encodeURIComponent(recipe.short_description);
-		goto(`/suggestions/recipe?title=${title}&description=${desc}`);
+		goto(`/suggestions/recipe?sid=${sid}&title=${title}&description=${desc}`);
 	}
 
-	function getMoreSuggestions() {}
+	function clearSuggestions() {
+		bulkDeleteSuggestions();
+		goto('/suggestions');
+	}
 </script>
 
 <div
-	class="grid h-screen mx-auto max-w-5xl px-4 py-8 lg:px-8"
-	style:place-content={suggestionsResult?.isSuccess ? 'start stretch' : 'center'}
+	class="grid h-screen"
+	style:place-content={app.status === 'idle' ? 'start stretch' : 'center'}
 >
 	{#if aiRestrictionMessage}
 		<div
@@ -209,85 +217,110 @@
 	{#if hasPrompt}
 		{#if !canRequestSuggestions}
 			<div>
-				<h1 class="fluid-heading-05">AI suggestions are unavailable.</h1>
+				<h1 class="display-medium">AI suggestions are unavailable.</h1>
 				<p>{aiRestrictionMessage}</p>
 			</div>
-		{:else if suggestionsResult}
-			{#if suggestionsResult.isError}
-				<div class="flex flex-col gap-6">
-					<h1 class="fluid-heading-05">Ah donkey-spittle! There was a problem.</h1>
-					<p class="flex items-center gap-3 text-dark">
-						<span class="fluid-heading-03">{(suggestionsResult.error as unknown as { status: number })?.status}</span><span>|</span><span
-							>{(suggestionsResult.error as unknown as { body: { message: string } })?.body?.message}</span
-						>
-					</p>
-				</div>
-			{:else if suggestions}
-				<div>
-					<h1 class="fluid-heading-04 mb-8">
-						Here are some ideas for, <span class="italic">"{prompt}"</span>
-					</h1>
-					<div class="list">
-						{#each suggestions as summary (summary.title)}
-							<hr />
-							<Button.Root onclick={() => getFullRecipe(summary)} disabled={app.view === 'loading' || !canRequestSuggestions} class="listitem button text narrow">
-								<span class="listitem__content">
-									<span class="title-medium">{summary.title}</span>
-									<span class="body-medium text-foreground-alt dark:text-foreground-alt">{summary.short_description}</span>
-								</span>
-								<span class="listitem__end">
-									<ViewedBadge viewed={getViewedStatus(summary, summary.title).isViewed} />
-								</span>
-							</Button.Root>
-						{/each}
-					</div>
-				</div>
-			{:else}
-				<div class="mx-auto grid h-screen w-full max-w-3xl place-content-center">
-					<ProgressSpinner size="lg" />
-				</div>
-			{/if}
-		{:else}
-			<div class="mx-auto grid h-screen w-full max-w-3xl place-content-center">
-				<ProgressSpinner size="lg" />
+		{:else if suggestionsResult?.isError}
+			<div class="flex flex-col gap-6">
+				<h1 class="display-medium">Ah donkey-spittle! There was a problem.</h1>
+				<p class="flex items-center gap-3 text-dark">
+					<span class="fluid-heading-03">{(suggestionsResult.error as unknown as { status: number })?.status}</span><span>|</span><span
+						>{(suggestionsResult.error as unknown as { body: { message: string } })?.body?.message}</span
+					>
+				</p>
 			</div>
-		{/if}
-	{:else}
-		<div class="py-24 w-full">
-			<h1 class="fluid-heading-05 mb-4">Suggestion History</h1>
-			{#if $suggestionHistory.length > 0}
-				<div class="my-12 w-full">
-					<input
-						type="text"
-						class="label my-1 flex h-12 w-full flex-row flex-nowrap items-stretch rounded-sm border border-gray-200 px-3 dark:border-gray-700 dark:bg-gray-900 hover:dark:bg-gray-800"
-						placeholder="Search history"
-						bind:value={search}
-					/>
-				</div>
-			{/if}
-			{#if filteredSuggestions.length > 0}
+		{:else if suggestionsResult?.isSuccess && suggestions}
+			<div class="mx-auto max-w-5xl px-4 py-8 lg:px-8">
+				<h1 class="display-medium mb-8">
+					Here are some ideas for, <span class="italic">"{prompt}"</span>
+				</h1>
 				<div class="list">
-					{#each groupedSuggestions as group (group.date)}
-						<h3 class="title-small mt-6 mb-2"><strong>{group.date}</strong></h3>
-						{#each suggestions as summary (summary.title)}
-							<hr />
-							<Button.Root onclick={() => getFullRecipe(summary)} disabled={app.view === 'loading' || !canRequestSuggestions} class="listitem button text narrow">
-								<span class="listitem__content">
-									<span class="title-medium">{summary.title}</span>
-									<span class="body-medium text-foreground-alt dark:text-foreground-alt">{summary.short_description}</span>
-								</span>
-								<span class="listitem__end">
-									<ViewedBadge viewed={getViewedStatus(summary, summary.title).isViewed} />
-								</span>
-							</Button.Root>
-						{/each}
+					{#each suggestions as summary (summary.title)}
+						<hr />
+						<Button.Root onclick={() => getFullRecipe(summary)} disabled={app.status === 'loading' || !canRequestSuggestions} class="listitem button text narrow">
+							<span class="listitem__content">
+								<span class="title-medium">{summary.title}</span>
+								<span class="body-medium text-foreground-alt dark:text-foreground-alt">{summary.short_description}</span>
+							</span>
+							<span class="listitem__end">
+								<ViewedBadge viewed={getViewedStatus(summary, summary.title).isViewed} />
+							</span>
+						</Button.Root>
 					{/each}
 				</div>
-			{:else}
-				<p class="body-medium">
-					Your suggestion history will appear year after you start requesting recipe suggestions.
-				</p>
-			{/if}
+			</div>
+		{:else}
+			<ProgressSpinner size="lg" />
+		{/if}
+	{:else}
+		<div>
+			<PageHeader>
+				<AppBar.Root>
+					<AppBar.End>
+						{#if app.status === 'loading'}
+							<div class="grid h-10 w-10 place-content-center">
+								<ProgressSpinner size="xs" />
+							</div>
+						{/if}
+						<Button.Root onclick={clearSuggestions} class="button text narrow mr-2">
+							<TrashIcon size="xs" />
+							<span>Clear history</span>
+						</Button.Root>
+					</AppBar.End>
+				</AppBar.Root>
+			</PageHeader>
+			<div class="mx-auto max-w-5xl px-4 py-8 lg:px-8">
+				<h1 class="display-medium mb-4">Suggestion History</h1>
+				<p class="body-medium mb-10">Suggestions are deleted after 30 days.</p>
+				{#if $suggestionHistory.length > 0}
+					<div class="w-full">
+						<input
+							type="text"
+							class="label flex h-12 w-full flex-row flex-nowrap items-stretch rounded-sm border border-gray-200 px-3 dark:border-gray-700 dark:bg-gray-900 hover:dark:bg-gray-800"
+							placeholder="Search history"
+							bind:value={search}
+						/>
+					</div>
+				{/if}
+				{#if filteredSuggestions.length > 0}
+					<div class="list">
+						{#each groupedSuggestions as group (group.date)}
+							<h3 class="title-small text-foreground-alt mt-6 mb-2"><strong>{group.date}</strong></h3>
+							{#each group.suggestions as summary (summary.id)}
+								<hr />
+								<Button.Root
+									onclick={() => getFullRecipe(summary)}
+									disabled={app.status === 'loading' || !canRequestSuggestions}
+									class="listitem button text narrow"
+								>
+									<span class="listitem__content">
+										<span class="title-medium">{summary.title}</span>
+										<span class="body-medium text-foreground-alt dark:text-foreground-alt">{summary.short_description}</span>
+									</span>
+									<span class="listitem__end">
+										<ViewedBadge viewed={getViewedStatus(summary, summary.title).isViewed} />
+										<Button.Root
+											onclick={
+												(event: MouseEvent) => {
+													event.stopPropagation();
+													deleteSuggestion(summary.id)
+												}
+											}
+											class="button icon text"
+										>
+											<TrashIcon size="xs" />
+										</Button.Root>
+									</span>
+								</Button.Root>
+							{/each}
+						{/each}
+					</div>
+				{:else}
+					<p class="body-medium">
+						Your suggestion history will appear year after you start requesting recipe suggestions.
+					</p>
+				{/if}
+			</div>
 		</div>
 	{/if}
 </div>

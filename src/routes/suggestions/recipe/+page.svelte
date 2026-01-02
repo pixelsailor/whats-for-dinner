@@ -9,7 +9,7 @@
 	import { sanitizePromptInput } from '$lib/utils';
 	// import type { PromptContext } from '$lib/api/ai';
 	import { createFullRecipeQuery } from '$lib/api/ai/ai.queries'; // Do not import via index.ts -- Creates an "impossible situation"
-	import type { Recipe as FullRecipe, SavedRecipe } from '$lib/api/recipe';
+	import type { Recipe as FullRecipe, SavedRecipe, RecipeSummary } from '$lib/api/recipe';
 
 	import { AppBar } from '$lib/ui/AppBar';
 	import BackIcon from '$lib/ui/Icons/BackIcon.svelte';
@@ -68,10 +68,17 @@
 
 	let hasCloudStorageAccess = $derived(data.permissions?.cloudSync.allowed ?? false);
 
-	/** Recipe title and description from the URL params */
+	/** Recipe and suggestion identifiers from URL params */
+	const sid = $derived(page.url.searchParams.get('sid'));
 	const title = $derived(page.url.searchParams.get('title'));
 	const description = $derived(page.url.searchParams.get('description'));
-	const hasPrompt = $derived(!!title && !!description);
+	const hasPrompt = $derived(!!sid && !!title && !!description);
+
+	/** Load suggestion from Dexie first */
+	let suggestionFromDb = $state<(RecipeSummary & Partial<FullRecipe>) | null>(null);
+	let hasFullRecipeInDb = $derived(
+		suggestionFromDb && 'ingredients' in suggestionFromDb && 'instructions' in suggestionFromDb
+	);
 
 	type RecipeQueryStore = Exclude<ReturnType<typeof createFullRecipeQuery>, null>;
 	type RecipeResult = Parameters<
@@ -81,9 +88,44 @@
 	let recipeQueryStore = $state<RecipeQueryStore | null>(null);
 	let recipeQueryResult = $state<RecipeResult | null>(null);
 
-	let recipe = $derived((recipeQueryResult?.data as unknown as FullRecipe) || null);
+	let recipeFromAI = $derived((recipeQueryResult?.data as unknown as FullRecipe) || null);
+	
+	// Use recipe from DB if available, otherwise use AI result
+	let recipe = $derived(
+		hasFullRecipeInDb && suggestionFromDb 
+			? (suggestionFromDb as FullRecipe)
+			: recipeFromAI
+	);
 
 	let savedSuggestion = $state<Partial<SavedRecipe> | null>(null);
+
+	/**
+	 * Load the suggestion from Dexie when sid changes.
+	 * If it has a full recipe, we'll render from DB. Otherwise we'll call AI.
+	 */
+	$effect(() => {
+		if (!sid) {
+			suggestionFromDb = null;
+			return;
+		}
+
+		const loadSuggestion = async () => {
+			const suggestion = await db.suggestions.get(sid);
+			if (suggestion) {
+				suggestionFromDb = suggestion as RecipeSummary & Partial<FullRecipe>;
+				// Mark as viewed by updating last_opened
+				if (!suggestion.last_opened) {
+					await db.suggestions.update(sid, { 
+						last_opened: new Date().toISOString() 
+					});
+				}
+			} else {
+				suggestionFromDb = null;
+			}
+		};
+
+		loadSuggestion();
+	});
 
 	/**
 	 * Manage services for cloud and sync operations.
@@ -107,12 +149,21 @@
 
 	/**
 	 * Request the full recipe from the AI API.
+	 * Only calls AI if the suggestion doesn't already have the full recipe in Dexie.
 	 *
 	 * This effect is triggered when the title and description are set.
 	 * Use `$effect` with caution: updating the `recipeQueryStore` or `recipeQueryResult` will trigger
 	 * a re-render, which will cause a loop.
 	 */
 	$effect(() => {
+		// If we already have the full recipe in DB, skip AI request
+		if (hasFullRecipeInDb) {
+			recipeQueryStore = null;
+			recipeQueryResult = null;
+			app.status = 'idle';
+			return;
+		}
+
 		const currentTitle = title ? sanitizePromptInput(encodeURIComponent(title)) : null;
 		const currentDescription = description ? sanitizePromptInput(encodeURIComponent(description)) : null;
 		if (!currentTitle || !currentDescription || !canUseAI) {
@@ -146,19 +197,20 @@
 	});
 
 	/**
-	 * Start timeout to save full recipe to suggestions after 30 seconds
+	 * Start timeout to save full recipe to suggestions after 10 seconds
+	 * Only saves if we got a recipe from AI (not from DB)
 	 */
 	$effect(() => {
-		if (recipe && !savedSuggestion) {
+		if (recipeFromAI && !hasFullRecipeInDb && sid && !savedSuggestion) {
 			// Clear any existing timeout
 			if (saveTimeout) {
 				clearTimeout(saveTimeout);
 			}
 
-			// Start new 30-second timeout
+			// Start new 10-second timeout
 			saveTimeout = window.setTimeout(() => {
 				saveFullRecipeToSuggestions();
-			}, 10 * 1000); // 30 seconds
+			}, 10 * 1000);
 		}
 
 		// Cleanup timeout on unmount
@@ -197,19 +249,19 @@
 	}
 
 	/**
-	 * Save full recipe to suggestions table after 2 minutes
+	 * Save full recipe to suggestions table - updates the existing suggestion row
+	 * instead of creating a new one
 	 */
 	async function saveFullRecipeToSuggestions() {
-		if (!recipe) return;
+		if (!recipe || !sid) return;
 
-		let recipeToSave: Partial<SavedRecipe> = {
-			...JSON.parse(JSON.stringify(recipe)),
-			id: crypto.randomUUID(),
-			last_opened: Date.now().toString()
-		};
 		try {
-			await db.suggestions.put(recipeToSave);
-			savedSuggestion = recipeToSave;
+			// Update the existing suggestion row with the full recipe data
+			await db.suggestions.update(sid, {
+				...recipe,
+				last_opened: new Date().toISOString()
+			});
+			savedSuggestion = { ...recipe, id: sid };
 		} catch (error) {
 			console.error('Failed to save full recipe to suggestions:', error);
 		}
@@ -337,7 +389,7 @@
 		</div>
 	{:else if recipeQueryResult?.isError}
 		<div class="mx-auto grid h-max w-full max-w-3xl place-content-center">
-			<h1 class="fluid-heading-05 my-8">Ah donkey-spittle! There was a problem.</h1>
+			<h1 class="display-medium my-8">Ah donkey-spittle! There was a problem.</h1>
 			<p class="flex items-center gap-3">
 				A recipe matching the provided title could not be found.
 			</p>

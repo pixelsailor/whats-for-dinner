@@ -1,3 +1,21 @@
+import { v5 as uuidv5 } from 'uuid';
+
+// Namespace UUID for suggestion IDs (generated once for this app)
+const SUGGESTION_NAMESPACE = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
+
+/**
+ * Generate a deterministic UUID from a prompt and title.
+ * This ensures the same suggestion gets the same ID across page refreshes.
+ * 
+ * @param prompt - The user's prompt (search query)
+ * @param title - The suggestion title
+ * @returns A deterministic UUID string
+ */
+export function generateSuggestionId(prompt: string, title: string): string {
+	const combined = `${prompt.toLowerCase().trim()}|${title.toLowerCase().trim()}`;
+	return uuidv5(combined, SUGGESTION_NAMESPACE);
+}
+
 /**
  * Simple input sanitizer for OpenAI queries
  */

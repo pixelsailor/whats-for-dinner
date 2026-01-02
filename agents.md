@@ -42,14 +42,21 @@ After completing the code, ask the user if they want a playground link. Only cal
 - Use `$state()` for local component reactivity.
 - Derive computed values using `$derived()` instead of writable stores when possible.
 - Use `$props()` for prop forwarding — never legacy `$$restProps`.
-- Avoid using `$effect()` and defer to other runes for reactivity whenever possible.
-- Avoid legacy reactive declarations with `$:`.
+- Avoid using `$effect()` for reactivity whenever possible.
+- DO NOT use legacy reactive declarations with `$:`.
 - Keep components declarative and minimal; avoid direct DOM manipulation.
 - Use [Snippets](https://svelte.dev/docs/svelte/snippet/llms.txt) to create reusable chunks of markup inside component templates.
 - When possible, lift state upward or use context instead of prop drilling.
 - Animate transitions and list updates using Svelte’s `animate:` directive or `motion` from `svelte-motion`.
 - Keep markup accessible — use semantic elements, proper `aria-*` attributes, and keyboard support.
 - Handle Promises in `+page.svelte` with `{#await ...}` blocks so pending, success, and error UI states stay declarative. Reference: [Await Blocks](https://svelte.dev/docs/svelte/await/llms.txt).
+- Subscribe to Dexie stores by using `$derived()` with dollar-sign prefixed state variables, e.g.:
+
+```
+let queryStore = $derived(createQuery({ prompt }));
+let queryStoreResults = $derived($queryStore);
+let queryData = $derived(queryStoreResults?.data);
+```
 
 ### Svelte Testing
 
@@ -108,13 +115,16 @@ export const recipesStore = liveQuery(() => db.recipes.toArray());
   ```
   import { createQuery } from '@tanstack/svelte-query';
 
-  const recipesQuery = createQuery({
+  const recipesQueryStore = $derived(createQuery({
     queryKey: ['recipes', filters],
     queryFn: fetchRecipes,
     placeholderData: []
-  });
+  }));
 
-  const recipes = $derived(recipesQuery.data ?? []);
+  // Subscribe to store changes
+  const recipesQueryResults = $derived($recipesQueryStore);
+
+  const recipes = $derived(recipesQueryResults.data ?? []);
   const refreshRecipes = recipesQuery.refetch;
   ```
 - Prefer Dexie for durable offline reads and write-behind sync; wrap `queryFn` implementations so they validate responses with Zod and fall back to local cached values when offline. Keep TanStack queries side-effect free—mutations belong in dedicated request helpers or remote functions.  

@@ -4,7 +4,11 @@
  * Zod schemas for recipes and recipe management.
  * 
  * To ensure compatibility with the OpenAI Response API, all fields must be required.
- * "Optional" field may be nullable.
+ * "Optional" fields may be nullable. To conserve API tokens, avoid including fields that 
+ * are programmatically generated such as uuids or timestamps.
+ * 
+ * The Recipe schemas are considered "common" and may be imported by other schemas. To prevent
+ * circular imports, DO NOT import any other schemas into this file.
  */
 
 import { z } from 'zod';
@@ -81,29 +85,32 @@ const CATEGORY_TAGS = {
 const ALL_TAGS = Object.values(CATEGORY_TAGS).flat();
 // const TAG_LOOKUP = new Map(ALL_TAGS.map((tag) => [tag.toLowerCase(), tag]));
 
-/**
- * Summary of a recipe used in lists and cards. Use AiSuggestionSchema for OpenAI responses. See $lib/api/ai/ai.schemas.ts
- */
-export const RecipeSummarySchema = z.object({
+export const RecipeRootSchema = z.object({
 	title: z.string(),
 	short_description: z.string()
+});
+
+/**
+ * Summary of a recipe used in lists and cards.
+ * Do not use this schema for OpenAI responses. Use `AiSuggestionSchema` instead. See `$lib/api/ai/ai.schemas.ts`
+ */
+export const RecipeSummarySchema = RecipeRootSchema.extend({
+	id: z.uuid(),
+	created_at: z.iso.datetime(),
+	last_opened: z.iso.datetime().optional(),
 });
 
 /**
  * Suggestion model used for storing suggestions in the local database. Extends `RecipeSummarySchema`
  * with metadata used by the app for tracking suggestion creation and last opened.
  */
-export const SuggestionHistorySchema = RecipeSummarySchema.extend({
-	id: z.uuid(),
-	created_at: z.iso.datetime(),
-	last_opened: z.iso.datetime().nullable().optional()
-});
+export const SuggestionHistorySchema = z.array(RecipeSummarySchema);
 
 /**
  * Full recipe model used for display and editing. Several fields contain markdown strings.
  * Use `describe` to enforce zodResponseFormat for OpenAI responses.
  */
-export const RecipeSchema = RecipeSummarySchema.extend({
+export const RecipeSchema = RecipeRootSchema.extend({
 	description: z
 		.string()
 		.nullable()
@@ -124,21 +131,6 @@ export const RecipeSchema = RecipeSummarySchema.extend({
 	tags: z
 		.array(z.string().min(1))
 		.describe(`Use lowercase, hyphenate multi-word tags. Use at least one tag from the following course tags: ${CATEGORY_TAGS.course.join(', ')}. Additional tags encouraged. Available tags include: ${ALL_TAGS.join(', ')}.`),
-		// .refine(
-		// 	(tags: string[]) => {
-		// 		return tags.some((t) => {
-		// 			const clean = t.trim().toLowerCase();
-		// 			return TAG_LOOKUP.has(clean) || ALL_TAGS.some((tag) => tag.toLowerCase().includes(clean));
-		// 		});
-		// 	},
-		// 	{ message: 'At least one recognized tag from any category is required.' }
-		// )
-		// .transform((tags: string[]) =>
-		// 	tags.map((t) => {
-		// 		const clean = t.trim().toLowerCase();
-		// 		return TAG_LOOKUP.get(clean) || ALL_TAGS.find((tag) => tag.toLowerCase().includes(clean)) || t;
-		// 	})
-		// ),
 	yield: z
 		.string()
 		.describe(

@@ -65,19 +65,31 @@ export const recentSuggestions = readable<Suggestion[]>([], (suggestions) => {
 const MAX_SUGGESTIONS = 100;
 
 /**
- * Saves a set of suggestions using dexie's bulkAdd. If the total suggestion count exceeds the limit
- * cap, remove old suggestions for the DB
+ * Saves a set of suggestions using dexie's bulkPut. This function is idempotent:
+ * existing suggestions preserve their original `created_at` timestamp.
+ * If the total suggestion count exceeds the limit cap, remove old suggestions from the DB.
  * 
  * @param suggestions - the set of RecipeSummaries to save as Suggestions
  * @todo - Move this somewhere more appropriate so that it's not in the store file
  */
 export async function saveSuggestions(suggestions: RecipeSummary[]) {
 	const now = new Date().toISOString();
+	const ids = suggestions.map((s) => s.id);
+	
+	// Fetch existing suggestions to preserve their created_at timestamps
+	const existing = await db.suggestions.bulkGet(ids);
+	const existingMap = new Map(
+		existing.filter((s): s is Suggestion => s !== undefined).map((s) => [s.id, s])
+	);
+
 	const enriched: Suggestion[] = suggestions.map((raw) => {
-		const summary = JSON.parse(JSON.stringify(raw)) as RecipeSummary;
+		const existingRow = existingMap.get(raw.id);
 		return {
-			...summary,
-			created_at: now
+			...raw,
+			// Preserve existing created_at or use current timestamp for new suggestions
+			created_at: existingRow?.created_at ?? now,
+			// Preserve last_opened if it exists
+			last_opened: existingRow?.last_opened
 		};
 	});
 

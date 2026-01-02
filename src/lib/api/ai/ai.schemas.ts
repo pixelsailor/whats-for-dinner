@@ -11,6 +11,7 @@ import { RecipeSchema } from '../recipe';
 
 /**
  * OpenAI structured output schema for a recipe suggestion.
+ * To conserve API tokens, avoid including fields that are programmatically generated such as uuids or timestamps.
  */
 export const AiSuggestionSchema = z.object({
 	title: z.string().describe('The title of the recipe.'),

@@ -27,7 +27,7 @@ export type Viewport = {
 /**
  * Top-level page view states used by route components.
  */
-export type ViewState = 'idle' | 'suggestions' | 'detail' | 'error' | 'loading';
+export type ViewState = 'idle' | 'error' | 'loading';
 
 /**
  * Exported as both a runtime enum-like object and a type-safe union.

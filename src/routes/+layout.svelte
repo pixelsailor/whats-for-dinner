@@ -126,26 +126,6 @@
 	let currentConflict = $derived(conflictQueue[0] ?? null);
 	let syncing = $state(false);
 
-	async function handleLogin() {
-		loading = true;
-		error = '';
-		success = '';
-
-		const { data, error: authError } = await supabase.auth.signInWithPassword({
-			email,
-			password
-		});
-
-		if (authError) {
-			error = authError.message;
-			loading = false;
-			return;
-		}
-
-		success = 'Login successful!';
-		loading = false;
-	}
-
 	async function handleSignOut() {
 		await supabase.auth.signOut();
 		invalidate('supabase:auth');

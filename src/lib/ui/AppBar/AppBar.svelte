@@ -15,7 +15,7 @@
 	}
 </script>
 
-<div class="flex w-full flex-col px-2 backdrop-blur-sm z-999">
+<div class="flex w-full flex-col px-2 backdrop-blur-sm">
 	<div class="flex h-16 flex-row items-center py-2">
 		{#if isMobile && !disableMobileNav}
 			<Button

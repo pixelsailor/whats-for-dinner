@@ -220,8 +220,9 @@
   justify-content: flex-end;
   gap: 0.5rem;
   margin-right: -0.75rem;
+}
 
-  & > .button.text {
-    @apply hover:bg-gray-50 dark:hover:bg-black/95;
-  }
+/* Apply hover state to secondary action buttons within list item buttons */
+.listitem.button > .listitem__end > .button.text {
+  @apply hover:bg-gray-50 dark:hover:bg-black/95;
 }

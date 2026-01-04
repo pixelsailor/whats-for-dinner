@@ -157,11 +157,11 @@
 		<AppBar.Text primary="Recommendations" />
 		<AppBar.End>
 			<Button.Root
-				class="button"
+				class="button text narrow"
 				onclick={loadRecommendations} 
 				disabled={loading}
 			>
-				Refresh
+				<span>Refresh</span>
 			</Button.Root>
 		</AppBar.End>
 	</AppBar.Root>
@@ -174,7 +174,7 @@
 		</div>
 	{:else if error}
 		<div class="mx-auto grid h-screen w-full max-w-3xl place-content-center gap-6">
-			<h1 class="fluid-heading-05">Ah donkey-spittle! There was a problem.</h1>
+			<h1 class="display-medium">Ah donkey-spittle! There was a problem.</h1>
 			<p class="flex items-center gap-3">
 				<span class="fluid-heading-03">Error</span><span>|</span><span>{error}</span>
 			</p>
@@ -183,23 +183,23 @@
 		{#if categories.length === 0}
 			<div class="max-w-5xl w-full flex-1">
 				<div class="py-24 text-center">
-					<h1 class="fluid-heading-05 mb-4">No Recommendations Available</h1>
-					<p class="text-gray-600 dark:text-gray-400 mb-6">
+					<h1 class="display-medium mb-4">No Recommendations Available</h1>
+					<p class="body-medium mb-6">
 						Start adding recipes to see personalized recommendations!
 					</p>
-					<a 
+					<Button.Root 
 						href="/recipes/new" 
-						class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-sm hover:bg-blue-700 transition-colors"
+						class="button primary"
 					>
 						Add your first recipe
-					</a>
+					</Button.Root>
 				</div>
 			</div>
 		{:else}
 			<!-- Sidebar Navigation -->
 			<aside class="w-72">
-				<nav class="sticky top-8">
-					<h2 class="fluid-heading-04 mb-4">Categories</h2>
+				<nav class="sticky top-24">
+					<h2 class="title-large mb-4">Categories</h2>
 					<div class="mb-4 p-3 bg-gray-100 dark:bg-gray-800 rounded-sm">
 						<p class="helper-text text-gray-600 dark:text-gray-400">
 							Showing {currentMealContext} recipes based on current time. 
@@ -227,8 +227,8 @@
 			<!-- Main Content -->
 			<div class="max-w-5xl w-full flex-1">
 				<div class="mb-8">
-					<h1 class="fluid-heading-05 mb-2">Recipe Recommendations</h1>
-					<p class="text-gray-600 dark:text-gray-400 mb-2">
+					<h1 class="display-small mb-2">Recipe Recommendations</h1>
+					<p class="body-medium mb-2">
 						Discover recipes based on your cooking patterns and preferences.
 					</p>
 					<div class="flex items-center gap-2">
@@ -241,8 +241,8 @@
 				{#each categories as category}
 					<section id={category.id} class="mb-12 scroll-mt-8">
 						<div class="flex items-center justify-between mb-6">
-							<h2 class="fluid-heading-04">{category.title}</h2>
-							<span class="text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+							<h2 class="title-large">{category.title}</h2>
+							<span class="tag subtle label-medium">
 								{category.recipes.length} recipe{category.recipes.length !== 1 ? 's' : ''}
 							</span>
 						</div>

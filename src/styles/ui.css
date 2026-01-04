@@ -4,6 +4,6 @@
 	@apply rounded-input bg-dark dark:bg-dark inline-flex items-center gap-1 px-2 py-1 text-white dark:text-black;
 
   &.subtle {
-    @apply bg-dark-40 dark:bg-dark-40 text-dark dark:text-white;
+    @apply bg-dark-10 dark:bg-dark-10 text-dark dark:text-white;
   }
 }

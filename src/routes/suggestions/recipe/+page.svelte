@@ -430,11 +430,6 @@
 								<ProgressSpinner size="xs" />
 							</div>
 						{/if}
-						{#if isViewed}
-							<div class="grid h-10 place-content-center">
-								<span class="tag subtle label-small uppercase">Viewed</span>
-							</div>
-						{/if}
 						<Button.Root onclick={saveRecipe} class="button text narrow mr-2">
 							<BookmarkIcon size="xs" />
 							<span>Save recipe</span>

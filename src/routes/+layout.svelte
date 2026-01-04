@@ -405,7 +405,7 @@
 				</NavigationMenu.Item>
 			</NavigationMenu.List>
 		</NavigationMenu.Root>
-		<div class="mx-3 mt-8">
+		<div class="mx-3 mt-8 mb-2">
 			<span class="heading-compact text-gray-500">Recent recipes</span>
 		</div>
 		{#if $recentlyOpened.length === 0}

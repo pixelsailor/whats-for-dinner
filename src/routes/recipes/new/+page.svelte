@@ -70,7 +70,7 @@
 </script>
 
 <div class="mx-auto max-w-5xl px-4 lg:px-8 py-8">
-	<h1 class="fluid-heading-05 mb-16">Create a new recipe</h1>
+	<h1 class="display-small mb-16">Create a new recipe</h1>
 	<form method="POST" use:enhance={({ cancel }) => {
 		status = 'saving';
 		// const validationError = validateForm();

@@ -370,7 +370,7 @@
 				</AppBar.Root>
 			</PageHeader>
 			<div class="mx-auto max-w-5xl px-4 py-8 lg:px-8">
-				<h1 class="display-medium mb-4">Suggestion History</h1>
+				<h1 class="display-small mb-4">Suggestion History</h1>
 				<p class="body-medium mb-10">Suggestions are deleted after 30 days.</p>
 				{#if $suggestionHistory.length > 0}
 					<div class="w-full">

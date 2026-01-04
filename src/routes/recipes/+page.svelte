@@ -119,13 +119,13 @@
 		</div>
 	{:else if $recipes.error}
 		<div class="mx-auto grid h-screen w-full max-w-3xl place-content-center gap-6">
-			<h1 class="fluid-heading-05">Ah donkey-spittle! There was a problem.</h1>
+			<h1 class="display-medium">Ah donkey-spittle! There was a problem.</h1>
 			<p class="flex items-center gap-3">
 				<span class="fluid-heading-03">{$recipes.error.name}</span><span>|</span><span>{$recipes.error?.message}</span>
 			</p>
 		</div>
 	{:else if $recipes.data}
-		<h1 class="fluid-heading-05 mb-8">My Recipes</h1>
+		<h1 class="display-small mb-8">My Recipes</h1>
 		<div class="my-12 grid w-full grid-cols-2 gap-4">
 			<input
 				type="text"

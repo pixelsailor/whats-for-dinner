@@ -217,7 +217,7 @@
 				<div class="edit-container">
 					<input
 						type="text"
-						class="fluid-heading-05 title-input"
+						class="display-small title-input"
 						bind:value={recipe.title}
 						onkeydown={(e) => handleKeydown(e, 'title')}
 						onblur={handleBlur}
@@ -236,7 +236,7 @@
 					onclick={() => handleEditableClick('title')}
 					onkeydown={(event) => handleEditableKeydown(event, 'title')}
 				>
-					<h1 class="recipe-title fluid-heading-05 hover:bg-gray-100 hover:dark:bg-gray-900/40">
+					<h1 class="recipe-title display-small hover:bg-gray-100 hover:dark:bg-gray-900/40">
 						{recipe.title || 'Click to add title'}
 					</h1>
 				</div>
@@ -291,19 +291,19 @@
 				</div>
 			{/if}
 		</section>
-		<p class="px-2">{recipe.yield}</p>
-		<div class="grid grid-cols-[6rem_minmax(0,1fr)] gap-1 align-baseline mx-2">
-			<span class="heading">Prep time:</span>
-			<span>{humanizeTime(recipe.prep_time)}</span>
-			<span class="heading">Cook time:</span>
-			<span>{humanizeTime(recipe.cook_time)}</span>
-			<span class="heading">Total time:</span><span>{totalTime}</span>
+		<p class="px-2 py-4 body-large">{recipe.yield}</p>
+		<div class="grid grid-cols-[5rem_minmax(0,1fr)] gap-1 align-baseline mx-2">
+			<span class="label-large">Prep time:</span>
+			<span class="body-medium">{humanizeTime(recipe.prep_time)}</span>
+			<span class="label-large">Cook time:</span>
+			<span class="body-medium">{humanizeTime(recipe.cook_time)}</span>
+			<span class="label-large">Total time:</span><span class="body-medium">{totalTime}</span>
 		</div>
 	</div>
 
 	<!-- Ingredients -->
 	<section class="recipe-ingredients-section">
-		<h2 class="fluid-heading-03 px-2">Ingredients</h2>
+		<h2 class="title-large px-2">Ingredients</h2>
 		{#if editState.field === 'ingredients'}
 			<div class="edit-container">
 				<textarea
@@ -345,7 +345,7 @@
 
 	<!-- Instructions -->
 	<section class="recipe-instructions-section">
-		<h2 class="fluid-heading-03 px-2">Instructions</h2>
+		<h2 class="title-large px-2">Instructions</h2>
 		{#if editState.field === 'instructions'}
 			<div class="edit-container">
 				<textarea
@@ -386,7 +386,7 @@
 	</section>
 
 	<section class="recipe-notes-section">
-		<h2 class="fluid-heading-03 px-2">Notes:</h2>
+		<h2 class="title-large px-2">Notes:</h2>
 		{#if editState.field === 'notes'}
 			<div class="edit-container">
 				<textarea
@@ -426,7 +426,7 @@
 	<ul class="inline-flex flex-wrap gap-2 px-2 mb-4 h-12 items-center">
 		{#each recipe.tags as tag, index (tag + index)}
 			<li>
-				<span class="tag label lowercase px-2 py-1 border rounded bg-gray-100 border-gray-200 dark:bg-gray-700 dark:border-gray-600 whitespace-nowrap">{tag}</span>
+				<span class="tag label-medium lowercase">{tag}</span>
 			</li>
 		{/each}
 	</ul>

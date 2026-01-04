@@ -47,8 +47,9 @@
 		<AppBar.Text primary="Trash Bin" />
 		<AppBar.End>
 			{#if $deletedRecipes.data && $deletedRecipes.data.length}
-				<Button.Root onclick={deleteAll} class="button icon text danger" title="Permanently delete all recipes">
+				<Button.Root onclick={deleteAll} class="button text narrow danger" title="Permanently delete all recipes">
 					<TrashIcon size="xs" />
+					<span>Empty trash</span>
 				</Button.Root>
 			{/if}
 		</AppBar.End>
@@ -62,7 +63,7 @@
 		</div>
 	{:else if $deletedRecipes.error}
 		<div class="mx-auto grid h-screen w-full max-w-3xl place-content-center gap-6">
-			<h1 class="fluid-heading-05">Ah donkey-spittle! There was a problem.</h1>
+			<h1 class="display-medium">Ah donkey-spittle! There was a problem.</h1>
 			<p class="flex items-center gap-3">
 				<span class="fluid-heading-03">{$deletedRecipes.error.name}</span><span>|</span><span
 					>{$deletedRecipes.error?.message}</span
@@ -70,29 +71,27 @@
 			</p>
 		</div>
 	{:else if $deletedRecipes.data}
-		<h1 class="fluid-heading-05 mb-3">Trash Bin</h1>
-		<p class="body mb-8 italic">Deleted recipes are kept for 30 days, after which they are permanently deleted.</p>
+		<h1 class="display-small mb-3">Trash Bin</h1>
+		<p class="body-large mb-8 italic">Deleted recipes are kept for 30 days, after which they are permanently deleted.</p>
 		{#if $deletedRecipes.data.length > 0}
-			<List>
+			<div class="list">
 				{#each $deletedRecipes.data as recipe}
-					<hr class="border-gray-200" />
-					<div transition:slide={{ duration: 300, axis: 'y' }}>
-						<ListItem.Root>
-							<ListItem.Text primary={recipe.title} />
-							<ListItem.SecondaryAction>
-								<Button.Root title="Delete permanently" onclick={() => deleteRecipe(recipe.id)} class="button icon text danger">
-									<TrashIcon size="xs" />
-								</Button.Root>
-								<Button.Root title="Restore" onclick={() => restoreRecipe(recipe.id)} class="button icon text">
-									<RevertIcon size="xs" />
-								</Button.Root>
-							</ListItem.SecondaryAction>
-						</ListItem.Root>
+					<hr />
+					<div class="listitem">
+						<span class="listitem__content">
+							<span class="title-medium">{recipe.title}</span>
+							<span class="body-medium text-foreground-alt dark:text-foreground-alt">{recipe.short_description}</span>
+						</span>
+						<span class="listitem__end">
+							<Button.Root title="Delete permanently" onclick={() => deleteRecipe(recipe.id)} class="button icon text danger">
+								<TrashIcon size="xs" />
+							</Button.Root>
+						</span>
 					</div>
 				{/each}
-			</List>
+			</div>
 		{:else}
-			<p class="body">Your trash is empty.</p>
+			<p class="body-medium">Your trash is empty.</p>
 		{/if}
 	{/if}
 </div>

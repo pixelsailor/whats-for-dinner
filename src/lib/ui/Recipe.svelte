@@ -49,31 +49,31 @@
 	}
 </script>
 
-<h1 class="fluid-heading-05">{recipe.title}</h1>
-<p class="my-4 italic">{recipe.description}</p>
+<h1 class="display-small">{recipe.title}</h1>
+<p class="my-4 body-large italic">{recipe.description}</p>
 <p class="my-4">{recipe.yield}</p>
-<div class="grid grid-cols-[6rem_minmax(0,1fr)] gap-1 align-baseline my-2">
-  <span class="heading">Prep time:</span>
-  <span>{humanizeTime(recipe.prep_time)}</span>
-  <span class="heading">Cook time:</span>
-  <span>{humanizeTime(recipe.cook_time)}</span>
-  <span class="heading">Total time:</span><span>{totalTime}</span>
+<div class="grid grid-cols-[5rem_minmax(0,1fr)] gap-1 align-baseline my-2">
+  <span class="label-large">Prep time:</span>
+  <span class="body-medium">{humanizeTime(recipe.prep_time)}</span>
+  <span class="label-large">Cook time:</span>
+  <span class="body-medium">{humanizeTime(recipe.cook_time)}</span>
+  <span class="label-large">Total time:</span><span class="body-medium">{totalTime}</span>
 </div>
 <div class="ingredients my-8">
-  <h2 class="fluid-heading-03 my-2">Ingredients:</h2>
+  <h2 class="title-large my-2">Ingredients:</h2>
   <div class="ingredients__content markdown">
     <SvelteMarkdown source={recipe.ingredients} />
   </div>
 </div>
 <div class="instructions my-8">
-  <h2 class="fluid-heading-03 my-2">Instructions:</h2>
+  <h2 class="title-large my-2">Instructions:</h2>
   <div class="instructions__content markdown">
     <SvelteMarkdown source={recipe.instructions} />
   </div>
 </div>
 {#if recipe.notes?.length}
   <div class="notes my-8">
-    <h2 class="fluid-heading-03 my-2">Notes:</h2>
+    <h2 class="title-large my-2">Notes:</h2>
     <div class="notes__content markdown">
       <SvelteMarkdown source={recipe.notes} />
     </div>

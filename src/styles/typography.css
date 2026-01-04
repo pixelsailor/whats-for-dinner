@@ -222,6 +222,6 @@
   margin-right: -0.75rem;
 
   & > .button.text {
-    @apply hover:bg-background;
+    @apply hover:bg-gray-50 dark:hover:bg-black/95;
   }
 }

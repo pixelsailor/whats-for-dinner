@@ -142,7 +142,7 @@
 
 <div class="mx-auto max-w-5xl px-4 lg:px-8">
 	<form method="POST" use:enhance={submitPreferences} class="py-24">
-		<h1 class="fluid-heading-04 mb-4">Preferences</h1>
+		<h1 class="display-small mb-4">Preferences</h1>
 		<p class="my-4">
 			Set your recipe preferences here. These choices will affect every suggested recipe. If you
 			want to modify recipes only occasionally, rather than setting a preference, just be specific

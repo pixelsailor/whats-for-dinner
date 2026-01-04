@@ -7,7 +7,7 @@
 	import { getMealContext } from '$lib/getMealContext';
 	import { AppBar } from '$lib/ui/AppBar';
 	// import Button from '$lib/ui/Button/Button.svelte';
-	import { List, ListItem } from '$lib/ui/List';
+	// import { List, ListItem } from '$lib/ui/List';
 	import PageHeader from '$lib/ui/PageHeader.svelte';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
 	import toMillis from '$lib/utils/toMilliseconds';
@@ -246,21 +246,19 @@
 								{category.recipes.length} recipe{category.recipes.length !== 1 ? 's' : ''}
 							</span>
 						</div>
-						<List size="two-line">
+						<div class="list">
 							{#each category.recipes as recipe, index}
 								{#if index > 0}
 									<hr class="border-gray-200 dark:border-gray-700" />
 								{/if}
-								<ListItem.Root>
-									<ListItem.Link href="/recipes/{recipe.id}">
-										<ListItem.Text 
-											primary={recipe.title} 
-											secondary={recipe.short_description} 
-										/>
-									</ListItem.Link>
-								</ListItem.Root>
+								<Button.Root href="/recipes/{recipe.id}" class="listitem button text narrow">
+									<span class="listitem__content">
+										<span class="title-medium">{recipe.title}</span>
+										<span class="body-medium text-foreground-alt dark:text-foreground-alt">{recipe.short_description}</span>
+									</span>
+								</Button.Root>
 							{/each}
-						</List>
+						</div>
 					</section>
 				{/each}
 			</div>

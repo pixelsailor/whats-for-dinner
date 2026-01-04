@@ -2,11 +2,11 @@
  * Recipe Schemas
  *
  * Zod schemas for recipes and recipe management.
- * 
+ *
  * To ensure compatibility with the OpenAI Response API, all fields must be required.
- * "Optional" fields may be nullable. To conserve API tokens, avoid including fields that 
+ * "Optional" fields may be nullable. To conserve API tokens, avoid including fields that
  * are programmatically generated such as uuids or timestamps.
- * 
+ *
  * The Recipe schemas are considered "common" and may be imported by other schemas. To prevent
  * circular imports, DO NOT import any other schemas into this file.
  */
@@ -95,27 +95,17 @@ export const RecipeRootSchema = z.object({
  * Do not use this schema for OpenAI responses. Use `AiSuggestionSchema` instead. See `$lib/api/ai/ai.schemas.ts`
  */
 export const RecipeSummarySchema = RecipeRootSchema.extend({
-	id: z.uuid(),
+	sid: z.string().describe('Suggestion ID. Used to link to the suggestion in the suggestion history.'),
 	created_at: z.iso.datetime(),
-	last_opened: z.iso.datetime().optional(),
+	last_opened: z.iso.datetime().optional()
 });
-
-/**
- * Suggestion model used for storing suggestions in the local database. Extends `RecipeSummarySchema`
- * with metadata used by the app for tracking suggestion creation and last opened.
- */
-export const SuggestionHistorySchema = z.array(RecipeSummarySchema);
 
 /**
  * Full recipe model used for display and editing. Several fields contain markdown strings.
  * Use `describe` to enforce zodResponseFormat for OpenAI responses.
  */
 export const RecipeSchema = RecipeRootSchema.extend({
-	description: z
-		.string()
-		.nullable()
-		.optional()
-		.describe('Two to three sentence description with additional commentary or suggested pairings'),
+	description: z.string().nullable().describe('Two to three sentence description with additional commentary or suggested pairings'),
 	ingredients: z
 		.string()
 		.min(1)
@@ -130,13 +120,15 @@ export const RecipeSchema = RecipeRootSchema.extend({
 		),
 	tags: z
 		.array(z.string().min(1))
-		.describe(`Use lowercase, hyphenate multi-word tags. Use at least one tag from the following course tags: ${CATEGORY_TAGS.course.join(', ')}. Additional tags encouraged. Available tags include: ${ALL_TAGS.join(', ')}.`),
-	yield: z
-		.string()
 		.describe(
-			"Number of servings for meals (e.g. 2 to 4 servings) or volume for sauces, dressings or similar, e.g. '2 cups"
+			`Use lowercase, hyphenate multi-word tags. Use at least one tag from the following course tags: ${CATEGORY_TAGS.course.join(', ')}. Additional tags encouraged. Available tags include: ${ALL_TAGS.join(', ')}.`
 		),
-	prep_time: z.array(z.string()).describe('Preparation time in minutes, may include marinating or chilling. Use a tuple for range values, e.g. "10-15 minutes" is represented as ["10", "15"]'),
+	yield: z.string().describe("Number of servings for meals (e.g. 2 to 4 servings) or volume for sauces, dressings or similar, e.g. '2 cups"),
+	prep_time: z
+		.array(z.string())
+		.describe(
+			'Preparation time in minutes, may include marinating or chilling. Use a tuple for range values, e.g. "10-15 minutes" is represented as ["10", "15"]'
+		),
 	cook_time: z.array(z.string()).describe('Cooking time in minutes. Use a tuple for range values, e.g. "10-15 minutes" is represented as ["10", "15"]'),
 	notes: z.string().nullable().describe('Plain Markdown. DO NOT use "Notes" as the heading.')
 });
@@ -184,3 +176,12 @@ export const CloudRecipeSchema = SavedRecipeSchema.extend({
 	/** Owner id when synced to the cloud. Automatically set by supabase trigger functions. */
 	owner_id: z.uuid()
 });
+
+/**
+ * Suggestion model used for storing suggestions in the local database. Extends `SavedRecipeSchema`
+ * with metadata used by the app for tracking suggestion creation and last opened.
+ *
+ * @todo - ID is being generated as a concatenation of the prompt and title. Devise a way to
+ * use a proper UUID to facilitate linking to saved recipes from the suggestion history.
+ */
+export const SuggestionSchema = SavedRecipeSchema.partial().extend(RecipeSummarySchema.shape);

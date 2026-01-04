@@ -6,7 +6,7 @@
 	
 	import { createSuggestionsQuery } from '$lib/api/ai/ai.queries';
 	import type { RecipeSuggestion, RecipeSuggestionsResponse } from '$lib/api/ai';
-	import type { RecipeSummary } from '$lib/api/recipe';
+	import type { RecipeSummary, Suggestion } from '$lib/api/recipe';
 
 	import { db } from '$lib/db';
 	import { networkStore } from '$lib/stores/network';
@@ -30,7 +30,6 @@
 	let { data } = $props();
 
 	let app = $state({
-		view: '' as 'prompt-results' | 'history',
 		status: 'loading' as ViewState,
 		error: ''
 	});
@@ -67,6 +66,13 @@
 	/** Recipe title and description from the URL params */
 	const prompt = $derived(page.url.searchParams.get('prompt'));
 	const hasPrompt = $derived(!!prompt);
+	let view = $derived.by(() => {
+		if (app.status === 'idle') {
+			return hasPrompt ? 'prompt-results' : 'history';
+		} else {
+			return app.status;
+		}
+	});
 
 	/** Create the suggestions query store */
 	let suggestionsQueryStore = $derived.by(() => {
@@ -90,7 +96,7 @@
 		
 		// Generate deterministic IDs based on prompt + title
 		return aiSummaries.map((summary) => ({
-			id: generateSuggestionId(prompt, summary.title),
+			sid: generateSuggestionId(prompt, summary.title),
 			created_at: new Date().toISOString(),
 			title: summary.title,
 			short_description: summary.short_description,
@@ -99,13 +105,14 @@
 	});
 
 	/** IDs of the current prompt's suggestions */
-	let currentSuggestionIds = $derived(aiSuggestions?.map(s => s.id) ?? []);
+	let currentSuggestionIds = $derived(aiSuggestions?.map(s => s.sid) ?? []);
 
 	/** Live query for suggestions from Dexie based on current IDs */
-	let suggestionsFromDb = $state<RecipeSummary[]>([]);
+	let suggestionsFromDb = $state<Suggestion[]>([]);
 	
 	/** Render these suggestions - from DB for prompt results */
-	let suggestions = $derived(hasPrompt && currentSuggestionIds.length > 0 ? suggestionsFromDb : null);
+	// let suggestions = $derived(hasPrompt && currentSuggestionIds.length > 0 ? suggestionsFromDb : null);
+	let suggestions = $derived(hasPrompt ? aiSuggestions : null);
 
 	/** Save suggestions to Dexie when AI returns results (once per prompt) */
 	$effect(() => {
@@ -119,20 +126,20 @@
 	});
 
 	/** Subscribe to Dexie for the current prompt's suggestions */
-	$effect(() => {
-		if (currentSuggestionIds.length === 0) {
-			suggestionsFromDb = [];
-			return;
-		}
+	// $effect(() => {
+	// 	if (currentSuggestionIds.length === 0) {
+	// 		suggestionsFromDb = [];
+	// 		return;
+	// 	}
 
-		const subscription = liveQuery(() => 
-			db.suggestions.bulkGet(currentSuggestionIds)
-		).subscribe((results) => {
-			suggestionsFromDb = results.filter((s): s is RecipeSummary => s !== undefined);
-		});
+	// 	const subscription = liveQuery(() => 
+	// 		db.suggestions.bulkGet(currentSuggestionIds)
+	// 	).subscribe((results) => {
+	// 		suggestionsFromDb = results.filter((s): s is RecipeSummary => s !== undefined);
+	// 	});
 
-		return () => subscription.unsubscribe();
-	});
+	// 	return () => subscription.unsubscribe();
+	// });
 
 	let search = $state<string>();
 
@@ -147,9 +154,9 @@
 
 	// Group suggestions by day
 	let groupedSuggestions = $derived.by(() => {
-		const groups: Record<string, RecipeSummary[]> = {};
+		const groups: Record<string, Suggestion[]> = {};
 		for (const s of filteredSuggestions) {
-			const day = new Date(s.created_at).toLocaleDateString();
+			const day = new Date(s.created_at!).toLocaleDateString();
 			if (!groups[day]) groups[day] = [];
 			groups[day].push(s);
 		}
@@ -167,10 +174,8 @@
 				app.status = 'error';
 				app.error = (suggestionsResult.error as unknown as { body: { message: string } })?.body?.message ?? 'Unknown error';
 			}
-		} else if (hasPrompt) {
-			app.status = 'loading';
-		} else {
-			app.status = 'idle';
+		// } else {
+		// 	app.status = 'idle';
 		}
 	});
 
@@ -188,12 +193,17 @@
 		if (!canRequestSuggestions) {
 			return;
 		}
-		const sid = encodeURIComponent(recipe.id);
+		const sid = encodeURIComponent(recipe.sid);
 		const title = encodeURIComponent(recipe.title);
 		// include the `short_description` otherwise AI will write a new one and the generated
 		// recipe may vary from the description
 		const desc = encodeURIComponent(recipe.short_description);
-		goto(`/suggestions/recipe?sid=${sid}&title=${title}&description=${desc}`);
+		if (sid) {
+			// Recipe should already exist in Suggestions DB
+			goto(`/suggestions/recipe?sid=${sid}&title=${title}&description=${desc}`);
+		} else {
+			goto(`/suggestions/recipe?title=${title}&description=${desc}`);
+		}
 	}
 
 	function clearSuggestions() {
@@ -230,8 +240,8 @@
 				</p>
 			</div>
 		{:else if suggestionsResult?.isSuccess && suggestions}
-			<div class="mx-auto max-w-5xl px-4 py-8 lg:px-8">
-				<h1 class="display-medium mb-8">
+			<div class="mx-auto max-w-5xl w-full px-4 py-18 lg:px-8">
+				<h1 class="headline-medium mb-8">
 					Here are some ideas for, <span class="italic">"{prompt}"</span>
 				</h1>
 				<div class="list">
@@ -303,7 +313,7 @@
 											onclick={
 												(event: MouseEvent) => {
 													event.stopPropagation();
-													deleteSuggestion(summary.id)
+													deleteSuggestion(summary.sid)
 												}
 											}
 											class="button icon text"

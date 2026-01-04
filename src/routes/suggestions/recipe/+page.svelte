@@ -202,24 +202,8 @@
 	 */
 	$effect(() => {
 		if (recipeFromAI && !hasFullRecipeInDb && sid && !savedSuggestion) {
-			// Clear any existing timeout
-			if (saveTimeout) {
-				clearTimeout(saveTimeout);
-			}
-
-			// Start new 10-second timeout
-			saveTimeout = window.setTimeout(() => {
-				saveFullRecipeToSuggestions();
-			}, 10 * 1000);
+			saveFullRecipeToSuggestions();
 		}
-
-		// Cleanup timeout on unmount
-		return () => {
-			if (saveTimeout) {
-				clearTimeout(saveTimeout);
-				saveTimeout = null;
-			}
-		};
 	});
 
 	let overriddenRecipe = $state<FullRecipe | null>(null);
@@ -242,7 +226,7 @@
 	// let lastFormMessage: string | undefined = undefined;
 
 	// Timeout for saving full recipe to suggestions after 2 minutes
-	let saveTimeout: number | null = null;
+	// let saveTimeout: number | null = null;
 
 	function goBack() {
 		window.history.back();
@@ -360,20 +344,6 @@
 	// 	}
 	// });
 
-	onDestroy(() => {
-		if (saveTimeout) clearTimeout(saveTimeout);
-	});
-
-	// beforeNavigate(({ cancel }) => {
-	// 	if (hasUnsavedChanges) {
-	// 		const shouldLeave = confirm(
-	// 			'You have unsaved changes. Are you sure you want to leave this page?'
-	// 		);
-	// 		if (!shouldLeave) {
-	// 			cancel();
-	// 		}
-	// 	}
-	// });
 </script>
 
 <div

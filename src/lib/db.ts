@@ -20,7 +20,7 @@ class MealDexie extends Dexie {
 		this.version(1).stores({
 			recipes:
 				'id, title, created_at, deleted_at, last_opened, owner_id, shared_id, synced, last_synced_at',
-			suggestions: 'id, created_at, last_opened',
+			suggestions: 'id, sid, created_at, last_opened',
 		});
 	}
 }

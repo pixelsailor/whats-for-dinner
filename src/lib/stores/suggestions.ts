@@ -10,6 +10,7 @@ import { readable, writable } from 'svelte/store';
 
 import type { RecipeSummary, Suggestion } from '$lib/api/recipe';
 import { db } from '$lib/db';
+import { createLiveQueryStore } from './_utils';
 
 // @TODO is this used?
 export const suggestionMap = writable<Map<string, RecipeSummary>>(new Map());
@@ -51,6 +52,11 @@ export const suggestionHistory = readable<Suggestion[]>([], (suggestions) => {
   return () => subscription.unsubscribe();
 });
 
+export const suggestionsStore = createLiveQueryStore(async () => {
+	// await migrateIdsToSids();
+	return await db.suggestions.orderBy('created_at').reverse().toArray() as Suggestion[];
+});
+
 /**
  * Returns a list of the most recent suggestions as a LiveQuery subscription
  */
@@ -74,7 +80,7 @@ const MAX_SUGGESTIONS = 100;
  */
 export async function saveSuggestions(suggestions: RecipeSummary[]) {
 	const now = new Date().toISOString();
-	const ids = suggestions.map((s) => s.id);
+	const ids = suggestions.map((s) => s.sid);
 	
 	// Fetch existing suggestions to preserve their created_at timestamps
 	const existing = await db.suggestions.bulkGet(ids);
@@ -83,7 +89,7 @@ export async function saveSuggestions(suggestions: RecipeSummary[]) {
 	);
 
 	const enriched: Suggestion[] = suggestions.map((raw) => {
-		const existingRow = existingMap.get(raw.id);
+		const existingRow = existingMap.get(raw.sid);
 		return {
 			...raw,
 			// Preserve existing created_at or use current timestamp for new suggestions
@@ -103,8 +109,9 @@ export async function saveSuggestions(suggestions: RecipeSummary[]) {
 			.limit(count - MAX_SUGGESTIONS)
 			.toArray();
 
-		const extraIds = extras.map((s) => s.id);
-		await db.suggestions.bulkDelete(extraIds);
+		const extraIds = extras.filter((s): s is Suggestion => s !== undefined).map((s) => s.id);
+		if (!extraIds?.length) return;
+		await db.suggestions.bulkDelete(extraIds as string[]);
 	}
 }
 
@@ -120,6 +127,20 @@ export async function bulkDeleteSuggestions() {
 	const keys = await collection.primaryKeys();
 	await db.suggestions.bulkDelete(keys);
 }
+
+/**
+ * Get a saved suggestion by id
+ * @param id - The id of the suggestion to return.
+ * @returns The saved suggestion.
+ * @throws An error if the suggestion is not found.
+ */
+export const suggestionStoreById = (id: string) => createLiveQueryStore(async () => {
+	const suggestion = await db.suggestions.get(id) as Suggestion | undefined;
+	if (!suggestion) {
+		throw new Error(`Suggestion with id "${id}" not found.`);
+	}
+	return suggestion;
+});
 
 /**
  * Check if a suggestion has been viewed (either in session cache or persisted to DB)
@@ -151,4 +172,14 @@ export function getViewedStatus(
 	const isViewed = isViewedInSession || isPersisted;
 	
 	return { isViewed, isPersisted };
+}
+
+async function migrateIdsToSids(): Promise<void> {
+	const suggestions = await db.suggestions.toArray() as Suggestion[];
+	for (const suggestion of suggestions) {
+		if (suggestion.id) continue;
+		suggestion.sid = suggestion.id as string;
+		suggestion.id = undefined;
+		await db.suggestions.put(suggestion);
+	}
 }

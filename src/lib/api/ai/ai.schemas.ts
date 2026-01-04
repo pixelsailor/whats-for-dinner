@@ -28,8 +28,12 @@ export const RecipeAddendumSchema = AiSuggestionSchema.extend({
 
 /**
  * OpenAI response schemas. Responses must have an "object" root.
+ * 
+ * Note: request_id is added by the API layer, not OpenAI. It's used to track
+ * prompt requests and prevent duplicate API calls.
  */
 export const RecipeSuggestionsResponseSchema = z.object({
+	request_id: z.number().describe('Unique timestamp ID for this request, added by API layer'),
 	suggestions: z.array(AiSuggestionSchema)
 });
 export const RecipeDetailResponseSchema = z.object(RecipeSchema);

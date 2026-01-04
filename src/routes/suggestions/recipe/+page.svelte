@@ -1,36 +1,32 @@
 <script lang="ts">
 	import { Button } from 'bits-ui';
-
-	import { enhance } from '$app/forms';
-	import { beforeNavigate, goto } from '$app/navigation';
+	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
+	import { toast } from 'svelte-sonner';
 
 	import { db } from '$lib/db';
 	import { sanitizePromptInput } from '$lib/utils';
-	// import type { PromptContext } from '$lib/api/ai';
-	import { createFullRecipeQuery } from '$lib/api/ai/ai.queries'; // Do not import via index.ts -- Creates an "impossible situation"
-	import type { Recipe as FullRecipe, SavedRecipe, RecipeSummary } from '$lib/api/recipe';
+	import { createFullRecipeQuery } from '$lib/api/ai/ai.queries';
+	import type { Recipe as FullRecipe, SavedRecipe, Suggestion } from '$lib/api/recipe';
+	import { suggestionStoreById } from '$lib/stores/suggestions';
 
 	import { AppBar } from '$lib/ui/AppBar';
 	import BackIcon from '$lib/ui/Icons/BackIcon.svelte';
 	import BookmarkIcon from '$lib/ui/Icons/BookmarkIcon.svelte';
-	import CloseIcon from '$lib/ui/Icons/CloseIcon.svelte';
 	import PageHeader from '$lib/ui/PageHeader.svelte';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
-	import Prompt from '$lib/ui/Prompt.svelte';
 	import Recipe from '$lib/ui/Recipe.svelte';
-	import { getContext, onDestroy } from 'svelte';
-	import { toast } from 'svelte-sonner';
-	import { slide } from 'svelte/transition';
 	import { networkStore } from '$lib/stores/network';
 	import { deriveAICapability } from '$lib/utils/capabilities';
 	import type { ViewState } from '$lib/types.js';
 	import { CloudService, SyncService } from '$lib/api/cloud';
 
-	// const vp: any = getContext('viewport');
+	let { data } = $props();
 
-	let { data, form } = $props();
-
+	// =============================================================================
+	// State
+	// =============================================================================
+	
 	let app = $state({
 		status: 'loading' as ViewState,
 		error: ''
@@ -39,8 +35,14 @@
 	let currentUserId = $state<string | undefined>(undefined);
 	let cloudService: CloudService | undefined = $state(undefined);
 	let syncService: SyncService | undefined = $state(undefined);
+
+	/** Track if we've saved the full recipe to prevent duplicate saves */
+	let savedFullRecipeId = $state<string | null>(null);
+
+	// =============================================================================
+	// Derived State - Network & AI Capabilities
+	// =============================================================================
 	
-	// let userPreferences = $derived(data.session?.user?.user_metadata?.preferences || '');
 	let network = $derived($networkStore);
 	let aiCapability = $derived(
 		deriveAICapability({
@@ -68,71 +70,186 @@
 
 	let hasCloudStorageAccess = $derived(data.permissions?.cloudSync.allowed ?? false);
 
-	/** Recipe and suggestion identifiers from URL params */
-	const sid = $derived(page.url.searchParams.get('sid'));
+	// =============================================================================
+	// URL Parameters
+	// =============================================================================
+	
+	const id = $derived(page.url.searchParams.get('id'));
 	const title = $derived(page.url.searchParams.get('title'));
 	const description = $derived(page.url.searchParams.get('description'));
-	const hasPrompt = $derived(!!sid && !!title && !!description);
+	const hasTitleAndDescription = $derived(!!title && !!description);
 
-	/** Load suggestion from Dexie first */
-	let suggestionFromDb = $state<(RecipeSummary & Partial<FullRecipe>) | null>(null);
-	let hasFullRecipeInDb = $derived(
-		suggestionFromDb && 'ingredients' in suggestionFromDb && 'instructions' in suggestionFromDb
-	);
-
-	type RecipeQueryStore = Exclude<ReturnType<typeof createFullRecipeQuery>, null>;
-	type RecipeResult = Parameters<
-		Parameters<RecipeQueryStore['subscribe']>[0]
-		>[0];
-
-	let recipeQueryStore = $state<RecipeQueryStore | null>(null);
-	let recipeQueryResult = $state<RecipeResult | null>(null);
-
-	let recipeFromAI = $derived((recipeQueryResult?.data as unknown as FullRecipe) || null);
+	// =============================================================================
+	// Dexie-First: Load suggestion from IndexedDB via LiveQuery
+	// =============================================================================
 	
-	// Use recipe from DB if available, otherwise use AI result
-	let recipe = $derived(
-		hasFullRecipeInDb && suggestionFromDb 
-			? (suggestionFromDb as FullRecipe)
-			: recipeFromAI
-	);
-
-	let savedSuggestion = $state<Partial<SavedRecipe> | null>(null);
-
-	/**
-	 * Load the suggestion from Dexie when sid changes.
-	 * If it has a full recipe, we'll render from DB. Otherwise we'll call AI.
-	 */
-	$effect(() => {
-		if (!sid) {
-			suggestionFromDb = null;
-			return;
+	/** Create LiveQuery store for suggestion by id */
+	let suggestionStore = $derived.by(() => {
+		if (!id) return null;
+		try {
+			return suggestionStoreById(id);
+		} catch {
+			return null;
 		}
-
-		const loadSuggestion = async () => {
-			const suggestion = await db.suggestions.get(sid);
-			if (suggestion) {
-				suggestionFromDb = suggestion as RecipeSummary & Partial<FullRecipe>;
-				// Mark as viewed by updating last_opened
-				if (!suggestion.last_opened) {
-					await db.suggestions.update(sid, { 
-						last_opened: new Date().toISOString() 
-					});
-				}
-			} else {
-				suggestionFromDb = null;
-			}
-		};
-
-		loadSuggestion();
 	});
 
+	/** Subscribe to suggestion from Dexie */
+	let suggestionResult = $derived($suggestionStore);
+	let suggestionFromDexie = $derived(suggestionResult?.data ?? null);
+	let suggestionLoading = $derived(suggestionResult?.loading ?? false);
+	let suggestionError = $derived(suggestionResult?.error ?? null);
+
+	/** Check if the suggestion has a full recipe (ingredients + instructions) */
+	let hasFullRecipeInDexie = $derived(
+		suggestionFromDexie && 
+		'ingredients' in suggestionFromDexie && 
+		'instructions' in suggestionFromDexie &&
+		!!suggestionFromDexie.ingredients &&
+		!!suggestionFromDexie.instructions
+	);
+
+	// =============================================================================
+	// Conditional API Query
+	// Only create the query if no full recipe exists in Dexie
+	// =============================================================================
+	
+	/** Determine if we should make an API request */
+	let shouldRequestFromApi = $derived(
+		hasTitleAndDescription &&
+		canUseAI &&
+		!suggestionLoading &&
+		!hasFullRecipeInDexie &&
+		!suggestionError
+	);
+
+	/** Create TanStack query only when needed */
+	let recipeQueryStore = $derived.by(() => {
+		if (!shouldRequestFromApi || !title || !description) return null;
+		
+		const sanitizedTitle = sanitizePromptInput(encodeURIComponent(title));
+		const sanitizedDescription = sanitizePromptInput(encodeURIComponent(description));
+		
+		try {
+			return createFullRecipeQuery({
+				title: sanitizedTitle,
+				description: sanitizedDescription
+			});
+		} catch (error) {
+			console.error('Failed to create full recipe query:', error);
+			return null;
+		}
+	});
+
+	/** Subscribe to query results */
+	let recipeQueryResult = $derived($recipeQueryStore);
+	let recipeFromApi = $derived((recipeQueryResult?.data as unknown as FullRecipe) ?? null);
+
+	// =============================================================================
+	// Recipe Display - Always prefer Dexie, fallback to API response
+	// =============================================================================
+	
+	/** The recipe to display - Dexie-first approach */
+	let recipe = $derived.by<FullRecipe | null>(() => {
+		// Priority 1: Full recipe from Dexie
+		if (hasFullRecipeInDexie && suggestionFromDexie) {
+			return suggestionFromDexie as FullRecipe;
+		}
+		// Priority 2: Recipe from API (will be saved to Dexie)
+		if (recipeFromApi) {
+			return recipeFromApi;
+		}
+		return null;
+	});
+
+	/** Check if we have a recipe ready to display (from any source) */
+	let hasRecipe = $derived(!!recipe);
+
+	/** Check if the recipe has been viewed (has last_opened set) */
+	let isViewed = $derived(
+		suggestionFromDexie && 
+		'last_opened' in suggestionFromDexie && 
+		!!suggestionFromDexie.last_opened
+	);
+
+	// =============================================================================
+	// Save API Response to Dexie
+	// =============================================================================
+	
+	/**
+	 * When API returns a full recipe, save it to Dexie and mark as viewed.
+	 * This effect handles the write-through to IndexedDB.
+	 */
+	$effect(() => {
+		if (!recipeFromApi || !id || hasFullRecipeInDexie) return;
+		
+		// Prevent duplicate saves
+		if (savedFullRecipeId === id) return;
+		savedFullRecipeId = id;
+
+		// Save full recipe to Dexie and mark as viewed
+		saveFullRecipeToDexie(id, recipeFromApi);
+	});
+
+	/** Save full recipe to suggestion in Dexie */
+	async function saveFullRecipeToDexie(suggestionId: string, fullRecipe: FullRecipe) {
+		try {
+			await db.suggestions.update(suggestionId, {
+				...fullRecipe,
+				last_opened: new Date().toISOString()
+			});
+		} catch (error) {
+			console.error('Failed to save full recipe to Dexie:', error);
+		}
+	}
+
+	// =============================================================================
+	// View State Management
+	// =============================================================================
+	
+	/** Computed view state based on all conditions */
+	let viewState = $derived.by<'loading' | 'error' | 'idle' | 'no-ai'>(() => {
+		// AI not available
+		if (!canUseAI && !hasFullRecipeInDexie) return 'no-ai';
+		
+		// API error
+		if (recipeQueryResult?.isError) return 'error';
+		
+		// Suggestion not found in Dexie
+		if (suggestionError) return 'error';
+		
+		// Have recipe to display
+		if (hasRecipe) return 'idle';
+		
+		// Still loading from Dexie
+		if (suggestionLoading) return 'loading';
+		
+		// API request in progress
+		if (shouldRequestFromApi && recipeQueryResult?.isPending) return 'loading';
+		
+		// Default to loading
+		return 'loading';
+	});
+
+	/** Update app.status for template compatibility */
+	$effect(() => {
+		if (viewState === 'error') {
+			app.status = 'error';
+			app.error = suggestionError?.message ?? 
+				(recipeQueryResult?.error as unknown as { body: { message: string } })?.body?.message ?? 
+				'Unknown error';
+		} else if (viewState === 'loading') {
+			app.status = 'loading';
+		} else {
+			app.status = 'idle';
+		}
+	});
+
+	// =============================================================================
+	// Cloud Service Setup
+	// =============================================================================
+	
 	/**
 	 * Manage services for cloud and sync operations.
-	 *
-	 * This effect is triggered when the user is logged in or logged out.
-	 * Use `$effect` with caution: updating the `cloudService` or `syncService` will trigger
-	 * a re-render, which will cause a loop.
 	 */
 	$effect(() => {
 		const userId = data.user?.id;
@@ -147,108 +264,12 @@
 		}
 	});
 
-	/**
-	 * Request the full recipe from the AI API.
-	 * Only calls AI if the suggestion doesn't already have the full recipe in Dexie.
-	 *
-	 * This effect is triggered when the title and description are set.
-	 * Use `$effect` with caution: updating the `recipeQueryStore` or `recipeQueryResult` will trigger
-	 * a re-render, which will cause a loop.
-	 */
-	$effect(() => {
-		// If we already have the full recipe in DB, skip AI request
-		if (hasFullRecipeInDb) {
-			recipeQueryStore = null;
-			recipeQueryResult = null;
-			app.status = 'idle';
-			return;
-		}
-
-		const currentTitle = title ? sanitizePromptInput(encodeURIComponent(title)) : null;
-		const currentDescription = description ? sanitizePromptInput(encodeURIComponent(description)) : null;
-		if (!currentTitle || !currentDescription || !canUseAI) {
-			recipeQueryStore = null;
-			recipeQueryResult = null;
-			return;
-		}
-
-		const store = createFullRecipeQuery({
-			title: currentTitle,
-			description: currentDescription
-		});
-		if (!store) {
-			recipeQueryStore = null;
-			recipeQueryResult = null;
-			return;
-		}
-
-		recipeQueryStore = store;
-
-		const unsubscribe = store.subscribe((value) => {
-			recipeQueryResult = value;
-			app.status = 'idle';
-		});
-
-		return () => {
-			unsubscribe();
-			recipeQueryStore = null;
-			recipeQueryResult = null;
-		};
-	});
-
-	/**
-	 * Start timeout to save full recipe to suggestions after 10 seconds
-	 * Only saves if we got a recipe from AI (not from DB)
-	 */
-	$effect(() => {
-		if (recipeFromAI && !hasFullRecipeInDb && sid && !savedSuggestion) {
-			saveFullRecipeToSuggestions();
-		}
-	});
-
-	let overriddenRecipe = $state<FullRecipe | null>(null);
-	// let fullRecipe = $derived(overriddenRecipe ?? recipeFromQuery ?? null);
-	let hasUnsavedChanges = $derived(Boolean(overriddenRecipe));
-
-	// Responsible for passing the recipe to the FormData
-	let recipeJson = $derived.by(() => (recipe ? JSON.stringify(recipe) : ''));
-
-	// let promptInput = $state<string>();
-
-	// let promptType = $state<PromptContext>();
-
-	let promptRef = $state<HTMLElement>();
-
-	let promptHeight = $derived(promptRef?.clientHeight);
-
-	// let conversationMsg = $state<string>();
-
-	// let lastFormMessage: string | undefined = undefined;
-
-	// Timeout for saving full recipe to suggestions after 2 minutes
-	// let saveTimeout: number | null = null;
+	// =============================================================================
+	// Actions
+	// =============================================================================
 
 	function goBack() {
 		window.history.back();
-	}
-
-	/**
-	 * Save full recipe to suggestions table - updates the existing suggestion row
-	 * instead of creating a new one
-	 */
-	async function saveFullRecipeToSuggestions() {
-		if (!recipe || !sid) return;
-
-		try {
-			// Update the existing suggestion row with the full recipe data
-			await db.suggestions.update(sid, {
-				...recipe,
-				last_opened: new Date().toISOString()
-			});
-			savedSuggestion = { ...recipe, id: sid };
-		} catch (error) {
-			console.error('Failed to save full recipe to suggestions:', error);
-		}
 	}
 
 	/**
@@ -259,20 +280,24 @@
 		app.status = 'loading';
 
 		let candidate: SavedRecipe | undefined = undefined;
-		let syncError = false;
 
 		if (hasCloudStorageAccess && cloudService) {
 			try {
 				candidate = await cloudService.uploadLocalRecipe(recipe);
 				await db.recipes.put(candidate);
+				if (id) {
+					await db.suggestions.update(id, { recipe_id: candidate.id });
+				}
 				toast.success('Recipe saved');
 				goto(`/recipes/${candidate.id}`, { replaceState: true });
 			} catch (err) {
 				console.error('Cloud save failed; continuing locally', err);
-				syncError = true;
 
 				candidate = createSavedRecipe(recipe, err instanceof Error ? err.message : 'Unknown sync error');
 				await db.recipes.put(candidate);
+				if (id) {
+					await db.suggestions.update(id, { recipe_id: candidate.id });
+				}
 				toast.info('Recipe saved locally but failed to sync to cloud');
 			} finally {
 				app.status = 'idle';
@@ -280,10 +305,12 @@
 		} else {
 			candidate = createSavedRecipe(recipe);
 			await db.recipes.put(candidate);
+			if (id) {
+				await db.suggestions.update(id, { recipe_id: candidate.id });
+			}
 			toast.success('Recipe saved');
 			goto(`/recipes/${candidate.id}`, { replaceState: true });
 		}
-
 	}
 
 	function createSavedRecipe(recipe: FullRecipe, error?: string): SavedRecipe {
@@ -307,6 +334,26 @@
 			parent_id: null,
 		};
 	}
+
+	/** @todo - Add support for AI-assisted recipe editing. DO NOT REMOVE THE FOLLOWING COMMENTED CODE. */
+	// let overriddenRecipe = $state<FullRecipe | null>(null);
+	// let fullRecipe = $derived(overriddenRecipe ?? recipeFromQuery ?? null);
+	// let hasUnsavedChanges = $derived(Boolean(overriddenRecipe));
+
+	// Responsible for passing the recipe to the FormData
+	// let recipeJson = $derived.by(() => (recipe ? JSON.stringify(recipe) : ''));
+
+	// let promptInput = $state<string>();
+
+	// let promptType = $state<PromptContext>();
+
+	// let promptRef = $state<HTMLElement>();
+
+	// let promptHeight = $derived(promptRef?.clientHeight);
+
+	// let conversationMsg = $state<string>();
+
+	// let lastFormMessage: string | undefined = undefined;
 
 	// Handle prompt responses
 	// $effect(() => {
@@ -343,28 +390,33 @@
 	// 		toast.error(`${form.error}`);
 	// 	}
 	// });
-
 </script>
 
 <div
 	class="grid h-screen"
-	style:place-content={recipeQueryResult?.isSuccess ? 'start stretch' : 'center'}
-	style:padding-bottom={`calc(${promptHeight}px + 1.5rem)`}
+	style:place-content={viewState === 'idle' ? 'start stretch' : 'center'}
 >
-	{#if !canUseAI}
+	{#if viewState === 'no-ai'}
+		<!-- AI Not Available -->
 		<div
 			class="mb-6 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-500 dark:bg-amber-950 dark:text-amber-100"
 		>
 			{aiRestrictionMessage}
 		</div>
-	{:else if recipeQueryResult?.isError}
+	{:else if viewState === 'error'}
+		<!-- Error View -->
 		<div class="mx-auto grid h-max w-full max-w-3xl place-content-center">
 			<h1 class="display-medium my-8">Ah donkey-spittle! There was a problem.</h1>
 			<p class="flex items-center gap-3">
-				A recipe matching the provided title could not be found.
+				{#if suggestionError}
+					{suggestionError.message}
+				{:else}
+					A recipe matching the provided title could not be found.
+				{/if}
 			</p>
 		</div>
-	{:else if recipeQueryResult?.data && recipe}
+	{:else if viewState === 'idle' && recipe}
+		<!-- Recipe View (from Dexie or API) -->
 		<div>
 			<PageHeader>
 				<AppBar.Root>
@@ -378,7 +430,7 @@
 								<ProgressSpinner size="xs" />
 							</div>
 						{/if}
-						{#if savedSuggestion}
+						{#if isViewed}
 							<div class="grid h-10 place-content-center">
 								<span class="tag subtle label-small uppercase">Viewed</span>
 							</div>
@@ -391,7 +443,7 @@
 				</AppBar.Root>
 			</PageHeader>
 			<article class="mx-auto max-w-5xl px-4 py-8 lg:px-8">
-				<Recipe recipe={recipe} />
+				<Recipe {recipe} />
 			</article>
 		</div>
 		<!-- <Button onClick={saveRecipe} label="Save to My Recipes" disabled={working} size="sm">
@@ -440,7 +492,8 @@
 				</form>
 			</Prompt>
 		</div> -->
-	{:else}
+	{:else if viewState === 'loading'}
+		<!-- Loading View -->
 		<ProgressSpinner size="lg" />
 	{/if}
 </div>

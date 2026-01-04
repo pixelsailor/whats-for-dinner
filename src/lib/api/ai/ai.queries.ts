@@ -81,7 +81,7 @@ export function createSuggestionsQuery({ prompt, preferences, options, endpoint 
 
 	return createQuery({
 		queryKey: ['suggestions', sanitizedPrompt],
-		queryFn: () => query<RecipeSuggestionsResponse[]>({ endpoint, prompt: sanitizedPrompt, preferences: prefs, action: 'summaries' }),
+		queryFn: () => query<RecipeSuggestionsResponse>({ endpoint, prompt: sanitizedPrompt, preferences: prefs, action: 'summaries' }),
 		enabled: Boolean(sanitizedPrompt.length) && (options?.enabled ?? true),
 		staleTime: Infinity
 	});

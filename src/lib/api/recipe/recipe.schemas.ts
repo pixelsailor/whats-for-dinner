@@ -95,7 +95,8 @@ export const RecipeRootSchema = z.object({
  * Do not use this schema for OpenAI responses. Use `AiSuggestionSchema` instead. See `$lib/api/ai/ai.schemas.ts`
  */
 export const RecipeSummarySchema = RecipeRootSchema.extend({
-	sid: z.string().describe('Suggestion ID. Used to link to the suggestion in the suggestion history.'),
+	/** Primary id (UUID). Used to link to the suggestion in the suggestion history. */
+	id: z.uuid(),
 	created_at: z.iso.datetime(),
 	last_opened: z.iso.datetime().optional()
 });
@@ -181,7 +182,9 @@ export const CloudRecipeSchema = SavedRecipeSchema.extend({
  * Suggestion model used for storing suggestions in the local database. Extends `SavedRecipeSchema`
  * with metadata used by the app for tracking suggestion creation and last opened.
  *
- * @todo - ID is being generated as a concatenation of the prompt and title. Devise a way to
- * use a proper UUID to facilitate linking to saved recipes from the suggestion history.
+ * `recipe_id` is a nullable link to the user's saved recipe (if the suggestion was saved into My Recipes).
  */
-export const SuggestionSchema = SavedRecipeSchema.partial().extend(RecipeSummarySchema.shape);
+export const SuggestionSchema = SavedRecipeSchema.partial().extend({
+	...RecipeSummarySchema.shape,
+	recipe_id: z.uuid().nullable()
+});

@@ -2,20 +2,21 @@
 	import { Button } from 'bits-ui';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { liveQuery } from 'dexie';
 	
 	import { createSuggestionsQuery } from '$lib/api/ai/ai.queries';
-	import type { RecipeSuggestion, RecipeSuggestionsResponse } from '$lib/api/ai';
+	import type { RecipeSuggestionsResponse } from '$lib/api/ai';
 	import type { RecipeSummary, Suggestion } from '$lib/api/recipe';
 
-	import { db } from '$lib/db';
 	import { networkStore } from '$lib/stores/network';
 	import {
 		bulkDeleteSuggestions,
 		deleteSuggestion,
+		getPromptRequestWithThrottle,
+		getViewedStatus,
 		saveSuggestions,
+		savePromptRequest,
 		suggestionHistory,
-		getViewedStatus
+		suggestionsByPromptStore
 	} from '$lib/stores/suggestions';
 	import type { ViewState } from '$lib/types.js';
 
@@ -24,20 +25,38 @@
 	import PageHeader from '$lib/ui/PageHeader.svelte';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
 	import ViewedBadge from '$lib/ui/ViewedBadge.svelte';
-	import { sanitizePromptInput, generateSuggestionId } from '$lib/utils.js';
+	import { sanitizePromptInput } from '$lib/utils.js';
 	import { deriveAICapability } from '$lib/utils/capabilities';
 
 	let { data } = $props();
 
+	// =============================================================================
+	// State
+	// =============================================================================
+	
 	let app = $state({
 		status: 'loading' as ViewState,
 		error: ''
 	});
 
-	/** Track what's been saved to prevent duplicates and infinite loops */
-	let savedPromptKey = $state<string | null>(null);
+	/** Track existing request from Dexie to prevent duplicate API calls */
+	let existingRequestState = $state<{
+		checked: boolean;
+		hasExisting: boolean;
+		requestId: number | null;
+	}>({
+		checked: false,
+		hasExisting: false,
+		requestId: null
+	});
 
-	// let userPreferences = $derived(data.preferences || '');
+	/** Track if we've already saved the current response to prevent duplicate saves */
+	let savedRequestId = $state<number | null>(null);
+
+	// =============================================================================
+	// Derived State - Network & AI Capabilities
+	// =============================================================================
+	
 	let network = $derived($networkStore);
 	let aiCapability = $derived(
 		deriveAICapability({
@@ -63,84 +82,202 @@
 		}
 	});
 
-	/** Recipe title and description from the URL params */
+	// =============================================================================
+	// URL Parameters
+	// =============================================================================
+	
 	const prompt = $derived(page.url.searchParams.get('prompt'));
+	const requestIdFromUrl = $derived(page.url.searchParams.get('request_id'));
 	const hasPrompt = $derived(!!prompt);
-	let view = $derived.by(() => {
-		if (app.status === 'idle') {
-			return hasPrompt ? 'prompt-results' : 'history';
-		} else {
-			return app.status;
+	const sanitizedPrompt = $derived(prompt ? sanitizePromptInput(prompt) : null);
+
+	// =============================================================================
+	// Dexie-First: Check for existing request before making API call
+	// =============================================================================
+
+	/**
+	 * Check Dexie for existing prompt request when prompt changes.
+	 * This runs once per prompt change and determines if we need to call the API.
+	 */
+	$effect(() => {
+		if (!sanitizedPrompt) {
+			existingRequestState = { checked: true, hasExisting: false, requestId: null };
+			return;
 		}
+
+		// If we have a request_id in the URL, we already have this data
+		if (requestIdFromUrl) {
+			existingRequestState = {
+				checked: true,
+				hasExisting: true,
+				requestId: Number(requestIdFromUrl)
+			};
+			return;
+		}
+
+		// Check Dexie for existing request (with 5-second throttle)
+		existingRequestState = { checked: false, hasExisting: false, requestId: null };
+		
+		getPromptRequestWithThrottle(sanitizedPrompt, 5000).then((existingRequest) => {
+			if (existingRequest) {
+				existingRequestState = {
+					checked: true,
+					hasExisting: true,
+					requestId: existingRequest.request_id
+				};
+				// Update URL with the existing request_id
+				const url = new URL(page.url);
+				url.searchParams.set('request_id', existingRequest.request_id.toString());
+				goto(url.toString(), { replaceState: true, noScroll: true });
+			} else {
+				existingRequestState = { checked: true, hasExisting: false, requestId: null };
+			}
+		});
 	});
 
-	/** Create the suggestions query store */
+	// =============================================================================
+	// Conditional API Query
+	// Only create the query if no existing request found
+	// =============================================================================
+	
+	/** Determine if we should make an API request */
+	let shouldRequestFromApi = $derived(
+		hasPrompt &&
+		sanitizedPrompt &&
+		canRequestSuggestions &&
+		existingRequestState.checked &&
+		!existingRequestState.hasExisting
+	);
+
+	/** Create TanStack query only when needed */
 	let suggestionsQueryStore = $derived.by(() => {
-		const currentPrompt = prompt ? sanitizePromptInput(encodeURIComponent(prompt)) : null;
-		if (!currentPrompt) return null;
+		if (!shouldRequestFromApi || !sanitizedPrompt) return null;
+		
 		try {
-			return createSuggestionsQuery({ prompt: currentPrompt });
+			return createSuggestionsQuery({ prompt: encodeURIComponent(sanitizedPrompt) });
 		} catch (error) {
 			console.error('Failed to create suggestions query:', error);
 			return null;
 		}
 	});
 
-	/** Subscribe to the suggestions query store */
+	/** Subscribe to query results */
 	let suggestionsResult = $derived($suggestionsQueryStore);
+
+	// =============================================================================
+	// LiveQuery Store for Suggestions from Dexie
+	// Always display from Dexie, not directly from API response
+	// =============================================================================
 	
-	/** Get the AI response and compute deterministic IDs */
-	let aiSuggestions = $derived.by<RecipeSummary[] | null>(() => {
-		const aiSummaries = (suggestionsResult?.data as unknown as RecipeSuggestionsResponse)?.suggestions;
-		if (!aiSummaries || !prompt) return null;
-		
-		// Generate deterministic IDs based on prompt + title
-		return aiSummaries.map((summary) => ({
-			sid: generateSuggestionId(prompt, summary.title),
+	/** Create LiveQuery store for suggestions by prompt */
+	let promptSuggestionsStore = $derived.by(() => {
+		if (!sanitizedPrompt) return null;
+		return suggestionsByPromptStore(sanitizedPrompt);
+	});
+
+	/** Subscribe to suggestions from Dexie */
+	let promptSuggestionsResult = $derived($promptSuggestionsStore);
+	let suggestionsFromDexie = $derived(promptSuggestionsResult?.data ?? []);
+
+	// =============================================================================
+	// Save API Response to Dexie
+	// =============================================================================
+	
+	/**
+	 * When API returns results, save to Dexie and update URL.
+	 * This effect handles the write-through to IndexedDB.
+	 */
+	$effect(() => {
+		if (!suggestionsResult?.isSuccess || !suggestionsResult.data || !sanitizedPrompt || !prompt) {
+			return;
+		}
+
+		const raw = suggestionsResult.data as unknown;
+		let requestId = Date.now();
+		let suggestionsPayload: { title: string; short_description: string }[] | null = null;
+
+		if (raw && typeof raw === 'object' && 'suggestions' in (raw as Record<string, unknown>)) {
+			const response = raw as RecipeSuggestionsResponse;
+			requestId = response.request_id ?? requestId;
+			suggestionsPayload = response.suggestions;
+		} else if (Array.isArray(raw)) {
+			// Backward compatibility if API returned an array directly
+			suggestionsPayload = raw as { title: string; short_description: string }[];
+		}
+
+		if (!suggestionsPayload || suggestionsPayload.length === 0) {
+			return;
+		}
+
+		// Prevent duplicate saves
+		if (savedRequestId === requestId) return;
+		savedRequestId = requestId;
+
+		// Transform AI response to RecipeSummary with deterministic IDs
+		const suggestions: RecipeSummary[] = suggestionsPayload.map((summary) => ({
+			id: crypto.randomUUID(),
 			created_at: new Date().toISOString(),
 			title: summary.title,
 			short_description: summary.short_description,
 			last_opened: undefined
 		}));
+
+		// Save to Dexie: both suggestions and prompt request
+		Promise.all([
+			saveSuggestions(suggestions),
+			savePromptRequest(requestId, sanitizedPrompt, suggestions)
+		]).then(() => {
+			// Update URL with request_id for future reference
+			const url = new URL(page.url);
+			url.searchParams.set('request_id', requestId.toString());
+			goto(url.toString(), { replaceState: true, noScroll: true });
+		});
 	});
 
-	/** IDs of the current prompt's suggestions */
-	let currentSuggestionIds = $derived(aiSuggestions?.map(s => s.sid) ?? []);
-
-	/** Live query for suggestions from Dexie based on current IDs */
-	let suggestionsFromDb = $state<Suggestion[]>([]);
+	// =============================================================================
+	// View State Management
+	// =============================================================================
 	
-	/** Render these suggestions - from DB for prompt results */
-	// let suggestions = $derived(hasPrompt && currentSuggestionIds.length > 0 ? suggestionsFromDb : null);
-	let suggestions = $derived(hasPrompt ? aiSuggestions : null);
+	/** Computed view state based on all conditions */
+	let viewState = $derived.by<'loading' | 'error' | 'idle-prompt' | 'idle-history'>(() => {
+		// No prompt = show history
+		if (!hasPrompt) return 'idle-history';
+		
+		// API error
+		if (suggestionsResult?.isError) return 'error';
+		
+		// Still checking Dexie for existing request
+		if (!existingRequestState.checked) return 'loading';
+		
+		// API request in progress
+		if (shouldRequestFromApi && suggestionsResult?.isPending) return 'loading';
+		
+		// Have suggestions to display (from Dexie or just saved)
+		if (suggestionsFromDexie.length > 0) return 'idle-prompt';
+		
+		// Waiting for LiveQuery to populate after save
+		if (suggestionsResult?.isSuccess) return 'loading';
+		
+		// Still waiting for API or Dexie
+		return 'loading';
+	});
 
-	/** Save suggestions to Dexie when AI returns results (once per prompt) */
+	/** Update app.status for template compatibility */
 	$effect(() => {
-		if (aiSuggestions && prompt) {
-			const promptKey = `${prompt}:${aiSuggestions.map(s => s.title).sort().join(',')}`;
-			if (promptKey !== savedPromptKey) {
-				savedPromptKey = promptKey;
-				saveSuggestions(aiSuggestions);
-			}
+		if (viewState === 'error') {
+			app.status = 'error';
+			app.error = (suggestionsResult?.error as unknown as { body: { message: string } })?.body?.message ?? 'Unknown error';
+		} else if (viewState === 'loading') {
+			app.status = 'loading';
+		} else {
+			app.status = 'idle';
 		}
 	});
 
-	/** Subscribe to Dexie for the current prompt's suggestions */
-	// $effect(() => {
-	// 	if (currentSuggestionIds.length === 0) {
-	// 		suggestionsFromDb = [];
-	// 		return;
-	// 	}
-
-	// 	const subscription = liveQuery(() => 
-	// 		db.suggestions.bulkGet(currentSuggestionIds)
-	// 	).subscribe((results) => {
-	// 		suggestionsFromDb = results.filter((s): s is RecipeSummary => s !== undefined);
-	// 	});
-
-	// 	return () => subscription.unsubscribe();
-	// });
-
+	// =============================================================================
+	// Suggestion History (for no-prompt view)
+	// =============================================================================
+	
 	let search = $state<string>();
 
 	// Suggestions filtered by search
@@ -165,19 +302,9 @@
 			.map(([date, suggestions]) => ({ date, suggestions }));
 	});
 
-	/** Manage the UI state based on the query store status */
-	$effect(() => {
-		if (suggestionsResult) {
-			if (suggestionsResult.isSuccess && suggestions) {
-				app.status = 'idle';
-			} else if (suggestionsResult.isError) {
-				app.status = 'error';
-				app.error = (suggestionsResult.error as unknown as { body: { message: string } })?.body?.message ?? 'Unknown error';
-			}
-		// } else {
-		// 	app.status = 'idle';
-		}
-	});
+	// =============================================================================
+	// Actions
+	// =============================================================================
 
 	// Filter suggestions
 	function filterSuggestions(value: string) {
@@ -188,19 +315,19 @@
 		);
 	}
 
-	/** Request the full recipe from the API */
-	function getFullRecipe(recipe: RecipeSummary) {
+	/** Navigate to full recipe page */
+	function getFullRecipe(recipe: RecipeSummary | Suggestion) {
 		if (!canRequestSuggestions) {
 			return;
 		}
-		const sid = encodeURIComponent(recipe.sid);
+		const id = encodeURIComponent(recipe.id);
 		const title = encodeURIComponent(recipe.title);
 		// include the `short_description` otherwise AI will write a new one and the generated
 		// recipe may vary from the description
 		const desc = encodeURIComponent(recipe.short_description);
-		if (sid) {
+		if (id) {
 			// Recipe should already exist in Suggestions DB
-			goto(`/suggestions/recipe?sid=${sid}&title=${title}&description=${desc}`);
+			goto(`/suggestions/recipe?id=${id}&title=${title}&description=${desc}`);
 		} else {
 			goto(`/suggestions/recipe?title=${title}&description=${desc}`);
 		}
@@ -214,9 +341,9 @@
 
 <div
 	class="grid h-screen"
-	style:place-content={app.status === 'idle' ? 'start stretch' : 'center'}
+	style:place-content={viewState === 'idle-prompt' || viewState === 'idle-history' ? 'start stretch' : 'center'}
 >
-	{#if aiRestrictionMessage}
+	{#if aiRestrictionMessage && hasPrompt}
 		<div
 			class="mb-6 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-500 dark:bg-amber-950 dark:text-amber-100"
 		>
@@ -224,45 +351,8 @@
 		</div>
 	{/if}
 
-	{#if hasPrompt}
-		{#if !canRequestSuggestions}
-			<div>
-				<h1 class="display-medium">AI suggestions are unavailable.</h1>
-				<p>{aiRestrictionMessage}</p>
-			</div>
-		{:else if suggestionsResult?.isError}
-			<div class="flex flex-col gap-6">
-				<h1 class="display-medium">Ah donkey-spittle! There was a problem.</h1>
-				<p class="flex items-center gap-3 text-dark">
-					<span class="fluid-heading-03">{(suggestionsResult.error as unknown as { status: number })?.status}</span><span>|</span><span
-						>{(suggestionsResult.error as unknown as { body: { message: string } })?.body?.message}</span
-					>
-				</p>
-			</div>
-		{:else if suggestionsResult?.isSuccess && suggestions}
-			<div class="mx-auto max-w-5xl w-full px-4 py-18 lg:px-8">
-				<h1 class="headline-medium mb-8">
-					Here are some ideas for, <span class="italic">"{prompt}"</span>
-				</h1>
-				<div class="list">
-					{#each suggestions as summary (summary.title)}
-						<hr />
-						<Button.Root onclick={() => getFullRecipe(summary)} disabled={app.status === 'loading' || !canRequestSuggestions} class="listitem button text narrow">
-							<span class="listitem__content">
-								<span class="title-medium">{summary.title}</span>
-								<span class="body-medium text-foreground-alt dark:text-foreground-alt">{summary.short_description}</span>
-							</span>
-							<span class="listitem__end">
-								<ViewedBadge viewed={getViewedStatus(summary, summary.title).isViewed} />
-							</span>
-						</Button.Root>
-					{/each}
-				</div>
-			</div>
-		{:else}
-			<ProgressSpinner size="lg" />
-		{/if}
-	{:else}
+	{#if viewState === 'idle-history'}
+		<!-- Suggestion History View -->
 		<div>
 			<PageHeader>
 				<AppBar.Root>
@@ -313,7 +403,7 @@
 											onclick={
 												(event: MouseEvent) => {
 													event.stopPropagation();
-													deleteSuggestion(summary.sid)
+													deleteSuggestion(summary.id)
 												}
 											}
 											class="button icon text"
@@ -327,10 +417,55 @@
 					</div>
 				{:else}
 					<p class="body-medium">
-						Your suggestion history will appear year after you start requesting recipe suggestions.
+						Your suggestion history will appear here after you start requesting recipe suggestions.
 					</p>
 				{/if}
 			</div>
 		</div>
+	{:else if viewState === 'error'}
+		<!-- Error View -->
+		<div class="flex flex-col gap-6">
+			<h1 class="display-medium">Ah donkey-spittle! There was a problem.</h1>
+			<p class="flex items-center gap-3 text-dark">
+				<span class="fluid-heading-03">{(suggestionsResult?.error as unknown as { status: number })?.status}</span>
+				<span>|</span>
+				<span>{(suggestionsResult?.error as unknown as { body: { message: string } })?.body?.message}</span>
+			</p>
+		</div>
+	{:else if viewState === 'idle-prompt'}
+		<!-- Prompt Results View (from Dexie) -->
+		<div class="mx-auto max-w-5xl w-full px-4 py-18 lg:px-8">
+			<h1 class="headline-medium mb-8">
+				Here are some ideas for, <span class="italic">"{prompt}"</span>
+			</h1>
+			<div class="list">
+				{#each suggestionsFromDexie as summary (summary.id)}
+					<hr />
+					<Button.Root 
+						onclick={() => getFullRecipe(summary)} 
+						disabled={app.status === 'loading' || !canRequestSuggestions} 
+						class="listitem button text narrow"
+					>
+						<span class="listitem__content">
+							<span class="title-medium">{summary.title}</span>
+							<span class="body-medium text-foreground-alt dark:text-foreground-alt">{summary.short_description}</span>
+						</span>
+						<span class="listitem__end">
+							<ViewedBadge viewed={getViewedStatus(summary, summary.title).isViewed} />
+						</span>
+					</Button.Root>
+				{/each}
+			</div>
+		</div>
+	{:else if viewState === 'loading'}
+		<!-- Loading View -->
+		{#if !canRequestSuggestions && hasPrompt}
+			<div>
+				<h1 class="display-medium">AI suggestions are unavailable.</h1>
+				<p>{aiRestrictionMessage}</p>
+			</div>
+		{:else}
+			<ProgressSpinner size="lg" />
+		{/if}
 	{/if}
 </div>

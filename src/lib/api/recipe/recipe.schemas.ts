@@ -26,7 +26,7 @@ const CATEGORY_TAGS = {
 		'japanese',
 		'thai',
 		'greek',
-		'middle eastern',
+		'middle-eastern',
 		'mediterranean',
 		'korean',
 		'spanish',
@@ -48,10 +48,10 @@ const CATEGORY_TAGS = {
 		'moroccan',
 		'scandanavian',
 		'african',
-		'south american',
-		'north american',
-		'eastern european',
-		'south asian'
+		'south-american',
+		'north-american',
+		'eastern-european',
+		'south-asian'
 	],
 	diet: [
 		'vegan',
@@ -73,10 +73,10 @@ const CATEGORY_TAGS = {
 		'broiling',
 		'steaming',
 		'frying',
-		'slow cooker',
-		'pressure cooker',
-		'sous vide',
-		'air fryer'
+		'slow-cooker',
+		'pressure-cooker',
+		'sous-vide',
+		'air-fryer'
 	],
 	occasion: ['holiday', 'birthday', 'party', 'picnic', 'weeknight', 'romantic']
 };
@@ -149,7 +149,7 @@ export const SavedRecipeSchema = RecipeSchema.extend({
 	archived: z.iso.datetime().nullable(),
 	/** Optional deletion timestamp. */
 	deleted_at: z.iso.datetime().nullable(),
-	/** Timestamp indicating when the recipe was last opened. */
+	/** Timestamp indicating when the recipe was last opened. @deprecated Use `checkout_history` instead. */
 	last_opened: z.iso.datetime(),
 	/** Monotonically increasing version number used for edits.
 	 * @todo Requires repo of recipe versions -- supabase users only
@@ -170,7 +170,9 @@ export const SavedRecipeSchema = RecipeSchema.extend({
 	/** Last sync timestamp. Automatically set by supabase trigger functions. */
 	last_synced_at: z.iso.datetime().nullable(),
 	/** Error message from last sync attempt, if any. */
-	sync_error: z.string().nullable()
+	sync_error: z.string().nullable(),
+	/** History of checkout dates. */
+	checkout_history: z.array(z.iso.datetime()).nullable()
 });
 
 export const CloudRecipeSchema = SavedRecipeSchema.extend({

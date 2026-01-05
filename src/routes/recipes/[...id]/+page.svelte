@@ -1,12 +1,9 @@
 <script lang="ts">
-	// import { Tooltip } from "bits-ui";
-	import { getContext, onDestroy } from 'svelte';
-	// import SvelteMarkdown from '@humanspeak/svelte-markdown';
+	import { getLocalTimeZone, parseDate, today } from '@internationalized/date';
+	// import { DatePicker } from 'bits-ui';
+	import { getContext, onDestroy, untrack } from 'svelte';
 	import { toast } from 'svelte-sonner';
 
-	// import Tooltip from '$lib/ui/Tooltip.svelte';
-
-	// import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 
@@ -15,8 +12,8 @@
 	import { db } from '$lib/db';
 	import { singleRecipeStore } from '$lib/stores/recipes';
 	import type { PromptContext, ViewState } from '$lib/types';
+
 	import { AppBar } from '$lib/ui/AppBar';
-	// import Button from '$lib/ui/Button/Button.svelte';
 	import EditableRecipe from '$lib/ui/EditableRecipe.svelte';
 	// import CloseIcon from '$lib/ui/Icons/CloseIcon.svelte';
 	// import CloudBackupIcon from '$lib/ui/Icons/CloudBackupIcon.svelte';
@@ -32,12 +29,20 @@
 	// import Recipe from '$lib/ui/Recipe.svelte';
 	import { networkStore } from '$lib/stores/network';
 	import { deriveAICapability } from '$lib/utils/capabilities';
+	import CalendarHeatMapIcon from '$lib/ui/Icons/CalendarHeatMapIcon.svelte';
 
 	const vp: any = getContext('viewport');
 
-	const markAsOpenedDelay = 5 * 60 * 1000;
+	/** CONSTANTS */
+	const markAsOpenedDelay = 4 * 60 * 1000;
+	const todaytz = today(getLocalTimeZone());
 
 	let { data, form } = $props();
+	
+	let app = $state({
+		status: 'loading' as ViewState,
+		error: ''
+	});
 
 	let currentUserId = $state<string | undefined>(undefined);
 	let cloudService: CloudService | undefined = $state(undefined);
@@ -76,16 +81,23 @@
 	let isShared = $derived(path.startsWith('shared/'));
 	let id = $derived(isShared ? path.split('/')[1] : path);
 
+	/** ---------------------------------------------------------------------------------------------
+	 * Local state -- Variables are reset when the recipe changes
+	 * -------------------------------------------------------------------------------------------- */
+	// Timer used to update the recipe's last_opened after a short delay
+	let openedTimer: number | null = null;
+	/** Whether the user has indicated they made this recipe today */
+	let iMadeThisToday = $state(false);
+	/** Whether the user has indicated they did not make this recipe today -- disables `openedTimer` */
+	let iDidntMakeThisToday = $state(false);
+
+	let isLocked = $state(true);
+
 	// let promptInput = $state<string>();
 
 	// let promptType = $state<PromptContext>();
 
 	// let conversationMsg = $state<string>();
-
-	let app = $state({
-		view: 'loading' as ViewState,
-		error: ''
-	});
 
 	let recipeStore = $derived.by(() => {
 		if (!id) return undefined;
@@ -100,21 +112,11 @@
 	/** The current recipe from the store */
 	let recipe = $derived<SavedRecipe | undefined>($recipeStore?.data ?? undefined);
 
+	/** The last date the recipe was opened. ISO string format: "2026-01-05T00:00:00+00:00" */
+	let lastCheckoutDateTime = $derived(recipe?.checkout_history?.[recipe?.checkout_history.length - 1] ?? undefined);
+
 	// Responsible for passing the recipe to the FormData
 	// let recipeJson = $derived(recipe ? JSON.stringify(recipe) : '');
-
-	// Timer used to update the recipe's last_opened after a short delay
-	let openedTimer: number | null = null;
-
-	let lastOpened = $state<string | undefined>();
-
-	// Waiting for a response to an OpenAI request
-	let waiting = $state(false);
-
-	// let left = $derived.by(() => {
-	// 	if (vp.device === 'mobile') return '0';
-	// 	return vp.nav === 'expanded' ? 'calc(18rem + 1px)' : 'calc(3.5rem + 1px)';
-	// });
 
 	let promptRef = $state<HTMLElement>();
 
@@ -122,43 +124,72 @@
 
 	let lastFormMessage: string | undefined = undefined;
 
-	let isLocked = $state(true);
+	/**
+	 * Track when the recipe object reference changes (not when properties change).
+	 * Using recipe.id ensures the effect only runs when switching to a different recipe,
+	 * not when the recipe object is mutated.
+	 */
+	let recipeId = $derived(recipe?.id);
+
+	/** Reset local state when the ID changes */
+	$effect(() => {
+		const currentId = id;
+		if (!currentId) return;
+
+		iMadeThisToday = false;
+		iDidntMakeThisToday = false;
+		isLocked = true;
+
+		app.status = 'loading';
+		openedTimer = null;
+	});
 
 	/**
-	 * Update the recipe's last_opened timestamp and save it to the cloud.
-	 * Use caution as updating the recipe's last_opened timestamp will trigger `$effect`
-	 * to run, which will cause a loop.
+	 * Update the recipe's checkout history and save it to the cloud.
+	 * This effect only runs when recipe.id changes (i.e., when switching recipes),
+	 * not when recipe properties are mutated.
 	 */
 	$effect(() => {
-		if (recipe) {
-			app.view = 'idle';
+		const currentRecipeId = recipeId;
+		if (!currentRecipeId || !recipe) return;
 
-			if (recipe.last_opened === lastOpened && openedTimer !== null) return;
+		// Recipe loaded successfully
+		app.status = 'idle';
 
-			if (openedTimer) {
-				clearTimeout(openedTimer);
+		// If the user has indicated they didn't make this today, don't update the checkout history
+		if (iDidntMakeThisToday) return;
+
+		// If the recipe was last opened today, set the iMadeThisToday flag and return
+		// Because CalendarDate is a date-only object, we need to compare the date portion of the ISO string
+		const lastCheckoutDate = lastCheckoutDateTime?.split('T')[0] ?? undefined;
+		if (lastCheckoutDate && parseDate(lastCheckoutDate).toString() === todaytz.toString()) {
+			iMadeThisToday = true;
+			return;
+		}
+		
+		if (openedTimer) {
+			clearTimeout(openedTimer);
+			openedTimer = null;
+		}
+		openedTimer = window.setTimeout(async () => {
+			try {
+				// Use untrack to read recipe properties without tracking them
+				const currentRecipe = untrack(() => recipe);
+				const checkoutHistory = [...(currentRecipe?.checkout_history ?? []), todaytz.toString()];
+
+				if (hasCloudStorageAccess && syncService) {
+					const openedRecipe = { ...currentRecipe, checkout_history: checkoutHistory } as SavedRecipe;
+					await syncService.uploadRecipeAndSyncLocal(openedRecipe);
+				} else {
+					await db.recipes.update(id, { checkout_history: checkoutHistory });
+				}
+				iMadeThisToday = true;
+			} catch (err) {
+				console.error('Error updating last_opened:', err);
+			} finally {
 				openedTimer = null;
 			}
-			openedTimer = window.setTimeout(async () => {
-				try {
-					const ts = new Date().toISOString();
-
-					// Update the tracked value before making changes
-					lastOpened = ts;
-
-					if (hasCloudStorageAccess && syncService) {
-						const openedRecipe = { ...recipe, last_opened: ts } as SavedRecipe;
-						await syncService.uploadRecipeAndSyncLocal(openedRecipe);
-					} else {
-						await db.recipes.update(id, { last_opened: ts });
-					}
-				} catch (err) {
-					console.error('Error updating last_opened:', err);
-				} finally {
-					openedTimer = null;
-				}
-			}, markAsOpenedDelay);
-		}
+		}, markAsOpenedDelay);
 	});
 
 	/**
@@ -238,6 +269,29 @@
 		saveChanges(true);
 	}
 
+	/** Revert the user's indication of whether they made this today */
+	function toggleLastPreparedDate() {
+		if (!recipe) return;
+		
+		let checkoutHistory: string[] | null = null;
+		if (iMadeThisToday) {
+			// User reverts their indication of making this today
+			iMadeThisToday = false;
+			iDidntMakeThisToday = true;
+			checkoutHistory = recipe.checkout_history?.slice(0, -1) ?? null;
+		} else {
+			// User indicates they made this today
+			checkoutHistory = [...(recipe.checkout_history ?? []), todaytz.toString()];
+			iMadeThisToday = true;
+			iDidntMakeThisToday = false;
+			// Override the timer if currently running
+			if (openedTimer) clearTimeout(openedTimer);
+			openedTimer = null;
+		}
+		recipe.checkout_history = checkoutHistory;
+		saveChanges(true);
+	}
+
 	/**
 	 * Save recipe changes
 	 *
@@ -248,7 +302,7 @@
 	 */
 	async function saveChanges(disableToast: boolean = false) {
 		if (!recipe) return;
-		app.view = 'loading';
+		app.status = 'loading';
 
 		let candidate: SavedRecipe | undefined = undefined;
 		let syncError = false;
@@ -278,7 +332,7 @@
 			console.error('Local save failed', err);
 			toast.error('There was a problem saving the recipe');
 		} finally {
-			app.view = 'idle';
+			app.status = 'idle';
 		}
 	}
 
@@ -295,7 +349,7 @@
 		const now = new Date().toISOString();
 
 		if (hasCloudStorageAccess && cloudService) {
-			app.view = 'loading';
+			app.status = 'loading';
 			try {
 				candidate = await cloudService.uploadLocalRecipe({ ...recipe, deleted_at: now });
 			} catch (err) {
@@ -303,7 +357,7 @@
 				syncError = true;
 				candidate = { ...recipe, deleted_at: now, updated_at: now, synced: false, sync_error: err instanceof Error ? err.message : 'Unknown error' };
 			} finally {
-				app.view = 'idle';
+				app.status = 'idle';
 			}
 		} else {
 			candidate = { ...recipe, deleted_at: now, updated_at: now };
@@ -319,6 +373,9 @@
 			toast.error('There was a problem moving the recipe to the trash');
 		}
 	}
+
+	/** Open a date picker to update the last prepared date */
+	function updateLastPreparedDate() {}
 
 	/**
 	 * Convert a AI generated time string to minutes
@@ -390,7 +447,7 @@
 		<AppBar.Text primary={recipe?.title || ''} />
 		<AppBar.End>
 			{#if recipe}
-				{#if app.view === 'loading'}
+				{#if app.status === 'loading'}
 					<div class="grid h-10 w-10 place-content-center">
 						<ProgressSpinner size="xs" />
 					</div>
@@ -400,6 +457,15 @@
 						<CloudBackupIcon size="xs" />
 					</PxlIconButton>
 				{/if} -->
+				<PxlIconButton
+					aria-label="Update last prepared date"
+					tooltip="I made this today"
+					onclick={() => {
+						toggleLastPreparedDate();
+					}}
+				>
+					<CalendarHeatMapIcon size="xs" class={iMadeThisToday ? 'currentColor' : 'text-dark-40'} />
+				</PxlIconButton>
 				<PxlIconButton
 					aria-label={recipe?.is_favorite ? 'Remove from favorites' : 'Add to favorites'}
 					tooltip={recipe?.is_favorite ? 'Remove from favorites' : 'Add to favorites'}

@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { UserPreferences, UserProfile } from './account.types';
+import type { UserPreferences, UserPreferencesResponse, UserProfile } from './account.types';
 
 /**
  * Account Service
@@ -79,28 +79,28 @@ export class AccountService {
    * 
    * @returns The user's preferences.
    */
-  async getUserPreferences(): Promise<UserPreferences | null> {
-    const { data, error }: { data: UserProfile | null; error: Error | null } = await this.supabase
-      .from('user_profiles')
+  async getUserPreferences(): Promise<UserPreferencesResponse | null> {
+    const { data, error }: { data: UserPreferencesResponse | null; error: Error | null } = await this.supabase
+      .from('user_preferences')
       .select('*')
       .eq('user_id', this.userId)
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
-
-    return data?.preferences ?? null;
+    return data ?? null;
   }
 
   /**
    * Update the user's preferences.
    * 
-   * @param updates - The updates to apply to the user's preferences.
+   * @note The `onConflict` parameter is used to prevent duplicate entries for the same user.
+   * @param preferences - The updates to apply to the user's preferences.
    * @returns The updated user preferences.
    */
-  async updateUserPreferences(updates: Partial<UserPreferences>) {
+  async updateUserPreferences(preferences: Partial<UserPreferences>) {
     const { data, error } = await this.supabase
-      .from('user_profiles')
-      .update({ preferences: updates })
+      .from('user_preferences')
+      .upsert(preferences, { onConflict: 'user_id' })
       .eq('user_id', this.userId)
       .select();
 

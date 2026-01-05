@@ -27,7 +27,7 @@
 		...restProps
 	}: Props = $props();
 
-	const selectedLabel = $derived(value?.toString().split(',').join(', '));
+	const selectedLabel = $derived(value?.toString().trim().split(',').join(', ') ?? '');
 
 	let containerRef = $state<HTMLElement>();
 </script>

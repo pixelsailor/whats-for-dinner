@@ -1,11 +1,71 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
 	import type { SubmitFunction } from '@sveltejs/kit';
+	import { Button } from 'bits-ui';
+	import { toast } from 'svelte-sonner';
+	import { enhance } from '$app/forms';
+	
+	import type { ViewState } from '$lib/types';
 	import { AppBar } from '$lib/ui/AppBar';
 	import PageHeader from '$lib/ui/PageHeader.svelte';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
 	import PxlSelect from '$lib/ui/PxlSelect.svelte';
-	import { toast } from 'svelte-sonner';
+	import type { UserPreferences, UserPreferencesResponse } from '$lib/api/account';
+
+	// DON'T DELETE THIS
+	// const options: Record<string, { value: string; label: string; disabled?: boolean }[]> = {
+	// 	diet: [
+	// 		{ value: 'dairy-free', label: 'Dairy-free' },
+	// 		{ value: 'diabetic-friendly', label: 'Diabetic-friendly' },
+	// 		{ value: 'gluten-free', label: 'Gluten-free' },
+	// 		{ value: 'keto', label: 'Keto' },
+	// 		{ value: 'low-carb', label: 'Low-carb' },
+	// 		{ value: 'low-fat', label: 'Low-fat' },
+	// 		{ value: 'mediterranean', label: 'Mediterranean' },
+	// 		{ value: 'paleo', label: 'Paleo' },
+	// 		{ value: 'pescatarian', label: 'Pescatarian' },
+	// 		{ value: 'vegan', label: 'Vegan' },
+	// 		{ value: 'vegetarian', label: 'Vegetarian' }
+	// 	],
+	// 	allergies: [
+	// 		{ value: 'dairy', label: 'Dairy' },
+	// 		{ value: 'eggs', label: 'Eggs' },
+	// 		{ value: 'fish', label: 'Fish' },
+	// 		{ value: 'gluten', label: 'Gluten' },
+	// 		{ value: 'mustard', label: 'Mustard' },
+	// 		{ value: 'peanuts', label: 'Peanuts' },
+	// 		{ value: 'sesame', label: 'Sesame' },
+	// 		{ value: 'shellfish', label: 'Shellfish' },
+	// 		{ value: 'soy', label: 'Soy' },
+	// 		{ value: 'sulfites', label: 'Sulfites' },
+	// 		{ value: 'tree-nuts', label: 'Tree nuts' }
+	// 	],
+	// 	equipment: [
+	// 		{ value: 'air-fryer', label: 'Air fryer' },
+	// 		{ value: 'blender', label: 'Blender' },
+	// 		{ value: 'cast-iron-skillet', label: 'Cast iron skillet' },
+	// 		{ value: 'food-processor', label: 'Food processor' },
+	// 		{ value: 'grill', label: 'Grill' },
+	// 		{ value: 'instant-pot-pressure-cooker', label: 'Instant Pot / Pressure cooker' },
+	// 		{ value: 'microwave', label: 'Microwave' },
+	// 		{ value: 'oven', label: 'Oven' },
+	// 		{ value: 'slow-cooker', label: 'Slow cooker' },
+	// 		{ value: 'sous-vide', label: 'Sous vide' },
+	// 		{ value: 'stand-mixer', label: 'Stand mixer' },
+	// 		{ value: 'stovetop', label: 'Stovetop' },
+	// 		{ value: 'toaster-oven', label: 'Toaster oven' },
+	// 		{ value: 'waffle-maker', label: 'Waffle maker' }
+	// 	],
+	// 	prepTime: [
+	// 		{ value: 'under-30-minutes', label: 'Under 30 minutes' },
+	// 		{ value: '30-60-minutes', label: '30-60 minutes' },
+	// 		{ value: 'no-time-limit', label: 'No time limit' }
+	// 	],
+	// 	skillLevel: [
+	// 		{ value: 'beginner', label: 'Beginner' },
+	// 		{ value: 'intermediate', label: 'Intermediate' },
+	// 		{ value: 'advanced', label: 'Advanced' }
+	// 	]
+	// };
 
 	const options = {
 		diet: [
@@ -54,181 +114,171 @@
 		skillLevel: ['beginner', 'intermediate', 'advanced']
 	};
 
-	let { data } = $props();
-
-	type PreferenceState = {
-		diet: string[];
-		allergies: string[];
-		equipment: string[];
-		cuisinePreferences: string[];
-		dislikesText: string;
-		preferredPrepTime: string;
-		skillLevel: string;
-	};
-
-	const toDislikesText = (items: string[] | undefined) => (items ?? []).join(', ');
+	const toTextFromArray = (items: string[]) => items.join(', ');
 	const toArrayFromText = (text: string) =>
 		text
 			.split(',')
 			.map((item) => item.trim())
 			.filter(Boolean);
 
-	const initial = data.preferences ?? {
-		diet: [],
-		allergies: [],
-		equipment: [],
-		dislikes: [],
-		preferredPrepTime: '',
-		skillLevel: '',
-		cuisinePreferences: []
-	};
+	let { data } = $props();
 
-	let form = $state<PreferenceState>({
-		diet: initial.diet ?? [],
-		allergies: initial.allergies ?? [],
-		equipment: initial.equipment ?? [],
-		cuisinePreferences: initial.cuisinePreferences ?? [],
-		dislikesText: toDislikesText(initial.dislikes),
-		preferredPrepTime: initial.preferredPrepTime ?? '',
-		skillLevel: initial.skillLevel ?? ''
+	let app = $state({
+		status: 'idle' as ViewState,
+		error: ''
 	});
 
-	let saving = $state(false);
-	let saveError = $state('');
+	let preferences = $derived<UserPreferencesResponse | null>(data.preferences ?? null);
+	let dislikes = $derived(toTextFromArray(preferences?.dislikes ?? []));
+
+	$inspect('preferences', preferences);
+
+	let diet = $derived(preferences?.diet ?? []);
+	let allergies = $derived(preferences?.allergies ?? []);
+	let equipment = $derived(preferences?.equipment ?? []);
+	let cuisinePreferences = $derived(preferences?.cuisine_preferences ?? []);
+	let preferredPrepTime = $derived(preferences?.preferred_prep_time ?? '');
+	let skillLevel = $derived(preferences?.skill_level ?? '');
 
 	const submitPreferences: SubmitFunction = (input) => {
-		const { formData } = input;
-		saving = true;
-		saveError = '';
-
-		formData.set('diet', JSON.stringify(form.diet ?? []));
-		formData.set('allergies', JSON.stringify(form.allergies ?? []));
-		formData.set('equipment', JSON.stringify(form.equipment ?? []));
-		formData.set('cuisinePreferences', JSON.stringify(form.cuisinePreferences ?? []));
-		formData.set('dislikes', JSON.stringify(toArrayFromText(form.dislikesText)));
-		formData.set('preferredPrepTime', form.preferredPrepTime);
-		formData.set('skillLevel', form.skillLevel);
+		app.status = 'loading';
 
 		return async (response) => {
 			const { result } = response;
-			saving = false;
+			app.status = 'idle';
 			if (result.type === 'success') {
 				toast.success('Preferences saved');
 			} else if (result.type === 'failure') {
-				saveError = (result.data as { error?: string })?.error ?? 'Failed to save preferences';
-				toast.error(saveError);
+				app.error = (result.data as { error?: string })?.error ?? 'Failed to save preferences';
+				toast.error(app.error);
 			}
 		};
 	};
 
-	const clearPreferenceField = (e: Event, prop: keyof PreferenceState) => {
+	const clearPreferenceField = (e: Event, prop: keyof UserPreferences) => {
 		e.preventDefault();
 		e.stopImmediatePropagation();
-		if (prop === 'dislikesText') {
-			form.dislikesText = '';
-			return;
-		}
-		if (prop === 'preferredPrepTime' || prop === 'skillLevel') {
-			form[prop] = '';
-		} else {
-			form[prop] = [];
+		// Since there are other fields in the preferences object, we need to make sure we don't clear them.
+		if (prop as keyof UserPreferences) {
+			if (prop === 'dislikes' || prop === 'preferred_prep_time' || prop === 'skill_level') {
+				dislikes = '';
+				return;
+			} else if (preferences) {
+				preferences[prop] = [];
+				return;
+			}
 		}
 	};
+
+	function _camelCase(str: string) {
+		return str.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+	}
 </script>
 
 <PageHeader>
 	<AppBar.Root />
 </PageHeader>
 
-<div class="mx-auto max-w-5xl px-4 lg:px-8">
-	<form method="POST" use:enhance={submitPreferences} class="py-24">
+<div class="mx-auto max-w-5xl px-4 py-8 lg:px-8">
+	<form method="POST" use:enhance={submitPreferences}>
 		<h1 class="display-small mb-4">Preferences</h1>
-		<p class="my-4">
+		<p class="body-medium my-4">
 			Set your recipe preferences here. These choices will affect every suggested recipe. If you
 			want to modify recipes only occasionally, rather than setting a preference, just be specific
 			when asking for ideas. You can modify recipes however you like when asking.
 		</p>
 
 		<div class="mb-3 min-h-24">
-			<p class="label mb-1">Dietary considerations</p>
+			<p class="label-large mb-1">Dietary considerations</p>
 			<PxlSelect
 				type="multiple"
 				sItems={options.diet}
-				bind:value={form.diet}
+				name="diet"
+				bind:value={diet}
 				onReset={(e) => clearPreferenceField(e, 'diet')}
 			/>
 		</div>
 
 		<div class="mb-3 min-h-24">
-			<p class="label mb-1">Allergies</p>
+			<p class="label-large mb-1">Allergies</p>
 			<PxlSelect
 				type="multiple"
 				sItems={options.allergies}
-				bind:value={form.allergies}
+				name="allergies"
+				bind:value={allergies}
 				onReset={(e) => clearPreferenceField(e, 'allergies')}
 			/>
 		</div>
 
 		<div class="mb-3 min-h-24">
-			<p class="label mb-1">Kitchen equipment to avoid</p>
+			<p class="label-large mb-1">Kitchen equipment to avoid</p>
 			<PxlSelect
 				type="multiple"
 				sItems={options.equipment}
-				bind:value={form.equipment}
+				name="equipment"
+				bind:value={equipment}
 				onReset={(e) => clearPreferenceField(e, 'equipment')}
 			/>
-			<p class="helper-text opacity-70">
+			<p class="helper-text text-foreground-alt">
 				If you don't have something, include it here. The AI will make an attempt to avoid recipes
 				that use these items.
 			</p>
 		</div>
 
 		<div class="mb-3 min-h-24">
-			<p class="label mb-1">Ingredients to avoid</p>
+			<p class="label-large mb-1">Ingredients to avoid</p>
 			<input
 				type="text"
-				class="label my-1 flex h-12 w-full flex-row flex-nowrap items-stretch rounded-sm border border-gray-200 px-3 dark:border-gray-700 dark:bg-gray-900 hover:dark:bg-gray-800"
-				bind:value={form.dislikesText}
+				name="dislikes"
+				class="label-large my-1 flex h-12 w-full flex-row flex-nowrap items-stretch rounded-sm border border-gray-200 px-3 dark:border-gray-700 dark:bg-gray-900 hover:dark:bg-gray-800"
+				bind:value={dislikes}
 				placeholder="e.g. olives, capers"
 			/>
-			<p class="helper-text opacity-70">List anything you don't like that you want excluded.</p>
+			<p class="helper-text text-foreground-alt">List anything you don't like that you want excluded.</p>
 		</div>
 
-		<div class="mb-3 min-h-24">
-			<p class="label mb-1">Preferred prep time</p>
-			<PxlSelect
-				type="single"
-				sItems={options.prepTime}
-				bind:value={form.preferredPrepTime}
-				onReset={(e) => clearPreferenceField(e, 'preferredPrepTime')}
-			/>
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-8 my-3">
+			<div>
+				<p class="label-large mb-1">Preferred prep time</p>
+				<PxlSelect
+					type="single"
+					name="preferred_prep_time"
+					sItems={options.prepTime}
+					bind:value={preferredPrepTime}
+					onReset={(e) => clearPreferenceField(e, 'preferred_prep_time')}
+				/>
+			</div>
+	
+			<div>
+				<p class="label-large mb-1">Skill level</p>
+				<PxlSelect
+					type="single"
+					name="skill_level"
+					sItems={options.skillLevel}
+					bind:value={skillLevel}
+					onReset={(e) => clearPreferenceField(e, 'skill_level')}
+				/>
+			</div>
 		</div>
 
-		<div class="mb-3 min-h-24">
-			<p class="label mb-1">Skill level</p>
-			<PxlSelect
-				type="single"
-				sItems={options.skillLevel}
-				bind:value={form.skillLevel}
-				onReset={(e) => clearPreferenceField(e, 'skillLevel')}
-			/>
-		</div>
 
-		{#if saveError}
-			<p class="text-sm text-red-600 dark:text-red-400">{saveError}</p>
+		{#if app.error}
+			<p class="text-sm text-red-600 dark:text-red-400">{app.error}</p>
 		{/if}
 
-		<button
+		<hr class="my-6" />
+
+		<Button.Root
 			type="submit"
-			class="btn btn-primary inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-60"
-			disabled={saving}
+			class="button primary"
+			disabled={app.status === 'loading'}
 		>
-			{#if saving}
+			{#if app.status === 'loading'}
 				<ProgressSpinner size="sm" />
 				Saving…
 			{:else}
 				Save preferences
 			{/if}
-		</button>
+		</Button.Root>
 	</form>
 </div>

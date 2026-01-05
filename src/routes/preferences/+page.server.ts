@@ -1,30 +1,7 @@
 import { AccountService } from '$lib/api/account/account.service';
-import type { UserPreferences } from '$lib/api/account/account.types';
+import type { UserPreferencesResponse } from '$lib/api/account/account.types';
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-
-const toCamelPreferences = (prefs: UserPreferences | null) => {
-	const preferences = prefs ?? {};
-	return {
-		diet: preferences.diet ?? [],
-		allergies: preferences.allergies ?? [],
-		dislikes: preferences.dislikes ?? [],
-		equipment: preferences.equipment ?? [],
-		cuisinePreferences: preferences.cuisine_preferences ?? [],
-		preferredPrepTime: preferences.preferred_prep_time ?? '',
-		skillLevel: preferences.skill_level ?? ''
-	};
-};
-
-const parseJsonArray = (value: FormDataEntryValue | null): string[] => {
-	if (typeof value !== 'string' || !value) return [];
-	try {
-		const parsed = JSON.parse(value);
-		return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
-	} catch {
-		return [];
-	}
-};
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const { user } = await locals.safeGetSession();
@@ -35,10 +12,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 	const accountService = new AccountService(locals.supabase, user.id);
 
 	try {
-		const prefs = await accountService.getUserPreferences();
-		return {
-			preferences: toCamelPreferences(prefs)
-		};
+		const preferences = await accountService.getUserPreferences();
+		return { preferences };
 	} catch (error) {
 		console.error('Failed to load user preferences', error);
 		return fail(500, { error: 'Unable to load preferences' });
@@ -56,25 +31,26 @@ export const actions: Actions = {
 
 		const formData = await request.formData();
 
-		const updates: UserPreferences = {
-			diet: parseJsonArray(formData.get('diet')),
-			allergies: parseJsonArray(formData.get('allergies')),
-			dislikes: parseJsonArray(formData.get('dislikes')),
-			equipment: parseJsonArray(formData.get('equipment')),
-			cuisine_preferences: parseJsonArray(formData.get('cuisinePreferences')),
-			preferred_prep_time: (formData.get('preferredPrepTime') as string) || undefined,
-			skill_level: (formData.get('skillLevel') as string) || undefined
+		/** Strip whitespace and filter out empty values. */
+		const toFilteredArray = (values: FormDataEntryValue[]): string[] | null => {
+			const filtered = values
+				.map((value) => value.toString().trim())
+				.filter((value) => value.length > 0);
+			return filtered.length > 0 ? filtered : null;
 		};
 
+		const preferences: UserPreferencesResponse = {
+			user_id: user.id,
+			diet: toFilteredArray(formData.getAll('diet')) || null,
+			allergies: toFilteredArray(formData.getAll('allergies')) || null,
+			dislikes: toFilteredArray(formData.getAll('dislikes')) || null,
+			equipment: toFilteredArray(formData.getAll('equipment')) || null,
+			cuisine_preferences: toFilteredArray(formData.getAll('cuisinePreferences')) || null,
+			preferred_prep_time: (formData.get('preferredPrepTime') as string)?.trim() || null,
+			skill_level: (formData.get('skillLevel') as string)?.trim() || null
+		};
 		try {
-			const current = await accountService.getUserPreferences();
-			const merged = { ...(current ?? {}), ...updates };
-			await accountService.updateUserPreferences(merged);
-
-			return {
-				success: true,
-				preferences: toCamelPreferences(merged)
-			};
+			await accountService.updateUserPreferences(preferences);
 		} catch (error) {
 			console.error('Failed to update preferences', error);
 			return fail(500, { error: 'Failed to save preferences' });

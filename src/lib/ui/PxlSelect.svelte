@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Select, type WithoutChildren } from 'bits-ui';
-	import Button from './Button/Button.svelte';
+	import { Button, Select, type WithoutChildren } from 'bits-ui';
+	// import Button from './Button/Button.svelte';
 	import CloseOutlineIcon from './Icons/CloseOutlineIcon.svelte';
 	import type { MouseEventHandler } from 'svelte/elements';
 	import CaretDownIcon from './Icons/CaretDownIcon.svelte';
@@ -10,6 +10,7 @@
 	type Props = WithoutChildren<Select.RootProps> & {
 		placeholder?: string;
 		// items: { value: string; label: string; disabled?: boolean }[];
+		items?: ({ value: string; label: string; disabled?: boolean } | string)[];
 		sItems: string[];
 		contentProps?: WithoutChildren<Select.ContentProps>;
 		// any other specific component props if needed
@@ -18,6 +19,7 @@
 
 	let {
 		value = $bindable(),
+		items,
 		sItems,
 		contentProps,
 		placeholder,
@@ -25,7 +27,7 @@
 		...restProps
 	}: Props = $props();
 
-	const selectedLabel = $derived(value?.toString());
+	const selectedLabel = $derived(value?.toString().split(',').join(', '));
 
 	let containerRef = $state<HTMLElement>();
 </script>
@@ -45,17 +47,19 @@ _Reference: bits-ui [Select](https://bits-ui.com/docs/components/select/llms.txt
 -->
 <Select.Root bind:value={value as never} {...restProps}>
 	<div
-		class="label my-1 flex h-12 w-full flex-row flex-nowrap items-stretch rounded-sm border border-gray-200 dark:border-gray-700 dark:bg-gray-900"
+		class="body-medium my-1 flex h-input flex-row flex-nowrap items-stretch rounded-sm border border-border-input dark:border-gray-700 bg-background dark:bg-gray-900"
 		bind:this={containerRef}
 	>
-		<Select.Trigger class="grow px-4 py-1 bg-white dark:bg-black hover:cursor-pointer hover:dark:bg-gray-800">
+		<Select.Trigger
+			class="h-input flex-auto border-none data-placeholder:text-foreground-alt/50 inline-flex w-[296px] touch-none select-none items-center border px-[11px] text-sm transition-colors cursor-pointer"
+		>
 			<div class="text-left">{selectedLabel}</div>
 		</Select.Trigger>
 		{#if value && value.length > 0}
 			<div class="flex-none" style="margin-top: -1px;">
-				<Button size="xs" onClick={onReset} label="Clear values" icon>
-					<CloseOutlineIcon />
-				</Button>
+				<Button.Root onclick={onReset} class="button narrow text" title="Clear values">
+					<CloseOutlineIcon size="xs" />
+				</Button.Root>
 			</div>
 		{/if}
 	</div>
@@ -63,7 +67,7 @@ _Reference: bits-ui [Select](https://bits-ui.com/docs/components/select/llms.txt
 		<Select.Content
 			{...contentProps}
 			customAnchor={containerRef}
-			class="focus-override z-50 h-96 max-h-[var(--bits-select-content-available-height)] w-[var(--bits-select-anchor-width)] w-full min-w-[var(--bits-select-anchor-width)] rounded-sm border p-1 shadow-md select-none data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1 dark:border-gray-700 dark:bg-gray-900"
+			class="focus-override border-muted bg-background shadow-popover data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 outline-hidden z-500 h-96 max-h-[var(--bits-select-content-available-height)] w-[var(--bits-select-anchor-width)] min-w-[var(--bits-select-anchor-width)] select-none rounded-xl border px-1 py-3 data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1"
 		>
 			<Select.ScrollUpButton class="flex justify-center">
 				<CaretUpIcon size="xs" />
@@ -72,7 +76,7 @@ _Reference: bits-ui [Select](https://bits-ui.com/docs/components/select/llms.txt
 				{#each sItems as item}
 					<Select.Item
 						value={item}
-						class="label flex h-10 w-full flex-nowrap items-center justify-between rounded-sm px-2 hover:cursor-pointer hover:bg-gray-600 focus:bg-gray-600 active:bg-gray-600 data-highlighted:bg-gray-600"
+						class="rounded-button data-highlighted:bg-muted outline-hidden data-disabled:opacity-50 flex h-10 w-full select-none items-center py-3 pl-3 pr-1.5 text-sm capitalize cursor-pointer"
 					>
 						{#snippet children({ selected })}
 							<span class="w-min grow truncate">{item}</span>

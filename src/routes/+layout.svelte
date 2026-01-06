@@ -10,19 +10,19 @@
 	import { AppBar } from '$lib/ui/AppBar';
 	import Button from '$lib/ui/Button/Button.svelte';
 	import Dialog from '$lib/ui/Dialog.svelte';
-	import RecipesIcon from '$lib/ui/icons2/RecipesIcon.svelte';
-	import CollapseSidenavIcon from '$lib/ui/icons2/CollapseSidenavIcon.svelte';
+	import RecipesIcon from '$lib/ui/icons/RecipesIcon.svelte';
+	import CollapseSidenavIcon from '$lib/ui/icons/CollapseSidenavIcon.svelte';
 	import '../app.css';
 	import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query';
 	import { browser } from '$app/environment';
-	import ChatbotIcon from '$lib/ui/icons2/ChatbotIcon.svelte';
-	import SettingsIcon from '$lib/ui/icons2/SettingsIcon.svelte';
-	import OpenPanelLeftIcon from '$lib/ui/icons2/OpenPanelLeftIcon.svelte';
+	import ChatbotIcon from '$lib/ui/icons/ChatbotIcon.svelte';
+	import SettingsIcon from '$lib/ui/icons/SettingsIcon.svelte';
+	import OpenPanelLeftIcon from '$lib/ui/icons/OpenPanelLeftIcon.svelte';
 	import { NavigationMenu } from 'bits-ui';
 	import { PUBLIC_QA_PW, PUBLIC_QA_USER } from '$env/static/public';
 	import { invalidate } from '$app/navigation';
-	import LogoutIcon from '$lib/ui/icons2/LogoutIcon.svelte';
-	import LoginIcon from '$lib/ui/icons2/LoginIcon.svelte';
+	import LogoutIcon from '$lib/ui/icons/LogoutIcon.svelte';
+	import LoginIcon from '$lib/ui/icons/LoginIcon.svelte';
 	import type { SavedRecipe } from '$lib/api/recipe/recipe.types';
 	import {
 		CloudService,

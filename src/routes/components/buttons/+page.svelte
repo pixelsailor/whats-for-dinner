@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Button } from 'bits-ui';
-  import SettingsIcon from '$lib/ui/icons2/SettingsIcon.svelte';
+  import SettingsIcon from '$lib/ui/icons/SettingsIcon.svelte';
 </script>
 
 <div class="flex gap-8 mx-auto max-w-5xl px-4 lg:px-8 py-8">

@@ -21,13 +21,13 @@
 	import type { ViewState } from '$lib/types.js';
 
 	import { AppBar } from '$lib/ui/AppBar/index.js';
-	import TrashIcon from '$lib/ui/Icons/TrashIcon.svelte';
+	import TrashIcon from '$lib/ui/icons/TrashIcon.svelte';
 	import PageHeader from '$lib/ui/PageHeader.svelte';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
 	import ViewedBadge from '$lib/ui/ViewedBadge.svelte';
 	import { sanitizePromptInput } from '$lib/utils.js';
 	import { deriveAICapability } from '$lib/utils/capabilities';
-	import RecipesIcon from '$lib/ui/Icons/RecipesIcon.svelte';
+	import RecipesIcon from '$lib/ui/icons/RecipesIcon.svelte';
 
 	let { data } = $props();
 

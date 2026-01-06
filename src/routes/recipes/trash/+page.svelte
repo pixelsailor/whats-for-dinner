@@ -10,7 +10,7 @@
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
 	import { slide } from 'svelte/transition';
 	import { toast } from 'svelte-sonner';
-	import TrashIcon from '$lib/ui/icons2/TrashIcon.svelte';
+	import TrashIcon from '$lib/ui/icons/TrashIcon.svelte';
 
 	const restoreRecipe = async (id: string) => {
 		try {

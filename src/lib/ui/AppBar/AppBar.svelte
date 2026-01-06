@@ -3,7 +3,7 @@
 	import { getContext } from 'svelte';
 	
 	import type { Viewport } from '$lib/types';
-	import OpenPanelLeftIcon from '$lib/ui/icons2/OpenPanelLeftIcon.svelte';
+	import OpenPanelLeftIcon from '$lib/ui/icons/OpenPanelLeftIcon.svelte';
 
 	const vp: Viewport = getContext('viewport');
 

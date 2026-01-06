@@ -70,6 +70,11 @@
   @apply px-input-sm;
 }
 
+.button.inset {
+  @apply border-none;
+  height: calc(var(--height-input) - 2px);
+}
+
 .button:disabled {
   @apply bg-dark-10 text-dark-40 opacity-50 cursor-not-allowed pointer-events-none;
 

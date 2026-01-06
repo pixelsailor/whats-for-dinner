@@ -17,19 +17,19 @@
 	import EditableRecipe from '$lib/ui/EditableRecipe.svelte';
 	// import CloseIcon from '$lib/ui/Icons/CloseIcon.svelte';
 	// import CloudBackupIcon from '$lib/ui/Icons/CloudBackupIcon.svelte';
-	import FavoriteIcon from '$lib/ui/icons2/FavoriteIcon.svelte';
-	import FavoriteFilledIcon from '$lib/ui/icons2/FavoriteFilledIcon.svelte';
+	import FavoriteIcon from '$lib/ui/icons/FavoriteIcon.svelte';
+	import FavoriteFilledIcon from '$lib/ui/icons/FavoriteFilledIcon.svelte';
 	// import LockIcon from '$lib/ui/Icons/LockIcon.svelte';
 	// import UnlockIcon from '$lib/ui/Icons/UnlockIcon.svelte';
 	import PxlIconButton from '$lib/ui/PxlIconButton.svelte';
 	import PageHeader from '$lib/ui/PageHeader.svelte';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
 	// import Prompt from '$lib/ui/Prompt.svelte';
-	import TrashIcon from '$lib/ui/icons2/TrashIcon.svelte';
+	import TrashIcon from '$lib/ui/icons/TrashIcon.svelte';
 	// import Recipe from '$lib/ui/Recipe.svelte';
 	import { networkStore } from '$lib/stores/network';
 	import { deriveAICapability } from '$lib/utils/capabilities';
-	import CalendarHeatMapIcon from '$lib/ui/icons2/CalendarHeatMapIcon.svelte';
+	import CalendarHeatMapIcon from '$lib/ui/icons/CalendarHeatMapIcon.svelte';
 
 	const vp: any = getContext('viewport');
 

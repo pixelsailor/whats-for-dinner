@@ -8,111 +8,111 @@
 	import { AppBar } from '$lib/ui/AppBar';
 	import PageHeader from '$lib/ui/PageHeader.svelte';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
-	import PxlSelect from '$lib/ui/PxlSelect.svelte';
+	import Select from '$lib/ui/Select.svelte';
 	import type { UserPreferences, UserPreferencesResponse } from '$lib/api/account';
 
 	// DON'T DELETE THIS
-	// const options: Record<string, { value: string; label: string; disabled?: boolean }[]> = {
-	// 	diet: [
-	// 		{ value: 'dairy-free', label: 'Dairy-free' },
-	// 		{ value: 'diabetic-friendly', label: 'Diabetic-friendly' },
-	// 		{ value: 'gluten-free', label: 'Gluten-free' },
-	// 		{ value: 'keto', label: 'Keto' },
-	// 		{ value: 'low-carb', label: 'Low-carb' },
-	// 		{ value: 'low-fat', label: 'Low-fat' },
-	// 		{ value: 'mediterranean', label: 'Mediterranean' },
-	// 		{ value: 'paleo', label: 'Paleo' },
-	// 		{ value: 'pescatarian', label: 'Pescatarian' },
-	// 		{ value: 'vegan', label: 'Vegan' },
-	// 		{ value: 'vegetarian', label: 'Vegetarian' }
-	// 	],
-	// 	allergies: [
-	// 		{ value: 'dairy', label: 'Dairy' },
-	// 		{ value: 'eggs', label: 'Eggs' },
-	// 		{ value: 'fish', label: 'Fish' },
-	// 		{ value: 'gluten', label: 'Gluten' },
-	// 		{ value: 'mustard', label: 'Mustard' },
-	// 		{ value: 'peanuts', label: 'Peanuts' },
-	// 		{ value: 'sesame', label: 'Sesame' },
-	// 		{ value: 'shellfish', label: 'Shellfish' },
-	// 		{ value: 'soy', label: 'Soy' },
-	// 		{ value: 'sulfites', label: 'Sulfites' },
-	// 		{ value: 'tree-nuts', label: 'Tree nuts' }
-	// 	],
-	// 	equipment: [
-	// 		{ value: 'air-fryer', label: 'Air fryer' },
-	// 		{ value: 'blender', label: 'Blender' },
-	// 		{ value: 'cast-iron-skillet', label: 'Cast iron skillet' },
-	// 		{ value: 'food-processor', label: 'Food processor' },
-	// 		{ value: 'grill', label: 'Grill' },
-	// 		{ value: 'instant-pot-pressure-cooker', label: 'Instant Pot / Pressure cooker' },
-	// 		{ value: 'microwave', label: 'Microwave' },
-	// 		{ value: 'oven', label: 'Oven' },
-	// 		{ value: 'slow-cooker', label: 'Slow cooker' },
-	// 		{ value: 'sous-vide', label: 'Sous vide' },
-	// 		{ value: 'stand-mixer', label: 'Stand mixer' },
-	// 		{ value: 'stovetop', label: 'Stovetop' },
-	// 		{ value: 'toaster-oven', label: 'Toaster oven' },
-	// 		{ value: 'waffle-maker', label: 'Waffle maker' }
-	// 	],
-	// 	prepTime: [
-	// 		{ value: 'under-30-minutes', label: 'Under 30 minutes' },
-	// 		{ value: '30-60-minutes', label: '30-60 minutes' },
-	// 		{ value: 'no-time-limit', label: 'No time limit' }
-	// 	],
-	// 	skillLevel: [
-	// 		{ value: 'beginner', label: 'Beginner' },
-	// 		{ value: 'intermediate', label: 'Intermediate' },
-	// 		{ value: 'advanced', label: 'Advanced' }
-	// 	]
-	// };
-
-	const options = {
+	const options: Record<string, { value: string; label: string; disabled?: boolean }[]> = {
 		diet: [
-			'Dairy-free',
-			'Diabetic-friendly',
-			'Gluten-free',
-			'Keto',
-			'Low-carb',
-			'Low-fat',
-			'Mediterranean',
-			'Paleo',
-			'Pescatarian',
-			'Vegan',
-			'Vegetarian'
+			{ value: 'dairy-free', label: 'Dairy-free' },
+			{ value: 'diabetic-friendly', label: 'Diabetic-friendly' },
+			{ value: 'gluten-free', label: 'Gluten-free' },
+			{ value: 'keto', label: 'Keto' },
+			{ value: 'low-carb', label: 'Low-carb' },
+			{ value: 'low-fat', label: 'Low-fat' },
+			{ value: 'mediterranean', label: 'Mediterranean' },
+			{ value: 'paleo', label: 'Paleo' },
+			{ value: 'pescatarian', label: 'Pescatarian' },
+			{ value: 'vegan', label: 'Vegan' },
+			{ value: 'vegetarian', label: 'Vegetarian' }
 		],
 		allergies: [
-			'Dairy',
-			'Eggs',
-			'Fish',
-			'Gluten',
-			'Mustard',
-			'Peanuts',
-			'Sesame',
-			'Shellfish',
-			'Soy',
-			'Sulfites',
-			'Tree nuts'
+			{ value: 'dairy', label: 'Dairy' },
+			{ value: 'eggs', label: 'Eggs' },
+			{ value: 'fish', label: 'Fish' },
+			{ value: 'gluten', label: 'Gluten' },
+			{ value: 'mustard', label: 'Mustard' },
+			{ value: 'peanuts', label: 'Peanuts' },
+			{ value: 'sesame', label: 'Sesame' },
+			{ value: 'shellfish', label: 'Shellfish' },
+			{ value: 'soy', label: 'Soy' },
+			{ value: 'sulfites', label: 'Sulfites' },
+			{ value: 'tree-nuts', label: 'Tree nuts' }
 		],
 		equipment: [
-			'Air fryer',
-			'Blender',
-			'Cast iron skillet',
-			'Food processor',
-			'Grill',
-			'Instant Pot / Pressure cooker',
-			'Microwave',
-			'Oven',
-			'Slow cooker',
-			'Sous vide',
-			'Stand mixer',
-			'Stovetop',
-			'Toaster oven',
-			'Waffle maker'
+			{ value: 'air-fryer', label: 'Air fryer' },
+			{ value: 'blender', label: 'Blender' },
+			{ value: 'cast-iron-skillet', label: 'Cast iron skillet' },
+			{ value: 'food-processor', label: 'Food processor' },
+			{ value: 'grill', label: 'Grill' },
+			{ value: 'instant-pot-pressure-cooker', label: 'Instant Pot / Pressure cooker' },
+			{ value: 'microwave', label: 'Microwave' },
+			{ value: 'oven', label: 'Oven' },
+			{ value: 'slow-cooker', label: 'Slow cooker' },
+			{ value: 'sous-vide', label: 'Sous vide' },
+			{ value: 'stand-mixer', label: 'Stand mixer' },
+			{ value: 'stovetop', label: 'Stovetop' },
+			{ value: 'toaster-oven', label: 'Toaster oven' },
+			{ value: 'waffle-maker', label: 'Waffle maker' }
 		],
-		prepTime: ['under 30 minutes', '30-60 minutes', 'no time limit'],
-		skillLevel: ['beginner', 'intermediate', 'advanced']
+		prepTime: [
+			{ value: 'under-30-minutes', label: 'Under 30 minutes' },
+			{ value: '30-60-minutes', label: '30-60 minutes' },
+			{ value: 'no-time-limit', label: 'No time limit' }
+		],
+		skillLevel: [
+			{ value: 'beginner', label: 'Beginner' },
+			{ value: 'intermediate', label: 'Intermediate' },
+			{ value: 'advanced', label: 'Advanced' }
+		]
 	};
+
+	// const options = {
+	// 	diet: [
+	// 		'Dairy-free',
+	// 		'Diabetic-friendly',
+	// 		'Gluten-free',
+	// 		'Keto',
+	// 		'Low-carb',
+	// 		'Low-fat',
+	// 		'Mediterranean',
+	// 		'Paleo',
+	// 		'Pescatarian',
+	// 		'Vegan',
+	// 		'Vegetarian'
+	// 	],
+	// 	allergies: [
+	// 		'Dairy',
+	// 		'Eggs',
+	// 		'Fish',
+	// 		'Gluten',
+	// 		'Mustard',
+	// 		'Peanuts',
+	// 		'Sesame',
+	// 		'Shellfish',
+	// 		'Soy',
+	// 		'Sulfites',
+	// 		'Tree nuts'
+	// 	],
+	// 	equipment: [
+	// 		'Air fryer',
+	// 		'Blender',
+	// 		'Cast iron skillet',
+	// 		'Food processor',
+	// 		'Grill',
+	// 		'Instant Pot / Pressure cooker',
+	// 		'Microwave',
+	// 		'Oven',
+	// 		'Slow cooker',
+	// 		'Sous vide',
+	// 		'Stand mixer',
+	// 		'Stovetop',
+	// 		'Toaster oven',
+	// 		'Waffle maker'
+	// 	],
+	// 	prepTime: ['under 30 minutes', '30-60 minutes', 'no time limit'],
+	// 	skillLevel: ['beginner', 'intermediate', 'advanced']
+	// };
 
 	const toTextFromArray = (items: string[]) => items.join(', ');
 	const toArrayFromText = (text: string) =>
@@ -190,34 +190,34 @@
 
 		<div class="mb-3 min-h-24">
 			<p class="label-large mb-1">Dietary considerations</p>
-			<PxlSelect
+			<Select
 				type="multiple"
-				sItems={options.diet}
+				items={options.diet}
 				name="diet"
 				bind:value={diet}
-				onReset={(e) => clearPreferenceField(e, 'diet')}
+				placeholder="Select diet restrictions"
 			/>
 		</div>
 
 		<div class="mb-3 min-h-24">
 			<p class="label-large mb-1">Allergies</p>
-			<PxlSelect
+			<Select
 				type="multiple"
-				sItems={options.allergies}
+				items={options.allergies}
 				name="allergies"
 				bind:value={allergies}
-				onReset={(e) => clearPreferenceField(e, 'allergies')}
+				placeholder="Select common allergies"
 			/>
 		</div>
 
 		<div class="mb-3 min-h-24">
 			<p class="label-large mb-1">Kitchen equipment to avoid</p>
-			<PxlSelect
+			<Select
 				type="multiple"
-				sItems={options.equipment}
+				items={options.equipment}
 				name="equipment"
 				bind:value={equipment}
-				onReset={(e) => clearPreferenceField(e, 'equipment')}
+				placeholder="Select kitchen equipment"
 			/>
 			<p class="helper-text text-foreground-alt">
 				If you don't have something, include it here. The AI will make an attempt to avoid recipes
@@ -230,7 +230,7 @@
 			<input
 				type="text"
 				name="dislikes"
-				class="label-large my-1 flex h-12 w-full flex-row flex-nowrap items-stretch rounded-sm border border-gray-200 px-3 dark:border-gray-700 dark:bg-gray-900 hover:dark:bg-gray-800"
+				class="label-large my-1 flex h-input w-full flex-row flex-nowrap items-stretch rounded-sm border border-gray-200 px-3 dark:border-gray-700 dark:bg-gray-900 hover:dark:bg-gray-800"
 				bind:value={dislikes}
 				placeholder="e.g. olives, capers"
 			/>
@@ -240,23 +240,23 @@
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-8 my-3">
 			<div>
 				<p class="label-large mb-1">Preferred prep time</p>
-				<PxlSelect
+				<Select
 					type="single"
 					name="preferred_prep_time"
-					sItems={options.prepTime}
+					items={options.prepTime}
 					bind:value={preferredPrepTime}
-					onReset={(e) => clearPreferenceField(e, 'preferred_prep_time')}
+					placeholder="Select preferred cooking time"
 				/>
 			</div>
 	
 			<div>
 				<p class="label-large mb-1">Skill level</p>
-				<PxlSelect
+				<Select
 					type="single"
 					name="skill_level"
-					sItems={options.skillLevel}
+					items={options.skillLevel}
 					bind:value={skillLevel}
-					onReset={(e) => clearPreferenceField(e, 'skill_level')}
+					placeholder="How comfortable are you in the kitchen?"
 				/>
 			</div>
 		</div>

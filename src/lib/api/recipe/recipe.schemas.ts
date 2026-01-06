@@ -14,7 +14,7 @@
 import { z } from 'zod';
 
 const CATEGORY_TAGS = {
-	course: ['breakfast', 'brunch', 'lunch', 'dinner', 'dessert', 'snack', 'beverage', 'main', 'side', 'light-meal'],
+	course: ['breakfast', 'brunch', 'lunch', 'dinner', 'dessert', 'snack', 'beverage', 'main', 'side', 'light meal'],
 	cuisine: [
 		'american',
 		'brazillian',
@@ -48,10 +48,10 @@ const CATEGORY_TAGS = {
 		'moroccan',
 		'scandanavian',
 		'african',
-		'south-american',
-		'north-american',
-		'eastern-european',
-		'south-asian'
+		'south american',
+		'north american',
+		'eastern european',
+		'south asian'
 	],
 	diet: [
 		'vegan',
@@ -63,7 +63,7 @@ const CATEGORY_TAGS = {
 		'keto',
 		'paleo',
 		'whole30',
-		'diabetic-friendly',
+		'diabetic friendly',
 		'low-fat'
 	],
 	cookingmethod: [
@@ -73,10 +73,10 @@ const CATEGORY_TAGS = {
 		'broiling',
 		'steaming',
 		'frying',
-		'slow-cooker',
-		'pressure-cooker',
-		'sous-vide',
-		'air-fryer'
+		'slow cooker',
+		'pressure cooker',
+		'sous vide',
+		'air fryer'
 	],
 	occasion: ['holiday', 'birthday', 'party', 'picnic', 'weeknight', 'romantic']
 };
@@ -122,7 +122,7 @@ export const RecipeSchema = RecipeRootSchema.extend({
 	tags: z
 		.array(z.string().min(1))
 		.describe(
-			`Use lowercase, hyphenate multi-word tags. Use at least one tag from the following course tags: ${CATEGORY_TAGS.course.join(', ')}. Additional tags encouraged. Available tags include: ${ALL_TAGS.join(', ')}.`
+			`Use at least one tag from the following course tags: ${CATEGORY_TAGS.course.join(', ')}. Additional tags encouraged. Available tags include: ${ALL_TAGS.join(', ')}. DO NOT use capital letters.`
 		),
 	yield: z.string().describe("Number of servings for meals (e.g. 2 to 4 servings) or volume for sauces, dressings or similar, e.g. '2 cups"),
 	prep_time: z

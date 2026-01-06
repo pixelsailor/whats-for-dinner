@@ -373,7 +373,7 @@
 		</PageHeader>
 		<div class="mx-auto w-full max-w-5xl px-4 py-8 lg:px-8">
 			<h1 class="display-small mb-4">Suggestion History</h1>
-			<p class="body-medium mb-10">Suggestions are not synced between devices and limited to 100.</p>
+			<p class="body-medium mb-10">Suggestions are not synced between devices and are limited to 100.</p>
 			{#if $suggestionHistory.length > 0}
 				<div class="w-full">
 					<input
@@ -385,9 +385,9 @@
 				</div>
 			{/if}
 			{#if filteredSuggestions.length > 0}
-				<div class="list">
-					{#each groupedSuggestions as group (group.date)}
-						<h3 class="title-small text-foreground-alt mt-6 mb-2"><strong>{group.date}</strong></h3>
+				{#each groupedSuggestions as group (group.date)}
+					<div class="list my-6">
+						<h3 class="label-large text-foreground-alt m-3"><strong>{group.date}</strong></h3>
 						{#each group.suggestions as summary (summary.id)}
 							<hr />
 							<Button.Root
@@ -415,8 +415,8 @@
 								</span>
 							</Button.Root>
 						{/each}
-					{/each}
-				</div>
+					</div>
+				{/each}
 			{:else}
 				<p class="body-large text-center my-24">
 					Your suggestion history will appear here after you start requesting recipe suggestions.

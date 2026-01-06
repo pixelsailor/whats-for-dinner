@@ -3,7 +3,7 @@
 </script>
 
 {#if viewed}
-	<span class="tag label-small uppercase">
+	<span class="tag subtle label-small uppercase">
 		Viewed
 	</span>
 {/if}

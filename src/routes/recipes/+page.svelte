@@ -3,26 +3,26 @@
 	import { slide } from 'svelte/transition';
 	import { SvelteSet } from 'svelte/reactivity';
 	import { toast } from 'svelte-sonner';
-	import { MultiSelect, type SelectOptionType } from 'flowbite-svelte';
 
 	import { db } from '$lib/db';
 	import { recipes } from '$lib/stores/recipes';
 	
 	import { AppBar } from '$lib/ui/AppBar';
-	// import Button.Root from '$lib/ui/Button.Root/Button.Root.svelte';
-	import PxlIconButton from '$lib/ui/PxlIconButton.svelte';
 	// import { List, ListItem } from '$lib/ui/List';
 	// import CloudBackupIcon from '$lib/ui/Icons/CloudBackupIcon.svelte';
 	import DocumentAddIcon from '$lib/ui/Icons/DocumentAddIcon.svelte';
 	import TrashIcon from '$lib/ui/Icons/TrashIcon.svelte';
 	import PageHeader from '$lib/ui/PageHeader.svelte';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
+	import PxlIconButton from '$lib/ui/PxlIconButton.svelte';
+	import Select from '$lib/ui/Select.svelte';
+	import type { SelectOption } from '$lib/ui/types.js';
 
 	let { data } = $props();
 	
 	const commonTags = new SvelteSet<string>();
 
-	let tags = $derived.by<SelectOptionType<string>[]>(() => Array.from(commonTags).map((t) => ({ value: t, name: t })));
+	let tags = $derived.by<SelectOption[]>(() => Array.from(commonTags).map((t) => ({ value: t, label: t })) || []);
 
 	let selectedTags = $state<string[]>([]);
 
@@ -56,7 +56,7 @@
 						commonTags.add(r.tags);
 					} else {
 						r.tags.forEach((t) => {
-							commonTags.add(t);
+							commonTags.add(t.toLowerCase());
 						});
 					}
 				}
@@ -133,7 +133,7 @@
 				placeholder="Search history"
 				bind:value={search}
 			/>
-			<MultiSelect items={tags} bind:value={selectedTags} placeholder="Filter by tag" />
+			<Select type="multiple" items={tags} bind:value={selectedTags} placeholder="Filter by tags" />
 		</div>
 		<div class="list">
 			{#each filteredRecipes! as recipe (recipe.id)}

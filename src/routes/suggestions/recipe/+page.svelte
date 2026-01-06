@@ -149,14 +149,14 @@
 	// =============================================================================
 	
 	/** The recipe to display - Dexie-first approach */
-	let recipe = $derived.by<FullRecipe | null>(() => {
+	let recipe = $derived.by<FullRecipe | Suggestion | null>(() => {
 		// Priority 1: Full recipe from Dexie
 		if (hasFullRecipeInDexie && suggestionFromDexie) {
-			return suggestionFromDexie as FullRecipe;
+			return suggestionFromDexie as Suggestion;
 		}
 		// Priority 2: Recipe from API (will be saved to Dexie)
 		if (recipeFromApi) {
-			return recipeFromApi;
+			return recipeFromApi as FullRecipe;
 		}
 		return null;
 	});
@@ -283,7 +283,11 @@
 
 		if (hasCloudStorageAccess && cloudService) {
 			try {
-				candidate = await cloudService.uploadLocalRecipe(recipe);
+				// Avoid destructuring 'recipe_id' as it may not exist; remove it safely if present
+				const { recipe_id, ...rest } = recipe as Record<string, unknown>;
+				const recipeToUpload = { ...rest } as FullRecipe;
+				candidate = await cloudService.uploadLocalRecipe(recipeToUpload);
+
 				await db.recipes.put(candidate);
 				if (id) {
 					await db.suggestions.update(id, { recipe_id: candidate.id });
@@ -292,8 +296,7 @@
 				goto(`/recipes/${candidate.id}`, { replaceState: true });
 			} catch (err) {
 				console.error('Cloud save failed; continuing locally', err);
-
-				candidate = createSavedRecipe(recipe, err instanceof Error ? err.message : 'Unknown sync error');
+				candidate = createSavedRecipe(recipe as FullRecipe, err instanceof Error ? err.message : 'Unknown sync error');
 				await db.recipes.put(candidate);
 				if (id) {
 					await db.suggestions.update(id, { recipe_id: candidate.id });
@@ -303,7 +306,7 @@
 				app.status = 'idle';
 			}
 		} else {
-			candidate = createSavedRecipe(recipe);
+			candidate = createSavedRecipe(recipe as FullRecipe);
 			await db.recipes.put(candidate);
 			if (id) {
 				await db.suggestions.update(id, { recipe_id: candidate.id });
@@ -315,7 +318,7 @@
 
 	function createSavedRecipe(recipe: FullRecipe, error?: string): SavedRecipe {
 		const now = new Date().toISOString();
-		return {
+		const fullRecipe = {
 			...recipe,
 			created_at: now,
 			updated_at: now,
@@ -332,7 +335,12 @@
 			shared_id: null,
 			last_synced_at: null,
 			parent_id: null,
+			checkout_history: [now],
 		};
+		if ('recipe_id' in fullRecipe) {
+			delete fullRecipe.recipe_id;
+		}
+		return fullRecipe;
 	}
 
 	/** @todo - Add support for AI-assisted recipe editing. DO NOT REMOVE THE FOLLOWING COMMENTED CODE. */

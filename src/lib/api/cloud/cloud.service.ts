@@ -185,6 +185,26 @@ export class CloudService {
   }
 
   /**
+   * Update a recipe in the cloud.
+   * 
+   * @param recipeData - The recipe data to update.
+   * @returns The updated recipe.
+   */
+  async updateRecipe(recipeData: Partial<SavedRecipe> & { id: string }): Promise<SavedRecipe> {
+    const { data, error } = await this.supabase
+      .from('recipes')
+      .update(recipeData)
+      .eq('id', recipeData.id)
+      .eq('owner_id', this._userId)
+      .select()
+      .maybeSingle();
+
+    if (error) throw error;
+
+    return data;
+  }
+
+  /**
    * Download all cloud recipes to local storage.
    * 
    * @returns The synced recipes or null if there was an error.
@@ -246,15 +266,37 @@ export class CloudService {
    * 
    * This action is irreversible and will permanently delete the recipe from the cloud. It should
    * only be called after the recipe has exceeded its expiry date.
+   * The recipe must have a `deleted_at` timestamp to be deleted.
    * 
    * @param recipeId - The id of the recipe to delete.
    */
-  async deletedRecipe(recipeId: string): Promise<void> {
+  async deleteRecipe(recipeId: string): Promise<void> {
     const { error } = await this.supabase
       .from('recipes')
       .delete()
       .eq('id', recipeId)
-      .eq('owner_id', this._userId);
+      .eq('owner_id', this._userId)
+      .not('deleted_at', 'is', null);
+
+    if (error) throw error;
+  }
+
+  /**
+   * Permanently delete deleted recipes from the cloud.
+   * 
+   * This action is irreversible and will permanently delete the recipes from the cloud. It should
+   * only be called after the recipes have exceeded their expiry date.
+   * The recipes must have a `deleted_at` timestamp to be deleted.
+   * 
+   * @param recipeIds - The ids of the recipes to delete.
+   */
+  async deleteDeletedRecipes(recipeIds: string[]): Promise<void> {
+    const { error } = await this.supabase
+      .from('recipes')
+      .delete()
+      .in('id', recipeIds)
+      .eq('owner_id', this._userId)
+      .not('deleted_at', 'is', null);
 
     if (error) throw error;
   }

@@ -14,6 +14,7 @@ import type {
   SyncConflict,
   SyncPlan,
 } from './cloud.types';
+import type { ApiResponse } from '../ai';
 
 /**
  * Sync service for syncing recipes between local and remote.
@@ -150,6 +151,74 @@ export class SyncService {
         sync_error: err instanceof Error ? err.message : 'Unknown sync error',
       }));
       await db.recipes.bulkPut(failed);
+    }
+  }
+
+  /**
+   * Update a recipe in the cloud and silently sync the local database.
+   * 
+   * @param recipeData - The recipe data to update.
+   * @returns The updated recipe.
+   */
+  async updateRecipeAndSyncLocal(recipeData: Partial<SavedRecipe> & { id: string }): Promise<ApiResponse<string>> {
+    if (!recipeData.id) throw new Error('Recipe ID is required');
+    try {
+      const updated = await this.cloud.updateRecipe(recipeData);
+      await db.recipes.update(recipeData.id, updated);
+      return { success: true, data: recipeData.id };
+    } catch (err) {
+      const failed: Partial<SavedRecipe> & { id: string } = {
+        ...recipeData,
+        updated_at: new Date().toISOString(),
+        synced: false,
+        sync_error: err instanceof Error ? err.message : 'Unknown sync error',
+      };
+      await db.recipes.update(recipeData.id, failed);
+      return { success: false, data: recipeData.id, error: { message: err instanceof Error ? err.message : 'Unknown sync error' } };
+    }
+  }
+
+  /**
+   * Delete a recipe from the cloud and silently sync the local database.
+   * 
+   * @param id - The id of the recipe to delete.
+   */
+  async deleteRecipeAndSyncLocal(id: string) {
+    if (!id) throw new Error('Recipe ID is required');
+    try {
+      await this.cloud.deleteRecipe(id);
+      await db.recipes.delete(id);
+      return { success: true, data: void 0 };
+    } catch (err) {
+      // Note that if the delete fails the local database will not be updated in this case.
+      // Deleting the recipe locally would make the cloud unaware of the recipe state and cause 
+      // the recipe to be restored during the next sync. The local record should be updated
+      // with a sync error.
+      return { success: false, error: { message: err instanceof Error ? err.message : 'Unknown sync error' } };
+    }
+  }
+
+  /**
+   * Permanently delete deleted recipes from the cloud and silently sync the local database.
+   * 
+   * This action is irreversible and will permanently delete the recipes from the cloud. It should
+   * only be called after the recipes have exceeded their expiry date.
+   * The recipes must have a `deleted_at` timestamp to be deleted.
+   * 
+   * @param recipeIds - The ids of the recipes to delete.
+   */
+  async deleteDeletedRecipesAndSyncLocal(recipeIds: string[]) {
+    if (!recipeIds.length) throw new Error('Recipe IDs are required');
+    try {
+      await this.cloud.deleteDeletedRecipes(recipeIds);
+      await db.recipes.bulkDelete(recipeIds);
+      return { success: true, data: void 0 };
+    } catch (err) {
+      // Note that if the delete fails the local database will not be updated in this case.
+      // Deleting the recipe locally would make the cloud unaware of the recipe state and cause 
+      // the recipe to be restored during the next sync. The local record should be updated
+      // with a sync error.
+      return { success: false, error: { message: err instanceof Error ? err.message : 'Unknown sync error' } };
     }
   }
 

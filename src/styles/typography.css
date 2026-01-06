@@ -195,6 +195,9 @@
 
 .listitem,
 .listitem.button {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
   justify-content: space-between;
   height: auto;
   padding: 0.75rem;

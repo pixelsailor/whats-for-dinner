@@ -337,40 +337,22 @@
 	}
 
 	/**
-	 * Delete a recipe from the database and redirect to the recipes page
-	 * @param id - The id of the recipe to delete
+	 * Delete a recipe from the database and cloud.
+	 * Updates the `deleted_at` timestamp to the current time. Recipes are kept for 30 days before 
+	 * being removed from the database.
+	 * @param id - The id of the recipe to delete.
 	 */
-	async function deleteRecipe(id: string) {
-		if (!id || !recipe || recipe.id !== id) return;
-
-		let candidate: SavedRecipe | undefined = undefined;
-		let syncError = false;
-
+	 const deleteRecipe = async(id: string) => {
+		if (!id) return;
 		const now = new Date().toISOString();
-
-		if (hasCloudStorageAccess && cloudService) {
-			app.status = 'loading';
-			try {
-				candidate = await cloudService.uploadLocalRecipe({ ...recipe, deleted_at: now });
-			} catch (err) {
-				console.error('Sync failed; continuing locally', err);
-				syncError = true;
-				candidate = { ...recipe, deleted_at: now, updated_at: now, synced: false, sync_error: err instanceof Error ? err.message : 'Unknown error' };
-			} finally {
-				app.status = 'idle';
+		if (hasCloudStorageAccess && syncService) {
+			const response = await syncService.updateRecipeAndSyncLocal({ id, deleted_at: now });
+			if (!response.success) {
+				toast.error('There was a problem trying to restore the recipe.');
+				return;
 			}
 		} else {
-			candidate = { ...recipe, deleted_at: now, updated_at: now };
-		}
-
-		try {
-			await db.recipes.put(candidate);
-			if (syncError) {
-				toast.info('Recipe was moved to the trash locally but failed to sync to cloud');
-			}
-			goto('/recipes', { replaceState: true });
-		} catch (err) {
-			toast.error('There was a problem moving the recipe to the trash');
+			await db.recipes.update(id, { deleted_at: now });
 		}
 	}
 

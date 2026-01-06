@@ -382,7 +382,7 @@
 		</Button>
 		<AppBar.Text primary="" />
 		<AppBar.End>
-			<Button size="xs" onClick={toggleSidenav} label="Minimize navigation panel" icon>
+			<Button size="xs" onClick={toggleSidenav} label="Minimize navigation panel" icon style="margin-right: 0.5rem;">
 				<CollapseSidenavIcon />
 			</Button>
 		</AppBar.End>
@@ -417,6 +417,7 @@
 						<NavigationMenu.Item>
 							<NavigationMenu.Link
 								href="/recipes/{recipe.id}"
+								title={recipe.title}
 								class="sidenav-link hover:bg-gray-200 dark:hover:bg-gray-800"
 							>
 								<span class="sidenav-link__text">{recipe.title}</span>

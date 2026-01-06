@@ -27,6 +27,7 @@
 	import ViewedBadge from '$lib/ui/ViewedBadge.svelte';
 	import { sanitizePromptInput } from '$lib/utils.js';
 	import { deriveAICapability } from '$lib/utils/capabilities';
+	import RecipesIcon from '$lib/ui/Icons/RecipesIcon.svelte';
 
 	let { data } = $props();
 
@@ -353,74 +354,74 @@
 
 	{#if viewState === 'idle-history'}
 		<!-- Suggestion History View -->
-		<div>
-			<PageHeader>
-				<AppBar.Root>
-					<AppBar.End>
-						{#if app.status === 'loading'}
-							<div class="grid h-10 w-10 place-content-center">
-								<ProgressSpinner size="xs" />
-							</div>
-						{/if}
+		<PageHeader>
+			<AppBar.Root>
+				<AppBar.End>
+					{#if app.status === 'loading'}
+						<div class="grid h-10 w-10 place-content-center">
+							<ProgressSpinner size="xs" />
+						</div>
+					{/if}
+					{#if $suggestionHistory.length > 0}
 						<Button.Root onclick={clearSuggestions} class="button text narrow mr-2">
 							<TrashIcon size="xs" />
 							<span>Clear history</span>
 						</Button.Root>
-					</AppBar.End>
-				</AppBar.Root>
-			</PageHeader>
-			<div class="mx-auto max-w-5xl px-4 py-8 lg:px-8">
-				<h1 class="display-small mb-4">Suggestion History</h1>
-				<p class="body-medium mb-10">Suggestions are not synced between devices and are deleted after 30 days.</p>
-				{#if $suggestionHistory.length > 0}
-					<div class="w-full">
-						<input
-							type="text"
-							class="label flex h-12 w-full flex-row flex-nowrap items-stretch rounded-sm border border-gray-200 px-3 dark:border-gray-700 dark:bg-gray-900 hover:dark:bg-gray-800"
-							placeholder="Search history"
-							bind:value={search}
-						/>
-					</div>
-				{/if}
-				{#if filteredSuggestions.length > 0}
-					<div class="list">
-						{#each groupedSuggestions as group (group.date)}
-							<h3 class="title-small text-foreground-alt mt-6 mb-2"><strong>{group.date}</strong></h3>
-							{#each group.suggestions as summary (summary.id)}
-								<hr />
-								<Button.Root
-									onclick={() => getFullRecipe(summary)}
-									disabled={app.status === 'loading' || !canRequestSuggestions}
-									class="listitem button text narrow"
-								>
-									<span class="listitem__content">
-										<span class="title-medium">{summary.title}</span>
-										<span class="body-medium text-foreground-alt dark:text-foreground-alt">{summary.short_description}</span>
-									</span>
-									<span class="listitem__end">
-										<ViewedBadge viewed={getViewedStatus(summary, summary.title).isViewed} />
-										<Button.Root
-											onclick={
-												(event: MouseEvent) => {
-													event.stopPropagation();
-													deleteSuggestion(summary.id)
-												}
+					{/if}
+				</AppBar.End>
+			</AppBar.Root>
+		</PageHeader>
+		<div class="mx-auto w-full max-w-5xl px-4 py-8 lg:px-8">
+			<h1 class="display-small mb-4">Suggestion History</h1>
+			<p class="body-medium mb-10">Suggestions are not synced between devices and limited to 100.</p>
+			{#if $suggestionHistory.length > 0}
+				<div class="w-full">
+					<input
+						type="text"
+						class="label flex h-12 w-full flex-row flex-nowrap items-stretch rounded-sm border border-gray-200 px-3 dark:border-gray-700 dark:bg-gray-900 hover:dark:bg-gray-800"
+						placeholder="Search history"
+						bind:value={search}
+					/>
+				</div>
+			{/if}
+			{#if filteredSuggestions.length > 0}
+				<div class="list">
+					{#each groupedSuggestions as group (group.date)}
+						<h3 class="title-small text-foreground-alt mt-6 mb-2"><strong>{group.date}</strong></h3>
+						{#each group.suggestions as summary (summary.id)}
+							<hr />
+							<Button.Root
+								onclick={() => getFullRecipe(summary)}
+								disabled={app.status === 'loading' || !canRequestSuggestions}
+								class="listitem button text narrow"
+							>
+								<span class="listitem__content">
+									<span class="title-medium">{summary.title}</span>
+									<span class="body-medium text-foreground-alt dark:text-foreground-alt">{summary.short_description}</span>
+								</span>
+								<span class="listitem__end">
+									<ViewedBadge viewed={getViewedStatus(summary, summary.title).isViewed} />
+									<Button.Root
+										onclick={
+											(event: MouseEvent) => {
+												event.stopPropagation();
+												deleteSuggestion(summary.id)
 											}
-											class="button icon text"
-										>
-											<TrashIcon size="xs" />
-										</Button.Root>
-									</span>
-								</Button.Root>
-							{/each}
+										}
+										class="button icon text"
+									>
+										<TrashIcon size="xs" />
+									</Button.Root>
+								</span>
+							</Button.Root>
 						{/each}
-					</div>
-				{:else}
-					<p class="body-medium">
-						Your suggestion history will appear here after you start requesting recipe suggestions.
-					</p>
-				{/if}
-			</div>
+					{/each}
+				</div>
+			{:else}
+				<p class="body-large text-center my-24">
+					Your suggestion history will appear here after you start requesting recipe suggestions.
+				</p>
+			{/if}
 		</div>
 	{:else if viewState === 'error'}
 		<!-- Error View -->
@@ -434,7 +435,22 @@
 		</div>
 	{:else if viewState === 'idle-prompt'}
 		<!-- Prompt Results View (from Dexie) -->
-		<div class="mx-auto max-w-5xl w-full px-4 py-18 lg:px-8">
+		<PageHeader>
+			<AppBar.Root>
+				<AppBar.End>
+					{#if app.status === 'loading'}
+						<div class="grid h-10 w-10 place-content-center">
+							<ProgressSpinner size="xs" />
+						</div>
+					{/if}
+					<Button.Root href="/suggestions" class="button text narrow mr-2">
+						<RecipesIcon size="xs" />
+						<span>All suggestions</span>
+					</Button.Root>
+				</AppBar.End>
+			</AppBar.Root>
+		</PageHeader>
+		<div class="mx-auto max-w-5xl w-full px-4 py-8 lg:px-8">
 			<h1 class="headline-medium mb-8">
 				Here are some ideas for, <span class="italic">"{prompt}"</span>
 			</h1>

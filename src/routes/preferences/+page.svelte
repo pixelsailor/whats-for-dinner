@@ -281,4 +281,13 @@
 			{/if}
 		</Button.Root>
 	</form>
+
+	<div class="grid gap-6 my-18">
+		<h1 class="display-small">Ideas to implement</h1>
+		<ul class="body-medium">
+			<li>Set old recipes to auto-archive after X days</li>
+			<li>Set number of suggestions to keep in history</li>
+			<li>Set time delay for automatically marking recipes as "opened"</li>
+		</ul>
+	</div>
 </div>

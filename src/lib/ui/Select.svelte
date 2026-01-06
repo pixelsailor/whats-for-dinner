@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { Button, Select, type WithoutChildren } from 'bits-ui';
-	// import Button from './Button/Button.svelte';
-	import CloseOutlineIcon from './Icons/CloseOutlineIcon.svelte';
 	import type { MouseEventHandler } from 'svelte/elements';
-	import CaretDownIcon from './Icons/CaretDownIcon.svelte';
-	import CaretUpIcon from './Icons/CaretUpIcon.svelte';
-	import CheckmarkIcon from './Icons/CheckmarkIcon.svelte';
+	// import Button from './Button/Button.svelte';
+	import CaretDownIcon from './icons/CaretDownIcon.svelte';
+	import CaretUpIcon from './icons/CaretUpIcon.svelte';
+	import CheckmarkIcon from './icons/CheckmarkIcon.svelte';
+	import CloseOutlineIcon from './icons/CloseOutlineIcon.svelte';
 	import type { SelectOption } from './types';
 
 	type Props = WithoutChildren<Select.RootProps> & {

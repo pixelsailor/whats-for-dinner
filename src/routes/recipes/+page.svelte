@@ -10,8 +10,8 @@
 	import { AppBar } from '$lib/ui/AppBar';
 	// import { List, ListItem } from '$lib/ui/List';
 	// import CloudBackupIcon from '$lib/ui/Icons/CloudBackupIcon.svelte';
-	import DocumentAddIcon from '$lib/ui/Icons/DocumentAddIcon.svelte';
-	import TrashIcon from '$lib/ui/Icons/TrashIcon.svelte';
+	import DocumentAddIcon from '$lib/ui/icons2/DocumentAddIcon.svelte';
+	import TrashIcon from '$lib/ui/icons2/TrashIcon.svelte';
 	import PageHeader from '$lib/ui/PageHeader.svelte';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
 	import PxlIconButton from '$lib/ui/PxlIconButton.svelte';

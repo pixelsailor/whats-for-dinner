@@ -2,15 +2,15 @@
 	import { Button } from 'bits-ui';
 	import { db } from '$lib/db';
 	import { deletedRecipes } from '$lib/stores/recipes';
-	import IconButton from '$lib/ui/IconButton.svelte';
-	import RevertIcon from '$lib/ui/Icons/RevertIcon.svelte';
-	import { List, ListItem } from '$lib/ui/List';
+	// import IconButton from '$lib/ui/IconButton.svelte';
+	// import RevertIcon from '$lib/ui/icons/RevertIcon.svelte';
+	// import { List, ListItem } from '$lib/ui/List';
 	import PageHeader from '$lib/ui/PageHeader.svelte';
 	import { AppBar } from '$lib/ui/AppBar';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
 	import { slide } from 'svelte/transition';
 	import { toast } from 'svelte-sonner';
-	import TrashIcon from '$lib/ui/Icons/TrashIcon.svelte';
+	import TrashIcon from '$lib/ui/icons2/TrashIcon.svelte';
 
 	const restoreRecipe = async (id: string) => {
 		try {

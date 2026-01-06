@@ -17,6 +17,6 @@
 
 Structural component for placing items at the top of the page.
 -->
-<div class="backdrop-blur-sm sticky top-0 right-0 px-5 z-100" style:left>
+<div class="backdrop-blur-sm sticky top-0 right-0 px-4 lg:px-8 z-100" style:left>
 	{@render children()}
 </div>

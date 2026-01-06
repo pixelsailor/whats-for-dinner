@@ -11,8 +11,8 @@
 	import { suggestionStoreById } from '$lib/stores/suggestions';
 
 	import { AppBar } from '$lib/ui/AppBar';
-	import BackIcon from '$lib/ui/Icons/BackIcon.svelte';
-	import BookmarkIcon from '$lib/ui/Icons/BookmarkIcon.svelte';
+	import BackIcon from '$lib/ui/icons2/BackIcon.svelte';
+	import BookmarkIcon from '$lib/ui/icons2/BookmarkIcon.svelte';
 	import PageHeader from '$lib/ui/PageHeader.svelte';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
 	import Recipe from '$lib/ui/Recipe.svelte';

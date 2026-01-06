@@ -2,7 +2,7 @@
 	import type { IconSize } from '$lib/types';
 	import IconRoot from './IconRoot.svelte';
 
-	let { size }: { size?: IconSize | number } = $props();
+	let { size, color }: { size?: IconSize | number, color?: string } = $props();
 </script>
 
 <IconRoot {size}>
@@ -11,7 +11,7 @@
 			data-svg-carbon-icon="ChevronLeft32"
 			xmlns="http://www.w3.org/2000/svg"
 			viewBox="0 0 32 32"
-			fill="currentColor"
+			fill={color || 'currentColor'}
 			width={iconSize}
 			height={iconSize}
 			preserveAspectRatio="xMidYMid meet"

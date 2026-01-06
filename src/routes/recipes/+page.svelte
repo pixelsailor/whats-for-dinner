@@ -149,7 +149,8 @@
 							tooltip="Delete recipe"
 							tooltipPosition="left"
 							onclick={(event: MouseEvent) => {
-								event.stopPropagation();
+								event.preventDefault();
+								event.stopImmediatePropagation();
 								deleteRecipe(recipe.id, recipe.title);
 							}}
 						>

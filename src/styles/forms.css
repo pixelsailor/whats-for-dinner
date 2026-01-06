@@ -1,0 +1,86 @@
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  height: 5.75rem;
+  position: relative;
+  justify-content: center;
+
+  & > label,
+  & > .label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+  }
+
+  .form-field__error,
+  .form-field__hint {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+
+  textarea {
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+    height: fit-content;
+  }
+
+  &.twi-inline {
+    flex-flow: row wrap;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  &.form-field--nolabel,
+  &.form-field--nohints {
+    height: 4.25rem;
+  }
+
+  &.form-field--nolabel {
+    justify-content: start !important;
+
+    & > label {
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      overflow: hidden;
+      clip-path: rect(0 0 0 0);
+      overflow-wrap: normal;
+      border: 0;
+    }
+
+    textarea {
+      margin-top: 0;
+    }
+  }
+
+  &.form-field--nohints {
+    justify-content: end !important;
+  }
+  
+  &.form-field--nolabel.form-field--nohints {
+    height: 2.825rem;
+
+    textarea {
+      margin-bottom: 0;
+    }
+  }
+
+  &.tw-dense {
+    height: 4.5rem;
+  }
+
+  &.twi-otp,
+  &.twi-stretch {
+    min-height: 7.5rem;
+    height: stretch;
+  }
+
+  /* Reserve additional space when a header row (label + actions) is used. Adds ~2rem for the header row above the control for improved error spacing */
+  &.form-field--with-header {
+    height: 8rem;
+  }
+}

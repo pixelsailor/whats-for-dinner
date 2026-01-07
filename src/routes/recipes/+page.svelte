@@ -5,7 +5,7 @@
 	import { toast } from 'svelte-sonner';
 
 	import { db } from '$lib/db';
-	import { recipes } from '$lib/stores/recipes';
+	import { recipes as recipesStore } from '$lib/stores/recipes';
 	
 	import { AppBar } from '$lib/ui/AppBar';
 	// import { List, ListItem } from '$lib/ui/List';
@@ -17,8 +17,11 @@
 	import PxlIconButton from '$lib/ui/PxlIconButton.svelte';
 	import Select from '$lib/ui/Select.svelte';
 	import type { SelectOption } from '$lib/ui/types.js';
+	import type { SavedRecipe } from '$lib/api/recipe';
 
 	let { data } = $props();
+
+	let recipes = $derived<SavedRecipe[]>($recipesStore.data ?? []);
 	
 	const commonTags = new SvelteSet<string>();
 
@@ -30,17 +33,16 @@
 
 	// Suggestions filtered by search and tags
 	let filteredRecipes = $derived.by(() => {
-		let results = $recipes.data;
-		if (!results) return [];
+		if (!recipes.length) return [];
 
 		const titleSearch = search?.toLowerCase().trim() || '';
 		const hasSearch = Boolean(search && search.length > 1);
 		const hasFilters = selectedTags && selectedTags.length > 0;
 		if (!hasSearch && !hasFilters) {
-			return results;
+			return recipes;
 		}
 
-		return results.filter((r) => {
+		return recipes.filter((r) => {
 			const searchMatches = !hasSearch || r.title.toLowerCase().includes(titleSearch);
 			const tagMatches = !hasFilters || selectedTags.every((t) => r.tags.includes(t));
 			return searchMatches && tagMatches;
@@ -49,8 +51,8 @@
 
 	// Populate the tags set with the tags from the recipes
 	$effect(() => {
-		if ($recipes.data) {
-			$recipes.data.forEach((r) => {
+		if (recipes.length) {
+			recipes.forEach((r) => {
 				if (r.tags && r.tags.length > 0) {
 					if (typeof r.tags === 'string') {
 						commonTags.add(r.tags);
@@ -113,23 +115,23 @@
 </PageHeader>
 
 <div class="mx-auto max-w-5xl px-4 lg:px-8 py-8">
-	{#if $recipes.loading}
+	{#if $recipesStore.loading}
 		<div class="absolute inset-0 grid place-content-center">
 			<ProgressSpinner size="lg" />
 		</div>
-	{:else if $recipes.error}
+	{:else if $recipesStore.error}
 		<div class="mx-auto grid h-screen w-full max-w-3xl place-content-center gap-6">
 			<h1 class="display-medium">Ah donkey-spittle! There was a problem.</h1>
 			<p class="flex items-center gap-3">
-				<span class="fluid-heading-03">{$recipes.error.name}</span><span>|</span><span>{$recipes.error?.message}</span>
+				<span class="fluid-heading-03">{$recipesStore.error.name}</span><span>|</span><span>{$recipesStore.error?.message}</span>
 			</p>
 		</div>
-	{:else if $recipes.data}
+	{:else if $recipesStore.data}
 		<h1 class="display-small mb-8">My Recipes</h1>
 		<div class="my-12 grid w-full grid-cols-2 gap-4">
 			<input
 				type="text"
-				class="label my-1 flex h-12 w-full flex-row flex-nowrap items-stretch rounded-sm border border-gray-200 px-3 dark:border-gray-700 dark:bg-gray-900 hover:dark:bg-gray-800"
+				class="label my-1 flex h-input w-full flex-row flex-nowrap items-stretch rounded-sm border border-gray-200 px-3 dark:border-gray-700 dark:bg-gray-900 hover:dark:bg-gray-800"
 				placeholder="Search history"
 				bind:value={search}
 			/>

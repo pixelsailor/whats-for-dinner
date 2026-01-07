@@ -75,6 +75,14 @@
   height: calc(var(--height-input) - 2px);
 }
 
+.button.free {
+  height: auto;
+}
+
+.button.justify-between {
+  @apply justify-between;
+}
+
 .button:disabled {
   @apply bg-dark-10 text-dark-40 opacity-50 cursor-not-allowed pointer-events-none;
 

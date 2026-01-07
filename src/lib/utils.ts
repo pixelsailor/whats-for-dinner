@@ -65,3 +65,7 @@ export function isModificationRequest(input: string): boolean {
 	const lowered = input.toLowerCase().trim();
 	return keywords.some((k) => lowered.startsWith(k));
 }
+
+export function sentenceCase(input: string): string {
+	return input.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
+}

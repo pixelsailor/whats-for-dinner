@@ -288,6 +288,7 @@
 			<li>Set old recipes to auto-archive after X days</li>
 			<li>Set number of suggestions to keep in history</li>
 			<li>Set time delay for automatically marking recipes as "opened"</li>
+			<li>User defined recommendations order</li>
 		</ul>
 	</div>
 </div>

@@ -24,13 +24,14 @@ import { db } from '$lib/db';
 import type { SavedRecipe } from '$lib/api/recipe';
 import { createLiveQueryStore } from './_utils';
 
-/** Returns all active recipes */
+/** Returns all active recipes sorted by title */
 export const recipes = createLiveQueryStore(async () => {
 	const all = await db.recipes.toArray() as unknown as SavedRecipe[] | undefined;
 	if (!all) {
 		return [];
 	}
-	return all.filter((r) => !r.deleted_at && r.is_current);
+	const active = all.filter((r) => !r.deleted_at && r.is_current);
+	return active.sort((a, b) => a.title.localeCompare(b.title));
 });
 
 /**

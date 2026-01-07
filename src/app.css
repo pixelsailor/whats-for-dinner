@@ -60,6 +60,8 @@
 	--accent-foreground: hsl(0 0% 100% / 0.8);
 	--destructive: hsl(347 77% 50%);
 	--tertiary: hsl(37.7 92.1% 50.2%);
+	--info: hsl(201 90% 50%);
+	--success: hsl(141 71% 48%);
 	--line: hsl(0 0% 90.92%);
  
 	/* black */
@@ -132,6 +134,8 @@
 	--color-accent-foreground: var(--accent-foreground);
 	--color-destructive: var(--destructive);
 	--color-tertiary: var(--tertiary);
+	--color-info: var(--info);
+	--color-success: var(--success);
 	--color-line: var(--line);
 	--color-contrast: var(--contrast);
  
@@ -349,6 +353,7 @@
 }
 
 @import './styles/buttons';
+@import './styles/forms';
 @import './styles/typography';
 @import './styles/markdown';
 @import './styles/ui';

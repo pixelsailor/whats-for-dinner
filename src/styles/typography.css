@@ -229,3 +229,27 @@
 .listitem.button > .listitem__end > .button.text {
   @apply hover:bg-gray-50 dark:hover:bg-black/95;
 }
+
+.badge {
+  @apply inline-flex rounded-full items-center justify-center bg-accent text-accent-foreground min-w-6 h-6;
+
+  &.danger {
+    @apply bg-destructive text-contrast;
+  }
+
+  &.warn {
+    @apply bg-tertiary text-contrast;
+  }
+
+  &.info {
+    @apply bg-info text-contrast;
+  }
+  
+  &.success {
+    @apply bg-success text-contrast;
+  }
+
+  &.subtle {
+    @apply bg-muted text-muted-foreground;
+  }
+}

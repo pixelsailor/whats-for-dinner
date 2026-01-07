@@ -154,67 +154,35 @@
 	});
 </script>
 
-<PageHeader>
-	<AppBar.Root>
-		<!-- <AppBar.Text primary="Recommendations" /> -->
-		<AppBar.End>
-			<Button.Root
-				class="button text narrow"
-				onclick={loadRecommendations} 
-				disabled={loading}
-			>
-				<span>Refresh</span>
-			</Button.Root>
-		</AppBar.End>
-	</AppBar.Root>
-</PageHeader>
-
-<div class="flex gap-8 mx-auto max-w-5xl px-4 lg:px-8 py-8">
-	{#if loading}
-		<div class="mx-auto grid h-screen w-full max-w-3xl place-content-center">
-			<ProgressSpinner size="lg" />
-		</div>
-	{:else if error}
-		<div class="mx-auto grid h-screen w-full max-w-3xl place-content-center gap-6">
-			<h1 class="display-medium">Ah donkey-spittle! There was a problem.</h1>
-			<p class="flex items-center gap-3">
-				<span class="fluid-heading-03">Error</span><span>|</span><span>{error}</span>
-			</p>
-		</div>
-	{:else}
-		<!-- Sidebar Navigation -->
-		<aside class="w-72">
-			<nav class="sticky top-24">
-				<div class="flex flex-col gap-2 mb-6">
-					<p class="label-large text-gray-500 dark:text-gray-400">Currently showing:</p>
-					<Toggle.Root
-						bind:pressed={useMealContext}
-						class="h-input bg-background rounded-input border-border flex flex-nowrap items-stretch justify-start gap-1 border px-1 py-1"
-					>
-						<Button.Root onclick={() => useMealContext = false} class={['button free narrow label-medium', !useMealContext ? 'text' : 'primary cursor-default!']}>
-							<span>{sentenceCase(currentMealContext ?? '')} recipes</span>
-						</Button.Root>
-						<Button.Root onclick={() => useMealContext = true} class={['button free narrow label-medium', useMealContext ? 'text' : 'primary cursor-default!']}>
-							<span>All recipes</span>
-						</Button.Root>
-					</Toggle.Root>
-				</div>
-				<ul class="my-6">
-					{#each categories as category}
-						<li>
-							<button
-								class="button text narrow w-full justify-between"
-								onclick={() => scrollToCategory(category.id)}
-							>
-								{category.title}
-								<span class="badge subtle label-small">{category.recipes.length}</span>
-							</button>
-						</li>
-					{/each}
-				</ul>
-			</nav>
-		</aside>
-
+<div
+	class="grid h-screen"
+	style:place-content={$recipesStore.data ? 'start stretch' : 'center'}
+>
+{#if loading}
+	<ProgressSpinner size="lg" />
+{:else if error}
+	<div class="flex flex-col max-w-3xl gap-6">
+		<h1 class="display-medium">Ah donkey-spittle! There was a problem.</h1>
+		<p class="flex items-center gap-3">
+			<span class="fluid-heading-03">Error</span><span>|</span><span>{error}</span>
+		</p>
+	</div>
+{:else}
+	<PageHeader>
+		<AppBar.Root>
+			<!-- <AppBar.Text primary="Recommendations" /> -->
+			<AppBar.End>
+				<Button.Root
+					class="button text narrow"
+					onclick={loadRecommendations} 
+					disabled={loading}
+				>
+					<span>Refresh</span>
+				</Button.Root>
+			</AppBar.End>
+		</AppBar.Root>
+	</PageHeader>
+	<div class="flex gap-8 mx-auto max-w-7xl w-full px-4 lg:px-8 py-8">
 		<!-- Main Content -->
 		<div class="max-w-5xl w-full flex-1">
 			<div class="mb-8">
@@ -247,5 +215,38 @@
 				</section>
 			{/each}
 		</div>
-	{/if}
+		<!-- Sidebar Navigation -->
+		<aside class="w-72">
+			<nav class="sticky top-24">
+				<div class="flex flex-col gap-2 mb-6">
+					<p class="label-large text-gray-500 dark:text-gray-400">Currently showing:</p>
+					<Toggle.Root
+						bind:pressed={useMealContext}
+						class="h-input bg-background rounded-input border-border flex flex-nowrap items-stretch justify-start gap-1 border px-1 py-1"
+					>
+						<Button.Root onclick={() => useMealContext = false} class={['button free narrow label-medium', !useMealContext ? 'text' : 'primary cursor-default!']}>
+							<span>{sentenceCase(currentMealContext ?? '')} recipes</span>
+						</Button.Root>
+						<Button.Root onclick={() => useMealContext = true} class={['button free narrow label-medium', useMealContext ? 'text' : 'primary cursor-default!']}>
+							<span>All recipes</span>
+						</Button.Root>
+					</Toggle.Root>
+				</div>
+				<ul class="my-6">
+					{#each categories as category}
+						<li>
+							<button
+								class="button text narrow w-full justify-between"
+								onclick={() => scrollToCategory(category.id)}
+							>
+								{category.title}
+								<span class="badge subtle label-small">{category.recipes.length}</span>
+							</button>
+						</li>
+					{/each}
+				</ul>
+			</nav>
+		</aside>
+	</div>
+{/if}
 </div>

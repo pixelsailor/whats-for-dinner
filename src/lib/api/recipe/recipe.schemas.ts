@@ -13,7 +13,7 @@
 
 import { z } from 'zod';
 
-const CATEGORY_TAGS = {
+export const CATEGORY_TAGS = {
 	course: ['breakfast', 'brunch', 'lunch', 'dinner', 'dessert', 'snack', 'beverage', 'main', 'side', 'light meal'],
 	cuisine: [
 		'american',
@@ -149,7 +149,7 @@ export const SavedRecipeSchema = RecipeSchema.extend({
 	archived: z.iso.datetime().nullable(),
 	/** Optional deletion timestamp. */
 	deleted_at: z.iso.datetime().nullable(),
-	/** Timestamp indicating when the recipe was last opened. @deprecated Use `checkout_history` instead. */
+	/** Timestamp indicating when the recipe was last opened. */
 	last_opened: z.iso.datetime(),
 	/** Monotonically increasing version number used for edits.
 	 * @todo Requires repo of recipe versions -- supabase users only
@@ -171,7 +171,7 @@ export const SavedRecipeSchema = RecipeSchema.extend({
 	last_synced_at: z.iso.datetime().nullable(),
 	/** Error message from last sync attempt, if any. */
 	sync_error: z.string().nullable(),
-	/** History of checkout dates. */
+	/** History of checkout/made this today dates. */
 	checkout_history: z.array(z.iso.datetime()).nullable()
 });
 

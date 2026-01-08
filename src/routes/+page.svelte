@@ -70,7 +70,7 @@
 		</div>
 	{:else if app.view === 'idle'}
 		<div class="mx-auto w-full max-w-3xl">
-			<h1 class="display-small my-4 text-center">{getGreeting()}</h1>
+			<h1 class="display-small mb-6 text-center">{getGreeting()}</h1>
 			{#if canUseAI}
 				<Prompt style="margin-bottom: 0">
 					<form class="flex w-full flex-row gap-2" onsubmit={getSuggestions}>

@@ -9,7 +9,7 @@
 	import PageHeader from '$lib/ui/PageHeader.svelte';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
 	import toMillis from '$lib/utils/toMilliseconds';
-	import { recipes as recipesStore } from '$lib/stores/recipes';
+	import { unsortedRecipesStore } from '$lib/stores/recipes';
 	import { sentenceCase } from '$lib/utils';
 
 	interface RecipeCategory {
@@ -18,9 +18,9 @@
 		recipes: SavedRecipe[];
 	}
 
-	let recipes = $derived<SavedRecipe[]>($recipesStore.data ?? []);
-	let loading = $derived($recipesStore.loading);
-	let error = $derived($recipesStore.error);
+	let recipes = $derived<SavedRecipe[]>($unsortedRecipesStore.data ?? []);
+	let loading = $derived($unsortedRecipesStore.loading);
+	let error = $derived($unsortedRecipesStore.error);
 
 	let categories = $state<RecipeCategory[]>([]);
 
@@ -156,7 +156,7 @@
 
 <div
 	class="grid h-screen"
-	style:place-content={$recipesStore.data ? 'start stretch' : 'center'}
+	style:place-content={$unsortedRecipesStore.data ? 'start stretch' : 'center'}
 >
 {#if loading}
 	<ProgressSpinner size="lg" />

@@ -25,7 +25,7 @@ import type { SavedRecipe } from '$lib/api/recipe';
 import { createLiveQueryStore } from './_utils';
 
 /** Returns all active recipes sorted by title */
-export const recipes = createLiveQueryStore(async () => {
+export const recipesStore = createLiveQueryStore(async () => {
 	const all = await db.recipes.toArray() as unknown as SavedRecipe[] | undefined;
 	if (!all) {
 		return [];
@@ -34,17 +34,13 @@ export const recipes = createLiveQueryStore(async () => {
 	return active.sort((a, b) => a.title.localeCompare(b.title));
 });
 
-/**
- * Get a single recipe by id
- * @deprecated Use `singleRecipeStore` instead. @see src/lib/stores/recipes.ts
- */
-export async function getSavedRecipe(id: string): Promise<SavedRecipe> {
-	const recipe = await db.recipes.get(id) as SavedRecipe | undefined;
-	if (!recipe) {
-		throw new Error(`Recipe with id "${id}" not found.`);
+export const unsortedRecipesStore = createLiveQueryStore(async () => {
+	const all = await db.recipes.toArray() as unknown as SavedRecipe[] | undefined;
+	if (!all) {
+		return [];
 	}
-	return recipe;
-}
+	return all.filter((r) => !r.deleted_at && r.is_current);
+});
 
 /**
  * Returns a single recipe by id
@@ -57,7 +53,7 @@ export async function getSavedRecipe(id: string): Promise<SavedRecipe> {
  * $recipe.data; // { id: '123', name: 'Recipe 1' }
  * ```
  */
-export const singleRecipeStore = (id: string) => createLiveQueryStore(async () => {
+export const getRecipeStore = (id: string) => createLiveQueryStore(async () => {
 	const recipe = await db.recipes.get(id) as SavedRecipe | undefined;
 	if (!recipe) {
 		throw new Error(`Recipe with id "${id}" not found.`);
@@ -66,7 +62,7 @@ export const singleRecipeStore = (id: string) => createLiveQueryStore(async () =
 });
 
 /** Returns recipes that have been deleted */
-export const deletedRecipes = createLiveQueryStore(async () => {
+export const deletedRecipesStore = createLiveQueryStore(async () => {
 	const all = await db.recipes.toArray() as unknown as SavedRecipe[] | undefined;
 	if (!all) {
 		return [];

@@ -5,7 +5,7 @@
 	import { CloudService, SyncService } from '$lib/api/cloud';
 	import { db } from '$lib/db';
 
-	import { deletedRecipes } from '$lib/stores/recipes';
+	import { deletedRecipesStore } from '$lib/stores/recipes';
 	import { AppBar } from '$lib/ui/AppBar';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
 	import RevertIcon from '$lib/ui/icons/RevertIcon.svelte';
@@ -44,7 +44,7 @@
 
 	/** Update app.status based on the deleted recipes data. */
 	$effect(() => {
-		if ($deletedRecipes.data) {
+		if ($deletedRecipesStore.data) {
 			app.status = 'idle';
 		} else {
 			app.status = 'loading';
@@ -92,7 +92,7 @@
 	}
 
 	const deleteAll = async () => {
-		const all = $deletedRecipes.data?.map((recipe) => recipe.id);
+		const all = $deletedRecipesStore.data?.map((recipe) => recipe.id);
 		if (!all?.length) return;
 		app.status = 'loading';
 		if (hasCloudStorageAccess && syncService) {
@@ -118,7 +118,7 @@
 					<ProgressSpinner size="xs" />
 				</div>
 			{/if}
-			{#if $deletedRecipes.data && $deletedRecipes.data.length}
+			{#if $deletedRecipesStore.data && $deletedRecipesStore.data.length}
 				<Button.Root onclick={deleteAll} class="button text narrow danger" title="Permanently delete all recipes">
 					<TrashIcon size="xs" />
 					<span>Empty trash</span>
@@ -129,25 +129,25 @@
 </PageHeader>
 
 <div class="mx-auto max-w-5xl px-4 lg:px-8 py-8">
-	{#if $deletedRecipes.loading}
+	{#if $deletedRecipesStore.loading}
 		<div class="mx-auto grid h-screen w-full max-w-3xl place-content-center">
 			<ProgressSpinner size="lg" />
 		</div>
-	{:else if $deletedRecipes.error}
+	{:else if $deletedRecipesStore.error}
 		<div class="mx-auto grid h-screen w-full max-w-3xl place-content-center gap-6">
 			<h1 class="display-medium">Ah donkey-spittle! There was a problem.</h1>
 			<p class="flex items-center gap-3">
-				<span class="fluid-heading-03">{$deletedRecipes.error.name}</span><span>|</span><span
-					>{$deletedRecipes.error?.message}</span
+				<span class="fluid-heading-03">{$deletedRecipesStore.error.name}</span><span>|</span><span
+					>{$deletedRecipesStore.error?.message}</span
 				>
 			</p>
 		</div>
-	{:else if $deletedRecipes.data}
+	{:else if $deletedRecipesStore.data}
 		<h1 class="display-small mb-3">Trash Bin</h1>
 		<p class="body-large mb-8 italic">Deleted recipes are kept for 30 days, after which they are permanently deleted.</p>
-		{#if $deletedRecipes.data.length > 0}
+		{#if $deletedRecipesStore.data.length > 0}
 			<div class="list">
-				{#each $deletedRecipes.data as recipe (recipe.id)}
+				{#each $deletedRecipesStore.data as recipe (recipe.id)}
 					<hr />
 					<div class="listitem">
 						<span class="listitem__content">

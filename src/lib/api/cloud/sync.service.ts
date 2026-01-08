@@ -157,6 +157,9 @@ export class SyncService {
   /**
    * Update a recipe in the cloud and silently sync the local database.
    * 
+   * Failed updates should continue to update the local database regardless. A sync error will be 
+   * recorded in the recipe and the error propagated to the caller.
+   * 
    * @param recipeData - The recipe data to update.
    * @returns The updated recipe.
    */

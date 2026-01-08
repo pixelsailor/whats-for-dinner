@@ -10,8 +10,8 @@
 	import { CloudService, SyncService } from '$lib/api/cloud';
 	import type { SavedRecipe } from '$lib/api/recipe';
 	import { db } from '$lib/db';
-	import { singleRecipeStore } from '$lib/stores/recipes';
-	import type { PromptContext, ViewState } from '$lib/types';
+	import { getRecipeStore } from '$lib/stores/recipes';
+	import type { ApiResponse, PromptContext, ViewState } from '$lib/types';
 
 	import { AppBar } from '$lib/ui/AppBar';
 	import EditableRecipe from '$lib/ui/EditableRecipe.svelte';
@@ -105,7 +105,7 @@
 		if (isShared) {
 			throw new Error('Shared recipes not yet supported');
 		} else {
-			return singleRecipeStore(id);
+			return getRecipeStore(id);
 		}
 	});
 
@@ -142,6 +142,8 @@
 
 		app.status = 'loading';
 		openedTimer = null;
+
+		markAsOpened();
 	});
 
 	/**
@@ -266,7 +268,7 @@
 	function toggleFavorite() {
 		if (!recipe) return;
 		recipe.is_favorite = !recipe.is_favorite;
-		saveChanges(true);
+		saveChanges(true, { is_favorite: recipe.is_favorite });
 	}
 
 	/** Revert the user's indication of whether they made this today */
@@ -289,7 +291,7 @@
 			openedTimer = null;
 		}
 		recipe.checkout_history = checkoutHistory;
-		saveChanges(true);
+		saveChanges(true, { checkout_history: checkoutHistory });
 	}
 
 	/**
@@ -299,40 +301,39 @@
 	 * If unavailable or the upload fails, save the recipe locally.
 	 *
 	 * @param disableToast - If true, successful toast notifications will not be shown
+	 * @param changes - Optional changes to the recipe to save. If not provided, the entire
+	 * recipe object will be saved.
 	 */
-	async function saveChanges(disableToast: boolean = false) {
+	async function saveChanges(disableToast: boolean = false, changes?: Partial<SavedRecipe>) {
 		if (!recipe) return;
 		app.status = 'loading';
 
-		let candidate: SavedRecipe | undefined = undefined;
-		let syncError = false;
-
-		if (hasCloudStorageAccess && cloudService) {
+		if (hasCloudStorageAccess && syncService) {
 			try {
-				candidate = await cloudService.uploadLocalRecipe(recipe);
-			} catch (err) {
-				console.error('Cloud save failed; continuing locally', err);
-				syncError = true;
-				candidate = { ...recipe, updated_at: new Date().toISOString() };
-			}
-		} else {
-			candidate = { ...recipe, updated_at: new Date().toISOString() };
-		}
-
-		try {
-			await db.recipes.put(candidate);
-			if (syncError) {
-				toast.info('Recipe saved locally but failed to sync to cloud');
-			} else {
+				const candidate: Partial<SavedRecipe> & { id: string } = changes
+						? { ...changes, id: recipe.id }
+						: $state.snapshot(recipe);
+				await syncService.updateRecipeAndSyncLocal(candidate);
 				if (!disableToast) {
 					toast.success('Recipe saved');
 				}
+			} catch (err) {
+				toast.error(err instanceof Error ? err.message : 'Unknown error');
+			} finally {
+				app.status = 'idle';
 			}
-		} catch (err) {
-			console.error('Local save failed', err);
-			toast.error('There was a problem saving the recipe');
-		} finally {
-			app.status = 'idle';
+		} else {
+			try {
+				const candidate: Partial<SavedRecipe> & { id: string } = changes
+						? { ...changes, id: recipe.id }
+						: $state.snapshot(recipe);
+				await db.recipes.update(recipe.id, candidate);
+				if (!disableToast) {
+					toast.success('Recipe saved');
+				}
+			} catch (err) {
+				toast.error(err instanceof Error ? err.message : 'Unknown error');
+			}
 		}
 	}
 
@@ -354,6 +355,12 @@
 		} else {
 			await db.recipes.update(id, { deleted_at: now });
 		}
+	}
+
+	/** Update the recipe's last_opened timestamp */
+	function markAsOpened() {
+		if (!recipe) return;
+		saveChanges(true, { last_opened: new Date().toISOString() });
 	}
 
 	/** Open a date picker to update the last prepared date */

@@ -5,7 +5,7 @@
 	// import { SvelteQueryDevtools } from '@tanstack/svelte-query-devtools';
 
 	import { MIN_DESKTOP_SIZE } from '$lib/constants';
-	import { recentlyOpened } from '$lib/stores/recipes';
+	import { recentlyOpenedStore } from '$lib/stores/recipes';
 	import { networkStore } from '$lib/stores/network';
 	import { AppBar } from '$lib/ui/AppBar';
 	import Button from '$lib/ui/Button/Button.svelte';
@@ -125,6 +125,8 @@
 	let conflictQueue = $state<SyncConflict[]>([]);
 	let currentConflict = $derived(conflictQueue[0] ?? null);
 	let syncing = $state(false);
+
+	let recentlyOpened = $derived($recentlyOpenedStore.data ?? []);
 
 	async function handleSignOut() {
 		await supabase.auth.signOut();
@@ -377,14 +379,18 @@
 
 {#snippet sidenav()}
 	<AppBar.Root disableMobileNav>
-		<Button size="md" href="/" icon>
-			<ChatbotIcon />
-		</Button>
+		<div class="ml-1">
+			<Button size="md" href="/" icon>
+				<ChatbotIcon />
+			</Button>
+		</div>
 		<AppBar.Text primary="" />
 		<AppBar.End>
-			<Button size="xs" onClick={toggleSidenav} label="Minimize navigation panel" icon style="margin-right: 0.5rem;">
-				<CollapseSidenavIcon />
-			</Button>
+			<div class="mr-4">
+				<Button size="xs" onClick={toggleSidenav} label="Minimize navigation panel" icon>
+					<CollapseSidenavIcon />
+				</Button>
+			</div>
 		</AppBar.End>
 	</AppBar.Root>
 
@@ -408,12 +414,12 @@
 		<div class="mx-3 mt-8 mb-2">
 			<span class="heading-compact text-gray-500">Recent recipes</span>
 		</div>
-		{#if $recentlyOpened.length === 0}
+		{#if recentlyOpened.length === 0}
 			<p class="helper-text m-3 italic">Your recently viewed recipes will appear here.</p>
-		{:else if $recentlyOpened.length > 0}
+		{:else if recentlyOpened.length > 0}
 			<NavigationMenu.Root orientation="vertical">
 				<NavigationMenu.List>
-					{#each $recentlyOpened as recipe (recipe.id)}
+					{#each recentlyOpened as recipe (recipe.id)}
 						<NavigationMenu.Item>
 							<NavigationMenu.Link
 								href="/recipes/{recipe.id}"
@@ -493,9 +499,11 @@
 				>
 					<AppBar.Root>
 						<AppBar.Start>
-							<Button size="xs" onClick={toggleSidenav} label="Toggle side-nav" icon>
-								<OpenPanelLeftIcon />
-							</Button>
+							<div class="ml-1">
+								<Button size="xs" onClick={toggleSidenav} label="Toggle side-nav" icon>
+									<OpenPanelLeftIcon />
+								</Button>
+							</div>
 						</AppBar.Start>
 					</AppBar.Root>
 					<div class="flex flex-col gap-2 p-1">
@@ -603,6 +611,7 @@
 <style>
 	.sidebar {
 		height: 100%;
+		height: -webkit-fill-available;
 	}
 
 	:global(.sidenav-link) {

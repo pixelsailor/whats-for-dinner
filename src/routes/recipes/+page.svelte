@@ -5,7 +5,7 @@
 	import { toast } from 'svelte-sonner';
 
 	import { db } from '$lib/db';
-	import { recipes as recipesStore } from '$lib/stores/recipes';
+	import { recipesStore } from '$lib/stores/recipes';
 	
 	import { AppBar } from '$lib/ui/AppBar';
 	// import { List, ListItem } from '$lib/ui/List';

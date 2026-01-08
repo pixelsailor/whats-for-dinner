@@ -351,9 +351,12 @@
 			if (!response.success) {
 				toast.error('There was a problem trying to restore the recipe.');
 				return;
+			} else {
+				goto('/recipes');
 			}
 		} else {
 			await db.recipes.update(id, { deleted_at: now });
+			goto('/recipes');
 		}
 	}
 

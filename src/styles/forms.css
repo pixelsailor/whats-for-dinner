@@ -1,18 +1,11 @@
+::placeholder {
+  @apply text-foreground-alt/80 dark:text-foreground-alt/80;
+}
+
 .form-field {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  height: 5.75rem;
-  position: relative;
-  justify-content: center;
-
-  & > label,
-  & > .label {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-  }
+  gap: 0.25rem;
 
   .form-field__error,
   .form-field__hint {
@@ -20,12 +13,6 @@
     bottom: 0;
     left: 0;
     right: 0;
-  }
-
-  textarea {
-    margin-top: 1.5rem;
-    margin-bottom: 1.5rem;
-    height: fit-content;
   }
 
   &.twi-inline {
@@ -82,5 +69,23 @@
   /* Reserve additional space when a header row (label + actions) is used. Adds ~2rem for the header row above the control for improved error spacing */
   &.form-field--with-header {
     height: 8rem;
+  }
+}
+
+.textinput {
+  @apply h-input border border-border-input dark:border-gray-700 hover:border-border-input-hover bg-background dark:bg-gray-900;
+  border-radius: var(--radius-input);
+  padding: var(--padding-input-y) var(--padding-input-x);
+}
+
+.textarea {
+  @apply border border-border-input dark:border-gray-700 hover:border-border-input-hover min-h-16 max-h-64 resize-none bg-background dark:bg-gray-900;
+  border-radius: var(--radius-input);
+  padding: var(--padding-input-y) var(--padding-input-x);
+
+  &.stretch {
+    min-height: 7.5rem;
+    height: stretch;
+    height: -webkit-fill-available;
   }
 }

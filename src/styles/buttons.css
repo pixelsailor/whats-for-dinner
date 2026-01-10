@@ -67,7 +67,7 @@
 }
 
 .button.narrow {
-  @apply px-input-sm;
+  @apply px-input-xs;
 }
 
 .button.inset {

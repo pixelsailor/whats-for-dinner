@@ -56,11 +56,11 @@ _Reference: bits-ui [Select](https://bits-ui.com/docs/components/select/llms.txt
 
 <Select.Root bind:value={value as never} {...restProps}>
 	<div
-		class="body-medium my-1 flex h-input flex-row flex-nowrap items-stretch rounded-sm border border-border-input dark:border-gray-700 bg-background dark:bg-gray-900"
+		class="body-medium flex h-input flex-row flex-nowrap items-stretch rounded-sm border border-border-input hover:border-border-input-hover dark:border-gray-700 bg-background dark:bg-gray-900"
 		bind:this={containerRef}
 	>
 		<Select.Trigger
-			class="h-input flex-auto border-none data-placeholder:text-foreground-alt/50 inline-flex w-[296px] touch-none select-none items-center border px-[11px] text-sm transition-colors cursor-pointer"
+			class="h-input flex-auto border-none data-placeholder:text-foreground-alt/50 inline-flex w-[296px] touch-none select-none items-center border px-input text-sm transition-colors cursor-pointer"
 		>
 			<div class="flex flex-row flex-wrap gap-1">
         {#if restProps.type === 'multiple'}
@@ -94,21 +94,46 @@ _Reference: bits-ui [Select](https://bits-ui.com/docs/components/select/llms.txt
 			</Select.ScrollUpButton>
 			<Select.Viewport class="p-1">
 				{#each items as item}
-					<Select.Item
-						value={item.value}
-            label={item.label}
-            disabled={item.disabled}
-						class="rounded-button data-highlighted:bg-muted outline-hidden data-disabled:opacity-50 flex h-10 w-full select-none items-center py-3 pl-3 pr-1.5 text-sm cursor-pointer"
-					>
-						{#snippet children({ selected })}
-							<span class="w-min grow truncate">{item.label}</span>
-							{#if selected}
-								<span class="flex-none text-green-500">
-									<CheckmarkIcon size="xs" />
-								</span>
-							{/if}
-						{/snippet}
-					</Select.Item>
+					{#if item.items}
+						<Select.Group>
+							<Select.GroupHeading class="label-medium uppercase mx-2 my-2 text-gray-500">
+								{item.label}
+							</Select.GroupHeading>
+							{#each item.items as subItem}
+								<Select.Item
+									value={subItem.value}
+									label={subItem.label}
+									disabled={subItem.disabled}
+									class="rounded-button data-highlighted:bg-muted outline-hidden data-disabled:opacity-50 flex h-10 w-full select-none items-center py-3 pl-3 pr-1.5 text-sm cursor-pointer"
+								>
+									{#snippet children({ selected })}
+										<span class="w-min grow truncate">{subItem.label}</span>
+										{#if selected}
+											<span class="flex-none text-green-500">
+												<CheckmarkIcon size="xs" />
+											</span>
+										{/if}
+									{/snippet}
+								</Select.Item>
+							{/each}
+						</Select.Group>
+					{:else}
+						<Select.Item
+							value={item.value}
+							label={item.label}
+							disabled={item.disabled}
+							class="rounded-button data-highlighted:bg-muted outline-hidden data-disabled:opacity-50 flex h-10 w-full select-none items-center py-3 pl-3 pr-1.5 text-sm cursor-pointer"
+						>
+							{#snippet children({ selected })}
+								<span class="w-min grow truncate">{item.label}</span>
+								{#if selected}
+									<span class="flex-none text-green-500">
+										<CheckmarkIcon size="xs" />
+									</span>
+								{/if}
+							{/snippet}
+						</Select.Item>
+					{/if}
 				{/each}
 			</Select.Viewport>
 			<Select.ScrollDownButton class="flex justify-center">

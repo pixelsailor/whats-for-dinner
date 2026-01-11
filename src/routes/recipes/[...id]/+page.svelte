@@ -1,8 +1,9 @@
 <script lang="ts">
-	import { getLocalTimeZone, parseDate, today } from '@internationalized/date';
+	import { getLocalTimeZone, parseDate, parseTime, today } from '@internationalized/date';
 	// import { DatePicker } from 'bits-ui';
-	import { getContext, onDestroy, untrack } from 'svelte';
+	import { getContext, onDestroy, onMount, untrack } from 'svelte';
 	import { toast } from 'svelte-sonner';
+	import { Button } from 'bits-ui';
 
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
@@ -24,17 +25,23 @@
 	import PxlIconButton from '$lib/ui/PxlIconButton.svelte';
 	import PageHeader from '$lib/ui/PageHeader.svelte';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
-	// import Prompt from '$lib/ui/Prompt.svelte';
+	import Prompt from '$lib/ui/Prompt.svelte';
+	import CloseIcon from '$lib/ui/icons/CloseIcon.svelte';
 	import TrashIcon from '$lib/ui/icons/TrashIcon.svelte';
 	// import Recipe from '$lib/ui/Recipe.svelte';
 	import { networkStore } from '$lib/stores/network';
 	import { deriveAICapability } from '$lib/utils/capabilities';
 	import CalendarHeatMapIcon from '$lib/ui/icons/CalendarHeatMapIcon.svelte';
+	import SvelteMarkdown from '@humanspeak/svelte-markdown';
+	import { enhance } from '$app/forms';
 
 	const vp: any = getContext('viewport');
 
 	/** CONSTANTS */
-	const markAsOpenedDelay = 4 * 60 * 1000;
+	/** The amount of time to wait before marking the recipe as opened */
+	const lastOpenedDelay = 2 * 1000;
+	/** The amount of time to wait before updating the recipe's checkout history */
+	const checkoutDelay = 4 * 60 * 1000;
 	const todaytz = today(getLocalTimeZone());
 
 	let { data, form } = $props();
@@ -43,6 +50,7 @@
 		status: 'loading' as ViewState,
 		error: ''
 	});
+	let waiting = $state(false);
 
 	let currentUserId = $state<string | undefined>(undefined);
 	let cloudService: CloudService | undefined = $state(undefined);
@@ -58,7 +66,7 @@
 		})
 	);
 	let canUseAI = $derived(aiCapability.canUseAI);
-	let aiRestrictionMessage = $derived(() => {
+	let aiRestrictionMessage = $derived.by(() => {
 		switch (aiCapability.reason) {
 			case 'offline':
 				return 'You are offline. Reconnect to ask follow-up questions.';
@@ -84,20 +92,28 @@
 	/** ---------------------------------------------------------------------------------------------
 	 * Local state -- Variables are reset when the recipe changes
 	 * -------------------------------------------------------------------------------------------- */
-	// Timer used to update the recipe's last_opened after a short delay
-	let openedTimer: number | null = null;
+	/** Timer used to update the recipe's last_opened after a short delay */
+	let markAsOpenedTimer: number | null = null;
+	/** Tracks the last recipe id that was successfully marked as opened (per component lifetime) */
+	let markedAsOpenedRecipeId = $state<string | null>(null);
+	/** Small bounded retry counter if recipe isn't loaded when timer fires */
+	let markAsOpenedAttempts = $state(0);
+	/** Tracks which route recipe id we've initialized local state for (guards against invalidation loops) */
+	let initializedRecipeRouteId: string | null = null;
+	/** Timer used to update the recipe's checkout history after a short delay */
+	let checkoutTimer: number | null = null;
 	/** Whether the user has indicated they made this recipe today */
 	let iMadeThisToday = $state(false);
-	/** Whether the user has indicated they did not make this recipe today -- disables `openedTimer` */
+	/** Whether the user has indicated they did not make this recipe today -- disables `checkoutTimer` */
 	let iDidntMakeThisToday = $state(false);
 
 	let isLocked = $state(true);
 
-	// let promptInput = $state<string>();
+	let promptInput = $state<string>();
 
-	// let promptType = $state<PromptContext>();
+	let promptType = $state<PromptContext>();
 
-	// let conversationMsg = $state<string>();
+	let conversationMsg = $state<string>();
 
 	let recipeStore = $derived.by(() => {
 		if (!id) return undefined;
@@ -109,8 +125,36 @@
 		}
 	});
 
+	type RecipeStoreValue = {
+		data: SavedRecipe | null;
+		loading: boolean;
+		error: Error | null;
+	};
+
+	/** Current live-query snapshot (subscribed manually to avoid `$recipeStore` usage) */
+	let recipeStoreValue = $state<RecipeStoreValue>({
+		data: null,
+		loading: true,
+		error: null
+	});
+
+	/** Subscribe to the active recipe store */
+	$effect(() => {
+		const store = recipeStore;
+		if (!store) {
+			recipeStoreValue = { data: null, loading: true, error: null };
+			return;
+		}
+
+		const unsubscribe = store.subscribe((value) => {
+			recipeStoreValue = value;
+		});
+
+		return () => unsubscribe();
+	});
+
 	/** The current recipe from the store */
-	let recipe = $derived<SavedRecipe | undefined>($recipeStore?.data ?? undefined);
+	let recipe = $derived<SavedRecipe | undefined>(recipeStoreValue.data ?? undefined);
 
 	/** The last date the recipe was opened. ISO string format: "2026-01-05T00:00:00+00:00" */
 	let lastCheckoutDateTime = $derived(recipe?.checkout_history?.[recipe?.checkout_history.length - 1] ?? undefined);
@@ -135,13 +179,24 @@
 	$effect(() => {
 		const currentId = id;
 		if (!currentId) return;
+		if (initializedRecipeRouteId === currentId) return;
+		initializedRecipeRouteId = currentId;
 
 		iMadeThisToday = false;
 		iDidntMakeThisToday = false;
 		isLocked = true;
+		markedAsOpenedRecipeId = null;
+		markAsOpenedAttempts = 0;
 
 		app.status = 'loading';
-		openedTimer = null;
+		if (checkoutTimer) {
+			clearTimeout(checkoutTimer);
+			checkoutTimer = null;
+		}
+		if (markAsOpenedTimer) {
+			clearTimeout(markAsOpenedTimer);
+			markAsOpenedTimer = null;
+		}
 
 		markAsOpened();
 	});
@@ -169,11 +224,11 @@
 			return;
 		}
 		
-		if (openedTimer) {
-			clearTimeout(openedTimer);
-			openedTimer = null;
+		if (checkoutTimer) {
+			clearTimeout(checkoutTimer);
+			checkoutTimer = null;
 		}
-		openedTimer = window.setTimeout(async () => {
+		checkoutTimer = window.setTimeout(async () => {
 			try {
 				// Use untrack to read recipe properties without tracking them
 				const currentRecipe = untrack(() => recipe);
@@ -189,9 +244,9 @@
 			} catch (err) {
 				console.error('Error updating last_opened:', err);
 			} finally {
-				openedTimer = null;
+				checkoutTimer = null;
 			}
-		}, markAsOpenedDelay);
+		}, checkoutDelay);
 	});
 
 	/**
@@ -216,59 +271,59 @@
 	});
 
 	onDestroy(() => {
-		if (openedTimer) clearTimeout(openedTimer);
+		if (checkoutTimer) clearTimeout(checkoutTimer);
+		if (markAsOpenedTimer) clearTimeout(markAsOpenedTimer);
 	});
 
 	// React to user prompts
-	// $effect(() => {
-	// 	if (form && form.error === undefined) {
-	// 		if (form.message === lastFormMessage) return;
+	$effect(() => {
+		if (form && form.error === undefined) {
+			if (form.message === lastFormMessage) return;
 
-	// 		const { type, message } = form;
-	// 		promptType = type;
-	// 		if (typeof message !== 'string') {
-	// 			console.warn('Unexpected non-string form message payload', message);
-	// 			return;
-	// 		}
+			const { type, message } = form;
+			promptType = type;
+			if (typeof message !== 'string') {
+				console.warn('Unexpected non-string form message payload', message);
+				return;
+			}
 
-	// 		lastFormMessage = message;
-	// 		waiting = false;
+			lastFormMessage = message;
+			waiting = false;
 
-	// 		if (type === 'assistance') {
-	// 			conversationMsg = message;
-	// 		} else {
-	// 			// clone the snapshot to avoid "DataCloneError" in `saveModifiedRecipe()`
-	// 			const originalRecipe = structuredClone($state.snapshot(recipe)) as SavedRecipe;
+			// if (type === 'assistance') {
+			// 	conversationMsg = message;
+			// } else {
+			// 	// clone the snapshot to avoid "DataCloneError" in `saveModifiedRecipe()`
+			// 	const originalRecipe = structuredClone($state.snapshot(recipe)) as SavedRecipe;
 
-	// 			try {
-	// 				recipe = JSON.parse(message) as SavedRecipe;
-	// 				toast.dismiss();
-	// 				toast.success(`"${recipe.title}" has unsaved changes`, {
-	// 					duration: Number.POSITIVE_INFINITY,
-	// 					action: {
-	// 						label: 'Save changes',
-	// 						onClick: () => saveModifiedRecipe(originalRecipe)
-	// 					}
-	// 				});
-	// 			} catch (err) {
-	// 				console.error(err);
-	// 				toast.error('There was a problem parsing the recipe JSON');
-	// 			}
-	// 		}
-	// 	} else if (form && form.error) {
-	// 		waiting = false;
-	// 		console.error(form.error);
-	// 		toast.error(`${form.error}`);
-	// 	}
-	// });
+			// 	try {
+			// 		recipe = JSON.parse(message) as SavedRecipe;
+			// 		toast.dismiss();
+			// 		toast.success(`"${recipe.title}" has unsaved changes`, {
+			// 			duration: Number.POSITIVE_INFINITY,
+			// 			// action: {
+			// 			// 	label: 'Save changes',
+			// 			// 	onClick: () => saveModifiedRecipe(originalRecipe)
+			// 			// }
+			// 		});
+			// 	} catch (err) {
+			// 		console.error(err);
+			// 		toast.error('There was a problem parsing the recipe JSON');
+			// 	}
+			// }
+		} else if (form && form.error) {
+			waiting = false;
+			console.error(form.error);
+			toast.error(`${form.error}`);
+		}
+	});
 
 	/**
 	 * Toggle the recipe's `is_favorite` status
 	 */
 	function toggleFavorite() {
 		if (!recipe) return;
-		recipe.is_favorite = !recipe.is_favorite;
-		saveChanges(true, { is_favorite: recipe.is_favorite });
+		saveChanges(true, { is_favorite: !recipe.is_favorite });
 	}
 
 	/** Revert the user's indication of whether they made this today */
@@ -287,8 +342,8 @@
 			iMadeThisToday = true;
 			iDidntMakeThisToday = false;
 			// Override the timer if currently running
-			if (openedTimer) clearTimeout(openedTimer);
-			openedTimer = null;
+			if (checkoutTimer) clearTimeout(checkoutTimer);
+			checkoutTimer = null;
 		}
 		recipe.checkout_history = checkoutHistory;
 		saveChanges(true, { checkout_history: checkoutHistory });
@@ -301,19 +356,27 @@
 	 * If unavailable or the upload fails, save the recipe locally.
 	 *
 	 * @param disableToast - If true, successful toast notifications will not be shown
-	 * @param changes - Optional changes to the recipe to save. If not provided, the entire
-	 * recipe object will be saved.
+	 * @param changes - Optional changes to the recipe to save. Reduces payload size if provided. 
+	 * If not provided, the entire recipe object will be saved.
 	 */
 	async function saveChanges(disableToast: boolean = false, changes?: Partial<SavedRecipe>) {
 		if (!recipe) return;
 		app.status = 'loading';
 
+		let candidate: Partial<SavedRecipe> & { id: string };
+
 		if (hasCloudStorageAccess && syncService) {
 			try {
-				const candidate: Partial<SavedRecipe> & { id: string } = changes
-						? { ...changes, id: recipe.id }
-						: $state.snapshot(recipe);
-				await syncService.updateRecipeAndSyncLocal(candidate);
+				// Ensure entire recipe is included if the recipe isn't synced.
+				// Unsynced recipes may not exist in the cloud yet; using PATCH/UPDATE can 406.
+				if (recipe.synced) {
+					candidate = changes ? { ...changes, id: recipe.id } : $state.snapshot(recipe);
+					await syncService.updateRecipeAndSyncLocal(candidate);
+				} else {
+					const snapshot = $state.snapshot(recipe) as SavedRecipe;
+					const fullCandidate = (changes ? { ...snapshot, ...changes } : snapshot) as SavedRecipe;
+					await syncService.uploadRecipeAndSyncLocal(fullCandidate);
+				}
 				if (!disableToast) {
 					toast.success('Recipe saved');
 				}
@@ -362,8 +425,49 @@
 
 	/** Update the recipe's last_opened timestamp */
 	function markAsOpened() {
-		if (!recipe) return;
-		saveChanges(true, { last_opened: new Date().toISOString() });
+		const routeId = untrack(() => id);
+		if (!routeId) return;
+
+		// Hard guard: only mark opened once per route id (per view), regardless of subsequent edits/updates.
+		if (markedAsOpenedRecipeId === routeId) return;
+
+		// Important: do NOT clear/reschedule if already scheduled. This prevents loops caused by recipe updates.
+		if (markAsOpenedTimer) return;
+
+		// We want to throttle this to prevent edge cases that could cause the `recipe.id` to change,
+		// triggering a loop of updates.
+		markAsOpenedTimer = window.setTimeout(async () => {
+			try {
+				const timerId = untrack(() => id);
+				if (!timerId) return;
+
+				// If the recipe still isn't available when the timer fires, retry briefly (bounded).
+				const timerRecipe = untrack(() => recipe);
+				if (!timerRecipe) {
+					if (markAsOpenedAttempts < 5) {
+						markAsOpenedAttempts += 1;
+						markAsOpenedTimer = null;
+						window.setTimeout(markAsOpened, 250);
+					}
+					return;
+				}
+				if (timerRecipe.id !== timerId) return;
+
+				// Soft guard: if already opened today, mark as done and stop (prevents daily background writes).
+				const lastOpenedDate = timerRecipe.last_opened?.split('T')[0] ?? undefined;
+				if (lastOpenedDate && parseDate(lastOpenedDate).toString() === todaytz.toString()) {
+					markedAsOpenedRecipeId = timerId;
+					return;
+				}
+
+				await saveChanges(true, { last_opened: new Date().toISOString() });
+				markedAsOpenedRecipeId = timerId;
+			} catch (err) {
+				console.error('Error marking recipe as opened:', err);
+			} finally {
+				markAsOpenedTimer = null;
+			}
+		}, lastOpenedDelay);
 	}
 
 	/** Open a date picker to update the last prepared date */
@@ -495,39 +599,30 @@
 </PageHeader>
 
 <article class="mx-auto max-w-5xl px-4 py-8 lg:px-8" style:padding-bottom={`calc(${promptHeight}px + 1.5rem)`}>
-	{#if $recipeStore?.loading}
+	{#if recipeStoreValue.loading}
 		<div class="absolute inset-0 grid place-content-center">
 			<ProgressSpinner size="lg" />
 		</div>
-	{:else if $recipeStore?.error}
+	{:else if recipeStoreValue.error}
 		<div class="mx-auto grid w-full max-w-3xl place-content-center gap-6">
 			<h1 class="fluid-heading-05">Ah donkey-spittle! There was a problem.</h1>
 			<p class="flex items-center gap-3">
-				<span class="fluid-heading-03">{$recipeStore.error.name}</span><span>|</span><span>{$recipeStore.error?.message}</span>
+				<span class="fluid-heading-03">{recipeStoreValue.error.name}</span><span>|</span><span>{recipeStoreValue.error?.message}</span>
 			</p>
 		</div>
 	{:else if recipe}
 		<EditableRecipe {recipe} locked={isLocked} />
 		{#if canUseAI}
-			<!-- <div class="fixed right-0 bottom-0 px-4" bind:this={promptRef}>
+			<div class="fixed right-0 bottom-0 px-4" bind:this={promptRef}>
 				<Prompt>
 					{#if conversationMsg}
-						<div
-							class="flex flex-row items-start gap-2"
-							transition:slide={{ duration: 500, axis: 'y' }}
-						>
+						<div class="flex flex-row items-start gap-2">
 							<div class="markdown mb-4 self-center text-sm">
 								<SvelteMarkdown source={conversationMsg} />
 							</div>
-							<Button
-								onClick={() => (conversationMsg = '')}
-								label="Close"
-								size="xs"
-								icon
-								class="-m-2"
-							>
-								<CloseIcon />
-							</Button>
+							<Button.Root onclick={() => (conversationMsg = '')} class="button text icon" title="Close">
+								<CloseIcon size="xs" />
+							</Button.Root>
 						</div>
 					{/if}
 					<form
@@ -544,18 +639,18 @@
 							bind:value={promptInput}
 							placeholder="Make changes or ask a recipe related question"
 						/>
-						<input type="hidden" name="recipe" bind:value={recipeJson} />
-						<Button type="submit" label="Submit request" disabled={waiting || !promptInput?.trim()}
-							>{waiting ? 'Thinking...' : 'Submit'}</Button
-						>
+						<!-- <input type="hidden" name="recipe" bind:value={recipeJson} /> -->
+						<Button.Root type="submit" disabled={waiting || !promptInput?.trim()} class="button text narrow">
+							{waiting ? 'Thinking...' : 'Submit'}
+						</Button.Root>
 					</form>
 				</Prompt>
-			</div> -->
+			</div>
 		{:else if aiRestrictionMessage}
 			<div
 				class="mt-6 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-500 dark:bg-amber-950 dark:text-amber-100"
 			>
-				{aiRestrictionMessage()}
+				{aiRestrictionMessage}
 			</div>
 		{/if}
 	{/if}

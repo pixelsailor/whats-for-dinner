@@ -14,6 +14,7 @@
 		contentProps?: WithoutChildren<Select.ContentProps>;
 		// any other specific component props if needed
 		onReset?: MouseEventHandler<HTMLButtonElement>;
+		error?: string;
 	};
 
 	let {
@@ -22,6 +23,7 @@
 		contentProps,
 		placeholder,
 		onReset,
+		error,
 		...restProps
 	}: Props = $props();
 
@@ -56,7 +58,10 @@ _Reference: bits-ui [Select](https://bits-ui.com/docs/components/select/llms.txt
 
 <Select.Root bind:value={value as never} {...restProps}>
 	<div
-		class="body-medium flex h-input flex-row flex-nowrap items-stretch rounded-sm border border-border-input hover:border-border-input-hover dark:border-gray-700 bg-background dark:bg-gray-900"
+		class={[
+			'body-medium flex h-input flex-row flex-nowrap items-stretch rounded-sm border border-border-input hover:border-border-input-hover dark:border-gray-700 bg-background dark:bg-gray-900',
+			error ? 'border-destructive' : ''
+		]}
 		bind:this={containerRef}
 	>
 		<Select.Trigger

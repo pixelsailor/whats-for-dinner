@@ -9,6 +9,7 @@
 			label?: string;
 			required?: boolean;
 			placeholder?: string;
+			error?: string;
 		} & Omit<HTMLTextareaAttributes, 'value' | 'class' | 'required' | 'id'>,
 		HTMLTextAreaElement
 	>;
@@ -21,6 +22,7 @@
 		label,
 		required = false,
 		placeholder = '',
+		error,
 		ref = $bindable(null),
 		...restProps
 	}: WithChildren<TextareaProps> = $props();
@@ -57,7 +59,7 @@ A textarea component incorporating a label and wrapping form field.
 		oninput={autoResize}
 		{required}
 		bind:value
-		class="textarea body-medium border-border-input"
+		class={['textarea body-medium border-border-input', error ? 'border-destructive' : '']}
 		{...restProps}
 	></textarea>
 	{@render children?.()}

@@ -150,7 +150,7 @@ export const SavedRecipeSchema = RecipeSchema.extend({
 	/** Optional deletion timestamp. */
 	deleted_at: z.iso.datetime().nullable(),
 	/** Timestamp indicating when the recipe was last opened. */
-	last_opened: z.iso.datetime(),
+	last_opened: z.iso.datetime().nullable(),
 	/** Monotonically increasing version number used for edits.
 	 * @todo Requires repo of recipe versions -- supabase users only
 	 */

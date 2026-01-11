@@ -55,7 +55,8 @@
 			recipes.forEach((r) => {
 				if (r.tags && r.tags.length > 0) {
 					if (typeof r.tags === 'string') {
-						commonTags.add(r.tags);
+						// This is to catch entries that didn't properly store tags as an array -- edge case
+						commonTags.add((r.tags as string).toLowerCase());
 					} else {
 						r.tags.forEach((t) => {
 							commonTags.add(t.toLowerCase());
@@ -131,7 +132,7 @@
 		<div class="my-12 grid w-full grid-cols-2 gap-4">
 			<input
 				type="text"
-				class="label my-1 flex h-input w-full flex-row flex-nowrap items-stretch rounded-sm border border-gray-200 px-3 dark:border-gray-700 dark:bg-gray-900 hover:dark:bg-gray-800"
+				class="label flex h-input w-full flex-row flex-nowrap items-stretch rounded-sm border border-gray-200 px-3 dark:border-gray-700 dark:bg-gray-900 hover:dark:bg-gray-800"
 				placeholder="Search history"
 				bind:value={search}
 			/>

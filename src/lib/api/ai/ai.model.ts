@@ -274,57 +274,48 @@ Keep your formatting consistent and minimal.
 // 	return [PromptContextEnum.ASSISTANCE, answer];
 // }
 
-// /**
-//  * Ask OpenAI to backfill missing metadata (description, tags, timing, etc.) for a recipe draft.
-//  *
-//  * @returns Tuple of `[PromptContextEnum.ADDENDUM, RecipeAddendum]`.
-//  */
-// export async function appendRecipeDetails(recipe: string): Promise<RecipeAddendumResponse> {
-// 	const { title, short_description, ingredients, instructions, notes } = JSON.parse(recipe);
-// 	const prompt = `
-// You are a helpful, experienced culinary assistant helping a user working on a recipe.
-// Given the user provided recipe details, fill in any missing fields: description, yield, time.prep, time.cook, time.total, and tags.
+/**
+ * Ask OpenAI to backfill missing metadata (description, tags, timing, etc.) for a recipe draft.
+ */
+export async function appendRecipeDetails(recipe: string): Promise<string | Error> {
+	const { title, short_description, description, yields, prep_time, cook_time, ingredients, instructions, notes, tags } = JSON.parse(recipe);
+	const prompt = `You are an experienced culinary assistant helping a user working on a recipe.
+They have provided the following recipe but some of the fields are missing. Using the provided recipe as a guide, fill in any missing fields using your best estimation.
 
-// The response should use the following JSON format:
+DO NOT alter the recipe.
+DO NOT include any commentary, code blocks, or explanations.
+DO NOT return any extra text — respond with pure JSON only.
+DO NOT include any emojis or non-ASCII characters.
+`;
 
-// {
-//   "short_description": "string (only if missing)",
-//   "description": "string",
-//   "tags": ["string", ...],
-//   "yield": "e.g. 'Serves 4'",
-// 	"prep_time": "string (to include time marinating or chilling)",
-// 	"cook_time": "string",
-// }
+	const input = `The user has provided the following recipe details:
 
-// Only return valid JSON for the missing fields — do not include any commentary, code blocks, or explanations.
-// If **short_description** is missing, one may be added using the recipe details as a guide.
-// The __description__ may be a long form of the user's **short_description** with additional commentary or suggested pairings.
-// Do not alter the provided recipe in any way.
-// `;
+title: ${title}
+short_description: ${short_description}
+description: ${description}
+yield: ${yields}
+prep_time: ${prep_time}
+cook_time: ${cook_time}
+tags: ${tags}
+ingredients: ${ingredients}
+instructions: ${instructions}
+notes: ${notes}
+`;
 
-// 	const input = `
-// The user has provided the following recipe details:
+	try {
+		const openai = getOpenAI();
+		const response = await openai.responses.create({
+			model: 'gpt-5-nano',
+			instructions: prompt,
+			input,
+			text: {
+				format: zodTextFormat(RecipeSchema, 'recipedetail')
+			}
+		});
 
-// title: ${title}
-// short_description: ${short_description}
-// ingredients: ${ingredients}
-// instructions: ${instructions}
-// notes: ${notes}
-// `;
-
-// 	const openai = getOpenAI();
-// 	const response = await openai.chat.completions.create({
-// 		model,
-// 		messages: [
-// 			{ role: 'system', content: prompt },
-// 			{ role: 'user', content: input }
-// 		]
-// 	});
-
-// 	const payload = parseJsonPayload<RecipeAddendum>(
-// 		response.choices[0]?.message?.content,
-// 		PromptContextEnum.ADDENDUM
-// 	);
-
-// 	return [PromptContextEnum.ADDENDUM, payload];
-// }
+		return response.output_text;
+	} catch (err) {
+		console.error('OpenAI API error:', err);
+		throw err;
+	}
+}

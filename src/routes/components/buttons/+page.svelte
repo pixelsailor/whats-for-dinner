@@ -78,6 +78,12 @@
         <Button.Root class="button icon primary" disabled>
           <SettingsIcon size="sm" />
         </Button.Root>
+        <Button.Root class="button icon">
+          <SettingsIcon size="lg" />
+        </Button.Root>
+        <Button.Root class="button icon">
+          <SettingsIcon size="xs" />
+        </Button.Root>
       </div>
       <div class="flex flex-row gap-4 flex-wrap">
         <Button.Root class="button icon outlined">
@@ -98,6 +104,12 @@
         <Button.Root class="button icon outlined primary" disabled>
           <SettingsIcon size="sm" />
         </Button.Root>
+        <Button.Root class="button icon outlined">
+          <SettingsIcon size="lg" />
+        </Button.Root>
+        <Button.Root class="button icon outlined">
+          <SettingsIcon size="xs" />
+        </Button.Root>
       </div>
       <div class="flex flex-row gap-4 flex-wrap">
         <Button.Root class="button icon text">
@@ -117,6 +129,12 @@
         </Button.Root>
         <Button.Root class="button icon text primary" disabled>
           <SettingsIcon size="sm" />
+        </Button.Root>
+        <Button.Root class="button icon text">
+          <SettingsIcon size="lg" />
+        </Button.Root>
+        <Button.Root class="button icon text">
+          <SettingsIcon size="xs" />
         </Button.Root>
       </div>
     </section>
@@ -139,6 +157,12 @@
         </Button.Root>
         <Button.Root class="button narrow">
           <SettingsIcon size="sm" />
+        </Button.Root>
+        <Button.Root class="button narrow">
+          <SettingsIcon />
+        </Button.Root>
+        <Button.Root class="button narrow">
+          <SettingsIcon size="xs" />
         </Button.Root>
       </div>
     </section>

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { SubmitFunction } from '@sveltejs/kit';
-	import { Button } from 'bits-ui';
+	import { Button, Checkbox, RadioGroup, Switch } from 'bits-ui';
 	import { toast } from 'svelte-sonner';
 	import { enhance } from '$app/forms';
 	
@@ -10,8 +10,8 @@
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
 	import Select from '$lib/ui/Select.svelte';
 	import type { UserPreferences, UserPreferencesResponse } from '$lib/api/account';
+	import Input from '$lib/ui/forms/Textinput.svelte';
 
-	// DON'T DELETE THIS
 	const options: Record<string, { value: string; label: string; disabled?: boolean }[]> = {
 		diet: [
 			{ value: 'dairy-free', label: 'Dairy-free' },
@@ -67,6 +67,7 @@
 		]
 	};
 
+	// DON'T DELETE THIS -- might revert back to string arrays
 	// const options = {
 	// 	diet: [
 	// 		'Dairy-free',
@@ -131,14 +132,14 @@
 	let preferences = $derived<UserPreferencesResponse | null>(data.preferences ?? null);
 	let dislikes = $derived(toTextFromArray(preferences?.dislikes ?? []));
 
-	$inspect('preferences', preferences);
-
 	let diet = $derived(preferences?.diet ?? []);
 	let allergies = $derived(preferences?.allergies ?? []);
 	let equipment = $derived(preferences?.equipment ?? []);
 	let cuisinePreferences = $derived(preferences?.cuisine_preferences ?? []);
 	let preferredPrepTime = $derived(preferences?.preferred_prep_time ?? '');
 	let skillLevel = $derived(preferences?.skill_level ?? '');
+	let measurementSystem = $state<'metric' | 'imperial'>('metric');
+	let useAiAssistance = $derived(preferences?.use_ai_assistance ?? false);
 
 	const submitPreferences: SubmitFunction = (input) => {
 		app.status = 'loading';
@@ -155,20 +156,20 @@
 		};
 	};
 
-	const clearPreferenceField = (e: Event, prop: keyof UserPreferences) => {
-		e.preventDefault();
-		e.stopImmediatePropagation();
-		// Since there are other fields in the preferences object, we need to make sure we don't clear them.
-		if (prop as keyof UserPreferences) {
-			if (prop === 'dislikes' || prop === 'preferred_prep_time' || prop === 'skill_level') {
-				dislikes = '';
-				return;
-			} else if (preferences) {
-				preferences[prop] = [];
-				return;
-			}
-		}
-	};
+	// const clearPreferenceField = (e: Event, prop: keyof UserPreferences) => {
+	// 	e.preventDefault();
+	// 	e.stopImmediatePropagation();
+	// 	// Since there are other fields in the preferences object, we need to make sure we don't clear them.
+	// 	if (prop as keyof UserPreferences) {
+	// 		if (prop === 'dislikes' || prop === 'preferred_prep_time' || prop === 'skill_level') {
+	// 			dislikes = '';
+	// 			return;
+	// 		} else if (preferences) {
+	// 			preferences[prop] = [];
+	// 			return;
+	// 		}
+	// 	}
+	// };
 
 	function _camelCase(str: string) {
 		return str.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
@@ -226,13 +227,12 @@
 		</div>
 
 		<div class="mb-3 min-h-24">
-			<p class="label-large mb-1">Ingredients to avoid</p>
-			<input
-				type="text"
+			<Input
+				label="Ingredients to avoid"
+				helperText="List anything you don't like that you want excluded."
 				name="dislikes"
-				class="label-large my-1 flex h-input w-full flex-row flex-nowrap items-stretch rounded-sm border border-gray-200 px-3 dark:border-gray-700 dark:bg-gray-900 hover:dark:bg-gray-800"
-				bind:value={dislikes}
 				placeholder="e.g. olives, capers"
+				bind:value={dislikes}
 			/>
 			<p class="helper-text text-foreground-alt">List anything you don't like that you want excluded.</p>
 		</div>
@@ -259,6 +259,19 @@
 					placeholder="How comfortable are you in the kitchen?"
 				/>
 			</div>
+
+			<div>
+				<p class="label-large mb-1">Measurement system</p>
+				<RadioGroup.Root name="measurement_system" bind:value={measurementSystem}>
+					<RadioGroup.Item value="metric">Metric</RadioGroup.Item>
+					<RadioGroup.Item value="imperial">Imperial</RadioGroup.Item>
+				</RadioGroup.Root>
+			</div>
+
+			<div>
+				<p class="label-large mb-1">Use AI assistance</p>
+				<input type="checkbox" name="use_ai_assistance" id="useAiAssistance" bind:checked={useAiAssistance}>
+			</div>
 		</div>
 
 
@@ -266,6 +279,9 @@
 			<p class="text-sm text-red-600 dark:text-red-400">{app.error}</p>
 		{/if}
 
+				<p class="helper-text text-foreground-alt">
+					Select the cuisines you prefer. The AI will make an attempt to suggest recipes in these cuisines.
+				</p>
 		<hr class="my-6" />
 
 		<Button.Root

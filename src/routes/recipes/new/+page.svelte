@@ -3,7 +3,6 @@
 	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	
-	// import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
 	
 	import { CATEGORY_TAGS, type Recipe, type SavedRecipe } from '$lib/api/recipe';
@@ -16,12 +15,18 @@
 	import PageHeader from '$lib/ui/PageHeader.svelte';
 	import { AppBar } from '$lib/ui/AppBar';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
-	// import { appendRecipeDetails } from '$lib/api/ai';
+	import { CloudService } from '$lib/api/cloud';
+	import { deriveAICapability } from '$lib/utils/capabilities';
+	import { networkStore } from '$lib/stores/network';
+	import { AccountService, type UserPreferences, type UserPreferencesResponse } from '$lib/api/account';
 
-	// const commonTags = new SvelteSet<string>();
 	let availableTags = $state<SelectOption[]>([]);
 
 	let { data } = $props();
+
+	let currentUserId = $state<string | undefined>(undefined);
+	let cloudService: CloudService | undefined = $state(undefined);
+	let accountService: AccountService | undefined = $state(undefined);
 
 	let status = $state<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
@@ -36,12 +41,42 @@
 		};
 	}>({});
 
+	let network = $derived($networkStore);
+	let aiCapability = $derived(
+		deriveAICapability({
+			session: data.session,
+			permissions: data.permissions,
+			featureFlags: data.featureFlags,
+			online: network.online
+		})
+	);
+	let canUseAI = $derived(aiCapability.canUseAI);
+	let aiRestrictionMessage = $derived.by(() => {
+		switch (aiCapability.reason) {
+			case 'offline':
+				return 'You are offline. Reconnect to request full recipes or adjustments.';
+			case 'disabled':
+				return 'AI recipe details are unavailable in this build.';
+			case 'unauthenticated':
+				return 'Log in to request full recipes.';
+			case 'unauthorized':
+				return 'Your account does not include AI recipe requests.';
+			default:
+				return '';
+		}
+	});
+
 	/**
 	 * Get current user permissions (cloud and AI access) from local storage if available.
 	 * Fallback: if using Supabase, these would be attached to user records in 'profiles'.
 	 * This mechanism assumes local-first/offline by default.
 	 */
 	let hasAssistedRecipeAccess = $derived(data.permissions?.aiAssistedRecipe.allowed ?? false);
+	let hasCloudStorageAccess = $derived(data.permissions?.cloudSync.allowed ?? false);
+	let preferences = $derived<UserPreferencesResponse | null>(data.preferences ?? null);
+
+	/** Whether the user wants to use AI assistance for augmenting user recipes. */
+	let useAiAssistance = $derived(preferences?.use_ai_assistance ?? false);
 
 	let recipeTitle = $state<string>('');
 	let shortDescription = $state<string>('');
@@ -62,6 +97,23 @@
 	// 	return yield;
 	// }
 
+	/**
+	 * Manage services for cloud and sync operations.
+	 */
+	$effect(() => {
+		const userId = data.user?.id;
+		if (userId && userId !== currentUserId) {
+			cloudService = new CloudService(data.supabase, userId);
+			accountService = new AccountService(data.supabase, userId);
+			// syncService = new SyncService(cloudService);
+			currentUserId = userId;
+		} else if (!userId && currentUserId) {
+			cloudService = undefined;
+			// syncService = undefined;
+			currentUserId = undefined;
+		}
+	});
+
 	onMount(() => {
 		availableTags = Object.entries(CATEGORY_TAGS).map(([key, values]) => ({
 			label: key.charAt(0).toUpperCase() + key.slice(1),
@@ -74,6 +126,14 @@
 		}));
 	});
 
+	$inspect('useAiAssistance', useAiAssistance);
+
+	/**
+	 * Save the recipe.
+	 * 
+	 * Checks user preferences and cloud storage access to determine proper API calls.
+	 * Do not use SyncService for new recipes. Handle sync manually to ensure user id is set as owner_id.
+	*/
 	async function saveRecipe(event: SubmitEvent) {
 		event.preventDefault();
 		const form = new FormData(event.target as HTMLFormElement, event.submitter as HTMLButtonElement);
@@ -104,22 +164,44 @@
 			tags: $state.snapshot(tags),
 		};
 
-		// if (hasAssistedRecipeAccess) {
-		// 	const response = await appendRecipeDetails(JSON.stringify(recipe));
-		// 	recipe = JSON.parse(response as string) as Recipe;
-		// }
+		if (hasAssistedRecipeAccess && useAiAssistance) {
+			try {
+				const response = await fetch('/api/recipes/new', {
+					method: 'POST',
+					body: JSON.stringify({ recipe, preferences }),
+				});
+				const data = await response.json();
+				recipe = data.data;
+			} catch (err) {
+				console.error('AI assistance failed', err);
+				status = 'error';
+				toast.error('AI assistance failed. Recipe will be saved as is.');
+				return;
+			}
+		}
 
-		// if (hasCloudStorageAccess) {
-		// 	const savedRecipe = await _saveToLocal(candidate);
-		// 	status = 'saved';
-		// 	toast.success('Recipe saved');
-		// 	goto(`/recipes/${savedRecipe}`, { replaceState: true });
-		// }
-
-		const savedRecipe = await _saveToLocal(recipe);
-		status = 'saved';
-		toast.success('Recipe saved');
-		goto(`/recipes/${savedRecipe}`, { replaceState: true });
+		if (hasCloudStorageAccess && cloudService) {
+			try {
+				const savedRecipe = await cloudService.uploadLocalRecipe(recipe);
+				await db.recipes.add(savedRecipe);
+				status = 'saved';
+				toast.success('Recipe saved');
+				goto(`/recipes/${savedRecipe}`, { replaceState: true });
+			} catch (err) {
+				console.error('Cloud save failed; continuing locally', err);
+				status = 'error';
+				const candidate = _createSavedRecipe(recipe, err instanceof Error ? err.message : 'Unknown sync error');
+				await db.recipes.add(candidate);
+				toast.error('Recipe saved locally but failed to sync to cloud');
+				goto(`/recipes/new`, { replaceState: true });
+			}
+		} else if (!hasCloudStorageAccess) {
+			const candidate = _createSavedRecipe(recipe);
+			await db.recipes.add(candidate);
+			status = 'saved';
+			toast.success('Recipe saved');
+			goto(`/recipes/${candidate.id}`, { replaceState: true });
+		}
 	}
 
 	/**
@@ -160,7 +242,13 @@
 		return time.toString();
 	}
 
-	async function _saveToLocal(recipe: Recipe, error?: string | null): Promise<string> {
+	/**
+	 * Create a saved recipe object.
+	 * @param recipe - The recipe to create a saved recipe for.
+	 * @param error - The error message to set for the saved recipe.
+	 * @returns The saved recipe object.
+	 */
+	function _createSavedRecipe(recipe: Recipe, error?: string | null): SavedRecipe {
 		const userId = data.user?.id;
 		const now = new Date().toISOString();
 		const savedRecipe: SavedRecipe = {
@@ -182,13 +270,7 @@
 			last_synced_at: null,
 			parent_id: null,
 		};
-		try {
-			await db.recipes.add(savedRecipe);
-			return savedRecipe.id;
-		} catch (err) {
-			console.error('Failed to save recipe to local database', err);
-			throw err;
-		}
+		return savedRecipe;
 	}
 </script>
 
@@ -205,31 +287,6 @@
 </PageHeader>
 <div class="mx-auto max-w-5xl px-4 lg:px-8 py-8">
 	<h1 class="display-small mb-4">Create a new recipe</h1>
-	<!-- <form method="POST" use:enhance={({ cancel }) => {
-		status = 'saving';
-		validateForm();
-		if (validationErrors.hasErrors) {
-			status = 'error';
-			cancel();
-			return;
-		}
-		return async ({ result, }) => {
-			if (result.type === 'success' && result.data) {
-				// Save to local Dexie database (client-side only)
-				const savedRecipe = result.data as SavedRecipe;
-				await db.recipes.add(savedRecipe);
-				status = 'saved';
-				toast.success('Recipe saved');
-				goto(`/recipes/${savedRecipe.id ?? ''}`, { replaceState: true });
-			} else {
-				const savedRecipe = await _saveToLocal(result.data as Recipe, result.error as string | null);
-				toast.error('Recipe failed to sync to cloud');
-				goto(`/recipes/new`, { replaceState: true });
-				status = 'error';
-				toast.error('Recipe save failed');
-			}
-		}
-	}}> -->
 	<form method="POST" onsubmit={saveRecipe}>
 		<div class="flex flex-col gap-5">
 			<Textinput

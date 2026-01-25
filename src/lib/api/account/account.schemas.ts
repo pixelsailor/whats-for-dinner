@@ -8,6 +8,8 @@ import { z } from 'zod';
  * User preferences for recipe suggestions and instructions.
  */
 export const UserPreferencesSchema = z.object({
+	created_at: z.iso.datetime().nullable().optional(),
+	updated_at: z.iso.datetime().nullable().optional(),
 	/** Dietary restrictions or preferences (e.g., ['vegetarian']). */
 	diet: z.array(z.string()).optional().nullable(),
 	/** Allergies the user has (e.g., ['peanuts']). */
@@ -21,7 +23,9 @@ export const UserPreferencesSchema = z.object({
 	/** Skill level to tune suggestions or instructions. */
 	skill_level: z.string().optional().nullable(),
 	/** Preferred prep time bucket. */
-	preferred_prep_time: z.string().optional().nullable()
+	preferred_prep_time: z.string().optional().nullable(),
+	/** Whether the user wants to use AI assistance for augmenting user recipes. */
+	use_ai_assistance: z.boolean().optional().nullable(),
 });
 
 /**

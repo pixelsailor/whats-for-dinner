@@ -1,17 +1,15 @@
-import { json, redirect } from '@sveltejs/kit';
+import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
 import { appendRecipeDetails } from '$lib/api/ai';
 import type { Recipe } from '$lib/api/recipe';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
-	const { session, permissions } = locals;
+	const { permissions } = locals;
 
 	const { recipe, preferences } = await request.json();
 
 	const useAiAssistance = preferences?.use_ai_assistance && permissions?.ai_assistance;
-
-	console.log('useAiAssistance', useAiAssistance);
 
 	if (useAiAssistance) {
 		const response = await appendRecipeDetails(JSON.stringify(recipe));

@@ -222,7 +222,7 @@
   align-items: center;
   justify-content: flex-end;
   gap: 0.5rem;
-  margin-right: -0.75rem;
+  margin-right: -0.25rem;
 }
 
 /* Apply hover state to secondary action buttons within list item buttons */

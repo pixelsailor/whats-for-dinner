@@ -80,7 +80,7 @@ export async function generateRecipeSuggestions(
 	userPreferences: string
 ): Promise<string | Error> {
 	const instructions = `
-		You are a meal planner. Response with a JSON array of 4-8 recipe ideas based on the users's input. DO NOT include anything outside of the JSON response.
+		You are an expert meal planner. Respond with a JSON array of 4 to 10 recipe ideas based on the users's input. DO NOT include anything outside of the JSON response.
 		The recipes should take into consideration the user's preferences and dietary restrictions as follows: ${userPreferences}
 	`;
 
@@ -286,6 +286,7 @@ DO NOT alter the recipe.
 DO NOT include any commentary, code blocks, or explanations.
 DO NOT return any extra text — respond with pure JSON only.
 DO NOT include any emojis or non-ASCII characters.
+YOU MAY add additional tags to the recipe if you think they are appropriate.
 `;
 
 	const input = `The user has provided the following recipe details:

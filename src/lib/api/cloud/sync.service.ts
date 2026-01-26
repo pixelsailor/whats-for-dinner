@@ -4,6 +4,9 @@
  * Orchestrates synchronization between local Dexie storage and remote Supabase.
  * Uses pure sync logic from `cloud.model.ts` (buildSyncPlan) and keeps Dexie
  * concerns out of `CloudService`.
+ * 
+ * Note: This service does not include support for uploading and syncing new recipes. Use the
+ * `CloudService` and sync manually for new recipes to avoid extraneous sync operations.
  */
 import { db } from '$lib/db';
 import type { SavedRecipe } from '$lib/api/recipe';

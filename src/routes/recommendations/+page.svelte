@@ -155,7 +155,8 @@
 </script>
 
 <div
-	class="grid h-screen"
+	class="grid"
+	style:height={$unsortedRecipesStore.data ? 'auto' : '100vh'}
 	style:place-content={$unsortedRecipesStore.data ? 'start stretch' : 'center'}
 >
 {#if loading}

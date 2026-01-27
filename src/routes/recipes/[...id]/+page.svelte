@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { getLocalTimeZone, parseDate, parseTime, today } from '@internationalized/date';
-	// import { DatePicker } from 'bits-ui';
 	import { getContext, onDestroy, onMount, untrack } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import { Button } from 'bits-ui';
@@ -12,16 +11,12 @@
 	import type { SavedRecipe } from '$lib/api/recipe';
 	import { db } from '$lib/db';
 	import { getRecipeStore } from '$lib/stores/recipes';
-	import type { ApiResponse, PromptContext, ViewState } from '$lib/types';
+	import type { PromptContext, ViewState } from '$lib/types';
 
 	import { AppBar } from '$lib/ui/AppBar';
 	import EditableRecipe from '$lib/ui/EditableRecipe.svelte';
-	// import CloseIcon from '$lib/ui/Icons/CloseIcon.svelte';
-	// import CloudBackupIcon from '$lib/ui/Icons/CloudBackupIcon.svelte';
 	import FavoriteIcon from '$lib/ui/icons/FavoriteIcon.svelte';
 	import FavoriteFilledIcon from '$lib/ui/icons/FavoriteFilledIcon.svelte';
-	// import LockIcon from '$lib/ui/Icons/LockIcon.svelte';
-	// import UnlockIcon from '$lib/ui/Icons/UnlockIcon.svelte';
 	import PxlIconButton from '$lib/ui/PxlIconButton.svelte';
 	import PageHeader from '$lib/ui/PageHeader.svelte';
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
@@ -39,7 +34,7 @@
 
 	/** CONSTANTS */
 	/** The amount of time to wait before marking the recipe as opened */
-	const lastOpenedDelay = 2 * 1000;
+	const lastOpenedDelay = 1 * 1000;
 	/** The amount of time to wait before updating the recipe's checkout history */
 	const checkoutDelay = 4 * 60 * 1000;
 	const todaytz = today(getLocalTimeZone());

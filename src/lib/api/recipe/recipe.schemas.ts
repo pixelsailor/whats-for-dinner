@@ -6,6 +6,8 @@
  * To ensure compatibility with the OpenAI Response API, all fields must be required.
  * "Optional" fields may be nullable. To conserve API tokens, avoid including fields that
  * are programmatically generated such as uuids or timestamps.
+ * 
+ * Some fields are nullable to allow for AI assistance to fill in missing values.
  *
  * The Recipe schemas are considered "common" and may be imported by other schemas. To prevent
  * circular imports, DO NOT import any other schemas into this file.
@@ -86,8 +88,8 @@ const ALL_TAGS = Object.values(CATEGORY_TAGS).flat();
 // const TAG_LOOKUP = new Map(ALL_TAGS.map((tag) => [tag.toLowerCase(), tag]));
 
 export const RecipeRootSchema = z.object({
-	title: z.string(),
-	short_description: z.string()
+	title: z.string().describe('Recipe title in plain text, no headings or formating.'),
+	short_description: z.string().nullable().describe('Single sentence describing the recipe. Used in short form summaries.')
 });
 
 /**
@@ -127,10 +129,11 @@ export const RecipeSchema = RecipeRootSchema.extend({
 	yield: z.string().describe("Number of servings for meals (e.g. 2 to 4 servings) or volume for sauces, dressings or similar, e.g. '2 cups"),
 	prep_time: z
 		.array(z.string())
+		.nullable()
 		.describe(
 			'Preparation time in minutes, may include marinating or chilling. Use a tuple for range values, e.g. "10-15 minutes" is represented as ["10", "15"]'
 		),
-	cook_time: z.array(z.string()).describe('Cooking time in minutes. Use a tuple for range values, e.g. "10-15 minutes" is represented as ["10", "15"]'),
+	cook_time: z.array(z.string()).nullable().describe('Cooking time in minutes. Use a tuple for range values, e.g. "10-15 minutes" is represented as ["10", "15"]'),
 	notes: z.string().nullable().describe('Plain Markdown. DO NOT use "Notes" as the heading.')
 });
 

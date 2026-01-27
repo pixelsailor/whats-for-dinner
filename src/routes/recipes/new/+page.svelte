@@ -71,12 +71,14 @@
 	 * Fallback: if using Supabase, these would be attached to user records in 'profiles'.
 	 * This mechanism assumes local-first/offline by default.
 	 */
-	let hasAssistedRecipeAccess = $derived(data.permissions?.aiAssistedRecipe.allowed ?? false);
+	// let hasAssistedRecipeAccess = $derived(data.permissions?.aiAssistedRecipe.allowed ?? false);
 	let hasCloudStorageAccess = $derived(data.permissions?.cloudSync.allowed ?? false);
 	let preferences = $derived<UserPreferencesResponse | null>(data.preferences ?? null);
 
 	/** Whether the user wants to use AI assistance for augmenting user recipes. */
-	let useAiAssistance = $derived(preferences?.use_ai_assistance ?? false);
+	let useAiAssistance = $derived(preferences?.use_ai_assistance && canUseAI);
+
+	$inspect('useAiAssistance', useAiAssistance);
 
 	let recipeTitle = $state<string>('');
 	let shortDescription = $state<string>('');
@@ -126,8 +128,6 @@
 		}));
 	});
 
-	$inspect('useAiAssistance', useAiAssistance);
-
 	/**
 	 * Save the recipe.
 	 * 
@@ -137,7 +137,6 @@
 	async function saveRecipe(event: SubmitEvent) {
 		event.preventDefault();
 		const form = new FormData(event.target as HTMLFormElement, event.submitter as HTMLButtonElement);
-		console.log('saveRecipe form', form);
 		
 		validateForm();
 		if (validationErrors.hasErrors) {
@@ -156,15 +155,15 @@
 			short_description: form.get('short_description')?.toString() ?? '',
 			description: form.get('description')?.toString() ?? '',
 			yield: form.get('yields')?.toString() ?? '',
-			prep_time: prepTime,
-			cook_time: cookTime,
+			prep_time: _isEmptyTimeRange(prepTime) ? null : prepTime,
+			cook_time: _isEmptyTimeRange(cookTime) ? null : cookTime,
 			ingredients: form.get('ingredients')?.toString() ?? '',
 			instructions: form.get('instructions')?.toString() ?? '',
 			notes: form.get('notes')?.toString() ?? '',
 			tags: $state.snapshot(tags),
 		};
 
-		if (hasAssistedRecipeAccess && useAiAssistance) {
+		if (useAiAssistance) {
 			try {
 				const response = await fetch('/api/recipes/new', {
 					method: 'POST',
@@ -186,16 +185,16 @@
 				await db.recipes.add(savedRecipe);
 				status = 'saved';
 				toast.success('Recipe saved');
-				goto(`/recipes/${savedRecipe}`, { replaceState: true });
+				goto(`/recipes/${savedRecipe.id}`, { replaceState: true });
 			} catch (err) {
 				console.error('Cloud save failed; continuing locally', err);
 				status = 'error';
 				const candidate = _createSavedRecipe(recipe, err instanceof Error ? err.message : 'Unknown sync error');
 				await db.recipes.add(candidate);
 				toast.error('Recipe saved locally but failed to sync to cloud');
-				goto(`/recipes/new`, { replaceState: true });
+				goto(`/recipes/${candidate.id}`, { replaceState: true });
 			}
-		} else if (!hasCloudStorageAccess) {
+		} else {
 			const candidate = _createSavedRecipe(recipe);
 			await db.recipes.add(candidate);
 			status = 'saved';
@@ -218,8 +217,8 @@
 		if (!recipeTitle.trim()) errors.title = 'Title is required';
 		if (!ingredients.trim()) errors.ingredients = 'Ingredients are required';
 		if (!instructions.trim()) errors.instructions = 'Instructions are required';
-		if (!hasAssistedRecipeAccess && !shortDescription.trim()) errors.shortDescription = 'Short description is required';
-		if (!hasAssistedRecipeAccess && !tags.length) errors.tags = 'Tags are required';
+		if (!useAiAssistance && !shortDescription.trim()) errors.shortDescription = 'Short description is required';
+		if (!useAiAssistance && !tags.length) errors.tags = 'Tags are required';
 
 		if (Object.keys(errors).length > 0) {
 			validationErrors.hasErrors = true;
@@ -272,6 +271,12 @@
 		};
 		return savedRecipe;
 	}
+
+	/** Determine if the time fields are blank or zero */
+	function _isEmptyTimeRange(range: string[]): boolean {
+		if (!range.length) return true;
+		return range.every((time) => time === '0');
+	}
 </script>
 
 <PageHeader>
@@ -299,7 +304,7 @@
 			<Textinput
 				name="short_description"
 				bind:value={shortDescription}
-				required={!hasAssistedRecipeAccess}
+				required={!useAiAssistance}
 				error={validationErrors.errors?.shortDescription}
 				label="Short description"
 				placeholder="Shown in recipe list and search results."
@@ -339,7 +344,7 @@
 						</div>
 					</div>
 				</div>
-				{#if hasAssistedRecipeAccess}
+				{#if useAiAssistance}
 					<p class="label-small">The AI will use its best guess for the times if you leave either of these blank</p>
 				{/if}
 			</div>
@@ -375,7 +380,7 @@
 				<p class="label-small">You can use <a href="https://www.markdownguide.org/cheat-sheet/" target="_blank" class="underline">Markdown</a> here to make lists and add formatting</p>
 			</Textarea>
 			<div class="form-field">
-				<label for="tags" class="label-medium">Tags {#if !hasAssistedRecipeAccess} <span class="label-large text-destructive">*</span>{/if}</label>
+				<label for="tags" class="label-medium">Tags {#if !useAiAssistance} <span class="label-large text-destructive">*</span>{/if}</label>
 				<Select
 					name="tags"
 					type="multiple"
@@ -383,7 +388,7 @@
 					items={availableTags}
 					error={validationErrors.errors?.tags}
 				/>
-				{#if hasAssistedRecipeAccess}
+				{#if useAiAssistance}
 					<p class="label-small">Leave blank to generate with AI</p>
 				{/if}
 			</div>

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { getLocalTimeZone, parseDate, parseTime, today } from '@internationalized/date';
 	import { getContext, onDestroy, onMount, untrack } from 'svelte';
+	import { slide } from 'svelte/transition';
 	import { toast } from 'svelte-sonner';
 	import { Button } from 'bits-ui';
 
@@ -158,8 +159,11 @@
 	// let recipeJson = $derived(recipe ? JSON.stringify(recipe) : '');
 
 	let promptRef = $state<HTMLElement>();
-
-	let promptHeight = $derived(promptRef?.clientHeight);
+	let left = $derived.by(() =>{
+		if (vp.device === 'mobile') return '0';
+		return vp.nav === 'expanded' ? 'calc(18rem + 1px)' : 'calc(3.75rem + 1px)';
+	});
+	let promptHeight = $derived(promptRef?.clientHeight ?? 0);
 
 	let lastFormMessage: string | undefined = undefined;
 
@@ -608,10 +612,10 @@
 	{:else if recipe}
 		<EditableRecipe {recipe} locked={isLocked} />
 		{#if canUseAI}
-			<div class="fixed right-0 bottom-0 px-4" bind:this={promptRef}>
+			<div class="fixed right-0 bottom-0 px-4" style:left bind:this={promptRef}>
 				<Prompt>
 					{#if conversationMsg}
-						<div class="flex flex-row items-start gap-2">
+						<div class="flex flex-row items-start gap-2" transition:slide={{ duration: 500, axis: 'y' }}>
 							<div class="markdown mb-4 self-center text-sm">
 								<SvelteMarkdown source={conversationMsg} />
 							</div>

@@ -20,9 +20,12 @@ export const actions: Actions = {
 	 * Redirects to the home page if successful, otherwise displays the error message.
 	 */
 	login: async ({ request, locals: { supabase }, cookies }) => {
-		const formData = await request.formData();
-		const email = formData.get('email') as string;
-		const password = formData.get('password') as string;
+		// const formData = await request.formData();
+		// const email = formData.get('email') as string;
+		// const password = formData.get('password') as string;
+		console.warn('DO NOT USE THIS IN PRODUCTION');
+		const email = 'qa@pixel-lab.dev';
+		const password = '8hYP-J?#Pt939w';
 
 		const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 

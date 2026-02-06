@@ -3,16 +3,19 @@
 
 	type ListProps = {
 		children: any;
-		size?: 'two-line' | 'three-line';
-		type?: 'ordered' | 'unordered';
+		truncate?: boolean;
 	};
-	let { size, type = 'unordered', children, ...props }: ListProps = $props();
+	let { truncate, children, ...props }: ListProps = $props();
 
-	setContext('pxl-list', size);
+	const contextValue = $state({ truncate: false });
 
-	let listElement = $derived(type === 'ordered' ? 'ol' : 'ul');
+	$effect(() => {
+		contextValue.truncate = truncate ?? false;
+	});
+
+	setContext('pxl-list', contextValue);
 </script>
 
-<svelte:element this={listElement} class="pxl-list my-1" {...props}>
+<div class="pxl-list w-full" data-truncate={truncate} {...props}>
 	{@render children()}
-</svelte:element>
+</div>

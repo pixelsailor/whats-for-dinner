@@ -1,14 +1,11 @@
 <script lang="ts">
-	import { getContext } from "svelte";
+	// import { getContext } from "svelte";
 
-	let { primary, secondary }: { primary: string; secondary?: string } = $props();
+	let { children } = $props();
 
-  let size = getContext('pxl-list');
+  // let size = getContext('pxl-list');
 </script>
 
-<div class={['pxl-listitem__text flex flex-col h-full flex-auto py-1 text-left justify-center truncate', {'text-wrap': size === 'three-line'}]}>
-  <span class="heading text-nowrap">{primary}</span>
-  {#if secondary}
-    <span class="">{secondary}</span>
-  {/if}
-</div>
+<svelte:element this={'p'} class="pxl-listitem__text body-medium text-foreground-alt dark:text-foreground-alt">
+  {@render children()}
+</svelte:element>

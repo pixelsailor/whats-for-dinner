@@ -1,8 +1,27 @@
 <script lang="ts">
-	import { Button } from 'bits-ui';
-	import { Tooltip } from 'bits-ui';
+	import { Button, Tooltip, type WithChildren, type WithoutChildren } from 'bits-ui';
 	import type { Snippet } from 'svelte';
-	import type { MouseEventHandler } from 'svelte/elements';
+	import type { HTMLAnchorAttributes, HTMLButtonAttributes, MouseEventHandler } from 'svelte/elements';
+
+	type TriggerRootPropsWithoutHTML = WithChildren<{
+		ref?: HTMLElement | null;
+	}>;
+
+	type AnchorElement = TriggerRootPropsWithoutHTML & 
+		WithoutChildren<Omit<HTMLAnchorAttributes, 'href' | 'type'>> & {
+			href: HTMLAnchorAttributes['href'];
+			type?: never;
+			disabled?: HTMLButtonAttributes['disabled'];
+		};
+
+	type ButtonElement = TriggerRootPropsWithoutHTML & 
+		WithoutChildren<Omit<HTMLButtonAttributes, 'type' | 'href'>> & {
+			type?: HTMLButtonAttributes['type'];
+			href?: never;
+			disabled?: HTMLButtonAttributes['disabled'];
+		};
+
+	type TriggerElement = AnchorElement | ButtonElement;
 
 	type Props = Button.RootProps & Tooltip.RootProps & {
 		children: any;
@@ -58,7 +77,7 @@ _Reference: bits-ui [Tooltip](https://bits-ui.com/docs/components/tooltip/llms.t
 	<Tooltip.Provider delayDuration={300} ignoreNonKeyboardFocus={true}>
 		<Tooltip.Root open={open}>
 			<Tooltip.Trigger
-				class="button icon text z-0"
+				class="button icon text"
 				style={`border-radius: ${shape === 'circle' ? '9999px' : '0.125rem'};`}
 				{...triggerProps}
 			>

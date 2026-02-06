@@ -17,6 +17,7 @@ import { resolve } from '$app/paths';
 
 	import { AppBar } from '$lib/ui/AppBar';
 	// import EditableRecipe from '$lib/ui/EditableRecipe.svelte';
+	import DatePicker from '$lib/ui/DatePicker.svelte';
 	import FavoriteIcon from '$lib/ui/icons/FavoriteIcon.svelte';
 	import FavoriteFilledIcon from '$lib/ui/icons/FavoriteFilledIcon.svelte';
 	import PxlIconButton from '$lib/ui/PxlIconButton.svelte';
@@ -177,6 +178,8 @@ import { resolve } from '$app/paths';
 	 * not when the recipe object is mutated.
 	 */
 	let recipeId = $derived(recipe?.id);
+	
+	let datePickerOpen = $state(false);
 
 	/** Reset local state when the ID changes */
 	$effect(() => {
@@ -475,7 +478,9 @@ import { resolve } from '$app/paths';
 	}
 
 	/** Open a date picker to update the last prepared date */
-	function updateLastPreparedDate() {}
+	function updateLastPreparedDate() {
+		datePickerOpen = true;
+	}
 
 	/**
 	 * Convert a AI generated time string to minutes
@@ -557,7 +562,8 @@ import { resolve } from '$app/paths';
 						<CloudBackupIcon size="xs" />
 					</PxlIconButton>
 				{/if} -->
-				<PxlIconButton
+				<DatePicker {iMadeThisToday} />
+				<!-- <PxlIconButton
 					aria-label="Update last prepared date"
 					tooltip="I made this today"
 					onclick={() => {
@@ -565,7 +571,7 @@ import { resolve } from '$app/paths';
 					}}
 				>
 					<CalendarHeatMapIcon size="xs" class={iMadeThisToday ? 'currentColor' : 'text-dark-40'} />
-				</PxlIconButton>
+				</PxlIconButton> -->
 				<PxlIconButton
 					aria-label={recipe?.is_favorite ? 'Remove from favorites' : 'Add to favorites'}
 					tooltip={recipe?.is_favorite ? 'Remove from favorites' : 'Add to favorites'}

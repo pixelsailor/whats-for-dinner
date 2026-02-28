@@ -1,7 +1,7 @@
 import { zodTextFormat } from 'openai/helpers/zod';
 
 import { openai } from '.';
-import { RecipeSchema } from './schema';
+import { RecipeSchema } from '$lib/api/recipe/recipe.schemas';
 
 // Causes an error when used with gpt-5-mini -- or it could be unsupported with Response API
 // const temperature = 0.6;

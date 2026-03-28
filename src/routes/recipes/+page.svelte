@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button, Select as BitsSelect } from 'bits-ui';
+	import { Select as BitsSelect, Button } from 'bits-ui';
 	import { SvelteSet } from 'svelte/reactivity';
 	import { toast } from 'svelte-sonner';
 
@@ -18,7 +18,14 @@
 	import ArrowUpIcon from '$lib/ui/icons/ArrowUpIcon.svelte';
 	import ArrowDownIcon from '$lib/ui/icons/ArrowDownIcon.svelte';
 	import CheveronSortIcon from '$lib/ui/icons/CheveronSortIcon.svelte';
-	import { parseAbsoluteToLocal } from '@internationalized/date';
+	import toMillis from '$lib/utils/toMilliseconds';
+
+	/** Milliseconds for last checkout; `0` matches never-made / unparseable (same baseline as old epoch fallback). */
+	function lastCheckoutMillis(raw: string | undefined): number {
+		if (raw == null || raw === '') return 0;
+		const ms = toMillis(raw);
+		return ms === -1 ? 0 : ms;
+	}
 
 	let { data } = $props();
 
@@ -48,23 +55,30 @@
 		const hasSearch = Boolean(search && search.length > 1);
 		const hasFilters = selectedTags && selectedTags.length > 0;
 
-		return recipes.filter((r) => {
-			const searchMatches = !hasSearch || r.title.toLowerCase().includes(titleSearch);
-			const tagMatches = !hasFilters || selectedTags.every((t) => r.tags.map((t) => t.toLowerCase()).includes(t.toLowerCase()));
-			return searchMatches && tagMatches;
-		}).sort((a, b) => {
-			if (selectedSort === 'title') {
-				return sortDirection === 'asc' ? a.title.localeCompare(b.title) : b.title.localeCompare(a.title);
-			} else if (selectedSort === 'created_at') {
-				return sortDirection === 'asc' ? a.created_at.localeCompare(b.created_at) : b.created_at.localeCompare(a.created_at);
-			} else if (selectedSort === 'last_made') {
-				const epoch = new Date(0).toISOString(); // If no date it's never been made; use epoch
-				const aDate = parseAbsoluteToLocal(a.checkout_history?.at(-1) ?? epoch);
-				const bDate = parseAbsoluteToLocal(b.checkout_history?.at(-1) ?? epoch);
-				return sortDirection === 'asc' ? aDate.compare(bDate) : bDate.compare(aDate);
-			}
-			return 0;
-		});
+		return recipes
+			.filter((r) => {
+				const searchMatches = !hasSearch || r.title.toLowerCase().includes(titleSearch);
+				const tagMatches =
+					!hasFilters ||
+					selectedTags.every((t) => r.tags.map((t) => t.toLowerCase()).includes(t.toLowerCase()));
+				return searchMatches && tagMatches;
+			})
+			.sort((a, b) => {
+				if (selectedSort === 'title') {
+					return sortDirection === 'asc' ? a.title.localeCompare(b.title) : b.title.localeCompare(a.title);
+				}
+				if (selectedSort === 'created_at') {
+					return sortDirection === 'asc'
+						? a.created_at.localeCompare(b.created_at)
+						: b.created_at.localeCompare(a.created_at);
+				}
+				if (selectedSort === 'last_made') {
+					const aMs = lastCheckoutMillis(a.checkout_history?.at(-1));
+					const bMs = lastCheckoutMillis(b.checkout_history?.at(-1));
+					return sortDirection === 'asc' ? aMs - bMs : bMs - aMs;
+				}
+				return 0;
+			});
 	});
 
 	// Populate the tags set with the tags from the recipes

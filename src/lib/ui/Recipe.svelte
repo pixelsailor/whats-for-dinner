@@ -80,7 +80,7 @@
 	</div>
 {/if}
 <ul class="mb-4 inline-flex h-12 items-center gap-2">
-	{#each recipe.tags as tag}
+	{#each recipe.tags as tag, index (index)}
 		<li>
 			<span class="tag label-medium lowercase">{tag}</span>
 		</li>

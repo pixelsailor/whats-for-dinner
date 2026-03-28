@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Button } from 'bits-ui';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { toast } from 'svelte-sonner';
 
@@ -293,7 +294,7 @@
 					await db.suggestions.update(id, { recipe_id: candidate.id });
 				}
 				toast.success('Recipe saved');
-				goto(`/recipes/${candidate.id}`, { replaceState: true });
+				goto(resolve(`/recipes/${candidate.id}`), { replaceState: true });
 			} catch (err) {
 				console.error('Cloud save failed; continuing locally', err);
 				candidate = createSavedRecipe(recipe as FullRecipe, err instanceof Error ? err.message : 'Unknown sync error');
@@ -312,7 +313,7 @@
 				await db.suggestions.update(id, { recipe_id: candidate.id });
 			}
 			toast.success('Recipe saved');
-			goto(`/recipes/${candidate.id}`, { replaceState: true });
+			goto(resolve(`/recipes/${candidate.id}`), { replaceState: true });
 		}
 	}
 

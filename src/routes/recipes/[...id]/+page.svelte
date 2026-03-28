@@ -3,19 +3,20 @@
 	import { getContext, onDestroy, onMount, untrack } from 'svelte';
 	import { slide } from 'svelte/transition';
 	import { toast } from 'svelte-sonner';
-	import { Button } from 'bits-ui';
+	import { Button, DropdownMenu } from 'bits-ui';
 
-	import { goto } from '$app/navigation';
+import { goto } from '$app/navigation';
+import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 
 	import { CloudService, SyncService } from '$lib/api/cloud';
 	import type { SavedRecipe } from '$lib/api/recipe';
 	import { db } from '$lib/db';
 	import { getRecipeStore } from '$lib/stores/recipes';
-	import type { PromptContext, ViewState } from '$lib/types';
+	import type { PromptContext, ViewState, Viewport } from '$lib/types';
 
 	import { AppBar } from '$lib/ui/AppBar';
-	import EditableRecipe from '$lib/ui/EditableRecipe.svelte';
+	// import EditableRecipe from '$lib/ui/EditableRecipe.svelte';
 	import FavoriteIcon from '$lib/ui/icons/FavoriteIcon.svelte';
 	import FavoriteFilledIcon from '$lib/ui/icons/FavoriteFilledIcon.svelte';
 	import PxlIconButton from '$lib/ui/PxlIconButton.svelte';
@@ -23,15 +24,18 @@
 	import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
 	import Prompt from '$lib/ui/Prompt.svelte';
 	import CloseIcon from '$lib/ui/icons/CloseIcon.svelte';
+	import KebabIcon from '$lib/ui/icons/KebabIcon.svelte';
 	import TrashIcon from '$lib/ui/icons/TrashIcon.svelte';
-	// import Recipe from '$lib/ui/Recipe.svelte';
+	import Recipe from '$lib/ui/Recipe.svelte';
 	import { networkStore } from '$lib/stores/network';
 	import { deriveAICapability } from '$lib/utils/capabilities';
 	import CalendarHeatMapIcon from '$lib/ui/icons/CalendarHeatMapIcon.svelte';
 	import SvelteMarkdown from '@humanspeak/svelte-markdown';
 	import { enhance } from '$app/forms';
+	// import LockIcon from '$lib/ui/icons/LockIcon.svelte';
+	// import UnlockIcon from '$lib/ui/icons/UnlockIcon.svelte';
 
-	const vp: any = getContext('viewport');
+	const vp: Viewport = getContext('viewport');
 
 	/** CONSTANTS */
 	/** The amount of time to wait before marking the recipe as opened */
@@ -103,7 +107,7 @@
 	/** Whether the user has indicated they did not make this recipe today -- disables `checkoutTimer` */
 	let iDidntMakeThisToday = $state(false);
 
-	let isLocked = $state(true);
+	let isLocked = $state(false);
 
 	let promptInput = $state<string>();
 
@@ -183,7 +187,8 @@
 
 		iMadeThisToday = false;
 		iDidntMakeThisToday = false;
-		isLocked = true;
+		// Hardcoded for now. @TODO: Implement role based locking.
+		isLocked = false;
 		markedAsOpenedRecipeId = null;
 		markAsOpenedAttempts = 0;
 
@@ -414,11 +419,11 @@
 				toast.error('There was a problem trying to restore the recipe.');
 				return;
 			} else {
-				goto('/recipes');
+				goto(resolve('/recipes'), { replaceState: true });
 			}
 		} else {
 			await db.recipes.update(id, { deleted_at: now });
-			goto('/recipes');
+			goto(resolve('/recipes'), { replaceState: true });
 		}
 	}
 
@@ -583,15 +588,47 @@
 						<UnlockIcon size="xs" />
 					{/if}
 				</PxlIconButton> -->
-				<PxlIconButton
-					aria-label="Move to trash"
-					tooltip="Move to trash"
-					onclick={() => {
-						deleteRecipe(recipe!.id);
-					}}
-				>
-					<TrashIcon size="xs" />
-				</PxlIconButton>
+				<DropdownMenu.Root>
+					<DropdownMenu.Trigger>
+						{#snippet child({ props })}
+							<Button.Root {...props} type="button" class="button icon text" aria-label="Recipe actions">
+								<KebabIcon size="xs" />
+							</Button.Root>
+						{/snippet}
+					</DropdownMenu.Trigger>
+					<DropdownMenu.Portal>
+						<DropdownMenu.Content
+							class="border-muted bg-background shadow-popover w-[229px] rounded-xl border px-1 py-1.5 outline-hidden focus-visible:outline-hidden"
+							sideOffset={8}
+						>
+							<DropdownMenu.Group aria-label="Recipe actions">
+								<DropdownMenu.Item textValue="Edit recipe">
+									{#snippet child({ props })}
+										<a
+											{...props}
+											href={resolve(`/recipes/${path}/edit`)}
+											class="rounded-button data-highlighted:bg-muted flex h-10 w-full items-center py-3 pr-1.5 pl-3 text-sm font-medium no-underline ring-0! ring-transparent! select-none focus-visible:outline-none"
+										>
+											Edit recipe
+										</a>
+									{/snippet}
+								</DropdownMenu.Item>
+								<DropdownMenu.Item
+									textValue="Move to trash"
+									class="rounded-button text-destructive data-highlighted:bg-destructive/10 flex h-10 items-center py-3 pr-1.5 pl-3 text-sm font-medium ring-0! ring-transparent! select-none focus-visible:outline-none"
+									onSelect={() => {
+										deleteRecipe(recipe!.id);
+									}}
+								>
+									<span class="flex items-center gap-2">
+										<TrashIcon size="xs" />
+										Move to trash
+									</span>
+								</DropdownMenu.Item>
+							</DropdownMenu.Group>
+						</DropdownMenu.Content>
+					</DropdownMenu.Portal>
+				</DropdownMenu.Root>
 			{/if}
 		</AppBar.End>
 	</AppBar.Root>
@@ -610,7 +647,7 @@
 			</p>
 		</div>
 	{:else if recipe}
-		<EditableRecipe {recipe} locked={isLocked} />
+		<Recipe {recipe} />
 		{#if canUseAI}
 			<div class="fixed right-0 bottom-0 px-4" style:left bind:this={promptRef}>
 				<Prompt>

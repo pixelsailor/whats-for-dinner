@@ -89,6 +89,14 @@
 	});
 </script>
 
+<!--
+@component
+# Button
+A custom button component that provides a consistent styling and behavior for buttons.
+
+@deprecated @see [Button](https://bits-ui.com/docs/components/button/llms.txt) and combine with
+appropriate what's for dinner button styles.
+-->
 {#snippet Base()}
 	<div
 		class={[

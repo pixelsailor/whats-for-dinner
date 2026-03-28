@@ -3,7 +3,16 @@
 	import { SvelteSet } from 'svelte/reactivity';
 	import { toast } from 'svelte-sonner';
 
+	import { afterNavigate, goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
+
 	import { db } from '$lib/db';
+	import {
+		type RecipeListSort,
+		applyRecipeListFiltersToUrl,
+		parseRecipeListSearchParams
+	} from '$lib/recipes/recipeListFiltersUrl';
 	import { recipesStore } from '$lib/stores/recipes';
 	
 	import { AppBar } from '$lib/ui/AppBar';
@@ -44,8 +53,39 @@
 		{ value: 'created_at', label: 'Created' },
 		{ value: 'last_made', label: 'Last made' }
 	]);
-	let selectedSort = $state<string>('title');
-	let sortDirection = $state<string>('asc');
+	let selectedSort = $state<RecipeListSort>('title');
+	let sortDirection = $state<'asc' | 'desc'>('asc');
+
+	const recipesListPath = resolve('/recipes');
+
+	function applyFiltersFromUrl(searchParams: URLSearchParams): void {
+		const parsed = parseRecipeListSearchParams(searchParams);
+		search = parsed.search;
+		selectedTags = parsed.tags;
+		selectedSort = parsed.sort;
+		sortDirection = parsed.dir;
+	}
+
+	function syncFiltersToUrl(): void {
+		const next = applyRecipeListFiltersToUrl(page.url, {
+			search,
+			tags: selectedTags,
+			sort: selectedSort,
+			dir: sortDirection
+		});
+		if (next.pathname !== recipesListPath) return;
+		const target = `${recipesListPath}${next.search}`;
+		const current = `${page.url.pathname}${page.url.search}`;
+		if (target === current) return;
+		// eslint-disable-next-line svelte/no-navigation-without-resolve -- query string appended to resolve('/recipes')
+		goto(`${resolve('/recipes')}${next.search}`, { replaceState: true, noScroll: true });
+	}
+
+	afterNavigate(({ to }) => {
+		if (!to) return;
+		if (to.url.pathname !== recipesListPath) return;
+		applyFiltersFromUrl(to.url.searchParams);
+	});
 
 	// Suggestions filtered by search and tags
 	let filteredRecipes = $derived.by(() => {
@@ -104,12 +144,14 @@
 	}
 
 	function setSortOrder(value: string) {
+		if (value !== 'title' && value !== 'created_at' && value !== 'last_made') return;
 		selectedSort = value;
 		if (selectedSort === 'title') {
 			sortDirection = 'asc';
 		} else {
 			sortDirection = 'desc';
 		}
+		syncFiltersToUrl();
 	}
 
 	/** Toggle the direction of the selected sort order */
@@ -117,6 +159,7 @@
 		event.preventDefault();
 		event.stopImmediatePropagation();
 		sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+		syncFiltersToUrl();
 	}
 
 	/** Force sync the recipe store to the server */
@@ -187,8 +230,15 @@
 				class="label flex h-input w-full flex-row flex-nowrap items-stretch rounded-sm border border-gray-200 px-3 dark:border-gray-700 dark:bg-gray-900 hover:dark:bg-gray-800"
 				placeholder="Search history"
 				bind:value={search}
+				onblur={syncFiltersToUrl}
 			/>
-			<Select type="multiple" items={tags} bind:value={selectedTags} placeholder="Filter by tags" />
+			<Select
+				type="multiple"
+				items={tags}
+				bind:value={selectedTags}
+				placeholder="Filter by tags"
+				onValueChange={syncFiltersToUrl}
+			/>
 			<div class="body-medium flex h-input flex-row flex-nowrap items-stretch rounded-sm border border-border-input hover:border-border-input-hover dark:border-gray-700 bg-background dark:bg-gray-900">
 				<BitsSelect.Root type="single" items={sortOptions} bind:value={getSortOrder, setSortOrder}>
 					<BitsSelect.Trigger class="h-input flex-auto border-none data-placeholder:text-foreground-alt/50 inline-flex w-[296px] touch-none select-none items-center border px-input text-sm transition-colors cursor-pointer">

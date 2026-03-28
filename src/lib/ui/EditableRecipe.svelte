@@ -3,16 +3,18 @@
 	// import { marked } from 'marked';
 	import type { Recipe } from '$lib/api/recipe';
 	import SvelteMarkdown from '@humanspeak/svelte-markdown';
+	import Button from '$lib/ui/Button/Button.svelte';
+	import EditIcon from '$lib/ui/icons/EditIcon.svelte';
 
 	interface EditState {
 		field: keyof Recipe | null;
-		originalValue: any;
+		originalValue: Recipe[keyof Recipe] | null;
 	}
 
-	let { recipe, locked = true }: { recipe: Recipe; locked?: boolean } = $props();
+	let { recipe, locked = false }: { recipe: Recipe; locked?: boolean } = $props();
 
 	// State
-	let editState = $state<EditState>({ field: null, originalValue: '' });
+	let editState = $state<EditState>({ field: null, originalValue: null });
 	let textareaRef: HTMLTextAreaElement | null = $state(null);
 
 	// Inferred total time
@@ -28,8 +30,12 @@
 	});
 
 	const dispatch = createEventDispatcher<{
-		commit: { field: keyof Recipe; oldValue: string; newValue: string };
-		cancel: { field: keyof Recipe; value: string };
+		commit: {
+			field: keyof Recipe;
+			oldValue: Recipe[keyof Recipe] | null;
+			newValue: Recipe[keyof Recipe];
+		};
+		cancel: { field: keyof Recipe; value: Recipe[keyof Recipe] | null };
 	}>();
 
 	$effect(() => {
@@ -67,7 +73,7 @@
 		const newValue = recipe[field];
 
 		editState.field = null;
-		editState.originalValue = '';
+		editState.originalValue = null;
 
 		dispatch('commit', { field, oldValue, newValue });
 	}
@@ -76,12 +82,13 @@
 		if (!editState.field) return;
 
 		const field = editState.field;
-		recipe[field] = editState.originalValue;
+		const mutableRecipe = recipe as Record<keyof Recipe, Recipe[keyof Recipe] | null>;
+		mutableRecipe[field] = editState.originalValue;
 
 		dispatch('cancel', { field, value: editState.originalValue });
 
 		editState.field = null;
-		editState.originalValue = '';
+		editState.originalValue = null;
 	}
 
 	function handleKeydown(event: KeyboardEvent, field: keyof Recipe) {
@@ -142,19 +149,6 @@
 		adjustTextareaHeight(textarea);
 	}
 
-	function handleEditableClick(field: keyof Recipe) {
-		if (locked) return;
-		startEdit(field);
-	}
-
-	function handleEditableKeydown(event: KeyboardEvent, field: keyof Recipe) {
-	if (locked) return;
-		if (event.key === 'Enter' || event.key === ' ') {
-			event.preventDefault();
-			startEdit(field);
-		}
-	}
-
 	/** Replace underscores with spaces and capitalize the first letter */
 	// function humanizeColumn(column: string): string {
 	// 	return column.charAt(0).toUpperCase() + column.slice(1).replace('_', ' ');
@@ -180,7 +174,7 @@
    * Determines how to interpret a time range returning either a hyphen or 'to' separator
    * @param time - The time range to interpret
    */
-	 function humanizeTime(time: string[]): string {
+	 function humanizeTime(time: string[] | null): string {
     if (!time || time.length === 0) return '';
     if (time.length === 1) {
       return humanizeDuration(parseInt(time[0]));
@@ -223,20 +217,26 @@
 						onblur={handleBlur}
 					/>
 					<div class="button-group">
-						<button class="commit-btn" onclick={commitEdit}>✓</button>
-						<button class="cancel-btn" onclick={cancelEdit}>✕</button>
+						<Button cue="filled" primary size="sm" class="commit-btn" onClick={commitEdit}>Save</Button>
+						<Button cue="outlined" size="sm" class="cancel-btn" onClick={cancelEdit}>Cancel</Button>
 					</div>
 				</div>
 			{:else}
-				<div
-					role="button"
-					tabindex={locked ? -1 : 0}
-					aria-disabled={locked}
-					class={`editable-wrapper ${locked ? 'editable--locked' : ''}`}
-					onclick={() => handleEditableClick('title')}
-					onkeydown={(event) => handleEditableKeydown(event, 'title')}
-				>
-					<h1 class="recipe-title display-small hover:bg-gray-100 hover:dark:bg-gray-900/40">
+				<div class="editable-field-shell">
+					{#if !locked}
+						<Button
+							icon
+							size="xs"
+							cue="text"
+							label="Edit title"
+							title="Edit title"
+							class="edit-btn"
+							onClick={() => startEdit('title')}
+						>
+							<EditIcon size="xs" />
+						</Button>
+					{/if}
+					<h1 class="recipe-title display-small editable-wrapper">
 						{recipe.title || 'Click to add title'}
 					</h1>
 				</div>
@@ -249,13 +249,26 @@
 					<div class="edit-container">
 						<textarea class="short-description-textarea" bind:value={recipe.short_description} onblur={handleBlur} oninput={handleTextareaInput} placeholder="Enter short description..."></textarea>
 						<div class="button-group">
-							<button class="commit-btn" onclick={commitEdit}>✓</button>
-							<button class="cancel-btn" onclick={cancelEdit}>✕</button>
+							<Button cue="filled" primary size="sm" class="commit-btn" onClick={commitEdit}>Save</Button>
+							<Button cue="outlined" size="sm" class="cancel-btn" onClick={cancelEdit}>Cancel</Button>
 						</div>
 					</div>
 				{:else}
-					<div class="recipe-short-description editable hover:bg-gray-100 hover:dark:bg-gray-900/40" role="button" tabindex={locked ? -1 : 0} aria-disabled={locked} onclick={() => handleEditableClick('short_description')} onkeydown={(event) => handleEditableKeydown(event, 'short_description')}>
-						{recipe.short_description || 'Click to add short description'}
+					<div class="editable-field-shell">
+						<Button
+							icon
+							size="xs"
+							cue="text"
+							label="Edit short description"
+							title="Edit short description"
+							class="edit-btn"
+							onClick={() => startEdit('short_description')}
+						>
+							<EditIcon size="xs" />
+						</Button>
+						<div class="recipe-short-description editable">
+							{recipe.short_description || 'Click to add short description'}
+						</div>
 					</div>
 				{/if}
 			</section>
@@ -274,20 +287,28 @@
 						placeholder="Enter recipe description..."
 					></textarea>
 					<div class="button-group">
-						<button class="commit-btn" onclick={commitEdit}>✓</button>
-						<button class="cancel-btn" onclick={cancelEdit}>✕</button>
+						<Button cue="filled" primary size="sm" class="commit-btn" onClick={commitEdit}>Save</Button>
+						<Button cue="outlined" size="sm" class="cancel-btn" onClick={cancelEdit}>Cancel</Button>
 					</div>
 				</div>
 			{:else}
-				<div
-					class={`recipe-description editable italic hover:bg-gray-100 hover:dark:bg-gray-900/40 ${locked ? 'editable--locked' : ''}`}
-					role="button"
-					tabindex={locked ? -1 : 0}
-					aria-disabled={locked}
-					onclick={() => handleEditableClick('description')}
-					onkeydown={(event) => handleEditableKeydown(event, 'description')}
-				>
-					{recipe.description}
+				<div class="editable-field-shell">
+					{#if !locked}
+						<Button
+							icon
+							size="xs"
+							cue="text"
+							label="Edit description"
+							title="Edit description"
+							class="edit-btn"
+							onClick={() => startEdit('description')}
+						>
+							<EditIcon size="xs" />
+						</Button>
+					{/if}
+					<div class="recipe-description editable italic">
+						{recipe.description}
+					</div>
 				</div>
 			{/if}
 		</section>
@@ -316,29 +337,37 @@
 					placeholder="Enter ingredients in markdown format..."
 				></textarea>
 				<div class="button-group">
-					<button class="commit-btn" onclick={commitEdit}>✓</button>
-					<button class="cancel-btn" onclick={cancelEdit}>✕</button>
+					<Button cue="filled" primary size="sm" class="commit-btn" onClick={commitEdit}>Save</Button>
+					<Button cue="outlined" size="sm" class="cancel-btn" onClick={cancelEdit}>Cancel</Button>
 				</div>
 				<small class="hint">
 					Tip: Use markdown format (e.g., - 2 cups flour). Ctrl+Enter to save.
 				</small>
 			</div>
 		{:else}
-			<div
-				class={`recipe-ingredients editable hover:bg-gray-100 hover:dark:bg-gray-900/40 ${locked ? 'editable--locked' : ''}`}
-				role="button"
-				tabindex={locked ? -1 : 0}
-				aria-disabled={locked}
-				onclick={() => handleEditableClick('ingredients')}
-				onkeydown={(event) => handleEditableKeydown(event, 'ingredients')}
-			>
-				{#if recipe.ingredients}
-					<div class="ingredients__content markdown">
-						<SvelteMarkdown source={recipe.ingredients} />
-					</div>
-				{:else}
-					<p class="placeholder">Click to add ingredients</p>
+			<div class="editable-field-shell">
+				{#if !locked}
+					<Button
+						icon
+						size="xs"
+						cue="text"
+						label="Edit ingredients"
+						title="Edit ingredients"
+						class="edit-btn"
+						onClick={() => startEdit('ingredients')}
+					>
+						<EditIcon size="xs" />
+					</Button>
 				{/if}
+				<div class="recipe-ingredients editable">
+					{#if recipe.ingredients}
+						<div class="ingredients__content markdown">
+							<SvelteMarkdown source={recipe.ingredients} />
+						</div>
+					{:else}
+						<p class="placeholder">Click to add ingredients</p>
+					{/if}
+				</div>
 			</div>
 		{/if}
 	</section>
@@ -358,29 +387,37 @@
 					placeholder="Enter step-by-step instructions in markdown format..."
 				></textarea>
 				<div class="button-group">
-					<button class="commit-btn" onclick={commitEdit}>✓</button>
-					<button class="cancel-btn" onclick={cancelEdit}>✕</button>
+					<Button cue="filled" primary size="sm" class="commit-btn" onClick={commitEdit}>Save</Button>
+					<Button cue="outlined" size="sm" class="cancel-btn" onClick={cancelEdit}>Cancel</Button>
 				</div>
 				<small class="hint"
 					>Tip: Use numbered lists (1., 2., 3.) or bullets (-). Ctrl+Enter to save.</small
 				>
 			</div>
 		{:else}
-			<div
-				class={`recipe-instructions editable hover:bg-gray-100 hover:dark:bg-gray-900/40 ${locked ? 'editable--locked' : ''}`}
-				role="button"
-				tabindex={locked ? -1 : 0}
-				aria-disabled={locked}
-				onclick={() => handleEditableClick('instructions')}
-				onkeydown={(event) => handleEditableKeydown(event, 'instructions')}
-			>
-				{#if recipe.instructions}
-					<div class="instructions__content markdown">
-						<SvelteMarkdown source={recipe.instructions} />
-					</div>
-				{:else}
-					<p class="placeholder">Click to add instructions</p>
+			<div class="editable-field-shell">
+				{#if !locked}
+					<Button
+						icon
+						size="xs"
+						cue="text"
+						label="Edit instructions"
+						title="Edit instructions"
+						class="edit-btn"
+						onClick={() => startEdit('instructions')}
+					>
+						<EditIcon size="xs" />
+					</Button>
 				{/if}
+				<div class="recipe-instructions editable">
+					{#if recipe.instructions}
+						<div class="instructions__content markdown">
+							<SvelteMarkdown source={recipe.instructions} />
+						</div>
+					{:else}
+						<p class="placeholder">Click to add instructions</p>
+					{/if}
+				</div>
 			</div>
 		{/if}
 	</section>
@@ -399,26 +436,34 @@
 					placeholder="Enter notes in markdown format..."
 				></textarea>
 				<div class="button-group">
-					<button class="commit-btn" onclick={commitEdit}>✓</button>
-					<button class="cancel-btn" onclick={cancelEdit}>✕</button>
+					<Button cue="filled" primary size="sm" class="commit-btn" onClick={commitEdit}>Save</Button>
+					<Button cue="outlined" size="sm" class="cancel-btn" onClick={cancelEdit}>Cancel</Button>
 				</div>
 			</div>
 		{:else}
-			<div
-				class={`recipe-notes editable hover:bg-gray-100 hover:dark:bg-gray-900/40 ${locked ? 'editable--locked' : ''}`}
-				role="button"
-				tabindex={locked ? -1 : 0}
-				aria-disabled={locked}
-				onclick={() => handleEditableClick('notes')}
-				onkeydown={(event) => handleEditableKeydown(event, 'notes')}
-			>
-				{#if recipe.notes}
-					<div class="notes__content markdown">
-						<SvelteMarkdown source={recipe.notes} />
-					</div>
-				{:else}
-					<p class="placeholder">Click to add notes</p>
+			<div class="editable-field-shell">
+				{#if !locked}
+					<Button
+						icon
+						size="xs"
+						cue="text"
+						label="Edit notes"
+						title="Edit notes"
+						class="edit-btn"
+						onClick={() => startEdit('notes')}
+					>
+						<EditIcon size="xs" />
+					</Button>
 				{/if}
+				<div class="recipe-notes editable">
+					{#if recipe.notes}
+						<div class="notes__content markdown">
+							<SvelteMarkdown source={recipe.notes} />
+						</div>
+					{:else}
+						<p class="placeholder">Click to add notes</p>
+					{/if}
+				</div>
 			</div>
 		{/if}
 	</section>
@@ -476,7 +521,7 @@
 
 	.editable,
 	.editable-wrapper {
-		cursor: pointer;
+		cursor: default;
 		padding: 0 0.5rem;
 		border-radius: 4px;
 		transition: background-color 0.2s ease;
@@ -484,8 +529,26 @@
 		border: 2px solid transparent;
 	}
 
-	.editable--locked {
-		cursor: default;
+	.editable-field-shell {
+		position: relative;
+		/* Expand hover/focus hit area into a left gutter for the edit button. */
+		padding-left: 2.75rem;
+		margin-left: -2.75rem;
+	}
+
+	.editable-field-shell :global(.edit-btn) {
+		position: absolute;
+		top: 0;
+		left: 0.25rem;
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity 0.2s ease;
+	}
+
+	.editable-field-shell:hover :global(.edit-btn),
+	.editable-field-shell:focus-within :global(.edit-btn) {
+		opacity: 1;
+		pointer-events: auto;
 	}
 
 
@@ -499,8 +562,7 @@
 		position: relative;
 	}
 
-	.title-input,
-	.tags-input {
+	.title-input {
 		width: 100%;
 		/* font-size: inherit;
     font-weight: inherit;
@@ -509,11 +571,6 @@
 		border: 2px solid #007bff;
 		border-radius: 4px;
 		outline: none;
-	}
-
-	.title-input {
-		/* font-size: 2.5rem;
-    font-weight: 700; */
 	}
 
 	.description-textarea,
@@ -557,34 +614,6 @@
 		display: flex;
 		gap: 0.5rem;
 		margin-top: 0.5rem;
-	}
-
-	.commit-btn,
-	.cancel-btn {
-		padding: 0.5rem 1rem;
-		border: none;
-		border-radius: 4px;
-		font-weight: 600;
-		cursor: pointer;
-		transition: background-color 0.2s ease;
-	}
-
-	.commit-btn {
-		background-color: #28a745;
-		color: white;
-	}
-
-	.commit-btn:hover {
-		background-color: #218838;
-	}
-
-	.cancel-btn {
-		background-color: #dc3545;
-		color: white;
-	}
-
-	.cancel-btn:hover {
-		background-color: #c82333;
 	}
 
 	.hint {

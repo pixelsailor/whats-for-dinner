@@ -24,6 +24,7 @@
 		placeholder,
 		onReset,
 		error,
+		onValueChange,
 		...restProps
 	}: Props = $props();
 
@@ -31,10 +32,12 @@
 
 	let selected = $derived(items?.find((item) => item.value === value)?.label ?? null);
 
-  /** Remove a tag from the selected values. Only available for multiple select. */
-  function removeTag(label: string) {
-    value = (value as string[])?.filter((v) => v !== label) ?? [];
-  }
+	/** Remove a tag from the selected values. Only available for multiple select. */
+	function removeTag(label: string) {
+		const next = (value as string[])?.filter((v) => v !== label) ?? [];
+		value = next;
+		onValueChange?.(next as never);
+	}
 </script>
 
 <!--
@@ -56,7 +59,13 @@ _Reference: bits-ui [Select](https://bits-ui.com/docs/components/select/llms.txt
   </Button.Root>
 {/snippet}
 
-<Select.Root bind:value={value as never} {...restProps}>
+<Select.Root
+	bind:value={value as never}
+	{...restProps}
+	onValueChange={(v: string | string[]) => {
+		onValueChange?.(v as never);
+	}}
+>
 	<div
 		class={[
 			'body-medium flex h-input flex-row flex-nowrap items-stretch rounded-sm border border-border-input hover:border-border-input-hover dark:border-gray-700 bg-background dark:bg-gray-900',
@@ -69,7 +78,7 @@ _Reference: bits-ui [Select](https://bits-ui.com/docs/components/select/llms.txt
 		>
 			<div class="flex flex-row flex-wrap gap-1">
         {#if restProps.type === 'multiple'}
-          {#each value as v}
+          {#each value as v (v)}
             {@render tag(v)}
           {/each}
         {:else}
@@ -82,7 +91,16 @@ _Reference: bits-ui [Select](https://bits-ui.com/docs/components/select/llms.txt
 		</Select.Trigger>
 		{#if value && value.length > 0}
 			<div class="flex-none">
-				<Button.Root onclick={() => (value = [])} class="button narrow text inset" title="Clear values">
+				<Button.Root
+					onclick={() => {
+						value = [];
+						if (restProps.type === 'multiple') {
+							onValueChange?.([] as never);
+						}
+					}}
+					class="button narrow text inset"
+					title="Clear values"
+				>
 					<CloseOutlineIcon size="xs" />
 				</Button.Root>
 			</div>
@@ -98,13 +116,13 @@ _Reference: bits-ui [Select](https://bits-ui.com/docs/components/select/llms.txt
 				<CaretUpIcon size="xs" />
 			</Select.ScrollUpButton>
 			<Select.Viewport class="p-1">
-				{#each items as item}
+				{#each items as item (item.value)}
 					{#if item.items}
 						<Select.Group>
 							<Select.GroupHeading class="label-medium uppercase mx-2 my-2 text-gray-500">
 								{item.label}
 							</Select.GroupHeading>
-							{#each item.items as subItem}
+							{#each item.items as subItem (subItem.value)}
 								<Select.Item
 									value={subItem.value}
 									label={subItem.label}

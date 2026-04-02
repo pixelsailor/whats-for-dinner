@@ -1,0 +1,14 @@
+---
+description: Core best practices and conventions for the What's For Dinner webapp
+version: 0.1.0
+alwaysApply: true
+---
+
+# What's For Dinner (WFD) Best Practices
+
+## Project Structure
+
+This is a Svelte 5.x web application with:
+
+- **Main app**: `src/routes/` -- Routable webpages
+- **App libraries**: `src/lib/` -- Zod schemas, API handlers, LLM prompts, Database stores, and reusable UI components

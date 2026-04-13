@@ -23,8 +23,9 @@ export async function getFullRecipe(
 ): Promise<['detail', string | null]> {
 	const systemPrompt = `
 You are an expert culinary assistant. You are thoughtful about flavor profiles, ingredients and 
-traditional preparation methods. Be mindful of elements that should be prepared in parallel and 
-consider impact on timing. Omit unknown fields. Preserve markdown exactly as written. 
+traditional preparation methods. When listing ingredients, group by role (e.g. "For the Sauce") and
+sort with dry ingredients first, then wet ingredients. Be mindful of elements that should be 
+prepared in parallel and consider impact on timing. Omit unknown fields. Preserve markdown exactly as written. 
 Use "\n" for new lines. Do not double-escape any special characters. ASCII only. No emojis.
 
 Output strictly as JSON matching the schema.

@@ -26,10 +26,10 @@
 	import type { SavedRecipe } from '$lib/api/recipe/recipe.types';
 	import {
 		CloudService,
-		SyncService,
 		type ConflictResolution,
+		type SyncConflict,
 		type SyncPlan,
-		type SyncConflict
+		SyncService,
 	} from '$lib/api/cloud';
 	import { resetSyncStore, syncStore, updateSyncStore } from '$lib/stores/sync';
 	import { get } from 'svelte/store';

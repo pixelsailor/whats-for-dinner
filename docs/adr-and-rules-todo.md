@@ -4,11 +4,11 @@ This backlog turns the project principles in the top-level README into enforceab
 
 ## ADR Backlog
 
-- [ ] **ADR: Product operating model**
+- [x] **ADR: Product operating model**
   - Define WFD as an offline-first, anonymous-first recipe book with optional cloud and AI enhancements.
   - Establish which capabilities must work without auth, network, Supabase, or OpenAI.
 
-- [ ] **ADR: Local data ownership**
+- [x] **ADR: Local data ownership**
   - Define Dexie and IndexedDB as the default home for saved recipes, preferences, recommendation inputs, and cached suggestion artifacts.
   - Clarify which records are durable user data and which records are transient cache data.
 

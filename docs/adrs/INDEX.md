@@ -32,7 +32,7 @@
 
 | ID  | Domain   | Title | Status | Description   |
 | --- | -------- | ----- | ------ | ------------- |
-| —   | Platform | —     | —      | _No ADRs yet_ |
+| [ADR-001](ADR-001-product-operating-model.md) | Platform | Product operating model | Accepted | Offline-first, anonymous-first recipe book; optional cloud and AI; binding capability matrix without auth/network/Supabase/OpenAI. |
 
 ---
 
@@ -40,7 +40,7 @@
 
 | ID  | Domain       | Title | Status | Description   |
 | --- | ------------ | ----- | ------ | ------------- |
-| —   | Architecture | —     | —      | _No ADRs yet_ |
+| [ADR-002](ADR-002-local-data-ownership.md) | Architecture | Local data ownership | Accepted | Dexie/IndexedDB as default home for recipes, preferences, recommendation inputs, and cached AI artifacts; durable vs transient classification. |
 
 ---
 

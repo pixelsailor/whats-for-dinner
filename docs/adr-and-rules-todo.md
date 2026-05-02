@@ -102,7 +102,7 @@ This backlog turns the project principles in the top-level README into enforceab
 
 ## Orchestrated Agent Workflow Backlog
 
-- [ ] **Create `docs/adrs/`**
+- [x] **Create `docs/adrs/`**
   - Add an ADR template with status, context, decision, consequences, enforcement rules, and supersession notes.
 
 - [ ] **Create an alignment gap document**

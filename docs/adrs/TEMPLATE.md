@@ -70,6 +70,22 @@ Concrete examples of how this decision appears in code, data, or flows.
 
 - …
 
+## Compliance (optional)
+
+Relevant standards, frameworks, or regulatory requirements this decision satisfies, aligns with, or intentionally defers.
+
+- **Standards:** e.g., WCAG 2.1 Level AA, OWASP Top 10 — or **Not applicable** / **None** when consciously out of scope.
+
+Remove this section entirely when nothing applies.
+
+## Notes (optional)
+
+Capture material that does not belong in other sections: external references, links to prior discussions, historical context, or one-off clarifications.
+
+- …
+
+Remove this section entirely when empty.
+
 ## Enforcement rules
 
 How this ADR becomes enforceable work, not only documentation.

@@ -1,6 +1,6 @@
-# ADR-NNNN: REPLACE_WITH_SHORT_TITLE
+# ADR-NNN: REPLACE_WITH_SHORT_TITLE
 
-Copy this file to `docs/adrs/NNNN-kebab-case-title.md`, incrementing `NNNN` from the highest existing number. Replace placeholders (including `REPLACE_WITH_*`) and remove instructional lines before opening a PR. Use an imperative, short title (for example: “Use Dexie for durable recipe storage”).
+Copy this file to `docs/adrs/ADR-NNN-short-kebab-title.md`, incrementing the numeric segment `NNN` (zero-pad to three digits, e.g. `ADR-001`, `ADR-002`) from the highest existing `ADR-*` file in `docs/adrs/`. Replace placeholders (including `REPLACE_WITH_*`) and remove instructional lines before opening a PR. Use an imperative, short title (for example: “Use Dexie for durable recipe storage”).
 
 ## Status
 
@@ -98,7 +98,7 @@ How this ADR becomes enforceable work, not only documentation.
 
 - **When to supersede:** Open a **new** ADR when the **core invariant or boundary** of this decision changes. Do **not** spin a new ADR for routine implementation detail evolution—revise this ADR in place or update code and tests while keeping the decision stable.
 - **Stable identifiers:** Keep the ADR number fixed; revise content in place until the decision is fundamentally replaced.
-- **If superseded:** Link `ADR-MMMM-title.md` and summarize what changed for readers migrating mental models.
+- **If superseded:** Link `ADR-NNN-short-kebab-title.md` and summarize what changed for readers migrating mental models.
 - **If partially obsolete:** Prefer a new ADR for the new decision and narrow this ADR’s scope rather than overloading one document.
 
 ---

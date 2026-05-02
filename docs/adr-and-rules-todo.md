@@ -19,6 +19,7 @@ This backlog turns the project principles in the top-level README into enforceab
 - [ ] **ADR: Account and cloud enhancement model**
   - Define Supabase's scope: authentication, backup, sharing, and synchronization.
   - Require logged-out and offline continuity for users who previously registered.
+  - Account for future user-hosted databases that bypass WFD-managed Supabase accounts.
 
 - [ ] **ADR: Sync and conflict resolution**
   - Define ownership, timestamps, deleted states, restore behavior, and conflict handling between local Dexie data and Supabase backups.
@@ -32,6 +33,12 @@ This backlog turns the project principles in the top-level README into enforceab
 - [ ] **ADR: AI provider contract**
   - Define the OpenAI Chat Completions integration shape, structured response expectations, error handling, retries, and offline fallback behavior.
   - Require user preferences to be included in recipe-generation prompts.
+  - Define how a user-configured local or personal AI API can bypass WFD-managed account restrictions while preserving validation and safety boundaries.
+
+- [ ] **ADR: Self-hosting provider model**
+  - Define the service boundaries needed for user-controlled AI APIs and user-hosted databases.
+  - Identify which provider capabilities are required, optional, or unsupported.
+  - Establish how self-hosted configuration interacts with anonymous usage, account permissions, sync, sharing, backups, and offline behavior.
 
 - [ ] **ADR: Schema-led domain contracts**
   - Require Zod schemas as the source of truth for persisted records, API payloads, and AI-generated data.
@@ -66,10 +73,16 @@ This backlog turns the project principles in the top-level README into enforceab
 - [ ] **Rule: AI integration boundary**
   - Require OpenAI calls to stay in server-only modules or SvelteKit server routes.
   - Require request and response validation, preference inclusion, and no direct client-side AI calls.
+  - Avoid hard-coding OpenAI-only assumptions where a provider contract should allow future personal AI APIs.
 
 - [ ] **Rule: Supabase enhancement boundary**
   - Treat Supabase as optional for backup, sync, sharing, and auth.
   - Require graceful behavior when users are logged out, offline, or missing cloud permissions.
+  - Avoid hard-coding Supabase-only assumptions where a provider contract should allow future user-hosted databases.
+
+- [ ] **Rule: Self-hosting compatibility**
+  - Require new cloud or AI work to document whether it depends on WFD-managed services, user-provided services, or either.
+  - Flag account-permission checks that would incorrectly block configured personal AI APIs or user-hosted databases.
 
 - [ ] **Rule: Svelte 5 and UI conventions**
   - Enforce runes-based Svelte 5 patterns, accessibility expectations, bits-ui-first composition, and TailwindCSS styling conventions.
@@ -100,7 +113,7 @@ This backlog turns the project principles in the top-level README into enforceab
   - Require scoped phases, files likely to change, validation steps, risks, and rollback notes before significant implementation.
 
 - [ ] **Create a validation checklist**
-  - Cover offline behavior, anonymous behavior, auth boundaries, cloud behavior, AI disabled behavior, schema validation, accessibility, and tests.
+  - Cover offline behavior, anonymous behavior, auth boundaries, cloud behavior, AI disabled behavior, self-hosted provider behavior, schema validation, accessibility, and tests.
 
 - [ ] **Create a test matrix template**
   - Track expected coverage for unit, component, browser, offline, and integration-like flows.

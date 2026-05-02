@@ -12,6 +12,7 @@ The project should remain useful without an account, without cloud services, and
 - **Transient AI suggestions**: Viewed AI-generated suggestions may be cached locally so they can be reopened without another AI request, but suggestions are not saved to cloud storage and should be eligible for eventual deletion.
 - **Cloud as an enhancement**: Registered Supabase accounts support backup, sharing, and sync across devices. A registered user must still be able to keep using WFD while logged out or offline.
 - **AI as an enhancement**: AI helps generate suggestions, expand suggestions into recipes, revise recipes, and answer recipe questions. The app must continue to have meaningful offline behavior when AI is unavailable.
+- **Self-hosting as a future path**: WFD should be able to evolve toward user-controlled services, including personal AI API endpoints and user-hosted databases that can bypass WFD-managed account restrictions.
 - **Preferences shape recommendations**: User preferences, dietary needs, and cooking constraints should influence recommendations and be applied to every AI recipe prompt.
 - **Serverless and secret-safe**: WFD is intended for serverless deployment on Cloudflare Workers or Pages. Server-side code and secrets must stay out of `.svelte` files and other client-side modules.
 
@@ -24,6 +25,7 @@ WFD is organized around a recipe book, a recommendations experience, and optiona
 - **AI suggestions**: Generate recipe ideas from user prompts and preferences, cache viewed suggestions locally, and allow selected suggestions to become saved recipes.
 - **Recipe assistance**: Use AI to refine recipes, answer cooking questions, and help adapt a recipe to the user's needs.
 - **Account-backed cloud features**: For registered users, use Supabase for cloud backup, sharing, and synchronization.
+- **User-controlled services**: Future self-hosting should allow users to configure their own AI API and database provider without requiring WFD-managed accounts.
 
 ## Technology Stack
 
@@ -40,6 +42,8 @@ WFD is organized around a recipe book, a recommendations experience, and optiona
 The client is responsible for the local-first product experience. Recipes, preferences, cached suggestions, and recommendation inputs should be readable from browser-local storage whenever possible.
 
 Server-side code exists to protect secrets, validate remote requests, call external services, and support account-backed enhancements. OpenAI and privileged Supabase operations must run through server-only modules, SvelteKit server routes, remote functions, or hooks. Client modules and Svelte components must not import private environment variables or call secret-bearing services directly.
+
+Provider-specific integrations should stay behind explicit service boundaries. Current development may use OpenAI and Supabase, but the architecture should avoid assuming they are the only possible AI or cloud data providers.
 
 The data model should stay schema-led. Zod schemas define persisted and external shapes, TypeScript types are derived from those schemas, and external or generated data is validated before use.
 
@@ -59,6 +63,7 @@ Near-term and future work should preserve the offline-first, anonymous-first fou
 - **Recipe import**: Use AI to extract recipe content from URLs.
 - **OCR import**: Support photos and scans as sources for recipe capture.
 - **Meal planner**: Add planning workflows for future meals, selected recipes, and integrated shopping lists.
+- **Self-hosting**: Support user-configured personal AI APIs and user-hosted database providers so advanced users can run WFD without WFD-managed AI or Supabase accounts.
 
 ## Project Structure
 

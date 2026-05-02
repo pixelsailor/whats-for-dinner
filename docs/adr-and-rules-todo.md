@@ -58,7 +58,7 @@ This backlog turns the project principles in the top-level README into enforceab
 
 ## Cursor Rule Backlog
 
-- [ ] **Rule: README governance**
+- [x] **Rule: README governance**
   - Keep the top-level README focused on project purpose, principles, stack, and durable boundaries.
   - Direct detailed implementation guidance to ADRs, directory READMEs, or focused docs.
 

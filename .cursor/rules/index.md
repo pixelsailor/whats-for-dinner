@@ -14,6 +14,7 @@
 | | security-sanitization | | globs |
 | | storage-conventions | Registered storage keys, naming, cleanup, and cache constraints | globs |
 | **Governance** | adr-compliance | ADR consultation, `_ARCHITECTURE_CONTRAINTS.md`, and architecture-gap escalation | alwaysApply |
+| | readme-governance | Root README scope; deep docs → ADRs, scoped READMEs, `docs/` | globs `README.md` |
 | **Agent Workflow** | orchestrator | Orchestration controller for Plan-Build-Validate-Test loops | manual |
 | | planner | Creates executable phased plans and artifacts | manual |
 | | builder | Implements a single plan phase within strict scope | manual |

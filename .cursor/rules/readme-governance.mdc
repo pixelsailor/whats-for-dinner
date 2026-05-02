@@ -1,0 +1,29 @@
+---
+description: Root README stays high-level; route deep guidance to ADRs, scoped READMEs, and docs
+globs: README.md
+alwaysApply: false
+---
+
+# README governance (repository root)
+
+The top-level `README.md` carries **product purpose, principles, stack, and durable boundaries**. It is not the home for long implementation playbooks.
+
+## Belongs in the root README
+
+- What WFD is and who it is for
+- Product principles and non-negotiables (offline-first, anonymous-first, local vs cloud vs AI)
+- High-level technology stack and where secrets run
+- Short architecture boundary statements (client vs server, schema-led shapes) without step-by-step procedures
+- Compact project tree or pointer to layout; **Documentation Map** with links
+- Minimal onboarding: install, dev server, common scripts, env var names and which side imports secrets
+
+## Put elsewhere (and link from the map)
+
+| Instead of expanding the root README | Use |
+|----------------------------------------|-----|
+| Durable architecture or data-ownership decisions | `docs/adrs/` (ADR) once recorded |
+| Patterns owned by a directory | `src/lib/.../README.md` or topic doc under `docs/` |
+| Agent-enforced dev behavior | `.cursor/rules/` and `AGENTS.md` |
+| Feature or flow design | Focused `docs/<topic>.md` |
+
+When you add documentation, prefer a **new linked doc or ADR** and a single line in the Documentation Map over pasting long sections into the root README.

@@ -88,6 +88,7 @@ Detailed guidance should live near the code it governs. Use the top-level README
 ## Documentation Map
 
 - [`AGENTS.md`](./AGENTS.md): Agent-facing development rules and coding expectations.
+- [`docs/adrs/`](./docs/adrs/): Architecture decision records (template and future ADRs).
 - [`src/lib/api/README.md`](./src/lib/api/README.md): API service layer organization.
 - [`src/lib/ui/README.md`](./src/lib/ui/README.md): UI component library guidance.
 - [`src/lib/stores/README.md`](./src/lib/stores/README.md): Store patterns and local data flow.

@@ -142,7 +142,7 @@ One bounded phase or PR-sized slice this ADR governs; what is explicitly **out o
 
 ### Validator expectations
 
-What the **Validator** must verify against this ADR, [AGENTS.md](../../AGENTS.md), [.cursor/rules/project-best-practices.mdc](../../.cursor/rules/project-best-practices.mdc), and any project **architecture / alignment gap** document (see [docs/adr-and-rules-todo.md](../adr-and-rules-todo.md) — alignment gap backlog).
+What the **Validator** must verify against this ADR, [AGENTS.md](../../AGENTS.md), [.cursor/rules/project-best-practices.mdc](../../.cursor/rules/project-best-practices.mdc), and [docs/readme-adr-alignment-gaps.md](../readme-adr-alignment-gaps.md) for recorded implementation drift.
 
 ### Test role and evidence
 
@@ -150,7 +150,7 @@ What the **Test** role should add or update (unit, component, browser, offline, 
 
 ### Alignment gaps
 
-If current implementation differs from this ADR and the gap is not fixed in the same change, record it in the project **alignment gap** document (owner, severity, affected areas, remediation, whether it blocks future work). Do not hide divergence only in code comments.
+If current implementation differs from this ADR and the gap is not fixed in the same change, record it in [docs/readme-adr-alignment-gaps.md](../readme-adr-alignment-gaps.md) (owner, severity, affected areas, remediation, whether it blocks future work). Do not hide divergence only in code comments.
 
 ### Merge / workflow gates
 

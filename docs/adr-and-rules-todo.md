@@ -98,16 +98,17 @@ This backlog turns the project principles in the top-level README into enforceab
 
 - [ ] **Rule: ADR compliance**
   - Require agents to consult relevant ADRs before changing architecture, data flow, auth, sync, AI, or offline behavior.
-  - Require unresolved mismatches to be recorded in the alignment gap document rather than hidden in implementation comments.
+  - Require unresolved mismatches to be recorded in [`readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md) rather than hidden in implementation comments.
 
 ## Orchestrated Agent Workflow Backlog
 
 - [x] **Create `docs/adrs/`**
   - Add an ADR template with status, context, decision, consequences, enforcement rules, and supersession notes.
 
-- [ ] **Create an alignment gap document**
+- [x] **Create an alignment gap document**
   - Track areas where current implementation differs from accepted ADRs.
   - Include owner, severity, affected files or domains, recommended remediation, and whether the gap blocks future work.
+  - **Done:** [`docs/readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md)
 
 - [ ] **Create a planning artifact template**
   - Require scoped phases, files likely to change, validation steps, risks, and rollback notes before significant implementation.
@@ -121,7 +122,7 @@ This backlog turns the project principles in the top-level README into enforceab
 - [ ] **Define Plan-Build-Validate-Test roles**
   - Planner produces an executable plan and identifies relevant ADRs.
   - Builder implements one bounded phase.
-  - Validator reviews against ADRs, rules, and the alignment gap document.
+  - Validator reviews against ADRs, rules, and [`readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md).
   - Test role adds or updates focused tests and records residual risk.
 
 - [ ] **Add workflow gate rules**

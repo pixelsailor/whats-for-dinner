@@ -12,11 +12,11 @@ This backlog turns the project principles in the top-level README into enforceab
   - Define Dexie and IndexedDB as the default home for saved recipes, preferences, recommendation inputs, and cached suggestion artifacts.
   - Clarify which records are durable user data and which records are transient cache data.
 
-- [ ] **ADR: AI suggestion lifecycle**
+- [x] **ADR: AI suggestion lifecycle**
   - Define how prompts, viewed suggestions, generated full recipes, and saved recipes move through the system.
   - Specify retention expectations, cache invalidation, and the rule that AI suggestions are not cloud-saved unless converted into user-saved recipes.
 
-- [ ] **ADR: Account and cloud enhancement model**
+- [x] **ADR: Account and cloud enhancement model**
   - Define Supabase's scope: authentication, backup, sharing, and synchronization.
   - Require logged-out and offline continuity for users who previously registered.
   - Account for future user-hosted databases that bypass WFD-managed Supabase accounts.

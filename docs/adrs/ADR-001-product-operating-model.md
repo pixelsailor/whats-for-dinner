@@ -11,7 +11,7 @@
 ## Scope
 
 - **In scope:** What WFD is as a product, the ordering of capabilities (offline-first, anonymous-first), and which user-visible capabilities must remain available without authentication, without network connectivity, without Supabase, and without OpenAI. High-level expectations for degraded behavior when optional layers are absent.
-- **Out of scope:** Concrete data schemas and table ownership (see [ADR-002: Local data ownership](ADR-002-local-data-ownership.md)), AI artifact retention and invalidation rules (future ADR on AI suggestion lifecycle), Supabase sync semantics (future ADRs on account model and sync), serverless code layout (future ADR on serverless and secret boundary), and self-hosting configuration details (future ADRs on self-hosting provider model).
+- **Out of scope:** Concrete data schemas and table ownership (see [ADR-002: Local data ownership](ADR-002-local-data-ownership.md)), AI artifact retention and invalidation rules (see [ADR-003: AI suggestion lifecycle](ADR-003-ai-suggestion-lifecycle.md)), Supabase role boundaries for account and cloud enhancement (see [ADR-004: Account and cloud enhancement model](ADR-004-account-and-cloud-enhancement-model.md)), detailed Supabase sync semantics (future sync ADR), serverless code layout (future ADR on serverless and secret boundary), and self-hosting configuration details (future ADRs on self-hosting provider model).
 
 ## Context
 
@@ -117,6 +117,8 @@ Not applicable beyond general accessibility expectations for public UI (handled 
 
 - ADR-001: Product operating model (this document) — baseline for subsequent ADRs on data, AI, sync, and self-hosting.
 - [ADR-002: Local data ownership](ADR-002-local-data-ownership.md) — Dexie/IndexedDB as default home; durable user data vs transient AI/cache data.
+- [ADR-003: AI suggestion lifecycle](ADR-003-ai-suggestion-lifecycle.md) — prompt/request/cache/promotion lifecycle for AI suggestion artifacts.
+- [ADR-004: Account and cloud enhancement model](ADR-004-account-and-cloud-enhancement-model.md) — Supabase scope and continuity expectations for logged-out/offline use.
 
 ### Planning artifact
 

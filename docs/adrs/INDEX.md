@@ -33,6 +33,7 @@
 | ID  | Domain   | Title | Status | Description   |
 | --- | -------- | ----- | ------ | ------------- |
 | [ADR-001](ADR-001-product-operating-model.md) | Platform | Product operating model | Accepted | Offline-first, anonymous-first recipe book; optional cloud and AI; binding capability matrix without auth/network/Supabase/OpenAI. |
+| [ADR-004](ADR-004-account-and-cloud-enhancement-model.md) | Platform | Account and cloud enhancement model | Accepted | Supabase as optional enhancement for auth, backup, sharing, and sync; logged-out/offline continuity required for local recipe flows. |
 
 ---
 
@@ -41,6 +42,7 @@
 | ID  | Domain       | Title | Status | Description   |
 | --- | ------------ | ----- | ------ | ------------- |
 | [ADR-002](ADR-002-local-data-ownership.md) | Architecture | Local data ownership | Accepted | Dexie/IndexedDB as default home for recipes, preferences, recommendation inputs, and cached AI artifacts; durable vs transient classification. |
+| [ADR-003](ADR-003-ai-suggestion-lifecycle.md) | Architecture | AI suggestion lifecycle | Accepted | Prompt-to-suggestion lifecycle is transient-local with dedup, bounded history, and explicit promotion boundary to durable recipes. |
 
 ---
 

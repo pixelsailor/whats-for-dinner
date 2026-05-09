@@ -59,7 +59,7 @@
 
 | ID  | Domain   | Title | Status | Description   |
 | --- | -------- | ----- | ------ | ------------- |
-| —   | Security | —     | —      | _No ADRs yet_ |
+| [ADR-006](ADR-006-serverless-and-secret-boundary.md) | Security | Serverless and secret boundary | Accepted | Server-only OpenAI and private env; no secrets in client or `.svelte`; serverless/portability constraints (incl. Workers-style). |
 
 ---
 

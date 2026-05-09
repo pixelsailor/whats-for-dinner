@@ -25,10 +25,11 @@ This backlog turns the project principles in the top-level README into enforceab
   - Define ownership, timestamps, deleted states, restore behavior, and conflict handling between local Dexie data and Supabase backups.
   - Clarify how soft deletes and `checkout_history` participate in sync.
 
-- [ ] **ADR: Serverless and secret boundary**
+- [x] **ADR: Serverless and secret boundary**
   - Define the accepted server-side surfaces for OpenAI and privileged Supabase work.
   - Prohibit secrets and server-only imports in `.svelte` files, client modules, and browser-executed utilities.
   - Capture Cloudflare Workers/Pages compatibility constraints.
+  - **Done:** [`docs/adrs/ADR-006-serverless-and-secret-boundary.md`](./adrs/ADR-006-serverless-and-secret-boundary.md)
 
 - [ ] **ADR: AI provider contract**
   - Define the OpenAI Chat Completions integration shape, structured response expectations, error handling, retries, and offline fallback behavior.

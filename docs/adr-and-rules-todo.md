@@ -21,7 +21,7 @@ This backlog turns the project principles in the top-level README into enforceab
   - Require logged-out and offline continuity for users who previously registered.
   - Account for future user-hosted databases that bypass WFD-managed Supabase accounts.
 
-- [ ] **ADR: Sync and conflict resolution**
+- [x] **ADR: Sync and conflict resolution**
   - Define ownership, timestamps, deleted states, restore behavior, and conflict handling between local Dexie data and Supabase backups.
   - Clarify how soft deletes and `checkout_history` participate in sync.
 

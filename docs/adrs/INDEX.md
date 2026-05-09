@@ -43,6 +43,7 @@
 | --- | ------------ | ----- | ------ | ------------- |
 | [ADR-002](ADR-002-local-data-ownership.md) | Architecture | Local data ownership | Accepted | Dexie/IndexedDB as default home for recipes, preferences, recommendation inputs, and cached AI artifacts; durable vs transient classification. |
 | [ADR-003](ADR-003-ai-suggestion-lifecycle.md) | Architecture | AI suggestion lifecycle | Accepted | Prompt-to-suggestion lifecycle is transient-local with dedup, bounded history, and explicit promotion boundary to durable recipes. |
+| [ADR-005](ADR-005-sync-and-conflict-resolution.md) | Architecture | Sync and conflict resolution | Proposed | Local-first Dexie sync semantics with Supabase replicas, tombstone propagation, timestamp-led conflict resolution, restore behavior, and checkout-history handling. |
 
 ---
 

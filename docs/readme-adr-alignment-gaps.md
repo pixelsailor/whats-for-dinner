@@ -32,6 +32,7 @@ Suggested fields (adapt as needed):
 | ID | Status | Severity | Source | Observed | Expected | Notes | Owner |
 | -- | ------ | -------- | ------ | -------- | -------- | ----- | ----- |
 | GAP-001 | Open | Major | README — *Offline-first*; [ADR-001](./adrs/ADR-001-product-operating-model.md) capability matrix; [ADR-004](./adrs/ADR-004-account-and-cloud-enhancement-model.md) logged-out / offline continuity | Using the app while **offline** (or with unreliable network) can produce **slow loading and timeouts**, undermining practical offline use. | Once cached, the app should remain **useful offline** with **fast repeat loads** and core recipe flows without blocking on network, Supabase, or OpenAI. | Likely causes include uncapped `fetch` / TanStack Query behavior, layout loads that assume network, or missing offline-first loading paths; triage with DevTools (Network throttling / offline) and trace critical `+layout` / `+page` data dependencies. | — |
+| GAP-002 | Open | Major | [ADR-005](./adrs/ADR-005-sync-and-conflict-resolution.md) soft delete and restore behavior | Current sync planning reads active recipes only, filtering out rows with `deleted_at` or `archived` before building the plan. | Sync planning should include tombstoned rows so deletes and restores propagate across devices and do not reappear as active data. | Affected area: `src/lib/api/cloud/sync.service.ts` and `src/lib/api/cloud/cloud.model.ts`; remediation should include tombstone-aware planning and tests for delete/restore propagation. | — |
 
 ---
 

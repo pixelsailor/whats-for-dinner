@@ -41,7 +41,7 @@
 
 | ID  | Domain       | Title | Status | Description   |
 | --- | ------------ | ----- | ------ | ------------- |
-| [ADR-002](ADR-002-local-data-ownership.md) | Architecture | Local data ownership | Accepted | Dexie/IndexedDB as default home for recipes, preferences, recommendation inputs, and cached AI artifacts; durable vs transient classification. |
+| [ADR-002](ADR-002-local-data-ownership.md) | Architecture | Local data ownership | Accepted | Dexie/IndexedDB as default home for recipes, preferences, and cached AI artifacts; durable vs transient classification; preferences feed AI/suggestions, not deterministic recommendations ([ADR-009](ADR-009-recommendations-engine-inputs.md)). |
 | [ADR-003](ADR-003-ai-suggestion-lifecycle.md) | Architecture | AI suggestion lifecycle | Accepted | Prompt-to-suggestion lifecycle is transient-local with dedup, bounded history, and explicit promotion boundary to durable recipes. |
 | [ADR-005](ADR-005-sync-and-conflict-resolution.md) | Architecture | Sync and conflict resolution | Proposed | Local-first Dexie sync semantics with Supabase replicas, tombstone propagation, timestamp-led conflict resolution, restore behavior, and checkout-history handling. |
 | [ADR-007](ADR-007-ai-provider-contract.md) | Architecture | AI provider contract | Accepted | Server-only provider access; Chat Completions vs Responses+Zod paths; preference injection for generation; errors, offline degradation, and future personal-provider shape. |
@@ -69,3 +69,4 @@
 | ID  | Domain  | Title | Status | Description   |
 | --- | ------- | ----- | ------ | ------------- |
 | [ADR-008](ADR-008-schema-led-domain-contracts.md) | Quality | Schema-led domain contracts | Accepted | Zod as source of truth for persisted, API, and validated external data; inferred types; module layout under `src/lib/api`; boundary validation; Dexie/store consumption patterns. |
+| [ADR-009](ADR-009-recommendations-engine-inputs.md) | Architecture | Recommendations engine (local inputs) | Accepted | Client-side Dexie-backed heuristics over saved recipes and usage fields only; user preferences apply to AI suggestions, not to recommendations; explicit separation from AI suggestions; no remote ranking for core recommendations. |

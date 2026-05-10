@@ -6,7 +6,7 @@
 
 ## Date
 
-2026-05-02
+2026-05-09
 
 ## Scope
 
@@ -32,7 +32,7 @@ ADR-001 defers “concrete data schemas and table ownership.” Teams need a sin
 We will treat **Dexie-backed IndexedDB** (`src/lib/db.ts` and successors) as the **default home** in the browser for:
 
 1. **Saved recipes** — full `SavedRecipe` records the user intends to keep, including fields that support the recipe book and recommendations (for example **tags**, **preferences-relevant fields**, **ratings or favorites** when present on the recipe model, and **`checkout_history`** as part of the saved recipe document). These rows are **durable user data**.
-2. **Preferences and recommendation inputs** — user-controlled settings and inputs that drive local recommendations and AI prompts (for example dietary constraints, cuisine preferences), stored locally for anonymous and offline use unless a future account/sync ADR specifies otherwise. These are **durable user data** at the product level; concrete tables and migration of legacy stores are implementation concerns.
+2. **Preferences** — user-controlled settings that drive **AI suggestions and other AI recipe prompts** (for example dietary constraints, cuisine preferences; see [ADR-007](ADR-007-ai-provider-contract.md)), stored locally for anonymous and offline use unless a future account/sync ADR specifies otherwise. **Deterministic recommendations** over the saved library use **recipe-local** fields only and **do not** re-apply this preferences object ([ADR-009](ADR-009-recommendations-engine-inputs.md)). These rows are **durable user data** at the product level; concrete tables and migration of legacy stores are implementation concerns.
 3. **Cached AI suggestion artifacts** — rows that hold **AI-generated suggestion summaries** (and related metadata such as viewed timestamps or links to promoted recipes) **only for local reuse**, deduplication, and offline reopening. These are **transient cache / local artifact data**, not substitutes for saved recipes and not cloud-backed user recipes unless the user explicitly saves (per README and future AI lifecycle ADR).
 
 We will use **Svelte stores** (including Dexie `liveQuery`-backed stores) as the **reactive read model** over that local data, not as a second system of record: the authoritative persisted state for the domains above remains **Dexie**, consistent with [`src/lib/stores/README.md`](../../src/lib/stores/README.md) (local-first reads; cloud subservient when both exist).
@@ -42,7 +42,7 @@ We will use **Svelte stores** (including Dexie `liveQuery`-backed stores) as the
 | Category | Examples (non-exhaustive) | Durable user data | Transient / cache / operational |
 | --- | --- | --- | --- |
 | Recipe book | `SavedRecipe` in `db.recipes`, including `checkout_history` on the recipe | Yes | — |
-| Preferences & recommendation inputs | User preferences object keyed for local use; inputs consumed by the recommendations engine | Yes | — |
+| Preferences | User preferences object keyed for local use; consumed by **AI / suggestions**, not by deterministic recommendation ranking over `SavedRecipe` ([ADR-009](ADR-009-recommendations-engine-inputs.md)) | Yes | — |
 | AI suggestions | `db.suggestions` rows; session or TanStack Query caches of fetched detail used for “viewed” UX | No (not a saved recipe) | Yes — local artifact; eligible for caps, pruning, and lifecycle rules in a future ADR |
 | Prompt deduplication | `db.prompt_requests` linking prompts to suggestion ids | No | Yes — operational throttle/dedup aid |
 

@@ -13,7 +13,7 @@ The project should remain useful without an account, without cloud services, and
 - **Cloud as an enhancement**: Registered Supabase accounts support backup, sharing, and sync across devices. A registered user must still be able to keep using WFD while logged out or offline.
 - **AI as an enhancement**: AI helps generate suggestions, expand suggestions into recipes, revise recipes, and answer recipe questions. The app must continue to have meaningful offline behavior when AI is unavailable.
 - **Self-hosting as a future path**: WFD should be able to evolve toward user-controlled services, including personal AI API endpoints and user-hosted databases that can bypass WFD-managed account restrictions.
-- **Preferences shape recommendations**: User preferences, dietary needs, and cooking constraints should influence recommendations and be applied to every AI recipe prompt.
+- **Preferences shape suggestions**: User preferences, dietary needs, and cooking constraints should influence **AI suggestions** and be applied to every AI recipe prompt. They do **not** filter **recommendations**, which only rank and surface recipes the user has **already saved** (see [ADR-009](docs/adrs/ADR-009-recommendations-engine-inputs.md)).
 - **Serverless and secret-safe**: WFD is intended for serverless deployment on Cloudflare Workers or Pages. Server-side code and secrets must stay out of `.svelte` files and other client-side modules.
 
 ## Core Capabilities
@@ -39,7 +39,7 @@ WFD is organized around a recipe book, a recommendations experience, and optiona
 
 ## Architecture Boundaries
 
-The client is responsible for the local-first product experience. Recipes, preferences, cached suggestions, and recommendation inputs should be readable from browser-local storage whenever possible.
+The client is responsible for the local-first product experience. Recipes (including usage fields such as `checkout_history` used for **recommendations**), preferences (for **AI suggestions** and prompts), and cached suggestions should be readable from browser-local storage whenever possible.
 
 Server-side code exists to protect secrets, validate remote requests, call external services, and support account-backed enhancements. OpenAI and privileged Supabase operations must run through server-only modules, SvelteKit server routes, remote functions, or hooks. Client modules and Svelte components must not import private environment variables or call secret-bearing services directly.
 

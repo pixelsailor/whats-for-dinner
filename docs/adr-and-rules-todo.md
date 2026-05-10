@@ -47,9 +47,10 @@ This backlog turns the project principles in the top-level README into enforceab
   - Define where schemas, derived types, model helpers, services, and stores belong.
   - **Done:** [`docs/adrs/ADR-008-schema-led-domain-contracts.md`](./adrs/ADR-008-schema-led-domain-contracts.md)
 
-- [ ] **ADR: Recommendations engine inputs**
+- [x] **ADR: Recommendations engine inputs**
   - Define the local data used by recommendations, including saved recipes, tags, preferences, ratings or favorites, and `checkout_history`.
   - Separate deterministic local recommendations from AI-assisted suggestions.
+  - **Done:** [`docs/adrs/ADR-009-recommendations-engine-inputs.md`](./adrs/ADR-009-recommendations-engine-inputs.md)
 
 - [ ] **ADR: Offline cache and service worker policy**
   - Define what must be cached, what must never be cached, storage budget expectations, and cache eviction rules.

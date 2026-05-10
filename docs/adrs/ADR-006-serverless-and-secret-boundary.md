@@ -11,7 +11,7 @@
 ## Scope
 
 - **In scope:** Where OpenAI and other privileged server work may run; how secrets and `$env/static/private` (and dynamic private env) may be used; what client-side modules and `.svelte` files must never import; portability expectations for serverless and edge-style runtimes (including Cloudflare Workers/Pages–style constraints).
-- **Out of scope:** Detailed OpenAI request/response contracts (future AI provider ADR), self-hosted AI/database wiring, Zod schema placement (future schema ADR), and Supabase data model beyond “which side of the boundary” the anon client vs any future service role lives on.
+- **Out of scope:** Detailed OpenAI request/response contracts ([ADR-007](ADR-007-ai-provider-contract.md)), self-hosted AI/database wiring, Zod schema placement (future schema ADR), and Supabase data model beyond “which side of the boundary” the anon client vs any future service role lives on.
 
 ## Context
 

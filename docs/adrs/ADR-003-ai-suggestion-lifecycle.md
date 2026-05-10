@@ -11,7 +11,7 @@
 ## Scope
 
 - **In scope:** Lifecycle of AI suggestion prompts and artifacts across home prompt entry, suggestions list/history, and promotion into durable saved recipes. This includes request deduplication, local persistence and pruning, viewed-state semantics, and offline behavior for previously cached suggestions.
-- **Out of scope:** OpenAI provider contract details, retry policy internals, and response schema evolution (future ADR on AI provider contract); Supabase sync semantics and conflict handling (future sync ADR); auth/provider policy and account scope boundaries beyond what this ADR consumes (see ADR-004).
+- **Out of scope:** OpenAI provider contract details, retry policy internals, and response schema evolution ([ADR-007](ADR-007-ai-provider-contract.md)); Supabase sync semantics and conflict handling ([ADR-005](ADR-005-sync-and-conflict-resolution.md)); auth/provider policy and account scope boundaries beyond what this ADR consumes (see ADR-004).
 
 ## Context
 

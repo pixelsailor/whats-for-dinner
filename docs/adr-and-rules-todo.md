@@ -31,10 +31,11 @@ This backlog turns the project principles in the top-level README into enforceab
   - Capture Cloudflare Workers/Pages compatibility constraints.
   - **Done:** [`docs/adrs/ADR-006-serverless-and-secret-boundary.md`](./adrs/ADR-006-serverless-and-secret-boundary.md)
 
-- [ ] **ADR: AI provider contract**
+- [x] **ADR: AI provider contract**
   - Define the OpenAI Chat Completions integration shape, structured response expectations, error handling, retries, and offline fallback behavior.
   - Require user preferences to be included in recipe-generation prompts.
   - Define how a user-configured local or personal AI API can bypass WFD-managed account restrictions while preserving validation and safety boundaries.
+  - **Done:** [`docs/adrs/ADR-007-ai-provider-contract.md`](./adrs/ADR-007-ai-provider-contract.md)
 
 - [ ] **ADR: Self-hosting provider model**
   - Define the service boundaries needed for user-controlled AI APIs and user-hosted databases.

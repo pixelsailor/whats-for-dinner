@@ -145,3 +145,52 @@ This backlog turns the project principles in the top-level README into enforceab
 - [ ] **Harden PR and commit expectations**
   - Require summaries to distinguish product behavior, architecture changes, and gap remediation.
   - Require test evidence or explicit untested risk for each change.
+
+## Legacy `agents.md` Distribution
+
+The root [`agents.md`](../agents.md) predates the ADR system and the `.cursor/rules/` layout. Its content (product framing, Svelte 5 + runes guidance, TypeScript conventions, Dexie + LiveQueryStores patterns, TanStack Query usage, Supabase auth wiring, Zod rules, general code style, accessibility, architecture highlights, env/secrets, doc references) is still useful but should be **distributed** to ADRs, Cursor rules, and scoped READMEs. Three Accepted ADRs ([ADR-002](../adrs/ADR-002-local-data-ownership.md), [ADR-006](../adrs/ADR-006-serverless-and-secret-boundary.md), [ADR-008](../adrs/ADR-008-schema-led-domain-contracts.md)) currently cite `agents.md` as authority; the goal of this work is to make those ADRs self-sustaining and to retire `agents.md`. Preserve `agents.md` as-is until each task below is complete; alignment gaps surfaced during the audit are tracked in [`readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md).
+
+- [ ] **Audit `agents.md` content categories**
+  - Map each section/snippet to its target home: existing or planned ADR, planned Cursor rule, scoped `src/lib/.../README.md`, or `docs/<topic>.md`.
+  - Capture the audit as a worksheet (table or checklist) so distribution can proceed in bounded passes without losing context.
+
+- [ ] **Migrate Svelte 5 + runes guidance**
+  - Move the *Svelte 5 + Runes Best Practices* and *Reactive `$:` statements* sections (runes, `$props`, snippets, animations, accessibility, Dexie store subscription pattern) into the planned **Rule: Svelte 5 and UI conventions**.
+  - Re-evaluate "Avoid using `$effect()` for reactivity whenever possible" against current Svelte 5 documentation; either justify the heuristic (e.g. prefer `$derived` for computed values, reserve `$effect` for true side effects) or relax the wording when porting.
+
+- [ ] **Migrate TypeScript and general code-style conventions**
+  - Move *TypeScript Conventions*, *General Code Style*, and *Accessibility and UX* into a code-conventions Cursor rule (an existing `lint-and-code-quality` rule is referenced in [`.cursor/rules/index.md`](../.cursor/rules/index.md) — extend or create as appropriate).
+  - Reconcile indentation guidance: *General Code Style* says 2-space indents while *TypeScript Conventions* says "Respect indents. Keep nested items aligned. Do not reset tabs for nested content." Decide which wording survives.
+
+- [ ] **Migrate Zod validation rules**
+  - Move *Zod Validation Rules* content (per-domain placement in `src/lib/api/**`, `.strict()`, `.safeParse()`, schema-derived types, `.transform()`, composite schemas) into the planned **Rule: Schema and type safety**.
+  - Update [ADR-008](../adrs/ADR-008-schema-led-domain-contracts.md) to source the `.strict()` requirement directly (or cite the new rule) instead of pointing back at `agents.md`.
+
+- [ ] **Migrate Dexie + LiveQueryStores guidelines**
+  - Move *Dexie + LiveQueryStores Guidelines* into the planned **Rule: Local data and Dexie ownership**, with cross-references to [ADR-002](../adrs/ADR-002-local-data-ownership.md).
+  - Reconcile module-location guidance: `agents.md` says "single `db.ts` module in `src/lib/db/`" while the current repo has both [`src/lib/db.ts`](../src/lib/db.ts) and a [`src/lib/db/`](../src/lib/db/) directory with `local.ts` and `remote.ts` (see [`readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md) GAP-012).
+
+- [ ] **Migrate TanStack Query guidance**
+  - Move *TanStack Query `createQuery()`* content into either the planned **Rule: Local data and Dexie ownership** (offline-first integration), an addition to [`src/lib/api/README.md`](../src/lib/api/README.md), or a focused `docs/tanstack-query.md` — pick one home during the audit.
+  - Confirm that TanStack Query usage remains compatible with [ADR-001](../adrs/ADR-001-product-operating-model.md) offline-first and [ADR-002](../adrs/ADR-002-local-data-ownership.md) Dexie-as-system-of-record (queries should validate responses with Zod and fall back to local cache when offline).
+
+- [ ] **Migrate Supabase auth, sharing, and cloud-backup wiring**
+  - Move the *Supabase Auth, Sharing and Cloud Backup* section (client at `src/lib/supabaseClient.ts`, route guards via `locals.supabase` in `src/hooks.server.ts`) into the planned **Rule: Supabase enhancement boundary** with cross-references to [ADR-004](../adrs/ADR-004-account-and-cloud-enhancement-model.md) and [ADR-006](../adrs/ADR-006-serverless-and-secret-boundary.md).
+
+- [ ] **Reconcile Architecture highlights and Env & secrets**
+  - Fold *Architecture highlights* into the relevant ADRs and scoped READMEs ([ADR-002](../adrs/ADR-002-local-data-ownership.md), [ADR-006](../adrs/ADR-006-serverless-and-secret-boundary.md), [ADR-007](../adrs/ADR-007-ai-provider-contract.md), [`src/lib/api/README.md`](../src/lib/api/README.md), [`src/lib/stores/README.md`](../src/lib/stores/README.md)) rather than restating in `agents.md`.
+  - Update the OpenAI module map: `agents.md` only lists `src/lib/server/openai.ts` and `src/lib/openai/*.ts`, but current code also uses `src/lib/api/ai/` per [ADR-007](../adrs/ADR-007-ai-provider-contract.md) (see [`readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md) GAP-011).
+  - *Env & secrets* is already covered by [ADR-006](../adrs/ADR-006-serverless-and-secret-boundary.md); confirm coverage and remove from `agents.md` (the `VITE_OPENAI_API_KEY` naming concern is GAP-003).
+
+- [ ] **Migrate Documentation References**
+  - Move the external doc link list into the root [README](../README.md) Documentation Map (or a dedicated `docs/references.md`) and remove from `agents.md`.
+
+- [ ] **Update ADRs that cite `agents.md`**
+  - [ADR-002](../adrs/ADR-002-local-data-ownership.md) (*Supporting context*), [ADR-006](../adrs/ADR-006-serverless-and-secret-boundary.md) (*Decision pressure*, *Enforcement rules*), and [ADR-008](../adrs/ADR-008-schema-led-domain-contracts.md) (*Decision* §6, *Compliance*, *Implementation compliance*) currently cite `agents.md` as authority. Replace those citations with self-contained statements or references to the new Cursor rule(s) once authored.
+
+- [ ] **Update `.cursor/rules/svelte-mcp-workflow.mdc`**
+  - The rule already claims it "replaces the former root `AGENTS.md`"; once distribution is complete, update the closing line to point at the actual destinations of `agents.md` content, or remove the claim if it remains misleading while migration is in flight.
+
+- [ ] **Retire `agents.md`**
+  - After all content has been migrated and ADRs/rules updated, delete `agents.md` (or replace with a brief redirect note pointing at the rule index, ADR index, and README).
+  - Search the repo for residual references to `agents.md`/`AGENTS.md` and update them. Cross-link this task with the closure of GAP-011 through GAP-015 in [`readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md).

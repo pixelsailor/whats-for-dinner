@@ -32,7 +32,7 @@ This backlog turns the project principles in the top-level README into enforceab
   - **Done:** [`adrs/ADR-006-serverless-and-secret-boundary.md`](../adrs/ADR-006-serverless-and-secret-boundary.md)
 
 - [x] **ADR: AI provider contract**
-  - Define the OpenAI Chat Completions integration shape, structured response expectations, error handling, retries, and offline fallback behavior.
+  - Define the OpenAI integration: **Responses API + Zod-structured output** (preferred), deprecated **Chat Completions** legacy path, structured response expectations, error handling, retries, and offline fallback behavior.
   - Require user preferences to be included in recipe-generation prompts.
   - Define how a user-configured local or personal AI API can bypass WFD-managed account restrictions while preserving validation and safety boundaries.
   - **Done:** [`adrs/ADR-007-ai-provider-contract.md`](../adrs/ADR-007-ai-provider-contract.md)

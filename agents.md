@@ -7,7 +7,7 @@ The title of this project is "What's For Dinner." is uses **Svelte 5**, **Svelte
 cloud backup, and **Zod** validation. The UI uses components built with **bits-ui** and **TailwindCSS**.
 
 **What's For Dinner** must be able to operate completely offline. Supabase auth, cloud backup, and 
-OpenAI (via the Chat Completions API) should be optional enhancements when specifically supported.
+OpenAI should be an optional enhancement when specifically supported. Prefer the **Responses API** with **Zod-structured output** (`src/lib/api/ai/` per [ADR-007](adrs/ADR-007-ai-provider-contract.md)). The legacy **Chat Completions** surface in `src/lib/server/openai.ts` is **deprecated** and scheduled for migration; do not extend it for new features.
 
 ---
 
@@ -193,10 +193,7 @@ export type Recipe = z.infer<typeof RecipeSchema>;
 - Reactive stores use small helpers (see `src/lib/stores/_utils.ts` -> `createLiveQueryStore`) and
 	derived/readable stores in `src/lib/stores/*.ts` (examples: `recipes.ts`, `suggestions.ts`).
 - Cloud sync uses Supabase for authorized users via `src/lib/supabaseClient.ts` (PUBLIC_SUPABASE_* envs).
-- OpenAI integration: server-side wrappers live under `src/lib/server/openai.ts` and leverage the OpenAI
-	Chat Completions API for idea summaries, full recipes, revisions, addendums, and Q&A. Higher-level prompt
-	logic lives in `src/lib/openai/*.ts` (see `recipe.ts`, `schema.ts`). Keep secret keys in server-only
-	envs (`$env/static/private`). Example: private key imported as `VITE_OPENAI_API_KEY` in this repo.
+- OpenAI integration (dual path, [ADR-007](adrs/ADR-007-ai-provider-contract.md)): **preferred** — `src/lib/api/ai/ai.model.ts` uses the **Responses API** with Zod (`zodTextFormat`) for suggestion flows and related structured outputs; consumed from `src/routes/api/suggestions/*`. **Deprecated legacy** — `src/lib/server/openai.ts` still uses **Chat Completions** for some recipe actions and Q&A until migrated; treat edits there as migration debt, not patterns to copy. Prompt strings live in `src/lib/openai/*.ts` (see `recipe.ts`, `schema.ts`). Keep secret keys in server-only envs (`$env/static/private`). This repo imports the private key as `VITE_OPENAI_API_KEY`.
 - API routes live under `src/routes/api/*`. Any code that touches secrets (OpenAI, private DB keys)
 	should run in server modules or route handlers, not in client components.
   

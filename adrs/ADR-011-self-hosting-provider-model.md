@@ -49,7 +49,7 @@ We define three orthogonal **roles** that today are bundled together. Self-hosti
 
 | Role | What it does today | Self-hosting target |
 | --- | --- | --- |
-| **AI provider** | OpenAI Chat Completions and Responses calls in `$lib/server/openai.ts` and `$lib/api/ai/ai.model.ts`. | A user-configured **OpenAI-compatible** endpoint (base URL + key, optional model overrides). Must satisfy [ADR-007](ADR-007-ai-provider-contract.md) request and structured-response shapes. |
+| **AI provider** | OpenAI **Responses** calls (preferred, `$lib/api/ai/ai.model.ts`) and deprecated **Chat Completions** calls (legacy, `$lib/server/openai.ts`). | A user-configured **OpenAI-compatible** endpoint (base URL + key, optional model overrides). Must satisfy [ADR-007](ADR-007-ai-provider-contract.md) request and structured-response shapes. |
 | **Cloud database** | Supabase Postgres tables (`recipes`, `shared_links`) accessed through `CloudService` and `SyncService`. | A user-hosted Postgres-shaped backend that supports the **same row schemas and operations** WFD already uses. v1 target is **another Supabase project** (BYO project URL/anon key); other Postgres backends are unsupported until they implement the same `CloudService` operations. |
 | **Identity / auth** | Supabase Auth via `@supabase/ssr` in `hooks.server.ts`. | **Out of scope** for this ADR. Self-hosting v1 expects users still authenticate against the configured Supabase project (which may be their own). |
 

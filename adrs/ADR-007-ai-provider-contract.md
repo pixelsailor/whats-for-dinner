@@ -19,12 +19,12 @@ WFD treats AI as an optional enhancement ([README](../README.md), [ADR-001](ADR-
 
 ### Decision pressure (required)
 
-The codebase already has **two parallel integration styles** (Chat Completions in `$lib/server/openai.ts` versus the Responses API with Zod-structured text in `$lib/api/ai/ai.model.ts`), and the top-level README still describes “Chat Completions” only. Product text also states preferences should apply to AI recipe work. We need a governing ADR so README, rules, and implementation can converge intentionally rather than by accident.
+The codebase has **two parallel integration styles** (deprecated Chat Completions in `$lib/server/openai.ts` versus the preferred Responses API with Zod-structured text in `$lib/api/ai/ai.model.ts`). Documentation and agent guidance should name both, mark Completions as legacy, and steer new work to Responses + Zod. Product text also states preferences should apply to AI recipe work. This ADR keeps README, rules, and implementation aligned intentionally rather than by accident.
 
 ### Supporting context
 
 - **Problem:** Ambiguous provider contract invites inconsistent validation, missing preferences, and unclear error semantics.
-- **Options considered:** (1) Mandate Chat Completions only — rejected; structured outputs already add value for suggestion and full-recipe paths. (2) Mandate Responses API only — deferred; legacy handlers still use Chat Completions until migrated. (3) Document **both** as transitional, require **Zod-validated structured outputs** for new work and for endpoints that already use them — **chosen**.
+- **Options considered:** (1) Mandate Chat Completions only — rejected; structured outputs already add value for suggestion and full-recipe paths. (2) Mandate Responses API only — deferred; legacy handlers still use Chat Completions until migrated. (3) Document **both** as transitional, require **Zod-validated structured outputs** for new work and for endpoints that already use them — **chosen**. Chat Completions is **deprecated** for WFD: no new features on that surface; migrate call sites when touching related flows.
 - **Must stay true:** Server-only keys and clients ([ADR-006](ADR-006-serverless-and-secret-boundary.md)); suggestions remain transient-local ([ADR-003](ADR-003-ai-suggestion-lifecycle.md)); offline-first degradation when AI is unavailable ([ADR-001](ADR-001-product-operating-model.md)).
 
 ## Decision
@@ -32,14 +32,23 @@ The codebase already has **two parallel integration styles** (Chat Completions i
 1. **Provider access** is **server-only**. The browser calls same-origin HTTP APIs (`src/routes/api/**`, server actions). No OpenAI (or alternate provider) client is constructed in `.svelte`, client `+page.ts` loads, or other client bundles.
 
 2. **Accepted API families** (OpenAI SDK today; analogous calls for compatible gateways later):
-   - **Chat Completions** (`chat.completions.create`): legacy path in [`src/lib/server/openai.ts`](../src/lib/server/openai.ts), consumed by [`src/routes/api/recipes/+server.ts`](../src/routes/api/recipes/+server.ts) and recipe page actions.
-   - **Responses API** (`responses.create`) with **`zodTextFormat` / structured text**: preferred path in [`src/lib/api/ai/ai.model.ts`](../src/lib/api/ai/ai.model.ts), consumed by [`src/routes/api/suggestions/+server.ts`](../src/routes/api/suggestions/+server.ts) and [`src/routes/api/suggestions/recipe/+server.ts`](../src/routes/api/suggestions/recipe/+server.ts).
+   - **Responses API** (`responses.create`) with **`zodTextFormat` / structured text**: **preferred** path in [`src/lib/api/ai/ai.model.ts`](../src/lib/api/ai/ai.model.ts), consumed by [`src/routes/api/suggestions/+server.ts`](../src/routes/api/suggestions/+server.ts) and [`src/routes/api/suggestions/recipe/+server.ts`](../src/routes/api/suggestions/recipe/+server.ts), and by [`src/routes/api/recipes/new/+server.ts`](../src/routes/api/recipes/new/+server.ts) where it delegates to `$lib/api/ai`.
+   - **Chat Completions** (`chat.completions.create`): **deprecated** legacy path in [`src/lib/server/openai.ts`](../src/lib/server/openai.ts), consumed by [`src/routes/api/recipes/+server.ts`](../src/routes/api/recipes/+server.ts) and [`src/routes/recipes/[...id]/+page.server.ts`](../src/routes/recipes/[...id]/+page.server.ts). **Do not add new call sites.** Migrate to Responses + Zod when changing these flows.
 
-   New AI features should use **Responses + Zod-structured output** unless a technical constraint blocks it; migrating off Chat Completions for remaining actions is expected technical debt.
+   New AI features must use **Responses + Zod-structured output** unless a technical constraint blocks it; remaining Chat Completions usage is **migration debt** to eliminate, not a pattern to extend.
+
+### Legacy Chat Completions inventory (refactor / removal targets)
+
+| Location | Role |
+| -------- | ---- |
+| [`src/lib/server/openai.ts`](../src/lib/server/openai.ts) | All `openai.chat.completions.create` usage; central legacy module to retire after call sites migrate. |
+| [`src/routes/api/recipes/+server.ts`](../src/routes/api/recipes/+server.ts) | Recipe AI HTTP handlers that call `$lib/server/openai`. |
+| [`src/routes/recipes/[...id]/+page.server.ts`](../src/routes/recipes/[...id]/+page.server.ts) | Server actions calling `$lib/server/openai` (revisions, Q&A, etc.). |
+| [`src/lib/api/ai/ai.model.ts`](../src/lib/api/ai/ai.model.ts) | Commented-out `chat.completions.create` snippets only — remove when cleaning dead code; **active** AI in this module uses `responses.create`. |
 
 3. **Structured response contract**
    - For Responses-based calls, the Zod schema passed to `zodTextFormat` is the **authoritative** shape for that response; the model output must be treated as invalid if the SDK/schema pipeline fails.
-   - For Chat Completions JSON-in-message flows, prompts must require **raw JSON only**; the server must **parse** and **validate or reject** before returning success. Current legacy code often uses `JSON.parse` and type assertions — **new code must not add unvalidated parses**; tightening validation on legacy paths is encouraged in the same PR when touching them.
+   - For **deprecated** Chat Completions JSON-in-message flows, prompts must require **raw JSON only**; the server must **parse** and **validate or reject** before returning success. Current legacy code often uses `JSON.parse` and type assertions — **new code must not add unvalidated parses**; tightening validation on legacy paths is encouraged in the same PR when touching them.
 
 4. **User preferences in prompts**
    - **Recipe idea generation** and **full recipe generation from a suggestion** must include the caller-supplied preferences string in provider instructions (including empty string when none provided).
@@ -71,7 +80,7 @@ The codebase already has **two parallel integration styles** (Chat Completions i
 
 ### Negative
 
-- Two code paths must be maintained until Chat Completions usages are migrated.
+- Deprecated Chat Completions and preferred Responses paths must both be maintained until legacy call sites are migrated off `chat.completions.create`.
 - Structured-output schema design must stay in sync with Dexie/UI consumers.
 
 ### Risks and mitigations
@@ -90,7 +99,7 @@ The codebase already has **two parallel integration styles** (Chat Completions i
 ## Examples (optional)
 
 - Responses + Zod: `generateRecipeSuggestions` and `generateRecipe` ([`src/routes/api/suggestions/+server.ts`](../src/routes/api/suggestions/+server.ts), [`src/routes/api/suggestions/recipe/+server.ts`](../src/routes/api/suggestions/recipe/+server.ts)); `appendRecipeDetails` from `$lib/api/ai` ([`src/routes/api/recipes/new/+server.ts`](../src/routes/api/recipes/new/+server.ts)).
-- Chat Completions: [`src/routes/api/recipes/+server.ts`](../src/routes/api/recipes/+server.ts) and [`src/routes/recipes/[...id]/+page.server.ts`](../src/routes/recipes/[...id]/+page.server.ts) via [`src/lib/server/openai.ts`](../src/lib/server/openai.ts) (`getRecipeSuggestions`, `getFullRecipe`, `requestRecipeModifications`, `askCookingQuestion`, and a different `appendRecipeDetails` implementation than `$lib/api/ai`).
+- Chat Completions (**deprecated**): same route files as in the inventory above via [`src/lib/server/openai.ts`](../src/lib/server/openai.ts) (`getRecipeSuggestions`, `getFullRecipe`, `requestRecipeModifications`, `askCookingQuestion`, and a different `appendRecipeDetails` implementation than `$lib/api/ai`).
 
 ## Enforcement rules
 
@@ -107,7 +116,7 @@ The codebase already has **two parallel integration styles** (Chat Completions i
 
 ## Orchestrated development
 
-Orchestration not required for documenting this ADR; migration of remaining Chat Completions callers is ordinary phased engineering.
+Orchestration not required for documenting this ADR; migration of remaining **deprecated** Chat Completions callers is ordinary phased engineering.
 
 ### Relevant ADRs for implementation
 
@@ -117,4 +126,4 @@ Orchestration not required for documenting this ADR; migration of remaining Chat
 
 ### Alignment gaps
 
-Implementation mismatches discovered while authoring this ADR are recorded in [`docs/readme-adr-alignment-gaps.md`](../docs/readme-adr-alignment-gaps.md) (see GAP-004–GAP-006).
+Implementation mismatches discovered while authoring this ADR are recorded in [`docs/readme-adr-alignment-gaps.md`](../docs/readme-adr-alignment-gaps.md) (see GAP-005–GAP-006; **GAP-004** resolved when README and agent docs reflected Responses-first and deprecated Completions).

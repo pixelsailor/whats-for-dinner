@@ -101,7 +101,7 @@ The following **known gaps** exist relative to this ADR as of authoring; they ar
 | **Legacy `$lib/types.ts`** | Deprecated hand-written `RecipeSummary`, `Suggestion`, `FullRecipe`, `SavedRecipe`, `UserPreferences`, `RecipeAddendum`, and related API envelope types still exist and are imported from some routes, `src/lib/server/openai.ts`, `src/lib/db/remote.ts`, and `src/lib/stores/preferences.ts`, duplicating `$lib/api` contracts. |
 | **`PromptRequest` (Dexie)** | Defined only as a TypeScript type in [`src/lib/db.ts`](../src/lib/db.ts); no Zod schema or read-time validation. |
 | **`.strict()` on schemas** | [`agents.md`](../agents.md) requires `.strict()` on object schemas; current `src/lib/api/**/*.schemas.ts` files do not consistently apply it—tightening should happen as schemas are touched or in a focused pass. |
-| **AI JSON without `safeParse`** | Partially overlaps [GAP-006](../docs/readme-adr-alignment-gaps.md): some Chat Completions paths parse JSON without Zod at the boundary. |
+| **AI JSON without `safeParse`** | Partially overlaps [GAP-006](../docs/readme-adr-alignment-gaps.md): some deprecated Chat Completions paths parse JSON without Zod at the boundary. |
 
 ## Enforcement rules
 

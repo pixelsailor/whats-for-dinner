@@ -34,7 +34,7 @@ WFD is organized around a recipe book, a recommendations experience, and optiona
 - **Local data**: Dexie, IndexedDB, Dexie live queries, Svelte stores
 - **Remote state and validation**: TanStack Query, Zod
 - **Cloud services**: Supabase for auth, backup, sharing, and sync
-- **AI services**: OpenAI SDK using Chat Completions for server-side AI workflows
+- **AI services**: OpenAI SDK on the server. **Preferred:** [Responses API](https://platform.openai.com/docs/api-reference/responses) with Zod-structured output (`src/lib/api/ai/`, consumed by suggestion routes). **Deprecated (legacy):** Chat Completions (`chat.completions.create` in `src/lib/server/openai.ts`) remains in use until migrated; new work should follow [ADR-007](adrs/ADR-007-ai-provider-contract.md).
 - **Testing and quality**: Vitest, Playwright, ESLint, Prettier, `svelte-check`
 
 ## Architecture Boundaries

@@ -1,0 +1,33 @@
+---
+description: Require ADR index consultation and Accepted-ADR compliance on implementation (build) work; align with adrs/GOVERNANCE.md
+alwaysApply: true
+---
+
+# ADR compliance (build tasks)
+
+**Scope — “build task”:** Any work that adds, changes, or removes project code, configuration that encodes architecture, dependencies, or APIs — including features, fixes, refactors, and tooling changes that affect how the app is structured or behaves. Not limited to running `npm run build`.
+
+## Before substantive implementation
+
+1. **Read** [`adrs/INDEX.md`](adrs/INDEX.md) and identify **Accepted** ADRs that touch the areas you are changing (domains, layers, security, data, UI, storage, etc.).
+2. **Treat only Accepted ADRs as binding.** Ignore **Proposed**, **Deprecated**, and **Superseded** for new decisions; if an entry or ADR body points at a successor, follow the referenced ADR.
+3. **Follow** [`adrs/GOVERNANCE.md`](adrs/GOVERNANCE.md) for lifecycle, conflicts, and scoped compliance (especially section 5 and section 5.6).
+
+## When something is unclear
+
+- **Ambiguous requirement or instruction:** Ask the user a concrete question before choosing an approach that could violate an Accepted ADR or expand scope.
+- **Gap (no Accepted ADR):** You may proceed with sound judgment **or** draft a **Proposed** ADR per governance — do **not** treat Proposed ADRs as authoritative until a human accepts them.
+- **Conflict** between user instruction and an **Accepted** ADR: Stop, cite the ADR, summarize the decision it encodes, and ask how to proceed — do not silently override the ADR.
+
+## During edits
+
+- Prefer **small, local** compliance fixes only in files you already touch, when they meet governance rules for opportunistic compliance; do **not** broaden refactors solely for ADR cleanup.
+- Do **not** infer deprecation from code age or comments — only from ADR status in `adrs/` and the index.
+
+## Quick reference
+
+| Need | Where |
+|------|--------|
+| What is decided and binding | `adrs/INDEX.md` (Accepted rows) |
+| Process, proposals, conflicts, orchestration | `adrs/GOVERNANCE.md` |
+| New ADR shape | `adrs/TEMPLATE.md` |

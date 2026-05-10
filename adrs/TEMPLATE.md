@@ -1,15 +1,12 @@
 # ADR-NNN: REPLACE_WITH_SHORT_TITLE
 
-Copy this file to `adrs/ADR-NNN-short-kebab-title.md` at the repository root, incrementing the numeric segment `NNN` (zero-pad to three digits, e.g. `ADR-001`, `ADR-002`) from the highest existing `ADR-*` file in `adrs/`. Replace placeholders (including `REPLACE_WITH_*`) and remove instructional lines before opening a PR. Use an imperative, short title (for example: “Use Dexie for durable recipe storage”).
+Copy this file to `adrs/ADR-NNN-short-kebab-title.md` under the repository root, incrementing the numeric segment `NNN` (zero-pad to three digits, e.g. `ADR-001`, `ADR-002`) from the highest existing `ADR-*` file in `adrs/`. Replace placeholders (including `REPLACE_WITH_*`) and remove instructional lines before opening a PR. Use an imperative, short title (for example: “Use Dexie for durable recipe storage”).
 
 ## Status
 
 One of: **Proposed** · **Accepted** · **Deprecated** · **Superseded**
 
-- Use **Proposed** while discussion or parallel implementation spikes are in flight.
-- Use **Accepted** only after deciders agree this is the governing record for the topic.
-- Use **Deprecated** when the approach is retired but history should remain readable.
-- Use **Superseded** when another ADR replaces this one; link the successor in **Supersession notes** below.
+Meaning, lifecycle, and agent treatment of each status are defined in [GOVERNANCE.md](GOVERNANCE.md) (sections 3–5). In short: **Proposed** is not binding; **Accepted** is binding for new and changed work; **Deprecated** / **Superseded** are not valid guidance for new decisions—follow any successor ADR linked in **Supersession notes**.
 
 ## Date
 
@@ -88,9 +85,9 @@ Remove this section entirely when empty.
 
 ## Enforcement rules
 
-How this ADR becomes enforceable work, not only documentation.
+Per-ADR content only (how **this** decision is enforced). Policy for ADRs ↔ Cursor rules, index sync, and agent behavior is in [GOVERNANCE.md](GOVERNANCE.md) (especially sections 5 and 8).
 
-- **Cursor / agent rules:** Which project rules or checks should reflect this ADR (or where new rules belong). Prefer paths under `.cursor/rules/`; see the rule catalog at [.cursor/rules/index.md](../.cursor/rules/index.md).
+- **Cursor / agent rules:** Which `.cursor/rules/` entries or checks should reflect this ADR (or where new rules belong). Rule catalog: [.cursor/rules/index.md](../.cursor/rules/index.md).
 - **Code / architecture:** Directories, boundaries, or patterns that must conform (and what to flag in review if they do not).
 - **When to revisit:** Triggers that require updating this ADR instead of silently diverging.
 
@@ -105,27 +102,41 @@ How this ADR becomes enforceable work, not only documentation.
 
 ## Orchestrated development
 
-Use this section when work is **non-trivial**, **multi-phase**, or touches **durable architecture** (data ownership, auth, sync, AI boundaries, offline-first behavior, security). For a one-line doc fix or isolated bug with no architectural implication, note “orchestration not required” and skip the subsections.
+Use this section when work is **non-trivial**, **multi-phase**, or touches **durable architecture** (data ownership, auth, sync, AI boundaries, offline-first behavior, security). For a one-line doc fix or an isolated bug with no architectural implication, write **Orchestration not required** on the first line under this heading and **omit the subsections** below.
+
+Repository **policy** for when orchestration applies and how it relates to ADRs lives in [GOVERNANCE.md](GOVERNANCE.md) section 10. This template section is the **authoring guide**: keep subsection headings and intent aligned with existing ADRs so new records stay comparable.
 
 ### When orchestration is required
 
-Treat Plan–Build–Validate–Test orchestration as **required** when any of the following hold; otherwise keep the ADR but omit detailed orchestration fills:
+Treat Plan–Build–Validate–Test orchestration as **required** when any of the following hold; otherwise keep this ADR but **omit detailed fills** under the subsections (still keep the heading and **Orchestration not required** if nothing applies):
 
 - The change spans multiple PRs or phases, or has significant rollback risk.
-- The change touches ADR-governed boundaries (see enforcement bullets in [docs/adr-and-rules-todo.md](../docs/adr-and-rules-todo.md) — “Orchestrated Agent Workflow Backlog” and “Define Plan-Build-Validate-Test roles”).
+- The change touches ADR-governed boundaries (see enforcement bullets in [docs/adr-and-rules-todo.md](../docs/adr-and-rules-todo.md): “Orchestrated Agent Workflow Backlog” and “Define Plan-Build-Validate-Test roles” where still current).
 - You would otherwise need a written plan, validation report, and test evidence before calling the work merge-ready.
 
-**Authoritative workflow artifacts and gates** for this repo are described in [.cursor/agents/orchestrator.md](../.cursor/agents/orchestrator.md) (for example `_ORCH_PLAN.md`, `_ACCEPTANCE.md`, `_RISKS.md`, `_ARCHITECTURE_CONSTRAINTS.md`, `_VALIDATION_REPORT.md`, `_TEST_MATRIX.md`, `_TELEMETRY.md`). Use repo-root paths when creating those files for a given effort.
+### Authoritative workflow artifacts and gates
 
-**Agent and coding conventions** loaded in typical sessions: [AGENTS.md](../AGENTS.md), [.cursor/rules/project-best-practices.mdc](../.cursor/rules/project-best-practices.mdc). **Rule catalog and activation** (including governance rows such as `adr-compliance` when those rule files exist): [.cursor/rules/index.md](../.cursor/rules/index.md).
+Orchestration contracts for this repo live under `.cursor/agents/` and `.cursor/orchestrations/`. Read [.cursor/agents/orchestrator.md](../.cursor/agents/orchestrator.md) for stage order, manifest fields, and artifacts such as `plan.md`, `acceptance-criteria.md`, `build-log.md`, `test-report.md`, `validation-report.md`, and (when used) names like `_ORCH_PLAN.md`, `_ACCEPTANCE.md`, `_RISKS.md`, `_ARCHITECTURE_CONSTRAINTS.md`, `_VALIDATION_REPORT.md`, `_TEST_MATRIX.md`, `_TELEMETRY.md`. Use paths **inside** `.cursor/orchestrations/{task-id}/` as that file specifies.
 
-**Lint / automated style:** project ESLint flat config [eslint.config.js](../eslint.config.js) (TypeScript + Svelte recommended presets, Prettier compatibility, and project-local rule tweaks such as import member ordering).
+For a human-readable walkthrough of the same model, see [docs/ORCHESTRATED_DEVELOPMENT.md](../docs/ORCHESTRATED_DEVELOPMENT.md).
 
-If a referenced rule file or artifact is not yet present in the repo, link the closest existing parent doc (as above) and file a backlog item to add the missing rule or template rather than treating the gap as implicit.
+### Agent and coding conventions
+
+Typical session context for implementers and agents:
+
+- [agents.md](../agents.md) at the repository root (development and stack conventions).
+- [.cursor/rules/project-best-practices.mdc](../.cursor/rules/project-best-practices.mdc) and [.cursor/rules/svelte-mcp-workflow.mdc](../.cursor/rules/svelte-mcp-workflow.mdc).
+- Rule catalog: [.cursor/rules/index.md](../.cursor/rules/index.md) (including `adr-compliance` when that rule is present).
+
+### Lint / automated style
+
+Project ESLint flat config: [eslint.config.js](../eslint.config.js) (TypeScript + Svelte presets, Prettier compatibility, project-local tweaks such as import member ordering).
+
+If a referenced rule file or artifact is missing, link the closest existing parent doc above and file a backlog item—do not treat the gap as implicit policy.
 
 ### Relevant ADRs for implementation
 
-List ADR numbers and titles the **Planner** must read before drafting an executable plan for work that touches this area.
+List ADR numbers and titles the **Planner** must read before drafting an executable plan for work that touches this area (not pointer-only text such as “see ADR-003”—state **implication** for this task).
 
 - ADR-…: …
 - ADR-…: …
@@ -138,11 +149,11 @@ Link or path to the scoped plan (phases, files likely to change, validation step
 
 ### Builder scope boundary
 
-One bounded phase or PR-sized slice this ADR governs; what is explicitly **out of scope** for the current change set.
+One bounded phase or PR-sized slice this ADR governs for the **current** change set, and what is explicitly **out of scope**.
 
 ### Validator expectations
 
-What the **Validator** must verify against this ADR, [AGENTS.md](../AGENTS.md), [.cursor/rules/project-best-practices.mdc](../.cursor/rules/project-best-practices.mdc), and [docs/readme-adr-alignment-gaps.md](../docs/readme-adr-alignment-gaps.md) for recorded implementation drift.
+What the **Validator** must verify against **this ADR**, [agents.md](../agents.md), [.cursor/rules/project-best-practices.mdc](../.cursor/rules/project-best-practices.mdc), and [docs/readme-adr-alignment-gaps.md](../docs/readme-adr-alignment-gaps.md) for recorded implementation drift.
 
 ### Test role and evidence
 
@@ -150,11 +161,11 @@ What the **Test** role should add or update (unit, component, browser, offline, 
 
 ### Alignment gaps
 
-If current implementation differs from this ADR and the gap is not fixed in the same change, record it in [docs/readme-adr-alignment-gaps.md](../docs/readme-adr-alignment-gaps.md) (owner, severity, affected areas, remediation, whether it blocks future work). Do not hide divergence only in code comments.
+If current implementation differs from this ADR and the gap is not fixed in the same change, record it in [docs/readme-adr-alignment-gaps.md](../docs/readme-adr-alignment-gaps.md) (owner, severity, affected areas, remediation, whether it blocks future work). You may extend this heading for clarity (for example **Alignment gaps (current implementation vs this ADR)**) when a table is used. Do not hide divergence only in code comments.
 
 ### Merge / workflow gates
 
-Confirm before claiming merge-ready:
+Confirm before claiming merge-ready (orchestrated work):
 
 - [ ] ADR created or updated **before** durable architecture change (or follow-up filed with explicit timeline).
 - [ ] Known deviations documented as alignment gaps when not fixed here.

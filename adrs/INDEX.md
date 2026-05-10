@@ -2,6 +2,7 @@
 
 ## Agent Instructions
 
+- Process, status meanings, conflicts, and index sync rules: [GOVERNANCE.md](GOVERNANCE.md).
 - Consult this index before making any architectural decision.
 - Only **Accepted** ADRs are binding; do not act on **Proposed**, **Deprecated**, or **Superseded** entries.
 - `Superseded` with a successor called out in the ADR body means the listed record is no longer governing — follow the referenced ADR instead.

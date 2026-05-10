@@ -1,8 +1,8 @@
-# Orchestrated Development for `cxiius`
+# Orchestrated Development for What's For Dinner
 
-Reference guide for running the `cxiius` multi-agent workflow in Cursor using the local orchestration contracts under `.cursor/agents/` and `.cursor/orchestrations/`.
+Reference guide for running the multi-agent workflow in Cursor using the local orchestration contracts under `.cursor/agents/` and `.cursor/orchestrations/`.
 
-This guide is intentionally `cxiius`-specific. Artifact paths, stage ownership, and prompt flow follow this repository's current contracts.
+This guide is scoped to **this repository**. Artifact paths, stage ownership, and prompt flow follow the contracts checked in here.
 
 ## Why this exists
 
@@ -230,7 +230,7 @@ Determine next action strictly from current_agent, status, and output-contract c
 Do not skip required stages.
 ```
 
-## Example objectives from `cxiius` runs
+## Example objectives (style references)
 
 Use these as style references for writing better `objective` values in the manifest:
 

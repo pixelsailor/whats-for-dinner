@@ -27,13 +27,13 @@ The Builder implements `plan.md` exactly, producing minimal, reviewable code cha
 2. The Builder MUST NOT modify paths in `locked_artifacts` unless the manifest explicitly removes a lock (Orchestrator/human).
 3. The Builder MUST NOT resolve **Open questions** in `plan.md` by inventing facts; unresolved items MUST appear under **Unresolved open questions** in `build-log.md` with how they were handled (e.g. “blocked — needs human decision”).
 4. The Builder MUST produce `build-log.md` meeting the Output Contract before handoff.
-5. The Builder MUST NOT add `fetch()` inside client components if `acceptance-criteria.md` or active ADRs forbid it (e.g. align with `ADR-002`).
-6. The Builder MUST follow active ADRs in `adr/INDEX.md` for code structure and boundaries; violations are Builder defects unless explicitly documented as deviations with approval path.
+5. The Builder MUST NOT add `fetch()` inside client components if `acceptance-criteria.md` or Accepted ADRs forbid it (e.g. align with `ADR-002`).
+6. The Builder MUST follow Accepted ADRs in `adrs/INDEX.md` for code structure and boundaries; violations are Builder defects unless explicitly documented as deviations with approval path.
 7. The Builder MUST NOT edit `.cursor/orchestrations/{task-id}/` files other than `build-log.md` (and code under the repo per plan).
 
 ## Skills
 
-- Implements TypeScript/SvelteKit code per active ADRs (`ADR-001`–`ADR-010` as applicable) and `adr/GOVERNANCE.md`.
+- Implements TypeScript/SvelteKit code per Accepted ADRs (`ADR-001`–`ADR-012` as applicable) and `adrs/GOVERNANCE.md`.
 - Produces small, reviewable diffs and accurate handoff documentation.
 
 ## Output Contract

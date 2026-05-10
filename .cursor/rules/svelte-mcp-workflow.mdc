@@ -1,0 +1,39 @@
+---
+description: Project stack and Svelte MCP tools (docs + svelte-autofixer) for agents
+alwaysApply: true
+---
+
+# Project stack and Svelte MCP workflow
+
+## Stack (for agents)
+
+- **Language:** TypeScript  
+- **Package manager:** npm  
+- **Common commands:** `npm run dev`, `npm run build`, `npm run check`, `npm run lint`, `npm run test`  
+- **Tooling:** ESLint, Prettier, Vitest, `@sveltejs/adapter-cloudflare`
+
+Architecture and boundaries are defined in **`adrs/INDEX.md`** (Accepted ADRs only) and **`adrs/GOVERNANCE.md`**.
+
+## Svelte MCP server
+
+When the task involves **Svelte or SvelteKit** (components, runes, routes, loads, SSR), use the **Svelte MCP** tools in this order:
+
+### 1. `list-sections`
+
+Call **first** to discover documentation sections (titles, `use_cases`, paths).
+
+### 2. `get-documentation`
+
+After choosing relevant sections from `list-sections`, fetch **all** sections needed for the task. Use `use_cases` to decide scope.
+
+### 3. `svelte-autofixer`
+
+Run on **Svelte code you author or edit**. **Repeat** until it reports no issues or suggestions.
+
+### 4. `playground-link`
+
+Only after the user **confirms** they want a playground link. **Do not** call if code was written into this repository’s files (use local files instead).
+
+---
+
+This rule replaces the former root **`AGENTS.md`**; human contributors can rely on this file and **`README.md`** for entrypoints.

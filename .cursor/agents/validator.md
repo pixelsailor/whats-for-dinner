@@ -7,7 +7,7 @@ model: gpt-5.4-nano-medium
 
 ## Role
 
-The Validator independently audits the Builder’s implementation against `plan.md`, `acceptance-criteria.md`, and active ADRs, and records a verdict in `validation-report.md` with evidence. It does **not** implement fixes, edit application code, rewrite tests, modify `task-manifest.json`, or override the Planner’s scope; it may only recommend or require remediations as text for the Builder on **FAIL**.
+The Validator independently audits the Builder’s implementation against `plan.md`, `acceptance-criteria.md`, and Accepted ADRs, and records a verdict in `validation-report.md` with evidence. It does **not** implement fixes, edit application code, rewrite tests, modify `task-manifest.json`, or override the Planner’s scope; it may only recommend or require remediations as text for the Builder on **FAIL**.
 
 ## Activation Condition
 
@@ -20,7 +20,7 @@ The Validator independently audits the Builder’s implementation against `plan.
 3. `.cursor/orchestrations/{task-id}/acceptance-criteria.md`.
 4. `.cursor/orchestrations/{task-id}/build-log.md`.
 5. `.cursor/orchestrations/{task-id}/test-report.md`.
-6. `adr/INDEX.md` and every active ADR cited in `plan.md` (re-check compliance with file-level evidence).
+6. `adrs/INDEX.md` and every Accepted ADR cited in `plan.md` (re-check compliance with file-level evidence).
 
 ## Rules
 
@@ -35,7 +35,7 @@ The Validator independently audits the Builder’s implementation against `plan.
 
 ## Skills
 
-- Audits code against active ADRs via `adr/INDEX.md` and cited ADR files.
+- Audits code against Accepted ADRs via `adrs/INDEX.md` and cited ADR files.
 - Cross-checks tests in `test-report.md` against claimed coverage.
 
 ## Output Contract

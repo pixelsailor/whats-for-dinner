@@ -25,7 +25,7 @@ ADR-001 defers “concrete data schemas and table ownership.” Teams need a sin
 
 - **Problem:** Ambiguity between “data the user owns forever” and “data that improves UX or saves tokens until pruned.”
 - **Options considered:** (1) Remote-first recipe storage — rejected; contradicts ADR-001 and README. (2) Split durable data across many browser stores without a primary database — rejected; harder to query, backup, and reason about. (3) **Dexie as the default local home** for the listed entities — **chosen**.
-- **Must stay true:** Local recipe book remains usable per ADR-001; cloud remains optional enhancement; schema-led validation remains the norm for persisted shapes (see project README and AGENTS.md).
+- **Must stay true:** Local recipe book remains usable per ADR-001; cloud remains optional enhancement; schema-led validation remains the norm for persisted shapes (see project README and [agents.md](../agents.md)).
 
 ## Decision
 

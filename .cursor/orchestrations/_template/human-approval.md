@@ -1,6 +1,6 @@
-# Human approval — cxii-000
+# Human approval — wfd-000
 
-Replace `cxii-000` with `task_id`. Complete after Validator verdict is **PASS** or **PASS_WITH_NOTES** and before the run is marked `complete`.
+Replace `wfd-000` with `task_id`. Complete after Validator verdict is **PASS** or **PASS_WITH_NOTES** and before the run is marked `complete`.
 
 | Field                  | Value |
 | ---------------------- | ----- |

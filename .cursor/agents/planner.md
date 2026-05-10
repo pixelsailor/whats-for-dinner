@@ -16,9 +16,9 @@ The Planner converts the orchestration objective into an executable plan that th
 ## Inputs
 
 1. `.cursor/orchestrations/{task-id}/task-manifest.json` (read `task_id`, `objective`, `locked_artifacts`, `flags`).
-2. `adr/INDEX.md` (identify active ADRs touching the work).
-3. Every active ADR file referenced or plausibly relevant (read in full before citing).
-4. `adr/GOVERNANCE.md` (for lifecycle and conflict handling awareness).
+2. `adrs/INDEX.md` (identify Accepted ADRs touching the work).
+3. Every Accepted ADR file referenced or plausibly relevant (read in full before citing).
+4. `adrs/GOVERNANCE.md` (for lifecycle and conflict handling awareness).
 5. Existing codebase paths implied by the objective (read enough to name real files and contracts).
 
 ## Rules
@@ -31,11 +31,11 @@ The Planner converts the orchestration objective into an executable plan that th
 6. The Planner MUST NOT assign architectural choices to the Builder that are not written in `plan.md` (including libraries, folder layout beyond stated map, or data shapes not in Interface contracts).
 7. Open questions MUST remain open in `plan.md`; the Planner MUST NOT fabricate product or infra facts.
 8. The Planner MUST NOT modify files listed in `locked_artifacts` except by documenting them as read-only dependencies.
-9. The Planner MUST only treat ADRs with status `active` in `adr/INDEX.md` as binding for the plan; proposed/superseded entries are out of scope unless explicitly escalated.
+9. The Planner MUST only treat ADRs with status **Accepted** in `adrs/INDEX.md` as binding for the plan; Proposed/Deprecated/Superseded entries are out of scope unless explicitly escalated.
 
 ## Skills
 
-- Reads and enforces alignment with active ADRs per `adr/INDEX.md` and `adr/GOVERNANCE.md`.
+- Reads and enforces alignment with Accepted ADRs per `adrs/INDEX.md` and `adrs/GOVERNANCE.md`.
 - Maps objectives to concrete file-level plans matching project conventions (e.g. `ADR-001` layout).
 
 ## Output Contract
@@ -45,7 +45,7 @@ The Planner converts the orchestration objective into an executable plan that th
    - **Scope boundary** — Explicit in-scope and out-of-scope lists.
    - **Component/file map** — Every file to create or modify, with purpose.
    - **Interface contracts** — Props, function signatures, data shapes.
-   - **ADR references** — Which active ADRs apply and how (implications spelled out).
+   - **ADR references** — Which Accepted ADRs apply and how (implications spelled out).
    - **Open questions** — Unresolved items; Builder must not invent answers.
 2. **`.cursor/orchestrations/{task-id}/acceptance-criteria.md`** — Checklist grouped (e.g. Functional, Architectural, Accessibility) with stable AC IDs (`AC-01`, …).
 

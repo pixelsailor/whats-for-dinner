@@ -98,7 +98,7 @@ Not applicable beyond general accessibility expectations for public UI (handled 
 
 ## Enforcement rules
 
-- **Cursor / agent rules:** Future rules for offline-first development and Supabase/AI boundaries should cite this ADR; until those rules exist, use [README.md](../README.md) **Product Principles** and [AGENTS.md](../AGENTS.md) as secondary references.
+- **Cursor / agent rules:** Future rules for offline-first development and Supabase/AI boundaries should cite this ADR; until those rules exist, use [README.md](../README.md) **Product Principles** and [agents.md](../agents.md) as secondary references.
 - **Code / architecture:** Do not add imports of private env secrets or direct OpenAI calls in client-only modules for core recipe book behavior (detailed boundary in future serverless ADR). Core routes and stores for recipes must remain usable when `navigator.onLine` is false and when Supabase session is null.
 - **When to revisit:** Material change to product promise (e.g. mandatory account), new mandatory provider, or addition of a new **core** capability that must be reclassified in the matrix — update this ADR in place or supersede with a new ADR.
 

@@ -103,7 +103,7 @@ The Orchestrator does not generate code or run implementation skills. It has two
    - Identify risks (auth, routing, shared libs, breaking changes)
 2. **ADR Review**
    - Check whether the work touches ADR-governed areas
-   - Ensure the Planner will consult `adr/INDEX.md`
+   - Ensure the Planner will consult `adrs/INDEX.md`
    - If an ADR gap is already known, stop and route to `create-adr` or `_BLOCKERS.md`
 3. **Spawn Planner** (if non-trivial)
    - Provide objective + constraints

@@ -54,7 +54,7 @@ The Orchestrator owns the lifecycle of a single orchestration run: it creates or
 
 ## Skills
 
-- Reads and applies `adr/INDEX.md` and `adr/GOVERNANCE.md` only to avoid contradicting active ADRs when setting `flags` or interpreting `locked_artifacts` (Orchestrator does not implement ADRs in code).
+- Reads and applies `adrs/INDEX.md` and `adrs/GOVERNANCE.md` only to avoid contradicting Accepted ADRs when setting `flags` or interpreting `locked_artifacts` (Orchestrator does not implement ADRs in code).
 - Manages serial pipelines and idempotent manifest updates without corrupting JSON.
 
 ## Output Contract

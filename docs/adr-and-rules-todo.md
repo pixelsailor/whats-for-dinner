@@ -42,9 +42,10 @@ This backlog turns the project principles in the top-level README into enforceab
   - Identify which provider capabilities are required, optional, or unsupported.
   - Establish how self-hosted configuration interacts with anonymous usage, account permissions, sync, sharing, backups, and offline behavior.
 
-- [ ] **ADR: Schema-led domain contracts**
+- [x] **ADR: Schema-led domain contracts**
   - Require Zod schemas as the source of truth for persisted records, API payloads, and AI-generated data.
   - Define where schemas, derived types, model helpers, services, and stores belong.
+  - **Done:** [`docs/adrs/ADR-008-schema-led-domain-contracts.md`](./adrs/ADR-008-schema-led-domain-contracts.md)
 
 - [ ] **ADR: Recommendations engine inputs**
   - Define the local data used by recommendations, including saved recipes, tags, preferences, ratings or favorites, and `checkout_history`.

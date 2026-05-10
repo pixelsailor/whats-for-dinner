@@ -68,4 +68,4 @@
 
 | ID  | Domain  | Title | Status | Description   |
 | --- | ------- | ----- | ------ | ------------- |
-| —   | Quality | —     | —      | _No ADRs yet_ |
+| [ADR-008](ADR-008-schema-led-domain-contracts.md) | Quality | Schema-led domain contracts | Accepted | Zod as source of truth for persisted, API, and validated external data; inferred types; module layout under `src/lib/api`; boundary validation; Dexie/store consumption patterns. |

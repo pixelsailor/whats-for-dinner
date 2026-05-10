@@ -150,9 +150,10 @@ This backlog turns the project principles in the top-level README into enforceab
 
 The root [`agents.md`](../agents.md) predates the ADR system and the `.cursor/rules/` layout. Its content (product framing, Svelte 5 + runes guidance, TypeScript conventions, Dexie + LiveQueryStores patterns, TanStack Query usage, Supabase auth wiring, Zod rules, general code style, accessibility, architecture highlights, env/secrets, doc references) is still useful but should be **distributed** to ADRs, Cursor rules, and scoped READMEs. Three Accepted ADRs ([ADR-002](../adrs/ADR-002-local-data-ownership.md), [ADR-006](../adrs/ADR-006-serverless-and-secret-boundary.md), [ADR-008](../adrs/ADR-008-schema-led-domain-contracts.md)) currently cite `agents.md` as authority; the goal of this work is to make those ADRs self-sustaining and to retire `agents.md`. Preserve `agents.md` as-is until each task below is complete; alignment gaps surfaced during the audit are tracked in [`readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md).
 
-- [ ] **Audit `agents.md` content categories**
+- [x] **Audit `agents.md` content categories**
   - Map each section/snippet to its target home: existing or planned ADR, planned Cursor rule, scoped `src/lib/.../README.md`, or `docs/<topic>.md`.
   - Capture the audit as a worksheet (table or checklist) so distribution can proceed in bounded passes without losing context.
+  - **Done:** [`docs/agents-md-distribution-worksheet.md`](./agents-md-distribution-worksheet.md) — the thematic migration bullets below do not replace this inventory (they skip intro/MCP duplication and do not record line-level mapping or the TanStack home decision).
 
 - [ ] **Migrate Svelte 5 + runes guidance**
   - Move the *Svelte 5 + Runes Best Practices* and *Reactive `$:` statements* sections (runes, `$props`, snippets, animations, accessibility, Dexie store subscription pattern) into the planned **Rule: Svelte 5 and UI conventions**.
@@ -171,7 +172,7 @@ The root [`agents.md`](../agents.md) predates the ADR system and the `.cursor/ru
   - Reconcile module-location guidance: `agents.md` says "single `db.ts` module in `src/lib/db/`" while the current repo has both [`src/lib/db.ts`](../src/lib/db.ts) and a [`src/lib/db/`](../src/lib/db/) directory with `local.ts` and `remote.ts` (see [`readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md) GAP-012).
 
 - [ ] **Migrate TanStack Query guidance**
-  - Move *TanStack Query `createQuery()`* content into either the planned **Rule: Local data and Dexie ownership** (offline-first integration), an addition to [`src/lib/api/README.md`](../src/lib/api/README.md), or a focused `docs/tanstack-query.md` — pick one home during the audit.
+  - Move *TanStack Query `createQuery()`* content into **`docs/tanstack-query.md`** with a short pointer from [`src/lib/api/README.md`](../src/lib/api/README.md) (**audit decision** in [`docs/agents-md-distribution-worksheet.md`](./agents-md-distribution-worksheet.md)); offline-first integration remains cross-linked from the planned **Rule: Local data and Dexie ownership**.
   - Confirm that TanStack Query usage remains compatible with [ADR-001](../adrs/ADR-001-product-operating-model.md) offline-first and [ADR-002](../adrs/ADR-002-local-data-ownership.md) Dexie-as-system-of-record (queries should validate responses with Zod and fall back to local cache when offline).
 
 - [ ] **Migrate Supabase auth, sharing, and cloud-backup wiring**

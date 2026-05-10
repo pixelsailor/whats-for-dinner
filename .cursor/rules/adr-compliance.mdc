@@ -1,11 +1,15 @@
 ---
-description: Require ADR index consultation and Accepted-ADR compliance on implementation (build) work; align with adrs/GOVERNANCE.md
+description: Require ADR index consultation and Accepted-ADR compliance on build work; record unresolved mismatches in docs/readme-adr-alignment-gaps.md
 alwaysApply: true
 ---
 
 # ADR compliance (build tasks)
 
 **Scope — “build task”:** Any work that adds, changes, or removes project code, configuration that encodes architecture, dependencies, or APIs — including features, fixes, refactors, and tooling changes that affect how the app is structured or behaves. Not limited to running `npm run build`.
+
+## High-impact areas
+
+Treat the following as **always** requiring ADR index review and relevant **Accepted** ADRs before substantive implementation: **architecture**, **data flow**, **authentication**, **sync**, **AI**, and **offline** behavior (including caching and service worker policy when behavior changes).
 
 ## Before substantive implementation
 
@@ -24,10 +28,15 @@ alwaysApply: true
 - Prefer **small, local** compliance fixes only in files you already touch, when they meet governance rules for opportunistic compliance; do **not** broaden refactors solely for ADR cleanup.
 - Do **not** infer deprecation from code age or comments — only from ADR status in `adrs/` and the index.
 
+## Alignment gaps (unresolved mismatches)
+
+If the change **cannot** be brought into compliance with an **Accepted** ADR within scope, do **not** hide the mismatch in implementation comments alone. **Add or update** an entry in [`docs/readme-adr-alignment-gaps.md`](docs/readme-adr-alignment-gaps.md) using that file’s fields (owner, severity, affected domain/files, remediation). This matches [`adrs/GOVERNANCE.md`](adrs/GOVERNANCE.md) section 5.6: escalate multi-file or architectural debt to a documented follow-up rather than silent drift.
+
 ## Quick reference
 
 | Need | Where |
 |------|--------|
 | What is decided and binding | `adrs/INDEX.md` (Accepted rows) |
 | Process, proposals, conflicts, orchestration | `adrs/GOVERNANCE.md` |
+| Implementation vs ADR drift (tracked) | `docs/readme-adr-alignment-gaps.md` |
 | New ADR shape | `adrs/TEMPLATE.md` |

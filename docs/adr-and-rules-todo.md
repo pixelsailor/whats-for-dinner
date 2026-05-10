@@ -109,9 +109,10 @@ This backlog turns the project principles in the top-level README into enforceab
   - Flag Node-specific APIs in server code unless explicitly isolated from the Cloudflare target.
   - Require private environment imports only in server-side modules.
 
-- [ ] **Rule: ADR compliance**
+- [x] **Rule: ADR compliance**
   - Require agents to consult relevant ADRs before changing architecture, data flow, auth, sync, AI, or offline behavior.
   - Require unresolved mismatches to be recorded in [`readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md) rather than hidden in implementation comments.
+  - **Done:** [`.cursor/rules/adr-compliance.mdc`](../.cursor/rules/adr-compliance.mdc)
 
 ## Orchestrated Agent Workflow Backlog
 

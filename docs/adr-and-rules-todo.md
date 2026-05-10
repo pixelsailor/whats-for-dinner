@@ -37,10 +37,11 @@ This backlog turns the project principles in the top-level README into enforceab
   - Define how a user-configured local or personal AI API can bypass WFD-managed account restrictions while preserving validation and safety boundaries.
   - **Done:** [`docs/adrs/ADR-007-ai-provider-contract.md`](./adrs/ADR-007-ai-provider-contract.md)
 
-- [ ] **ADR: Self-hosting provider model**
+- [x] **ADR: Self-hosting provider model**
   - Define the service boundaries needed for user-controlled AI APIs and user-hosted databases.
   - Identify which provider capabilities are required, optional, or unsupported.
   - Establish how self-hosted configuration interacts with anonymous usage, account permissions, sync, sharing, backups, and offline behavior.
+  - **Done:** [`docs/adrs/ADR-011-self-hosting-provider-model.md`](./adrs/ADR-011-self-hosting-provider-model.md) (Proposed)
 
 - [x] **ADR: Schema-led domain contracts**
   - Require Zod schemas as the source of truth for persisted records, API payloads, and AI-generated data.
@@ -57,9 +58,10 @@ This backlog turns the project principles in the top-level README into enforceab
   - Cover static shell assets, route data, local database state, and transient AI artifacts.
   - **Done:** [`docs/adrs/ADR-010-offline-cache-and-service-worker.md`](./adrs/ADR-010-offline-cache-and-service-worker.md)
 
-- [ ] **ADR: Feature roadmap boundaries**
+- [x] **ADR: Feature roadmap boundaries**
   - Capture architectural boundaries for Calendar, URL recipe import, OCR import, and Meal Planner before implementation starts.
   - Identify where each feature should own deeper design docs.
+  - **Done:** [`docs/adrs/ADR-012-feature-roadmap-boundaries.md`](./adrs/ADR-012-feature-roadmap-boundaries.md) (Proposed)
 
 ## Cursor Rule Backlog
 

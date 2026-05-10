@@ -34,6 +34,7 @@
 | --- | -------- | ----- | ------ | ------------- |
 | [ADR-001](ADR-001-product-operating-model.md) | Platform | Product operating model | Accepted | Offline-first, anonymous-first recipe book; optional cloud and AI; binding capability matrix without auth/network/Supabase/OpenAI. |
 | [ADR-004](ADR-004-account-and-cloud-enhancement-model.md) | Platform | Account and cloud enhancement model | Accepted | Supabase as optional enhancement for auth, backup, sharing, and sync; logged-out/offline continuity required for local recipe flows. |
+| [ADR-012](ADR-012-feature-roadmap-boundaries.md) | Platform | Feature roadmap boundaries | Proposed | Per-feature envelopes for Calendar, URL recipe import, OCR import, and Meal planner: where logic runs, AI/cloud dependency, offline/anonymous behavior, and where each design doc should live. |
 
 ---
 
@@ -45,6 +46,7 @@
 | [ADR-003](ADR-003-ai-suggestion-lifecycle.md) | Architecture | AI suggestion lifecycle | Accepted | Prompt-to-suggestion lifecycle is transient-local with dedup, bounded history, and explicit promotion boundary to durable recipes. |
 | [ADR-005](ADR-005-sync-and-conflict-resolution.md) | Architecture | Sync and conflict resolution | Proposed | Local-first Dexie sync semantics with Supabase replicas, tombstone propagation, timestamp-led conflict resolution, restore behavior, and checkout-history handling. |
 | [ADR-007](ADR-007-ai-provider-contract.md) | Architecture | AI provider contract | Accepted | Server-only provider access; Chat Completions vs Responses+Zod paths; preference injection for generation; errors, offline degradation, and future personal-provider shape. |
+| [ADR-011](ADR-011-self-hosting-provider-model.md) | Architecture | Self-hosting provider model | Proposed | Service boundaries for user-controlled AI APIs and user-hosted databases; required vs optional vs unsupported provider capabilities; capability flags to client; permissions vs personal providers; identity stays out of scope for v1. |
 
 ---
 

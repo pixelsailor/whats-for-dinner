@@ -52,9 +52,10 @@ This backlog turns the project principles in the top-level README into enforceab
   - Separate deterministic local recommendations from AI-assisted suggestions.
   - **Done:** [`docs/adrs/ADR-009-recommendations-engine-inputs.md`](./adrs/ADR-009-recommendations-engine-inputs.md)
 
-- [ ] **ADR: Offline cache and service worker policy**
+- [x] **ADR: Offline cache and service worker policy**
   - Define what must be cached, what must never be cached, storage budget expectations, and cache eviction rules.
   - Cover static shell assets, route data, local database state, and transient AI artifacts.
+  - **Done:** [`docs/adrs/ADR-010-offline-cache-and-service-worker.md`](./adrs/ADR-010-offline-cache-and-service-worker.md)
 
 - [ ] **ADR: Feature roadmap boundaries**
   - Capture architectural boundaries for Calendar, URL recipe import, OCR import, and Meal Planner before implementation starts.

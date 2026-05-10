@@ -71,6 +71,11 @@ This backlog turns the project principles in the top-level README into enforceab
   - Require new features to define anonymous, offline, loading, and reconnect behavior.
   - Flag changes that make auth, Supabase, OpenAI, or network access mandatory for core recipe book flows.
 
+- [ ] **Rule: Offline and connectivity user messaging**
+  - Require explicit, consistent user-facing messaging when the app is offline or when network-only capabilities are unavailable (including reconnect and queued/deferred work where applicable).
+  - Distinguish **offline / no network** from **logged out**, **missing cloud permissions**, and **AI or provider disabled** so users are not misled about why an action is blocked.
+  - Complements ADR-004’s cloud-unavailability messaging; the written rule should cite ADR-001, ADR-004, and ADR-007 where AI degradation overlaps.
+
 - [ ] **Rule: Local data and Dexie ownership**
   - Enforce Dexie-backed reads for local-first user data.
   - Require mutations to flow through domain/store helpers rather than ad hoc component logic.
@@ -119,7 +124,7 @@ This backlog turns the project principles in the top-level README into enforceab
   - Require scoped phases, files likely to change, validation steps, risks, and rollback notes before significant implementation.
 
 - [ ] **Create a validation checklist**
-  - Cover offline behavior, anonymous behavior, auth boundaries, cloud behavior, AI disabled behavior, self-hosted provider behavior, schema validation, accessibility, and tests.
+  - Cover offline behavior and user-visible offline/connectivity messaging, anonymous behavior, auth boundaries, cloud behavior, AI disabled behavior, self-hosted provider behavior, schema validation, accessibility, and tests.
 
 - [ ] **Create a test matrix template**
   - Track expected coverage for unit, component, browser, offline, and integration-like flows.

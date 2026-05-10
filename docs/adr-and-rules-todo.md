@@ -172,7 +172,7 @@ The root [`agents.md`](../agents.md) predates the ADR system and the `.cursor/ru
 
 - [ ] **Migrate Dexie + LiveQueryStores guidelines**
   - Move *Dexie + LiveQueryStores Guidelines* into the planned **Rule: Local data and Dexie ownership**, with cross-references to [ADR-002](../adrs/ADR-002-local-data-ownership.md).
-  - Reconcile module-location guidance: `agents.md` says "single `db.ts` module in `src/lib/db/`" while the current repo has both [`src/lib/db.ts`](../src/lib/db.ts) and a [`src/lib/db/`](../src/lib/db/) directory with `local.ts` and `remote.ts` (see [`readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md) GAP-012).
+	- Module-location guidance is reconciled: [`src/lib/db.ts`](../src/lib/db.ts) is the single Dexie application database; files under `src/lib/db/` are helpers that use it, per [`.cursor/rules/local-data-dexie-ownership.mdc`](../.cursor/rules/local-data-dexie-ownership.mdc).
 
 - [ ] **Migrate TanStack Query guidance**
   - Move *TanStack Query `createQuery()`* content into **`docs/tanstack-query.md`** with a short pointer from [`src/lib/api/README.md`](../src/lib/api/README.md) (**audit decision** in [`docs/agents-md-distribution-worksheet.md`](./agents-md-distribution-worksheet.md)); offline-first integration remains cross-linked from the planned **Rule: Local data and Dexie ownership**.

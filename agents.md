@@ -88,7 +88,7 @@ This is a serverless app: keep handlers compatible with constrained runtimes per
 
 ## Dexie + LiveQueryStores Guidelines
 
-- Define a single `db.ts` module in `src/lib/db/` exporting the Dexie instance and table definitions.
+- Define the single Dexie application database in `src/lib/db.ts`, exporting the Dexie instance and table definitions. Files under `src/lib/db/` are helpers that use that database, not alternate Dexie roots.
 - Tables should use interfaces derived from Zod schemas for type safety.
 - Query data using `liveQuery()` and expose the results as readable Svelte stores.
 - Store naming convention: `<entity>Store`, e.g. `recipesStore`, `suggestionsStore`.

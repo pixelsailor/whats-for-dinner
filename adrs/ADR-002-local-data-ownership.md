@@ -70,7 +70,7 @@ We will use **Svelte stores** (including Dexie `liveQuery`-backed stores) as the
 
 | Risk | Mitigation |
 | --- | --- |
-| Drift: new domain persisted only in memory or remote | Code review checks against this ADR; future “local data and Dexie” Cursor rule |
+| Drift: new domain persisted only in memory or remote | Code review checks against this ADR; [`.cursor/rules/local-data-dexie-ownership.mdc`](../.cursor/rules/local-data-dexie-ownership.mdc) |
 | Over-deletion of suggestions hurts UX | Future lifecycle ADR sets caps and user-visible expectations; current code patterns (e.g. suggestion count caps) remain implementation |
 
 ## Operational impact
@@ -86,7 +86,7 @@ We will use **Svelte stores** (including Dexie `liveQuery`-backed stores) as the
 
 ## Enforcement rules
 
-- **Cursor / agent rules:** Future “Local data and Dexie ownership” rule should cite this ADR; until then, [README Data Ownership](../README.md) and this ADR together define expectations.
+- **Cursor / agent rules:** [`.cursor/rules/local-data-dexie-ownership.mdc`](../.cursor/rules/local-data-dexie-ownership.mdc) (globs `src/lib/db.ts`, `src/lib/db/**/*.ts`, `src/lib/stores/**/*.ts`); [README Data Ownership](../README.md) and this ADR together define expectations.
 - **Code / architecture:** Durable recipe book and preference inputs should be readable from Dexie when the user has used those features locally; AI suggestion caches belong in Dexie (or explicitly documented alternatives) but must not be documented as the user’s “saved recipe book” in product copy or sync design without ADR-001 / lifecycle updates.
 - **When to revisit:** New persisted domains (e.g. meal planner), a change to default storage technology, or a decision to mirror a class of data primarily in cloud storage for anonymous users.
 

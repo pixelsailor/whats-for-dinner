@@ -1,0 +1,47 @@
+---
+description: >-
+  Dexie/IndexedDB as local system of record; reactive reads via LiveQuery stores;
+  mutations through store/domain helpers, not ad hoc UI logic.
+globs: "src/lib/db.ts,src/lib/db/**/*.ts,src/lib/stores/**/*.ts"
+alwaysApply: false
+---
+
+# Local data and Dexie ownership
+
+**Binding:** [ADR-002: Local data ownership](../adrs/ADR-002-local-data-ownership.md) (Accepted). Offline-first product context: [ADR-001](../adrs/ADR-001-product-operating-model.md), [`src/lib/stores/README.md`](../src/lib/stores/README.md).
+
+## System of record
+
+- **Dexie / IndexedDB** is the authoritative persisted store for the domains ADR-002 lists (saved recipes, local preferences, local AI suggestion artifacts—each classified as durable user data vs transient cache there).
+- **Svelte stores** backed by `liveQuery` (or `createLiveQueryStore` in `_utils.ts`) are the **reactive read model** over Dexie, not a parallel system of record. Ephemeral UI state may live outside Dexie; it must not replace Dexie for those domains.
+
+## Canonical module layout
+
+- **`src/lib/db.ts`** — Dexie subclass, versioned `stores { ... }`, table typings, **`export const db`** (and any types colocated with the schema). This is the single **Dexie application database** for WFD’s local-first domains.
+- **`src/lib/db/*.ts`** — helpers that **use** `db` (e.g. sync, remote bridging). They are not alternate Dexie roots; do not open a second `Dexie` instance for the same product data without a new ADR.
+
+Use the existing import style (e.g. `import { db } from '$lib/db'`).
+
+## Reads
+
+- Expose local-first data to the UI through **Dexie-backed** live-query stores under `src/lib/stores/` (or thin wrappers those stores call).
+- In `.svelte` files, subscribe via the store contract and runes (e.g. `$derived($recipesStore)`); keep components free of raw `db.table` queries unless you are extending the store layer.
+
+## Writes and mutations
+
+- **Do not** scatter `db.*.put/update/delete` across `src/routes/**` or arbitrary components for ADR-002-owned data. Route `load` / actions / UI handlers should call **store or domain helpers** that centralize Dexie access and invariants.
+- Treat snapshots from live-query stores as **read-only views**; persistence goes through Dexie APIs inside those helpers.
+- **Multi-table** changes for one user action should run inside **`db.transaction('rw', ...)`** so partial writes do not leave inconsistent state.
+
+## Conventions
+
+- Prefer store module names like `<entity>Store` where the codebase already does (`recipesStore`, `suggestionsStore`, …).
+- Row shapes should follow Zod-led contracts per [ADR-008](../adrs/ADR-008-schema-led-domain-contracts.md) (see also the planned schema/type-safety rule).
+
+## Remote and cache layers
+
+- **TanStack Query** (or similar) caches **network** results; it does not replace Dexie as system of record for the recipe book and ADR-002 domains. Reconcile into local tables through validated paths and existing store patterns; keep query `queryFn` side-effect free—mutations belong in dedicated helpers.
+
+## Escalation
+
+- New persisted domains, or storing ADR-002-class data primarily outside Dexie: follow [`.cursor/rules/adr-compliance.mdc`](./adr-compliance.mdc); document intentional drift in [`docs/readme-adr-alignment-gaps.md`](../docs/readme-adr-alignment-gaps.md).

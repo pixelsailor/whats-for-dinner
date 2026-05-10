@@ -78,9 +78,10 @@ This backlog turns the project principles in the top-level README into enforceab
   - Distinguish **offline / no network** from **logged out**, **missing cloud permissions**, and **AI or provider disabled** so users are not misled about why an action is blocked.
   - Complements ADR-004’s cloud-unavailability messaging; the written rule should cite ADR-001, ADR-004, and ADR-007 where AI degradation overlaps.
 
-- [ ] **Rule: Local data and Dexie ownership**
+- [x] **Rule: Local data and Dexie ownership**
   - Enforce Dexie-backed reads for local-first user data.
   - Require mutations to flow through domain/store helpers rather than ad hoc component logic.
+  - **Done:** [`.cursor/rules/local-data-dexie-ownership.mdc`](../.cursor/rules/local-data-dexie-ownership.mdc) (globs `src/lib/db.ts`, `src/lib/db/**/*.ts`, `src/lib/stores/**/*.ts`).
 
 - [ ] **Rule: AI integration boundary**
   - Require OpenAI calls to stay in server-only modules or SvelteKit server routes.

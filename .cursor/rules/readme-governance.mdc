@@ -21,7 +21,7 @@ The top-level `README.md` carries **product purpose, principles, stack, and dura
 
 | Instead of expanding the root README | Use |
 |----------------------------------------|-----|
-| Durable architecture or data-ownership decisions | `docs/adrs/` (ADR) once recorded |
+| Durable architecture or data-ownership decisions | `adrs/` (ADR) once recorded |
 | Patterns owned by a directory | `src/lib/.../README.md` or topic doc under `docs/` |
 | Agent-enforced dev behavior | `.cursor/rules/` and `AGENTS.md` |
 | Feature or flow design | Focused `docs/<topic>.md` |

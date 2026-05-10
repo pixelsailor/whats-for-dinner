@@ -23,10 +23,10 @@ Without a governing decision, contributors will keep adding Supabase-only checks
 
 The current implementation already has shape that **forecloses** self-hosting if not deliberately constrained:
 
-- `PUBLIC_SUPABASE_URL` / `PUBLIC_SUPABASE_ANON_KEY` are **compile-time** public env vars consumed by [`src/lib/supabaseClient.ts`](../../src/lib/supabaseClient.ts), [`src/hooks.server.ts`](../../src/hooks.server.ts), and [`src/lib/db/remote.ts`](../../src/lib/db/remote.ts); there is no runtime way to point at a different cloud database.
-- AI server routes ([`src/routes/api/suggestions/+server.ts`](../../src/routes/api/suggestions/+server.ts), [`src/routes/api/recipes/+server.ts`](../../src/routes/api/recipes/+server.ts), [`src/routes/api/recipes/new/+server.ts`](../../src/routes/api/recipes/new/+server.ts)) gate AI access with `permissions.ai_assistance` derived from a Supabase-issued cookie ([`src/lib/utils/session.ts`](../../src/lib/utils/session.ts)); a user with their own AI key but no WFD-managed account is currently blocked.
-- The AI client in [`src/lib/api/ai/ai.model.ts`](../../src/lib/api/ai/ai.model.ts) and [`src/lib/server/openai.ts`](../../src/lib/server/openai.ts) is a **singleton** keyed by one server env var (`VITE_OPENAI_API_KEY`); there is no per-request or per-deployment override.
-- [`src/lib/api/cloud/cloud.service.ts`](../../src/lib/api/cloud/cloud.service.ts) is a Supabase **class**, not a generic interface; sync helpers and route handlers depend on it directly.
+- `PUBLIC_SUPABASE_URL` / `PUBLIC_SUPABASE_ANON_KEY` are **compile-time** public env vars consumed by [`src/lib/supabaseClient.ts`](../src/lib/supabaseClient.ts), [`src/hooks.server.ts`](../src/hooks.server.ts), and [`src/lib/db/remote.ts`](../src/lib/db/remote.ts); there is no runtime way to point at a different cloud database.
+- AI server routes ([`src/routes/api/suggestions/+server.ts`](../src/routes/api/suggestions/+server.ts), [`src/routes/api/recipes/+server.ts`](../src/routes/api/recipes/+server.ts), [`src/routes/api/recipes/new/+server.ts`](../src/routes/api/recipes/new/+server.ts)) gate AI access with `permissions.ai_assistance` derived from a Supabase-issued cookie ([`src/lib/utils/session.ts`](../src/lib/utils/session.ts)); a user with their own AI key but no WFD-managed account is currently blocked.
+- The AI client in [`src/lib/api/ai/ai.model.ts`](../src/lib/api/ai/ai.model.ts) and [`src/lib/server/openai.ts`](../src/lib/server/openai.ts) is a **singleton** keyed by one server env var (`VITE_OPENAI_API_KEY`); there is no per-request or per-deployment override.
+- [`src/lib/api/cloud/cloud.service.ts`](../src/lib/api/cloud/cloud.service.ts) is a Supabase **class**, not a generic interface; sync helpers and route handlers depend on it directly.
 
 We need a binding architectural decision **before** these seams calcify further.
 
@@ -90,7 +90,7 @@ User-supplied provider configuration is **device-local** by default and **never*
 
 ### 4. Permission semantics under self-hosting
 
-`permissions.ai_assistance` and `permissions.cloud_storage` ([`src/lib/utils/session.ts`](../../src/lib/utils/session.ts)) are checks against **WFD-managed Supabase entitlements**. They were intended as gating for **WFD-paid features**, not as a global "is AI available?" flag.
+`permissions.ai_assistance` and `permissions.cloud_storage` ([`src/lib/utils/session.ts`](../src/lib/utils/session.ts)) are checks against **WFD-managed Supabase entitlements**. They were intended as gating for **WFD-paid features**, not as a global "is AI available?" flag.
 
 - A request that arrives with valid **personal AI provider** configuration **must not** be rejected solely because `permissions.ai_assistance` is false. The check should become "is **this request's** AI access allowed?" — true when either WFD-managed permission is granted **or** a validated personal provider config is present.
 - A request that uses the **WFD-managed default** AI provider (no personal config) keeps today's behavior: `ai_assistance` permission required.
@@ -107,7 +107,7 @@ Self-hosted providers are still **untrusted output**. Every adapter, including p
 
 ### 6. Capability advertisement to the client
 
-[`src/routes/+layout.server.ts`](../../src/routes/+layout.server.ts) already exposes a boolean `featureFlags.openai`. Self-hosting expands that surface (without exposing keys) to enable accurate UI degradation:
+[`src/routes/+layout.server.ts`](../src/routes/+layout.server.ts) already exposes a boolean `featureFlags.openai`. Self-hosting expands that surface (without exposing keys) to enable accurate UI degradation:
 
 - `featureFlags.ai`: boolean — any AI provider is available for this session (managed or personal).
 - `featureFlags.aiCapabilities`: an enumerated set the client can intersect with the table in §2 (e.g. `{ suggestions, fullRecipe, revision, assistance, addendum, vision }`).
@@ -168,11 +168,11 @@ The client must treat **absent** capabilities as feature-off (hide or disable), 
 ## Notes (optional)
 
 - "Self-hosting" in this ADR specifically means **user-controlled providers**, not "deploy WFD itself somewhere new." WFD's own deploy target is governed by [ADR-006](ADR-006-serverless-and-secret-boundary.md) and [ADR-010](ADR-010-offline-cache-and-service-worker.md).
-- "OpenAI-compatible" in §1 and §2 is a deliberate constraint: it lets us reuse the existing `OpenAI` SDK with a custom `baseURL` and key, keeping the validation pipeline in [`src/lib/api/ai/ai.model.ts`](../../src/lib/api/ai/ai.model.ts) intact.
+- "OpenAI-compatible" in §1 and §2 is a deliberate constraint: it lets us reuse the existing `OpenAI` SDK with a custom `baseURL` and key, keeping the validation pipeline in [`src/lib/api/ai/ai.model.ts`](../src/lib/api/ai/ai.model.ts) intact.
 
 ## Enforcement rules
 
-- **Cursor / agent rules:** The backlog **Rule: Self-hosting compatibility** in [`docs/adr-and-rules-todo.md`](../adr-and-rules-todo.md) should cite this ADR alongside [ADR-004](ADR-004-account-and-cloud-enhancement-model.md) and [ADR-007](ADR-007-ai-provider-contract.md). The future **Rule: Supabase enhancement boundary** and **Rule: AI integration boundary** should similarly require new code to read capability flags rather than assume a single managed provider.
+- **Cursor / agent rules:** The backlog **Rule: Self-hosting compatibility** in [`docs/adr-and-rules-todo.md`](../docs/adr-and-rules-todo.md) should cite this ADR alongside [ADR-004](ADR-004-account-and-cloud-enhancement-model.md) and [ADR-007](ADR-007-ai-provider-contract.md). The future **Rule: Supabase enhancement boundary** and **Rule: AI integration boundary** should similarly require new code to read capability flags rather than assume a single managed provider.
 - **Code / architecture:** New AI/cloud code must (a) call only same-origin server routes from the client, (b) tolerate `featureFlags.ai === false` and `featureFlags.cloud === false`, (c) declare its required capability subset, and (d) avoid reading `permissions.ai_assistance` / `permissions.cloud_storage` as the **sole** signal that AI/cloud is unavailable — pair the permission check with the capability flag once both are wired.
 - **When to revisit:** First implementation of a personal AI key flow; introduction of a non-OpenAI-compatible provider; introduction of a non-Supabase cloud backend; replacement of Supabase Auth.
 
@@ -216,16 +216,16 @@ Orchestration **not required** for authoring this ADR. Plan–Build–Validate�
 
 ### Alignment gaps (current implementation vs this ADR)
 
-The following gaps were identified while authoring this ADR and are recorded in [`docs/readme-adr-alignment-gaps.md`](../readme-adr-alignment-gaps.md) as **GAP-010**.
+The following gaps were identified while authoring this ADR and are recorded in [`docs/readme-adr-alignment-gaps.md`](../docs/readme-adr-alignment-gaps.md) as **GAP-010**.
 
 | Topic | ADR expectation | Observed |
 | --- | --- | --- |
-| **AI gating uses capability + permission** | A request with valid personal AI config should not be rejected solely on `permissions.ai_assistance`. | [`src/routes/api/suggestions/+server.ts`](../../src/routes/api/suggestions/+server.ts), [`src/routes/api/recipes/+server.ts`](../../src/routes/api/recipes/+server.ts), and [`src/routes/api/recipes/new/+server.ts`](../../src/routes/api/recipes/new/+server.ts) reject when `permissions.ai_assistance` is false; no personal-provider escape hatch exists. |
-| **Per-request AI provider resolution** | The `OpenAI` client should be resolvable per request from managed default or personal config. | [`src/lib/api/ai/ai.model.ts`](../../src/lib/api/ai/ai.model.ts) and [`src/lib/server/openai.ts`](../../src/lib/server/openai.ts) build a singleton client from `VITE_OPENAI_API_KEY` only. |
-| **Runtime cloud provider configuration** | Cloud URL/anon key should be resolvable at runtime so a deployment can swap Supabase projects without rebuilding. | [`src/lib/supabaseClient.ts`](../../src/lib/supabaseClient.ts) and [`src/hooks.server.ts`](../../src/hooks.server.ts) read `PUBLIC_SUPABASE_URL` / `PUBLIC_SUPABASE_ANON_KEY` from `$env/static/public` (compile-time). |
-| **Cloud adapter shape** | Cloud database operations should be expressible against the capability matrix in §2, not a Supabase-only class. | [`src/lib/api/cloud/cloud.service.ts`](../../src/lib/api/cloud/cloud.service.ts) is a Supabase-bound class with no provider-agnostic interface; the deprecated [`src/lib/db/remote.ts`](../../src/lib/db/remote.ts) is similarly Supabase-only. |
-| **Capability advertisement to client** | `featureFlags` should expose AI and cloud capability sets, not a single boolean. | [`src/routes/+layout.server.ts`](../../src/routes/+layout.server.ts) exposes only `featureFlags.openai` derived from the managed key. |
-| **Suggestion storage independent of WFD account** | Suggestions remain transient-local under [ADR-003](ADR-003-ai-suggestion-lifecycle.md); they should not require a WFD-managed account to be cached locally. | [`src/lib/db.ts`](../../src/lib/db.ts) header comment claims "By virtue of `ai_assistance` permission requirements, `suggestions` may only be stored for authenticated users." This conflicts with anonymous + personal-AI usage. |
+| **AI gating uses capability + permission** | A request with valid personal AI config should not be rejected solely on `permissions.ai_assistance`. | [`src/routes/api/suggestions/+server.ts`](../src/routes/api/suggestions/+server.ts), [`src/routes/api/recipes/+server.ts`](../src/routes/api/recipes/+server.ts), and [`src/routes/api/recipes/new/+server.ts`](../src/routes/api/recipes/new/+server.ts) reject when `permissions.ai_assistance` is false; no personal-provider escape hatch exists. |
+| **Per-request AI provider resolution** | The `OpenAI` client should be resolvable per request from managed default or personal config. | [`src/lib/api/ai/ai.model.ts`](../src/lib/api/ai/ai.model.ts) and [`src/lib/server/openai.ts`](../src/lib/server/openai.ts) build a singleton client from `VITE_OPENAI_API_KEY` only. |
+| **Runtime cloud provider configuration** | Cloud URL/anon key should be resolvable at runtime so a deployment can swap Supabase projects without rebuilding. | [`src/lib/supabaseClient.ts`](../src/lib/supabaseClient.ts) and [`src/hooks.server.ts`](../src/hooks.server.ts) read `PUBLIC_SUPABASE_URL` / `PUBLIC_SUPABASE_ANON_KEY` from `$env/static/public` (compile-time). |
+| **Cloud adapter shape** | Cloud database operations should be expressible against the capability matrix in §2, not a Supabase-only class. | [`src/lib/api/cloud/cloud.service.ts`](../src/lib/api/cloud/cloud.service.ts) is a Supabase-bound class with no provider-agnostic interface; the deprecated [`src/lib/db/remote.ts`](../src/lib/db/remote.ts) is similarly Supabase-only. |
+| **Capability advertisement to client** | `featureFlags` should expose AI and cloud capability sets, not a single boolean. | [`src/routes/+layout.server.ts`](../src/routes/+layout.server.ts) exposes only `featureFlags.openai` derived from the managed key. |
+| **Suggestion storage independent of WFD account** | Suggestions remain transient-local under [ADR-003](ADR-003-ai-suggestion-lifecycle.md); they should not require a WFD-managed account to be cached locally. | [`src/lib/db.ts`](../src/lib/db.ts) header comment claims "By virtue of `ai_assistance` permission requirements, `suggestions` may only be stored for authenticated users." This conflicts with anonymous + personal-AI usage. |
 
 ### Merge / workflow gates
 

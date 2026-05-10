@@ -10,7 +10,7 @@
 
 ## Scope
 
-- **In scope:** Architectural envelopes for the four near-term roadmap features named in the [README — *Roadmap Direction*](../../README.md): **Calendar**, **URL recipe import**, **OCR import**, and **Meal planner**. For each feature, this ADR fixes (a) where logic runs (client/server), (b) which existing data ownership rules apply, (c) which AI and cloud capabilities are required vs optional, (d) what offline / anonymous / disabled-AI behavior must be designed in from day one, and (e) where deeper feature design should live.
+- **In scope:** Architectural envelopes for the four near-term roadmap features named in the [README — *Roadmap Direction*](../README.md): **Calendar**, **URL recipe import**, **OCR import**, and **Meal planner**. For each feature, this ADR fixes (a) where logic runs (client/server), (b) which existing data ownership rules apply, (c) which AI and cloud capabilities are required vs optional, (d) what offline / anonymous / disabled-AI behavior must be designed in from day one, and (e) where deeper feature design should live.
 - **Out of scope:** Detailed UI/UX designs, exact Zod schemas for not-yet-modelled domains (delegated to per-feature implementation ADRs or design docs), database migration plans, and pricing/permission decisions for individual capabilities. Calendar **sharing**, planner **sharing/sync**, and any cross-device collaboration on plans are deferred to successor ADRs that extend [ADR-005](ADR-005-sync-and-conflict-resolution.md).
 
 ## Context
@@ -27,7 +27,7 @@ Without an envelope ADR, each of these features will get a solo design doc that 
 
 ### Decision pressure (required)
 
-`checkout_history` already exists on `SavedRecipe` ([`src/lib/api/recipe/recipe.schemas.ts`](../../src/lib/api/recipe/recipe.schemas.ts)) and is mutated from [`src/routes/recipes/[...id]/+page.svelte`](../../src/routes/recipes/%5B...id%5D/+page.svelte) and other routes. The Calendar feature is **closer to "next implementation"** than the others and will be the first roadmap feature to hit a route. Without an envelope, the Calendar PR will set precedent for the others (offline behavior, sync expectations, AI dependency) by accident.
+`checkout_history` already exists on `SavedRecipe` ([`src/lib/api/recipe/recipe.schemas.ts`](../src/lib/api/recipe/recipe.schemas.ts)) and is mutated from [`src/routes/recipes/[...id]/+page.svelte`](../src/routes/recipes/%5B...id%5D/+page.svelte) and other routes. The Calendar feature is **closer to "next implementation"** than the others and will be the first roadmap feature to hit a route. Without an envelope, the Calendar PR will set precedent for the others (offline behavior, sync expectations, AI dependency) by accident.
 
 Likewise, the AI capability matrix in [ADR-011](ADR-011-self-hosting-provider-model.md) §2 names `vision` as **optional**; OCR import is the first feature that consumes that flag, and its design must match the matrix rather than redefine it.
 
@@ -59,7 +59,7 @@ For each of the four roadmap features below, the **envelope** in this section is
 | Aspect | Envelope decision |
 | --- | --- |
 | **Logic location** | **Client-only.** Reads `db.recipes` via existing Dexie / live-query patterns ([ADR-002](ADR-002-local-data-ownership.md)). No new server route in v1. |
-| **Data ownership** | Reuses `SavedRecipe.checkout_history` ([`src/lib/api/recipe/recipe.schemas.ts`](../../src/lib/api/recipe/recipe.schemas.ts)). **No** new Dexie table for v1. |
+| **Data ownership** | Reuses `SavedRecipe.checkout_history` ([`src/lib/api/recipe/recipe.schemas.ts`](../src/lib/api/recipe/recipe.schemas.ts)). **No** new Dexie table for v1. |
 | **Recommendation overlap** | Calendar is a **read** surface over `checkout_history`; it is **not** the recommendations engine. It must not import the recommendations module nor influence ranking ([ADR-009](ADR-009-recommendations-engine-inputs.md)). |
 | **AI dependency** | **None.** Calendar is fully usable with AI disabled. |
 | **Cloud dependency** | **None.** Calendar is fully usable anonymously and offline. Sync of `checkout_history` is governed by [ADR-005](ADR-005-sync-and-conflict-resolution.md); calendar does not introduce new sync semantics. |
@@ -74,7 +74,7 @@ For each of the four roadmap features below, the **envelope** in this section is
 | Aspect | Envelope decision |
 | --- | --- |
 | **Logic location** | **Server-side fetch + AI extraction.** Browser CORS makes client-side fetch unreliable, and server-only secrets in [ADR-006](ADR-006-serverless-and-secret-boundary.md) require AI calls to stay on the server. New endpoint under `src/routes/api/import/url/+server.ts`. |
-| **Data ownership** | Output is a **draft recipe** validated against `RecipeSchema` ([`src/lib/api/recipe/recipe.schemas.ts`](../../src/lib/api/recipe/recipe.schemas.ts)); the user explicitly promotes it to a `SavedRecipe`. Drafts may be cached transient-locally similar to suggestions ([ADR-003](ADR-003-ai-suggestion-lifecycle.md)) but are **not** auto-saved to cloud. |
+| **Data ownership** | Output is a **draft recipe** validated against `RecipeSchema` ([`src/lib/api/recipe/recipe.schemas.ts`](../src/lib/api/recipe/recipe.schemas.ts)); the user explicitly promotes it to a `SavedRecipe`. Drafts may be cached transient-locally similar to suggestions ([ADR-003](ADR-003-ai-suggestion-lifecycle.md)) but are **not** auto-saved to cloud. |
 | **AI dependency** | **Required.** Feature is hidden when `featureFlags.ai === false`. |
 | **Cloud dependency** | **None for the import itself.** Saved recipe sync follows the existing recipe sync path ([ADR-005](ADR-005-sync-and-conflict-resolution.md)). |
 | **Required capabilities** | `aiCapabilities.suggestions` (or an equivalent extraction capability) plus structured-output support per [ADR-007](ADR-007-ai-provider-contract.md). Personal-provider deployments without these capabilities hide the feature. |
@@ -104,7 +104,7 @@ For each of the four roadmap features below, the **envelope** in this section is
 | Aspect | Envelope decision |
 | --- | --- |
 | **Logic location** | **Client-first.** Plan creation, edit, and shopping-list derivation run against Dexie. Server work is limited to optional sync at a later date. |
-| **Data ownership** | New domain entities — at minimum a `MealPlan` (header) and `MealPlanItem` (one entry per planned slot, referencing a `SavedRecipe.id`). Optional `ShoppingList` derived from plan items; the canonical shape may be a query over plan items rather than a separate table — the design doc decides. New entities live under `src/lib/api/meal-plan/...` with **`.strict()`** Zod schemas per [ADR-008](ADR-008-schema-led-domain-contracts.md), and Dexie tables get a **migration version bump** in [`src/lib/db.ts`](../../src/lib/db.ts) per [ADR-002](ADR-002-local-data-ownership.md). |
+| **Data ownership** | New domain entities — at minimum a `MealPlan` (header) and `MealPlanItem` (one entry per planned slot, referencing a `SavedRecipe.id`). Optional `ShoppingList` derived from plan items; the canonical shape may be a query over plan items rather than a separate table — the design doc decides. New entities live under `src/lib/api/meal-plan/...` with **`.strict()`** Zod schemas per [ADR-008](ADR-008-schema-led-domain-contracts.md), and Dexie tables get a **migration version bump** in [`src/lib/db.ts`](../src/lib/db.ts) per [ADR-002](ADR-002-local-data-ownership.md). |
 | **AI dependency** | **None for v1.** Plans are user-built. AI-assisted plan suggestions are a follow-up that must reuse [ADR-007](ADR-007-ai-provider-contract.md) (suggestion-style) and declare a capability requirement. |
 | **Cloud dependency** | **None for v1.** Plans are local. **Sync is deferred** to a successor ADR that extends [ADR-005](ADR-005-sync-and-conflict-resolution.md); v1 ships local-only with this constraint visible in the UI ("plans are stored on this device"). |
 | **Recipe references** | Plan items reference `SavedRecipe.id` only. They **do not** embed recipe content; rendering joins against the live recipe row. Deleted (soft-deleted) recipes referenced from plans must render gracefully (a placeholder or a one-time migration prompt). |
@@ -148,7 +148,7 @@ For each of the four roadmap features below, the **envelope** in this section is
 - **Performance / cost:** Calendar and planner are local-only and cheap. URL import and OCR (server path) consume AI tokens — handled by [ADR-007](ADR-007-ai-provider-contract.md) and [ADR-011](ADR-011-self-hosting-provider-model.md) cost notes.
 - **Debugging:** Server import routes log a stable feature id (`recipe-import-url`, `recipe-import-ocr`) and the AI provider id from [ADR-011](ADR-011-self-hosting-provider-model.md), without logging URL contents, image bytes, or extracted text beyond error context.
 - **Deployment:** Planner Dexie tables ship as a Dexie version bump. URL import and OCR ship as new SvelteKit routes; no infrastructure change required for the WFD-managed AI default.
-- **Developer workflow:** First PR for each roadmap feature must (a) link this ADR, (b) create the feature's design doc, and (c) add capability flags to [`src/routes/+layout.server.ts`](../../src/routes/+layout.server.ts) when the feature requires a capability the layout does not yet expose.
+- **Developer workflow:** First PR for each roadmap feature must (a) link this ADR, (b) create the feature's design doc, and (c) add capability flags to [`src/routes/+layout.server.ts`](../src/routes/+layout.server.ts) when the feature requires a capability the layout does not yet expose.
 
 ## Examples (optional)
 
@@ -158,7 +158,7 @@ For each of the four roadmap features below, the **envelope** in this section is
 
 ## Compliance
 
-- Aligns with WFD's offline-first / anonymous-first product principles in the [README](../../README.md) and [ADR-001](ADR-001-product-operating-model.md). No external regulatory framework applies; image privacy expectations for OCR are spelled out in §C.
+- Aligns with WFD's offline-first / anonymous-first product principles in the [README](../README.md) and [ADR-001](ADR-001-product-operating-model.md). No external regulatory framework applies; image privacy expectations for OCR are spelled out in §C.
 
 ## Notes (optional)
 
@@ -167,11 +167,11 @@ For each of the four roadmap features below, the **envelope** in this section is
 
 ## Enforcement rules
 
-- **Cursor / agent rules:** The backlog **Rule: Offline-first development** in [`docs/adr-and-rules-todo.md`](../adr-and-rules-todo.md) should require new features (including these four) to state offline / anonymous / AI-disabled behavior. The backlog **Rule: Self-hosting compatibility** should pair with this ADR for URL import and OCR.
+- **Cursor / agent rules:** The backlog **Rule: Offline-first development** in [`docs/adr-and-rules-todo.md`](../docs/adr-and-rules-todo.md) should require new features (including these four) to state offline / anonymous / AI-disabled behavior. The backlog **Rule: Self-hosting compatibility** should pair with this ADR for URL import and OCR.
 - **Code / architecture:**
   - Calendar code does not import server modules and does not call `src/routes/api/...`.
   - URL import and OCR routes register a capability requirement and pass Zod validation on AI responses.
-  - Planner adds new Zod-schema-led entities under `src/lib/api/meal-plan/...` with `.strict()`, plus a Dexie version bump in [`src/lib/db.ts`](../../src/lib/db.ts).
+  - Planner adds new Zod-schema-led entities under `src/lib/api/meal-plan/...` with `.strict()`, plus a Dexie version bump in [`src/lib/db.ts`](../src/lib/db.ts).
   - None of these features may introduce a mandatory-auth path for their core surface.
 - **When to revisit:** First PR for any of the four features; introduction of cross-device planner sync; any decision to give the calendar a sharing surface; any AI-driven plan generation.
 
@@ -220,7 +220,7 @@ Orchestration **not required** for authoring this ADR. Plan–Build–Validate�
 
 ### Alignment gaps (current implementation vs this ADR)
 
-The four roadmap features are **pre-implementation**, so most rows in §A–§D have nothing to compare against. The following observations are recorded; any that become real gaps once implementation starts will be tracked in [`docs/readme-adr-alignment-gaps.md`](../readme-adr-alignment-gaps.md) under their own GAP IDs.
+The four roadmap features are **pre-implementation**, so most rows in §A–§D have nothing to compare against. The following observations are recorded; any that become real gaps once implementation starts will be tracked in [`docs/readme-adr-alignment-gaps.md`](../docs/readme-adr-alignment-gaps.md) under their own GAP IDs.
 
 | Topic | Status |
 | --- | --- |
@@ -228,7 +228,7 @@ The four roadmap features are **pre-implementation**, so most rows in §A–§D 
 | **URL recipe import** | No route or design doc exists today. No gap — pre-implementation. |
 | **OCR import** | No route or design doc exists today. No gap — pre-implementation. |
 | **Meal planner** | No domain module, Dexie table, or route exists today. No gap — pre-implementation. |
-| **Capability flags surface** | `featureFlags.openai` is a single boolean ([`src/routes/+layout.server.ts`](../../src/routes/+layout.server.ts)); URL import and OCR will need the richer `aiCapabilities` set defined by [ADR-011](ADR-011-self-hosting-provider-model.md) §6. Tracked under **GAP-010** alongside [ADR-011](ADR-011-self-hosting-provider-model.md). |
+| **Capability flags surface** | `featureFlags.openai` is a single boolean ([`src/routes/+layout.server.ts`](../src/routes/+layout.server.ts)); URL import and OCR will need the richer `aiCapabilities` set defined by [ADR-011](ADR-011-self-hosting-provider-model.md) §6. Tracked under **GAP-010** alongside [ADR-011](ADR-011-self-hosting-provider-model.md). |
 
 ### Merge / workflow gates
 

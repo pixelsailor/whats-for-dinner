@@ -143,7 +143,7 @@ orchestration not required for documenting this decision; follow Plan–Build–
 
 ### Alignment gaps (current implementation vs this ADR)
 
-The following gaps were identified when comparing this ADR to the codebase; they are also recorded in [docs/readme-adr-alignment-gaps.md](../readme-adr-alignment-gaps.md) as **GAP-008**.
+The following gaps were identified when comparing this ADR to the codebase; they are also recorded in [docs/readme-adr-alignment-gaps.md](../docs/readme-adr-alignment-gaps.md) as **GAP-008**.
 
 | Topic | ADR expectation | Observed |
 | --- | --- | --- |
@@ -163,7 +163,7 @@ The following gaps were identified when comparing this ADR to the codebase; they
 
 ### Validator expectations
 
-- Verify new work against the **inputs table** and **AI separation** above; record any intentional deviation in [docs/readme-adr-alignment-gaps.md](../readme-adr-alignment-gaps.md).
+- Verify new work against the **inputs table** and **AI separation** above; record any intentional deviation in [docs/readme-adr-alignment-gaps.md](../docs/readme-adr-alignment-gaps.md).
 
 ### Test role and evidence
 

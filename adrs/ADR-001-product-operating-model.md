@@ -98,7 +98,7 @@ Not applicable beyond general accessibility expectations for public UI (handled 
 
 ## Enforcement rules
 
-- **Cursor / agent rules:** Future rules for offline-first development and Supabase/AI boundaries should cite this ADR; until those rules exist, use [README.md](../../README.md) **Product Principles** and [AGENTS.md](../../AGENTS.md) as secondary references.
+- **Cursor / agent rules:** Future rules for offline-first development and Supabase/AI boundaries should cite this ADR; until those rules exist, use [README.md](../README.md) **Product Principles** and [AGENTS.md](../AGENTS.md) as secondary references.
 - **Code / architecture:** Do not add imports of private env secrets or direct OpenAI calls in client-only modules for core recipe book behavior (detailed boundary in future serverless ADR). Core routes and stores for recipes must remain usable when `navigator.onLine` is false and when Supabase session is null.
 - **When to revisit:** Material change to product promise (e.g. mandatory account), new mandatory provider, or addition of a new **core** capability that must be reclassified in the matrix — update this ADR in place or supersede with a new ADR.
 
@@ -130,17 +130,17 @@ Not applicable beyond general accessibility expectations for public UI (handled 
 
 ### Validator expectations
 
-- Verify new features against the matrix: no new **core** capability that requires auth, network, Supabase, or OpenAI unless this ADR is updated or a row is added in [docs/readme-adr-alignment-gaps.md](../readme-adr-alignment-gaps.md).
+- Verify new features against the matrix: no new **core** capability that requires auth, network, Supabase, or OpenAI unless this ADR is updated or a row is added in [docs/readme-adr-alignment-gaps.md](../docs/readme-adr-alignment-gaps.md).
 - Confirm logged-out and offline paths remain navigable for recipe book flows.
 
 ### Test role and evidence
 
 - Playwright or manual scenarios: offline + logged out + local recipes present; AI buttons degraded without crash.
-- Record gaps in [docs/readme-adr-alignment-gaps.md](../readme-adr-alignment-gaps.md) when tests cannot yet cover a declared guarantee.
+- Record gaps in [docs/readme-adr-alignment-gaps.md](../docs/readme-adr-alignment-gaps.md) when tests cannot yet cover a declared guarantee.
 
 ### Alignment gaps
 
-- Track significant mismatches in [docs/readme-adr-alignment-gaps.md](../readme-adr-alignment-gaps.md); use PR descriptions only for gaps fixed in the same change.
+- Track significant mismatches in [docs/readme-adr-alignment-gaps.md](../docs/readme-adr-alignment-gaps.md); use PR descriptions only for gaps fixed in the same change.
 
 ### Merge / workflow gates
 

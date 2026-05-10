@@ -166,7 +166,7 @@ Orchestration is not required for writing this ADR alone. It is required for imp
 
 ### Alignment gaps
 
-- Record current implementation gaps in [docs/readme-adr-alignment-gaps.md](../readme-adr-alignment-gaps.md) when sync code filters out tombstones, hard-deletes local rows before tombstone propagation, or omits conflict handling required by this ADR.
+- Record current implementation gaps in [docs/readme-adr-alignment-gaps.md](../docs/readme-adr-alignment-gaps.md) when sync code filters out tombstones, hard-deletes local rows before tombstone propagation, or omits conflict handling required by this ADR.
 
 ### Merge / workflow gates
 

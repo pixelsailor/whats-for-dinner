@@ -11,7 +11,7 @@
 ## Scope
 
 - **In scope:** Where durable user data and transient client data **live by default** (Dexie / IndexedDB), how that relates to reactive stores, and how to classify records as **durable user data** versus **transient cache or operational data**. Alignment with [ADR-001](ADR-001-product-operating-model.md) offline-first and anonymous-first guarantees for the recipe book and local inputs.
-- **Out of scope:** Supabase sync, conflict resolution, and cloud row lifecycle ([future ADR on sync and conflict resolution](../adr-and-rules-todo.md)); OpenAI request/response contracts and suggestion **lifecycle** policy beyond storage classification (see [ADR-003: AI suggestion lifecycle](ADR-003-ai-suggestion-lifecycle.md)); account/cloud enhancement boundaries beyond local ownership classification (see [ADR-004: Account and cloud enhancement model](ADR-004-account-and-cloud-enhancement-model.md)); which UI paths may **call** AI or require auth ([ADR-001](ADR-001-product-operating-model.md) capability matrix); Zod schema placement ([future schema-led ADR](../adr-and-rules-todo.md)); exact table migrations and versioned Dexie schemas (implementation detail, governed here only at the ownership level).
+- **Out of scope:** Supabase sync, conflict resolution, and cloud row lifecycle ([future ADR on sync and conflict resolution](../docs/adr-and-rules-todo.md)); OpenAI request/response contracts and suggestion **lifecycle** policy beyond storage classification (see [ADR-003: AI suggestion lifecycle](ADR-003-ai-suggestion-lifecycle.md)); account/cloud enhancement boundaries beyond local ownership classification (see [ADR-004: Account and cloud enhancement model](ADR-004-account-and-cloud-enhancement-model.md)); which UI paths may **call** AI or require auth ([ADR-001](ADR-001-product-operating-model.md) capability matrix); Zod schema placement ([future schema-led ADR](../docs/adr-and-rules-todo.md)); exact table migrations and versioned Dexie schemas (implementation detail, governed here only at the ownership level).
 
 ## Context
 
@@ -35,7 +35,7 @@ We will treat **Dexie-backed IndexedDB** (`src/lib/db.ts` and successors) as the
 2. **Preferences** — user-controlled settings that drive **AI suggestions and other AI recipe prompts** (for example dietary constraints, cuisine preferences; see [ADR-007](ADR-007-ai-provider-contract.md)), stored locally for anonymous and offline use unless a future account/sync ADR specifies otherwise. **Deterministic recommendations** over the saved library use **recipe-local** fields only and **do not** re-apply this preferences object ([ADR-009](ADR-009-recommendations-engine-inputs.md)). These rows are **durable user data** at the product level; concrete tables and migration of legacy stores are implementation concerns.
 3. **Cached AI suggestion artifacts** — rows that hold **AI-generated suggestion summaries** (and related metadata such as viewed timestamps or links to promoted recipes) **only for local reuse**, deduplication, and offline reopening. These are **transient cache / local artifact data**, not substitutes for saved recipes and not cloud-backed user recipes unless the user explicitly saves (per README and future AI lifecycle ADR).
 
-We will use **Svelte stores** (including Dexie `liveQuery`-backed stores) as the **reactive read model** over that local data, not as a second system of record: the authoritative persisted state for the domains above remains **Dexie**, consistent with [`src/lib/stores/README.md`](../../src/lib/stores/README.md) (local-first reads; cloud subservient when both exist).
+We will use **Svelte stores** (including Dexie `liveQuery`-backed stores) as the **reactive read model** over that local data, not as a second system of record: the authoritative persisted state for the domains above remains **Dexie**, consistent with [`src/lib/stores/README.md`](../src/lib/stores/README.md) (local-first reads; cloud subservient when both exist).
 
 ### Classification summary
 
@@ -82,11 +82,11 @@ We will use **Svelte stores** (including Dexie `liveQuery`-backed stores) as the
 ## Examples (optional)
 
 - A user saves a recipe: `db.recipes` receives/updates a `SavedRecipe` row — **durable user data**.
-- A user generates ideas: API returns summaries; `saveSuggestions` / related helpers persist rows in `db.suggestions` and may record `db.prompt_requests` — **transient / operational**, described in [`src/lib/stores/suggestions.ts`](../../src/lib/stores/suggestions.ts) as local history and deduplication.
+- A user generates ideas: API returns summaries; `saveSuggestions` / related helpers persist rows in `db.suggestions` and may record `db.prompt_requests` — **transient / operational**, described in [`src/lib/stores/suggestions.ts`](../src/lib/stores/suggestions.ts) as local history and deduplication.
 
 ## Enforcement rules
 
-- **Cursor / agent rules:** Future “Local data and Dexie ownership” rule should cite this ADR; until then, [README Data Ownership](../../README.md) and this ADR together define expectations.
+- **Cursor / agent rules:** Future “Local data and Dexie ownership” rule should cite this ADR; until then, [README Data Ownership](../README.md) and this ADR together define expectations.
 - **Code / architecture:** Durable recipe book and preference inputs should be readable from Dexie when the user has used those features locally; AI suggestion caches belong in Dexie (or explicitly documented alternatives) but must not be documented as the user’s “saved recipe book” in product copy or sync design without ADR-001 / lifecycle updates.
 - **When to revisit:** New persisted domains (e.g. meal planner), a change to default storage technology, or a decision to mirror a class of data primarily in cloud storage for anonymous users.
 

@@ -29,39 +29,39 @@ This backlog turns the project principles in the top-level README into enforceab
   - Define the accepted server-side surfaces for OpenAI and privileged Supabase work.
   - Prohibit secrets and server-only imports in `.svelte` files, client modules, and browser-executed utilities.
   - Capture Cloudflare Workers/Pages compatibility constraints.
-  - **Done:** [`docs/adrs/ADR-006-serverless-and-secret-boundary.md`](./adrs/ADR-006-serverless-and-secret-boundary.md)
+  - **Done:** [`adrs/ADR-006-serverless-and-secret-boundary.md`](../adrs/ADR-006-serverless-and-secret-boundary.md)
 
 - [x] **ADR: AI provider contract**
   - Define the OpenAI Chat Completions integration shape, structured response expectations, error handling, retries, and offline fallback behavior.
   - Require user preferences to be included in recipe-generation prompts.
   - Define how a user-configured local or personal AI API can bypass WFD-managed account restrictions while preserving validation and safety boundaries.
-  - **Done:** [`docs/adrs/ADR-007-ai-provider-contract.md`](./adrs/ADR-007-ai-provider-contract.md)
+  - **Done:** [`adrs/ADR-007-ai-provider-contract.md`](../adrs/ADR-007-ai-provider-contract.md)
 
 - [x] **ADR: Self-hosting provider model**
   - Define the service boundaries needed for user-controlled AI APIs and user-hosted databases.
   - Identify which provider capabilities are required, optional, or unsupported.
   - Establish how self-hosted configuration interacts with anonymous usage, account permissions, sync, sharing, backups, and offline behavior.
-  - **Done:** [`docs/adrs/ADR-011-self-hosting-provider-model.md`](./adrs/ADR-011-self-hosting-provider-model.md) (Proposed)
+  - **Done:** [`adrs/ADR-011-self-hosting-provider-model.md`](../adrs/ADR-011-self-hosting-provider-model.md) (Proposed)
 
 - [x] **ADR: Schema-led domain contracts**
   - Require Zod schemas as the source of truth for persisted records, API payloads, and AI-generated data.
   - Define where schemas, derived types, model helpers, services, and stores belong.
-  - **Done:** [`docs/adrs/ADR-008-schema-led-domain-contracts.md`](./adrs/ADR-008-schema-led-domain-contracts.md)
+  - **Done:** [`adrs/ADR-008-schema-led-domain-contracts.md`](../adrs/ADR-008-schema-led-domain-contracts.md)
 
 - [x] **ADR: Recommendations engine inputs**
   - Define the local data used by recommendations, including saved recipes, tags, preferences, ratings or favorites, and `checkout_history`.
   - Separate deterministic local recommendations from AI-assisted suggestions.
-  - **Done:** [`docs/adrs/ADR-009-recommendations-engine-inputs.md`](./adrs/ADR-009-recommendations-engine-inputs.md)
+  - **Done:** [`adrs/ADR-009-recommendations-engine-inputs.md`](../adrs/ADR-009-recommendations-engine-inputs.md)
 
 - [x] **ADR: Offline cache and service worker policy**
   - Define what must be cached, what must never be cached, storage budget expectations, and cache eviction rules.
   - Cover static shell assets, route data, local database state, and transient AI artifacts.
-  - **Done:** [`docs/adrs/ADR-010-offline-cache-and-service-worker.md`](./adrs/ADR-010-offline-cache-and-service-worker.md)
+  - **Done:** [`adrs/ADR-010-offline-cache-and-service-worker.md`](../adrs/ADR-010-offline-cache-and-service-worker.md)
 
 - [x] **ADR: Feature roadmap boundaries**
   - Capture architectural boundaries for Calendar, URL recipe import, OCR import, and Meal Planner before implementation starts.
   - Identify where each feature should own deeper design docs.
-  - **Done:** [`docs/adrs/ADR-012-feature-roadmap-boundaries.md`](./adrs/ADR-012-feature-roadmap-boundaries.md) (Proposed)
+  - **Done:** [`adrs/ADR-012-feature-roadmap-boundaries.md`](../adrs/ADR-012-feature-roadmap-boundaries.md) (Proposed)
 
 ## Cursor Rule Backlog
 
@@ -114,7 +114,7 @@ This backlog turns the project principles in the top-level README into enforceab
 
 ## Orchestrated Agent Workflow Backlog
 
-- [x] **Create `docs/adrs/`**
+- [x] **Create `adrs/`** (architecture decision records at repository root)
   - Add an ADR template with status, context, decision, consequences, enforcement rules, and supersession notes.
 
 - [x] **Create an alignment gap document**

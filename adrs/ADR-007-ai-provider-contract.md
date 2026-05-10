@@ -15,7 +15,7 @@
 
 ## Context
 
-WFD treats AI as an optional enhancement ([README](../../README.md), [ADR-001](ADR-001-product-operating-model.md)). The product still needs a **stable contract** so contributors know: which server modules may call the provider, what shape responses must take, how user preferences enter prompts, and how the UI should behave when the provider is disabled or unreachable. Without that contract, new routes may skip preference injection, parse JSON without validation, or assume a single OpenAI API family.
+WFD treats AI as an optional enhancement ([README](../README.md), [ADR-001](ADR-001-product-operating-model.md)). The product still needs a **stable contract** so contributors know: which server modules may call the provider, what shape responses must take, how user preferences enter prompts, and how the UI should behave when the provider is disabled or unreachable. Without that contract, new routes may skip preference injection, parse JSON without validation, or assume a single OpenAI API family.
 
 ### Decision pressure (required)
 
@@ -32,8 +32,8 @@ The codebase already has **two parallel integration styles** (Chat Completions i
 1. **Provider access** is **server-only**. The browser calls same-origin HTTP APIs (`src/routes/api/**`, server actions). No OpenAI (or alternate provider) client is constructed in `.svelte`, client `+page.ts` loads, or other client bundles.
 
 2. **Accepted API families** (OpenAI SDK today; analogous calls for compatible gateways later):
-   - **Chat Completions** (`chat.completions.create`): legacy path in [`src/lib/server/openai.ts`](../../src/lib/server/openai.ts), consumed by [`src/routes/api/recipes/+server.ts`](../../src/routes/api/recipes/+server.ts) and recipe page actions.
-   - **Responses API** (`responses.create`) with **`zodTextFormat` / structured text**: preferred path in [`src/lib/api/ai/ai.model.ts`](../../src/lib/api/ai/ai.model.ts), consumed by [`src/routes/api/suggestions/+server.ts`](../../src/routes/api/suggestions/+server.ts) and [`src/routes/api/suggestions/recipe/+server.ts`](../../src/routes/api/suggestions/recipe/+server.ts).
+   - **Chat Completions** (`chat.completions.create`): legacy path in [`src/lib/server/openai.ts`](../src/lib/server/openai.ts), consumed by [`src/routes/api/recipes/+server.ts`](../src/routes/api/recipes/+server.ts) and recipe page actions.
+   - **Responses API** (`responses.create`) with **`zodTextFormat` / structured text**: preferred path in [`src/lib/api/ai/ai.model.ts`](../src/lib/api/ai/ai.model.ts), consumed by [`src/routes/api/suggestions/+server.ts`](../src/routes/api/suggestions/+server.ts) and [`src/routes/api/suggestions/recipe/+server.ts`](../src/routes/api/suggestions/recipe/+server.ts).
 
    New AI features should use **Responses + Zod-structured output** unless a technical constraint blocks it; migrating off Chat Completions for remaining actions is expected technical debt.
 
@@ -43,10 +43,10 @@ The codebase already has **two parallel integration styles** (Chat Completions i
 
 4. **User preferences in prompts**
    - **Recipe idea generation** and **full recipe generation from a suggestion** must include the caller-supplied preferences string in provider instructions (including empty string when none provided).
-   - **Revision, conversational assistance, and addendum** flows should include preferences when they can affect dietary or constraint-sensitive output; until implemented, treat absence as **known drift** (record in [`docs/readme-adr-alignment-gaps.md`](../readme-adr-alignment-gaps.md)).
+   - **Revision, conversational assistance, and addendum** flows should include preferences when they can affect dietary or constraint-sensitive output; until implemented, treat absence as **known drift** (record in [`docs/readme-adr-alignment-gaps.md`](../docs/readme-adr-alignment-gaps.md)).
 
 5. **Errors and availability**
-   - Missing private API key must map to a **disabled** outcome: throw or translate `OPENAI_DISABLED` / `OPENAI_DISABLED_ERROR` so handlers return **503** (or equivalent) with a stable client-recognizable message/code where already established (e.g. [`src/routes/api/recipes/+server.ts`](../../src/routes/api/recipes/+server.ts)).
+   - Missing private API key must map to a **disabled** outcome: throw or translate `OPENAI_DISABLED` / `OPENAI_DISABLED_ERROR` so handlers return **503** (or equivalent) with a stable client-recognizable message/code where already established (e.g. [`src/routes/api/recipes/+server.ts`](../src/routes/api/recipes/+server.ts)).
    - Other provider failures: log server-side; return **5xx** with a safe message; do not leak secrets or raw provider errors to clients.
    - **Retries:** No mandatory automatic retry loop is required today; bounded retries may be added per-route with backoff and idempotency awareness. Client-side TanStack `retry` for general fetches is separate from provider-level retry.
 
@@ -89,13 +89,13 @@ The codebase already has **two parallel integration styles** (Chat Completions i
 
 ## Examples (optional)
 
-- Responses + Zod: `generateRecipeSuggestions` and `generateRecipe` ([`src/routes/api/suggestions/+server.ts`](../../src/routes/api/suggestions/+server.ts), [`src/routes/api/suggestions/recipe/+server.ts`](../../src/routes/api/suggestions/recipe/+server.ts)); `appendRecipeDetails` from `$lib/api/ai` ([`src/routes/api/recipes/new/+server.ts`](../../src/routes/api/recipes/new/+server.ts)).
-- Chat Completions: [`src/routes/api/recipes/+server.ts`](../../src/routes/api/recipes/+server.ts) and [`src/routes/recipes/[...id]/+page.server.ts`](../../src/routes/recipes/[...id]/+page.server.ts) via [`src/lib/server/openai.ts`](../../src/lib/server/openai.ts) (`getRecipeSuggestions`, `getFullRecipe`, `requestRecipeModifications`, `askCookingQuestion`, and a different `appendRecipeDetails` implementation than `$lib/api/ai`).
+- Responses + Zod: `generateRecipeSuggestions` and `generateRecipe` ([`src/routes/api/suggestions/+server.ts`](../src/routes/api/suggestions/+server.ts), [`src/routes/api/suggestions/recipe/+server.ts`](../src/routes/api/suggestions/recipe/+server.ts)); `appendRecipeDetails` from `$lib/api/ai` ([`src/routes/api/recipes/new/+server.ts`](../src/routes/api/recipes/new/+server.ts)).
+- Chat Completions: [`src/routes/api/recipes/+server.ts`](../src/routes/api/recipes/+server.ts) and [`src/routes/recipes/[...id]/+page.server.ts`](../src/routes/recipes/[...id]/+page.server.ts) via [`src/lib/server/openai.ts`](../src/lib/server/openai.ts) (`getRecipeSuggestions`, `getFullRecipe`, `requestRecipeModifications`, `askCookingQuestion`, and a different `appendRecipeDetails` implementation than `$lib/api/ai`).
 
 ## Enforcement rules
 
 - **Cursor / agent rules:** Future “AI integration boundary” rule should reference this ADR alongside ADR-006.
-- **Code / architecture:** New AI calls go through server routes or server actions; prefer `$lib/api/ai` structured patterns; include preferences on generation paths; document deviations in [`docs/readme-adr-alignment-gaps.md`](../readme-adr-alignment-gaps.md).
+- **Code / architecture:** New AI calls go through server routes or server actions; prefer `$lib/api/ai` structured patterns; include preferences on generation paths; document deviations in [`docs/readme-adr-alignment-gaps.md`](../docs/readme-adr-alignment-gaps.md).
 - **When to revisit:** Introduction of streaming, a single merged provider adapter, or first-class self-hosted AI configuration.
 
 ## Supersession notes
@@ -117,4 +117,4 @@ Orchestration not required for documenting this ADR; migration of remaining Chat
 
 ### Alignment gaps
 
-Implementation mismatches discovered while authoring this ADR are recorded in [`docs/readme-adr-alignment-gaps.md`](../readme-adr-alignment-gaps.md) (see GAP-004–GAP-006).
+Implementation mismatches discovered while authoring this ADR are recorded in [`docs/readme-adr-alignment-gaps.md`](../docs/readme-adr-alignment-gaps.md) (see GAP-004–GAP-006).

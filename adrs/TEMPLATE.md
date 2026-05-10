@@ -1,6 +1,6 @@
 # ADR-NNN: REPLACE_WITH_SHORT_TITLE
 
-Copy this file to `docs/adrs/ADR-NNN-short-kebab-title.md`, incrementing the numeric segment `NNN` (zero-pad to three digits, e.g. `ADR-001`, `ADR-002`) from the highest existing `ADR-*` file in `docs/adrs/`. Replace placeholders (including `REPLACE_WITH_*`) and remove instructional lines before opening a PR. Use an imperative, short title (for example: “Use Dexie for durable recipe storage”).
+Copy this file to `adrs/ADR-NNN-short-kebab-title.md` at the repository root, incrementing the numeric segment `NNN` (zero-pad to three digits, e.g. `ADR-001`, `ADR-002`) from the highest existing `ADR-*` file in `adrs/`. Replace placeholders (including `REPLACE_WITH_*`) and remove instructional lines before opening a PR. Use an imperative, short title (for example: “Use Dexie for durable recipe storage”).
 
 ## Status
 
@@ -90,7 +90,7 @@ Remove this section entirely when empty.
 
 How this ADR becomes enforceable work, not only documentation.
 
-- **Cursor / agent rules:** Which project rules or checks should reflect this ADR (or where new rules belong). Prefer paths under `.cursor/rules/`; see the rule catalog at [.cursor/rules/index.md](../../.cursor/rules/index.md).
+- **Cursor / agent rules:** Which project rules or checks should reflect this ADR (or where new rules belong). Prefer paths under `.cursor/rules/`; see the rule catalog at [.cursor/rules/index.md](../.cursor/rules/index.md).
 - **Code / architecture:** Directories, boundaries, or patterns that must conform (and what to flag in review if they do not).
 - **When to revisit:** Triggers that require updating this ADR instead of silently diverging.
 
@@ -112,14 +112,14 @@ Use this section when work is **non-trivial**, **multi-phase**, or touches **dur
 Treat Plan–Build–Validate–Test orchestration as **required** when any of the following hold; otherwise keep the ADR but omit detailed orchestration fills:
 
 - The change spans multiple PRs or phases, or has significant rollback risk.
-- The change touches ADR-governed boundaries (see enforcement bullets in [docs/adr-and-rules-todo.md](../adr-and-rules-todo.md) — “Orchestrated Agent Workflow Backlog” and “Define Plan-Build-Validate-Test roles”).
+- The change touches ADR-governed boundaries (see enforcement bullets in [docs/adr-and-rules-todo.md](../docs/adr-and-rules-todo.md) — “Orchestrated Agent Workflow Backlog” and “Define Plan-Build-Validate-Test roles”).
 - You would otherwise need a written plan, validation report, and test evidence before calling the work merge-ready.
 
-**Authoritative workflow artifacts and gates** for this repo are described in [.cursor/agents/orchestrator.md](../../.cursor/agents/orchestrator.md) (for example `_ORCH_PLAN.md`, `_ACCEPTANCE.md`, `_RISKS.md`, `_ARCHITECTURE_CONSTRAINTS.md`, `_VALIDATION_REPORT.md`, `_TEST_MATRIX.md`, `_TELEMETRY.md`). Use repo-root paths when creating those files for a given effort.
+**Authoritative workflow artifacts and gates** for this repo are described in [.cursor/agents/orchestrator.md](../.cursor/agents/orchestrator.md) (for example `_ORCH_PLAN.md`, `_ACCEPTANCE.md`, `_RISKS.md`, `_ARCHITECTURE_CONSTRAINTS.md`, `_VALIDATION_REPORT.md`, `_TEST_MATRIX.md`, `_TELEMETRY.md`). Use repo-root paths when creating those files for a given effort.
 
-**Agent and coding conventions** loaded in typical sessions: [AGENTS.md](../../AGENTS.md), [.cursor/rules/project-best-practices.mdc](../../.cursor/rules/project-best-practices.mdc). **Rule catalog and activation** (including governance rows such as `adr-compliance` when those rule files exist): [.cursor/rules/index.md](../../.cursor/rules/index.md).
+**Agent and coding conventions** loaded in typical sessions: [AGENTS.md](../AGENTS.md), [.cursor/rules/project-best-practices.mdc](../.cursor/rules/project-best-practices.mdc). **Rule catalog and activation** (including governance rows such as `adr-compliance` when those rule files exist): [.cursor/rules/index.md](../.cursor/rules/index.md).
 
-**Lint / automated style:** project ESLint flat config [eslint.config.js](../../eslint.config.js) (TypeScript + Svelte recommended presets, Prettier compatibility, and project-local rule tweaks such as import member ordering).
+**Lint / automated style:** project ESLint flat config [eslint.config.js](../eslint.config.js) (TypeScript + Svelte recommended presets, Prettier compatibility, and project-local rule tweaks such as import member ordering).
 
 If a referenced rule file or artifact is not yet present in the repo, link the closest existing parent doc (as above) and file a backlog item to add the missing rule or template rather than treating the gap as implicit.
 
@@ -142,15 +142,15 @@ One bounded phase or PR-sized slice this ADR governs; what is explicitly **out o
 
 ### Validator expectations
 
-What the **Validator** must verify against this ADR, [AGENTS.md](../../AGENTS.md), [.cursor/rules/project-best-practices.mdc](../../.cursor/rules/project-best-practices.mdc), and [docs/readme-adr-alignment-gaps.md](../readme-adr-alignment-gaps.md) for recorded implementation drift.
+What the **Validator** must verify against this ADR, [AGENTS.md](../AGENTS.md), [.cursor/rules/project-best-practices.mdc](../.cursor/rules/project-best-practices.mdc), and [docs/readme-adr-alignment-gaps.md](../docs/readme-adr-alignment-gaps.md) for recorded implementation drift.
 
 ### Test role and evidence
 
-What the **Test** role should add or update (unit, component, browser, offline, integration-style). Prefer Vitest commands from [package.json](../../package.json) `scripts`. Record residual risk if something is intentionally untested. When orchestration applies, update `_TEST_MATRIX.md` per [.cursor/agents/orchestrator.md](../../.cursor/agents/orchestrator.md).
+What the **Test** role should add or update (unit, component, browser, offline, integration-style). Prefer Vitest commands from [package.json](../package.json) `scripts`. Record residual risk if something is intentionally untested. When orchestration applies, update `_TEST_MATRIX.md` per [.cursor/agents/orchestrator.md](../.cursor/agents/orchestrator.md).
 
 ### Alignment gaps
 
-If current implementation differs from this ADR and the gap is not fixed in the same change, record it in [docs/readme-adr-alignment-gaps.md](../readme-adr-alignment-gaps.md) (owner, severity, affected areas, remediation, whether it blocks future work). Do not hide divergence only in code comments.
+If current implementation differs from this ADR and the gap is not fixed in the same change, record it in [docs/readme-adr-alignment-gaps.md](../docs/readme-adr-alignment-gaps.md) (owner, severity, affected areas, remediation, whether it blocks future work). Do not hide divergence only in code comments.
 
 ### Merge / workflow gates
 

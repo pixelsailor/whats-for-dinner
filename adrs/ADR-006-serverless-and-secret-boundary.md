@@ -19,7 +19,7 @@ WFD is offline-first and anonymous-first; OpenAI and account-backed cloud featur
 
 ### Decision pressure (required)
 
-Deployment targets are serverless or edge-capable (see [AGENTS.md](../../AGENTS.md): remote functions and handlers should remain compatible with constrained runtimes). Secrets must never be exposed to anonymous clients or shipped in static client JS. The project already routes AI through HTTP handlers; this ADR locks that pattern in as architecture, not accident.
+Deployment targets are serverless or edge-capable (see [AGENTS.md](../AGENTS.md): remote functions and handlers should remain compatible with constrained runtimes). Secrets must never be exposed to anonymous clients or shipped in static client JS. The project already routes AI through HTTP handlers; this ADR locks that pattern in as architecture, not accident.
 
 ### Supporting context
 
@@ -46,7 +46,7 @@ Deployment targets are serverless or edge-capable (see [AGENTS.md](../../AGENTS.
 
 - We are **not** adopting client-side OpenAI calls with a secret key, even via “obfuscation.”
 - We are **not** treating `src/lib/api/**` as automatically server-only: only modules that are **never** imported from client code may hold secrets or server-only clients. Barrel files that re-export server implementations alongside types are a **footgun**; prefer importing types from dedicated modules (for example `ai.types`, `ai.schemas`) from the client when possible.
-- We are **not** mandating a specific cloud vendor: **Netlify** is the configured SvelteKit adapter today ([`svelte.config.js`](../../svelte.config.js)); Cloudflare is a **compatibility discipline**, not a promise that all deploy configs are switched.
+- We are **not** mandating a specific cloud vendor: **Netlify** is the configured SvelteKit adapter today ([`svelte.config.js`](../svelte.config.js)); Cloudflare is a **compatibility discipline**, not a promise that all deploy configs are switched.
 
 ## Consequences
 
@@ -66,7 +66,7 @@ Deployment targets are serverless or edge-capable (see [AGENTS.md](../../AGENTS.
 | Risk | Mitigation |
 | ---- | ---------- |
 | Accidental client import of a server module with private env | SvelteKit/Vite should fail the build; code review; avoid barrel exports that mix server implementations with client-imported values. |
-| Node-only API in shared code | ESLint / review; future “serverless compatibility” rule in [.cursor/rules](../../.cursor/rules/index.md). |
+| Node-only API in shared code | ESLint / review; future “serverless compatibility” rule in [.cursor/rules](../.cursor/rules/index.md). |
 | Misleading env var names | The project currently uses `VITE_OPENAI_API_KEY` with `$env/static/private` (see **Notes**); treat as technical debt to rename to a non-`VITE_` private name when convenient. |
 
 ## Operational impact
@@ -77,9 +77,9 @@ Deployment targets are serverless or edge-capable (see [AGENTS.md](../../AGENTS.
 
 ## Examples (optional)
 
-- Server route calling AI: [`src/routes/api/suggestions/+server.ts`](../../src/routes/api/suggestions/+server.ts) imports generation helpers from `$lib/api/ai` (server-only import chain).
-- Capability flag without exposing key: [`src/routes/+layout.server.ts`](../../src/routes/+layout.server.ts) exposes a boolean `openai` derived from whether a private key is configured.
-- Client calls API only: [`src/lib/api/ai/ai.queries.ts`](../../src/lib/api/ai/ai.queries.ts) uses `fetch` to `/api/...` endpoints—no private env.
+- Server route calling AI: [`src/routes/api/suggestions/+server.ts`](../src/routes/api/suggestions/+server.ts) imports generation helpers from `$lib/api/ai` (server-only import chain).
+- Capability flag without exposing key: [`src/routes/+layout.server.ts`](../src/routes/+layout.server.ts) exposes a boolean `openai` derived from whether a private key is configured.
+- Client calls API only: [`src/lib/api/ai/ai.queries.ts`](../src/lib/api/ai/ai.queries.ts) uses `fetch` to `/api/...` endpoints—no private env.
 
 ## Notes (optional)
 
@@ -88,7 +88,7 @@ Deployment targets are serverless or edge-capable (see [AGENTS.md](../../AGENTS.
 
 ## Enforcement rules
 
-- **Cursor / agent rules:** The planned **Rule: Serverless compatibility** in [`docs/adr-and-rules-todo.md`](../adr-and-rules-todo.md) should cite this ADR; [AGENTS.md](../../AGENTS.md) already states private keys in server code and no secrets in client components.
+- **Cursor / agent rules:** The planned **Rule: Serverless compatibility** in [`docs/adr-and-rules-todo.md`](../docs/adr-and-rules-todo.md) should cite this ADR; [AGENTS.md](../AGENTS.md) already states private keys in server code and no secrets in client components.
 - **Code / architecture:** Block PRs that add `$env/static/private` or OpenAI clients to `.svelte` files, `+page.ts`/`+layout.ts` (client), or shared modules imported from those. Flag Node-only APIs in code paths used by `+server.ts` unless the project explicitly documents a Node-only deployment slice.
 - **When to revisit:** New deployment adapter (edge vs Node), introduction of Supabase service role, or a first-class **user-provided AI endpoint** model (likely paired with a future provider/self-host ADR).
 
@@ -128,7 +128,7 @@ Orchestration is **not required** for authoring this ADR alone.
 
 ### Alignment gaps
 
-- Record material drift in [docs/readme-adr-alignment-gaps.md](../readme-adr-alignment-gaps.md).
+- Record material drift in [docs/readme-adr-alignment-gaps.md](../docs/readme-adr-alignment-gaps.md).
 
 ### Merge / workflow gates
 

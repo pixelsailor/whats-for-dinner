@@ -15,7 +15,7 @@
 
 ## Context
 
-WFD commits to remaining **useful offline** after the app is cached ([README](../../README.md), [ADR-001](ADR-001-product-operating-model.md)). Without an explicit policy, contributors may add caching that **confuses HTTP cache with durable user data**, bloat **Cache Storage**, or serve **stale personalized responses**. The product also keeps **authoritative recipe and preference state in IndexedDB**, not in HTTP caches—those layers must stay distinct.
+WFD commits to remaining **useful offline** after the app is cached ([README](../README.md), [ADR-001](ADR-001-product-operating-model.md)). Without an explicit policy, contributors may add caching that **confuses HTTP cache with durable user data**, bloat **Cache Storage**, or serve **stale personalized responses**. The product also keeps **authoritative recipe and preference state in IndexedDB**, not in HTTP caches—those layers must stay distinct.
 
 ### Decision pressure (required)
 
@@ -46,7 +46,7 @@ We will **not** run **secret-bearing logic** in the service worker; it performs 
 - **We are not** persisting AI suggestion **content** in Cache Storage as a substitute for `db.suggestions` and related Dexie tables; transient AI artifacts remain governed by [ADR-002](ADR-002-local-data-ownership.md) and [ADR-003](ADR-003-ai-suggestion-lifecycle.md).
 - **We are not** adopting a **single global stale-while-revalidate** policy for all APIs without revisiting this ADR; future **GET** APIs that must never be cached need an explicit **opt-out** list or alternate strategy.
 - **We are not** guaranteeing **instant** control of all tabs on first install without `clients.claim()` or equivalent; that is an implementation detail that may be added without changing the policy above.
-- **We are not** replacing browser **quota** management with application-level “exact byte budgets” in this ADR; we rely on **versioned** cache names, activation cleanup, and browser eviction under pressure, and we keep the static shell **lean** as a product goal ([README](../../README.md)).
+- **We are not** replacing browser **quota** management with application-level “exact byte budgets” in this ADR; we rely on **versioned** cache names, activation cleanup, and browser eviction under pressure, and we keep the static shell **lean** as a product goal ([README](../README.md)).
 
 ## Consequences
 
@@ -118,7 +118,7 @@ orchestration not required for documenting this decision; use Plan–Build–Val
 
 ### Validator expectations
 
-- Verify fetch handler behavior against the **two-tier** model and cross-origin pass-through; record intentional deviations in [docs/readme-adr-alignment-gaps.md](../readme-adr-alignment-gaps.md).
+- Verify fetch handler behavior against the **two-tier** model and cross-origin pass-through; record intentional deviations in [docs/readme-adr-alignment-gaps.md](../docs/readme-adr-alignment-gaps.md).
 
 ### Test role and evidence
 
@@ -127,7 +127,7 @@ orchestration not required for documenting this decision; use Plan–Build–Val
 
 ### Alignment gaps (current implementation vs this ADR)
 
-The following gaps were identified when comparing this ADR to `src/service-worker.js`; they are also recorded in [docs/readme-adr-alignment-gaps.md](../readme-adr-alignment-gaps.md) as **GAP-009**.
+The following gaps were identified when comparing this ADR to `src/service-worker.js`; they are also recorded in [docs/readme-adr-alignment-gaps.md](../docs/readme-adr-alignment-gaps.md) as **GAP-009**.
 
 | Topic | ADR expectation | Observed |
 | --- | --- | --- |

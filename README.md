@@ -13,7 +13,7 @@ The project should remain useful without an account, without cloud services, and
 - **Cloud as an enhancement**: Registered Supabase accounts support backup, sharing, and sync across devices. A registered user must still be able to keep using WFD while logged out or offline.
 - **AI as an enhancement**: AI helps generate suggestions, expand suggestions into recipes, revise recipes, and answer recipe questions. The app must continue to have meaningful offline behavior when AI is unavailable.
 - **Self-hosting as a future path**: WFD should be able to evolve toward user-controlled services, including personal AI API endpoints and user-hosted databases that can bypass WFD-managed account restrictions.
-- **Preferences shape suggestions**: User preferences, dietary needs, and cooking constraints should influence **AI suggestions** and be applied to every AI recipe prompt. They do **not** filter **recommendations**, which only rank and surface recipes the user has **already saved** (see [ADR-009](docs/adrs/ADR-009-recommendations-engine-inputs.md)).
+- **Preferences shape suggestions**: User preferences, dietary needs, and cooking constraints should influence **AI suggestions** and be applied to every AI recipe prompt. They do **not** filter **recommendations**, which only rank and surface recipes the user has **already saved** (see [ADR-009](adrs/ADR-009-recommendations-engine-inputs.md)).
 - **Serverless and secret-safe**: WFD is intended for serverless deployment on Cloudflare Workers or Pages. Server-side code and secrets must stay out of `.svelte` files and other client-side modules.
 
 ## Core Capabilities
@@ -88,7 +88,7 @@ Detailed guidance should live near the code it governs. Use the top-level README
 ## Documentation Map
 
 - [`AGENTS.md`](./AGENTS.md): Agent-facing development rules and coding expectations.
-- [`docs/adrs/INDEX.md`](./docs/adrs/INDEX.md): ADR index; [`docs/adrs/TEMPLATE.md`](./docs/adrs/TEMPLATE.md) for authoring new ADRs.
+- [`adrs/INDEX.md`](./adrs/INDEX.md): ADR index; [`adrs/TEMPLATE.md`](./adrs/TEMPLATE.md) for authoring new ADRs.
 - [`src/lib/api/README.md`](./src/lib/api/README.md): API service layer organization.
 - [`src/lib/ui/README.md`](./src/lib/ui/README.md): UI component library guidance.
 - [`src/lib/stores/README.md`](./src/lib/stores/README.md): Store patterns and local data flow.

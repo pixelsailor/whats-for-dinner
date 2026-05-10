@@ -1,0 +1,19 @@
+{
+	"manifest_version": "1.0.0",
+	"task_id": "cxii-000",
+	"objective": "",
+	"status": "in_progress",
+	"current_agent": "planner",
+	"pipeline": ["orchestrator", "planner", "builder", "test", "validator"],
+	"completed_stages": [],
+	"loop_count": 0,
+	"max_loops": 2,
+	"locked_artifacts": [],
+	"flags": [],
+	"human_approval": {
+		"status": "pending",
+		"approved_at": null,
+		"approver": null,
+		"notes": null
+	}
+}

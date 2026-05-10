@@ -18,8 +18,8 @@
 ## Creating a New ADR
 
 1. Copy [TEMPLATE.md](TEMPLATE.md).
-2. Assign the next sequential ID (increment the numeric segment from the highest existing `ADR-*` file in `docs/adrs/`, e.g. after `ADR-002-…` use `003` → `ADR-003-…`).
-3. Name the file `ADR-NNN-short-kebab-title.md` under `docs/adrs/` (see [TEMPLATE.md](TEMPLATE.md) for the full naming rule).
+2. Assign the next sequential ID (increment the numeric segment from the highest existing `ADR-*` file in `adrs/`, e.g. after `ADR-002-…` use `003` → `ADR-003-…`).
+3. Name the file `ADR-NNN-short-kebab-title.md` under `adrs/` at the repository root (see [TEMPLATE.md](TEMPLATE.md) for the full naming rule).
 4. Set **Status** to **Proposed**.
 5. Fill in all sections per the template (remove instructional lines before opening a PR).
 6. Submit for review. Once accepted, update **Status** to **Accepted** and add a row in the correct domain table below.

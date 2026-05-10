@@ -42,7 +42,7 @@ After completing the code, ask the user if they want a playground link. Only cal
 - Use `$state()` for local component reactivity.
 - Derive computed values using `$derived()` instead of writable stores when possible.
 - Use `$props()` for prop forwarding — never legacy `$$restProps`.
-- Avoid using `$effect()` for reactivity whenever possible.
+- `$effect` is a valid Svelte rune; do not treat it as something to avoid categorically. Like ordinary functions, reactive code should minimize side effects: **prefer `$derived`** when a value is a pure function of other state, and **use `$effect`** when imperative work is required to maintain desired behavior (true side effects, external sync, or subscriptions). If `$effect` can be replaced by `$derived` without hurting performance or readability, prefer `$derived`; if `$effect` is clearer or more efficient, use it.
 - DO NOT use legacy reactive declarations with `$:`.
 - Keep components declarative and minimal; avoid direct DOM manipulation.
 - Use [Snippets](https://svelte.dev/docs/svelte/snippet/llms.txt) to create reusable chunks of markup inside component templates.
@@ -66,7 +66,7 @@ let queryData = $derived(queryStoreResults?.data);
 
 Legacy Svelte components relied on `Reactive $:` statements (e.g. `$: sum = a + b`) to recompute values or run side-effects when referenced state changed. Runes mode replaces those patterns with `$derived` for computed data and `$effect` for imperative reactions, which keeps dependencies explicit and tree-shakable. Do not author new `$:` statements—only interact with existing legacy code to remove or migrate it. For reference, see [Legacy Reactive Assignments](https://svelte.dev/docs/svelte/legacy-reactive-assignments/llms.txt).
 
-This is a serverless app: server functions should use [**remote functions**](https://svelte.dev/docs/kit/remote-functions/llms.txt) compatible with Cloudflare Workers and Netlify
+This is a serverless app: keep handlers compatible with constrained runtimes per [ADR-006](adrs/ADR-006-serverless-and-secret-boundary.md) (Netlify is the configured adapter today; use [**remote functions**](https://svelte.dev/docs/kit/remote-functions/llms.txt) only when they fit those constraints)
 
 ---
 

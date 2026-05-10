@@ -7,6 +7,7 @@
 | Category | Rule | One-liner | Activation |
 |----------|------|-----------|------------|
 | **Code Conventions** | project-best-practices | Project structuree, path aliases, Svelte patterns, key scripts | alwaysApply |
+| | svelte-5-ui-conventions | Svelte 5 runes (`$state`, `$derived`, `$effect`), a11y, bits-ui/Tailwind, serverless note | globs `**/*.svelte` |
 | | lint-and-code-quality | TypeScript strict mode, template accessibility, SCSS patterns | alwaysApply |
 | | jsdoc-conventions | Enterprise-grade JSDoc on all production TS and svelte files | alwaysApply |
 | | ui-conventions | bits-ui first component selection, design tokens | globs |
@@ -26,5 +27,5 @@
 | Mode | Behavior | Rules |
 |------|----------|-------|
 | **alwaysApply** | Loaded into every agent session automatically. No user action needed | project-best-practices, lint-and-code-quality, jsdoc-conventions, adr-compliance |
-| **globs** | Loaded when the agent touches files matching the glob pattern. | ui-conventions, error-handling-conventions, security-sanitization, storage-conventions |
+| **globs** | Loaded when the agent touches files matching the glob pattern. | svelte-5-ui-conventions, ui-conventions, error-handling-conventions, security-sanitization, storage-conventions |
 | **manual** | Loaded only when the user explicitly invokes the rule. | orchestrator, plannere, builder, validator |

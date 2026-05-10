@@ -1,0 +1,56 @@
+---
+description: Svelte 5 runes, component patterns, accessibility, bits-ui/Tailwind, and MCP validation
+globs: "**/*.svelte"
+alwaysApply: false
+---
+
+# Svelte 5 and UI conventions
+
+Project-specific defaults for Svelte components and UI work. For **Svelte MCP** tool order (`list-sections`, `get-documentation`, `svelte-autofixer`, `playground-link`), see [`.cursor/rules/svelte-mcp-workflow.mdc`](./svelte-mcp-workflow.mdc).
+
+## Runes and reactivity
+
+- Use `<script lang="ts">` and keep types strict across modules.
+- Use `$state()` for local component state.
+- Derive computed values with `$derived()` instead of writable stores when the value is purely a function of other reactive state.
+- Use `$props()` for prop forwarding — not legacy `$$restProps`.
+- **`$effect` is a first-class rune** for **true side effects** (syncing to the DOM, subscriptions, logging, imperative coordination). Treat it like general JavaScript practice: **minimize side effects** and **do not use effects to replace plain derived data**.
+- When reacting to state, **prefer `$derived`** for values you could express as a pure computation. **Use `$effect`** when you must **run imperative work** to keep the system in the desired state (including legitimate external sync). If an effect can be replaced by `$derived` **without** hurting clarity or performance, prefer `$derived`; if an effect is the readable or efficient option, use it.
+- Do **not** author new legacy reactive declarations with `$:`; use runes (`$derived`, `$effect`) or migrate call sites when touching legacy code. Reference: [Legacy reactive assignments](https://svelte.dev/docs/svelte/legacy-reactive-assignments/llms.txt).
+
+## Components and structure
+
+- Keep components declarative; avoid direct DOM manipulation unless there is no idiomatic alternative.
+- Use [snippets](https://svelte.dev/docs/svelte/snippet/llms.txt) for reusable markup chunks inside templates.
+- Prefer lifting state or using context over deep prop drilling when it clarifies ownership.
+- Animate transitions and lists with Svelte’s `animate:` directive or `motion` from `svelte-motion` where appropriate.
+- Handle async in `+page.svelte` with `{#await ...}` so pending, success, and error UI stay declarative. See [Await blocks](https://svelte.dev/docs/svelte/await/llms.txt).
+
+## Styling and UI primitives
+
+- Prefer **bits-ui** primitives and existing patterns when adding interactive controls.
+- Use **TailwindCSS** utility classes consistently with the rest of the app; avoid one-off inline styles unless matching an established exception.
+
+## Accessibility
+
+- Use semantic elements, appropriate `aria-*` attributes, and full keyboard support for interactive UI.
+
+## Dexie / TanStack in components
+
+Subscribe to query-style stores by deriving from dollar-prefixed store state, for example:
+
+```ts
+let queryStore = $derived(createQuery({ prompt }));
+let queryStoreResults = $derived($queryStore);
+let queryData = $derived(queryStoreResults?.data);
+```
+
+Durable Dexie ownership and store patterns are governed by [ADR-002](adrs/ADR-002-local-data-ownership.md) and (when added) the **Rule: Local data and Dexie ownership**.
+
+## Testing
+
+- Follow [Svelte testing](https://svelte.dev/docs/svelte/testing/llms.txt) for component tests.
+
+## Serverless / portability
+
+- Keep server-side code compatible with constrained runtimes: avoid Node-only APIs in shared handlers unless isolated per [ADR-006](adrs/ADR-006-serverless-and-secret-boundary.md). **Netlify** is the configured SvelteKit adapter today (`svelte.config.js`); other edge targets are a **portability discipline**, not a guarantee that configs are switched. Prefer SvelteKit [**remote functions**](https://svelte.dev/docs/kit/remote-functions/llms.txt) only when they fit those deployment constraints.

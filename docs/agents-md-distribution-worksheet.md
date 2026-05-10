@@ -32,4 +32,4 @@ Audit of [root `agents.md`](../agents.md): each block mapped to its **target hom
 ## Status
 
 - **Audit (mapping):** complete — this worksheet is the record.
-- **Migration:** not started; use checkboxes in [`adr-and-rules-todo.md`](./adr-and-rules-todo.md).
+- **Migration:** Svelte 5 + runes (+ reactive `$:` subsection, testing link, serverless portability line) lives in [`.cursor/rules/svelte-5-ui-conventions.mdc`](../.cursor/rules/svelte-5-ui-conventions.mdc); [`agents.md`](../agents.md) still mirrors it until retire. Other rows unchanged — use checkboxes in [`adr-and-rules-todo.md`](./adr-and-rules-todo.md).

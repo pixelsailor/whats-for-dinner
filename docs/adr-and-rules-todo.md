@@ -96,9 +96,10 @@ This backlog turns the project principles in the top-level README into enforceab
   - Require new cloud or AI work to document whether it depends on WFD-managed services, user-provided services, or either.
   - Flag account-permission checks that would incorrectly block configured personal AI APIs or user-hosted databases.
 
-- [ ] **Rule: Svelte 5 and UI conventions**
+- [x] **Rule: Svelte 5 and UI conventions**
   - Enforce runes-based Svelte 5 patterns, accessibility expectations, bits-ui-first composition, and TailwindCSS styling conventions.
   - Require Svelte MCP validation when Svelte components are written or changed.
+  - **Done:** [`.cursor/rules/svelte-5-ui-conventions.mdc`](../.cursor/rules/svelte-5-ui-conventions.mdc) (globs `**/*.svelte`); MCP workflow remains in [`.cursor/rules/svelte-mcp-workflow.mdc`](../.cursor/rules/svelte-mcp-workflow.mdc).
 
 - [ ] **Rule: Schema and type safety**
   - Require Zod schemas for external, persisted, and AI-generated data.
@@ -155,9 +156,9 @@ The root [`agents.md`](../agents.md) predates the ADR system and the `.cursor/ru
   - Capture the audit as a worksheet (table or checklist) so distribution can proceed in bounded passes without losing context.
   - **Done:** [`docs/agents-md-distribution-worksheet.md`](./agents-md-distribution-worksheet.md) — the thematic migration bullets below do not replace this inventory (they skip intro/MCP duplication and do not record line-level mapping or the TanStack home decision).
 
-- [ ] **Migrate Svelte 5 + runes guidance**
+- [x] **Migrate Svelte 5 + runes guidance**
   - Move the *Svelte 5 + Runes Best Practices* and *Reactive `$:` statements* sections (runes, `$props`, snippets, animations, accessibility, Dexie store subscription pattern) into the planned **Rule: Svelte 5 and UI conventions**.
-  - Re-evaluate "Avoid using `$effect()` for reactivity whenever possible" against current Svelte 5 documentation; either justify the heuristic (e.g. prefer `$derived` for computed values, reserve `$effect` for true side effects) or relax the wording when porting.
+  - **`$effect` guidance:** canonical wording is in [`.cursor/rules/svelte-5-ui-conventions.mdc`](../.cursor/rules/svelte-5-ui-conventions.mdc) and summarized in [`agents.md`](../agents.md) until that file is retired — prefer `$derived` for pure derivations; use `$effect` for true side effects; do not avoid `$effect` when it is clearer or more efficient.
 
 - [ ] **Migrate TypeScript and general code-style conventions**
   - Move *TypeScript Conventions*, *General Code Style*, and *Accessibility and UX* into a code-conventions Cursor rule (an existing `lint-and-code-quality` rule is referenced in [`.cursor/rules/index.md`](../.cursor/rules/index.md) — extend or create as appropriate).
@@ -190,7 +191,7 @@ The root [`agents.md`](../agents.md) predates the ADR system and the `.cursor/ru
   - [ADR-002](../adrs/ADR-002-local-data-ownership.md) (*Supporting context*), [ADR-006](../adrs/ADR-006-serverless-and-secret-boundary.md) (*Decision pressure*, *Enforcement rules*), and [ADR-008](../adrs/ADR-008-schema-led-domain-contracts.md) (*Decision* §6, *Compliance*, *Implementation compliance*) currently cite `agents.md` as authority. Replace those citations with self-contained statements or references to the new Cursor rule(s) once authored.
 
 - [ ] **Update `.cursor/rules/svelte-mcp-workflow.mdc`**
-  - The rule already claims it "replaces the former root `AGENTS.md`"; once distribution is complete, update the closing line to point at the actual destinations of `agents.md` content, or remove the claim if it remains misleading while migration is in flight.
+  - Closing line now points at `svelte-5-ui-conventions.mdc` and [`docs/adr-and-rules-todo.md`](./adr-and-rules-todo.md); when `agents.md` is fully retired, trim any remaining migration caveats if redundant.
 
 - [ ] **Retire `agents.md`**
   - After all content has been migrated and ADRs/rules updated, delete `agents.md` (or replace with a brief redirect note pointing at the rule index, ADR index, and README).

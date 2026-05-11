@@ -7,7 +7,7 @@ alwaysApply: false
 
 # bits-ui documentation (agents)
 
-**Authoritative policy:** [ADR-013: UI component library — bits-ui](adrs/ADR-013-ui-component-library-bits-ui.md), [Svelte 5 and UI conventions](./svelte-5-ui-conventions.mdc), and [`src/lib/ui/README.md`](src/lib/ui/README.md). See [`adrs/INDEX.md`](adrs/INDEX.md) (UI domain). Per [`adrs/GOVERNANCE.md`](adrs/GOVERNANCE.md), only **Accepted** ADRs are binding; until ADR-013 is accepted, follow the same bits-ui defaults via this rule and the UI README.
+**Authoritative policy:** [ADR-013: UI component library — bits-ui](adrs/ADR-013-ui-component-library-bits-ui.md) (Accepted), [ADR-014: Semantic HTML and accessibility](adrs/ADR-014-semantic-html-and-accessibility.md) (Accepted), [Svelte 5 and UI conventions](./svelte-5-ui-conventions.mdc), and [`src/lib/ui/README.md`](src/lib/ui/README.md). See [`adrs/INDEX.md`](adrs/INDEX.md) (UI domain). Per [`adrs/GOVERNANCE.md`](adrs/GOVERNANCE.md), only **Accepted** ADRs are binding for decisions they cover.
 
 ## Where to read docs
 

@@ -33,7 +33,7 @@ Project-specific defaults for Svelte components and UI work. For **Svelte MCP** 
 
 ## Accessibility
 
-- Use semantic elements, appropriate `aria-*` attributes, and full keyboard support for interactive UI.
+- Use semantic elements, appropriate `aria-*` attributes, and full keyboard support for interactive UI. See [ADR-014](adrs/ADR-014-semantic-html-and-accessibility.md) and [ADR-015](adrs/ADR-015-progressive-enhancement-and-no-js-baseline.md) (Proposed) for HTML-first and no-JS baseline expectations; [ADR-004](adrs/ADR-004-account-and-cloud-enhancement-model.md) for graceful cloud degradation copy.
 
 ## Dexie / TanStack in components
 

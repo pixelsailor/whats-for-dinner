@@ -2,7 +2,7 @@
 
 ## Status
 
-**Proposed**
+**Accepted**
 
 ## Date
 
@@ -15,7 +15,7 @@
 
 ## Context
 
-What's For Dinner already depends on **bits-ui** (see root `package.json`) as an accessible, unstyled primitive layer aligned with Svelte 5. The [UI README](../src/lib/ui/README.md) describes the local component library, but without an ADR, contributors might mix ad hoc patterns, duplicate focus and keyboard behavior, or add overlapping headless libraries. A single primary library keeps imports predictable and aligns [`.cursor/rules/svelte-5-ui-conventions.mdc`](../.cursor/rules/svelte-5-ui-conventions.mdc) and [`.cursor/rules/bits-ui-documentation.mdc`](../.cursor/rules/bits-ui-documentation.mdc) with a binding architectural record.
+What's For Dinner already depends on **bits-ui** (see root `package.json`) as an accessible, unstyled primitive layer aligned with Svelte 5. The [UI README](../src/lib/ui/README.md) describes the local component library, but without an ADR, contributors might mix ad hoc patterns, duplicate focus and keyboard behavior, or add overlapping headless libraries. A single primary library keeps imports predictable and aligns [`.cursor/rules/svelte-5-ui-conventions.mdc`](../.cursor/rules/svelte-5-ui-conventions.mdc) and [`.cursor/rules/bits-ui-documentation.mdc`](../.cursor/rules/bits-ui-documentation.mdc) with a binding architectural record. **Composed** primitives must still satisfy [ADR-014: Semantic HTML and accessibility](ADR-014-semantic-html-and-accessibility.md) (landmarks, native-first semantics, keyboard, and related rules on routes and in `$lib/ui/`).
 
 ### Decision pressure (required)
 
@@ -37,7 +37,7 @@ Interactive widgets (dialogs, menus, listbox/combobox, tabs, accordions) need co
 ### Explicit exclusions (required)
 
 - **A second headless toolkit** (for example Melt UI alongside bits-ui for the same widget class) without a new ADR — out of scope; use bits-ui or plain markup until a follow-up ADR changes the boundary.
-- **Replacing** accessibility or semantic-HTML expectations — bits-ui implements patterns; routes and pages must still meet the product’s accessibility discipline ([`.cursor/rules/svelte-5-ui-conventions.mdc`](../.cursor/rules/svelte-5-ui-conventions.mdc)).
+- **Replacing** accessibility or semantic-HTML expectations — bits-ui implements patterns; routes and pages must still meet [ADR-014](ADR-014-semantic-html-and-accessibility.md) and the product’s accessibility discipline in [`.cursor/rules/svelte-5-ui-conventions.mdc`](../.cursor/rules/svelte-5-ui-conventions.mdc).
 - **Styled all-in-one design systems** that own visuals end-to-end — rejected for **headless** layer selection; WFD keeps **unstyled primitives + project CSS** (see Alternatives below).
 
 ## Alternatives considered

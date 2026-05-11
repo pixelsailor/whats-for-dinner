@@ -10,7 +10,7 @@ alwaysApply: true
 
 **Binding:** [ADR-001: Product operating model](../adrs/ADR-001-product-operating-model.md) (Accepted) — capability matrix and exclusions. **Supporting:** [ADR-002: Local data ownership](../adrs/ADR-002-local-data-ownership.md), [ADR-004: Account and cloud enhancement model](../adrs/ADR-004-account-and-cloud-enhancement-model.md), [ADR-007: AI provider contract](../adrs/ADR-007-ai-provider-contract.md) § offline / no-AI behavior, [ADR-010: Offline cache and service worker](../adrs/ADR-010-offline-cache-and-service-worker.md).
 
-**Related rules:** [`.cursor/rules/local-data-dexie-ownership.mdc`](./local-data-dexie-ownership.mdc), [`.cursor/rules/supabase-enhancement-boundary.mdc`](./supabase-enhancement-boundary.mdc), [`.cursor/rules/ai-integration-boundary.mdc`](./ai-integration-boundary.mdc).
+**Related rules:** [`.cursor/rules/offline-connectivity-capability.mdc`](./offline-connectivity-capability.mdc) (connectivity vs session vs permissions, sync reconnect, status copy), [`.cursor/rules/local-data-dexie-ownership.mdc`](./local-data-dexie-ownership.mdc), [`.cursor/rules/supabase-enhancement-boundary.mdc`](./supabase-enhancement-boundary.mdc), [`.cursor/rules/ai-integration-boundary.mdc`](./ai-integration-boundary.mdc).
 
 ## What “offline-first” means here
 
@@ -27,7 +27,7 @@ alwaysApply: true
 
 ## User-visible status copy
 
-Prefer distinct messaging for **offline / no network**, **logged out**, **missing cloud permissions**, and **AI disabled or unreachable** so users are not misled. Until the dedicated **Rule: Offline and connectivity user messaging** exists ([`docs/adr-and-rules-todo.md`](../docs/adr-and-rules-todo.md)), still apply ADR-004’s **graceful cloud unavailability** expectation in UI you touch.
+Prefer distinct messaging for **offline / no network**, **logged out**, **missing cloud permissions**, and **AI disabled or unreachable** so users are not misled. Apply ADR-004’s **graceful cloud unavailability** expectation in UI you touch, and follow [`.cursor/rules/offline-connectivity-capability.mdc`](./offline-connectivity-capability.mdc) for signal separation, reconnect discipline, and copy intent.
 
 ## Escalation
 

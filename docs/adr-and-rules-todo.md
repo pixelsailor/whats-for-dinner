@@ -74,10 +74,8 @@ This backlog turns the project principles in the top-level README into enforceab
   - Flag changes that make auth, Supabase, OpenAI, or network access mandatory for core recipe book flows.
   - **Done:** [`.cursor/rules/offline-first-development.mdc`](../.cursor/rules/offline-first-development.mdc) (`alwaysApply`). **Follow-up:** [ADR-001](../adrs/ADR-001-product-operating-model.md) and [ADR-010](../adrs/ADR-010-offline-cache-and-service-worker.md) enforcement sections still mention a “future” offline-first rule / `agents.md` — see [`docs/readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md) **GAP-018**.
 
-- [ ] **Rule: Offline and connectivity user messaging**
-  - Require explicit, consistent user-facing messaging when the app is offline or when network-only capabilities are unavailable (including reconnect and queued/deferred work where applicable).
-  - Distinguish **offline / no network** from **logged out**, **missing cloud permissions**, and **AI or provider disabled** so users are not misled about why an action is blocked.
-  - Complements ADR-004’s cloud-unavailability messaging; the written rule should cite ADR-001, ADR-004, and ADR-007 where AI degradation overlaps.
+- [x] **Rule: Offline connectivity and capability state** (backlog title was “Offline and connectivity user messaging”)
+  - **Done:** [`.cursor/rules/offline-connectivity-capability.mdc`](../.cursor/rules/offline-connectivity-capability.mdc) (`alwaysApply`). Covers **implementation and re-check** of browser offline vs session vs permissions vs provider/sync outcomes, **reconnect / deferred work**, alignment with ADR-001, ADR-004, ADR-005 (Proposed design intent), ADR-010, and ADR-007; **distinct degraded UX** (disciplined copy, not fixed strings). Complements [`.cursor/rules/offline-first-development.mdc`](../.cursor/rules/offline-first-development.mdc). **Surfaced discrepancies:** recorded under [Deferred — Offline connectivity rule notes](./readme-adr-alignment-gaps.md#offline-connectivity-rule-notes-2026-05-11) in [`readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md) (links **GAP-001**, **GAP-016**, Supabase audit implication).
 
 - [x] **Rule: Local data and Dexie ownership**
   - Enforce Dexie-backed reads for local-first user data.

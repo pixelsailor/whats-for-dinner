@@ -211,6 +211,19 @@ Cross-check of Supabase-related code after env secrets were restored and **GAP-0
 
 **Maintainer position:** these env vars correspond to **two different keys** issued by Supabase (not duplicate names for one paste). **`PUBLIC_SUPABASE_ANON_KEY` is likely obsolete** for forward-looking work; **`PUBLIC_SUPABASE_PUBLISHABLE_KEY`** reflects the **preferred** Supabase client pattern used in `+layout.ts`. Full remediation is **GAP-016** (docs + browser-verified migration) and **GAP-017** (unified client interface).
 
+### Offline connectivity rule notes (2026-05-11)
+
+Authoring [`.cursor/rules/offline-connectivity-capability.mdc`](../.cursor/rules/offline-connectivity-capability.mdc) did not open new product gaps; it **documents agent/review discipline** against existing drift:
+
+| Topic | Where tracked |
+| ----- | ------------- |
+| Offline use undermined by slow loads / timeouts | **GAP-001** |
+| Dual public Supabase keys and mixed client factories; risk to auth/sync continuity if “fixed” without verification | **GAP-016**, **GAP-017**; **Supabase consolidation audit** above |
+| `navigator.onLine` is not Supabase reachability; sync errors vs “online” | Same audit — **“How permissions and ‘online’ interact today”** |
+| Service worker caches broad same-origin GETs; optional immediate tab control | **GAP-009** |
+
+**Naming discrepancy:** [`docs/adr-and-rules-todo.md`](./adr-and-rules-todo.md) listed this work as **Rule: Offline and connectivity user messaging**; the delivered artifact intentionally covers **capability state, implementation, and periodic re-check** in addition to user-facing copy. The todo row was renamed on completion.
+
 ---
 
 ## Resolved

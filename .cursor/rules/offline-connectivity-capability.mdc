@@ -1,0 +1,51 @@
+---
+description: >-
+  Offline/browser connectivity vs session, permissions, and provider reachability;
+  sync and reconnect handling; distinct degraded UX; periodic re-check; aligns
+  with offline-first rule and ADR-001/004/005/010/007.
+alwaysApply: true
+---
+
+# Offline connectivity and capability state
+
+**Complements:** [`.cursor/rules/offline-first-development.mdc`](./offline-first-development.mdc) (capability matrix, Dexie vs service worker). **Cloud wiring:** [`.cursor/rules/supabase-enhancement-boundary.mdc`](./supabase-enhancement-boundary.mdc). **AI paths:** [`.cursor/rules/ai-integration-boundary.mdc`](./ai-integration-boundary.mdc).
+
+**Binding:** [ADR-001: Product operating model](../adrs/ADR-001-product-operating-model.md) — non-blocking degraded UI; registered users offline/logged out. **Supporting:** [ADR-004: Account and cloud enhancement model](../adrs/ADR-004-account-and-cloud-enhancement-model.md) — continuity, graceful cloud unavailability; [ADR-010: Offline cache and service worker](../adrs/ADR-010-offline-cache-and-service-worker.md) — cold/warm/stale document cache, Cache Storage not SoT. **Sync design intent (not binding until Accepted):** [ADR-005: Sync and conflict resolution](../adrs/ADR-005-sync-and-conflict-resolution.md) — pending rows, reconnect propagation. **AI degradation:** [ADR-007: AI provider contract](../adrs/ADR-007-ai-provider-contract.md) — offline / no-AI behavior.
+
+**Known implementation drift:** [GAP-001](../docs/readme-adr-alignment-gaps.md) (offline slowness/timeouts), [GAP-016](../docs/readme-adr-alignment-gaps.md) (dual Supabase public keys; do not change key usage without browser-verified flows). See **Deferred — Supabase consolidation audit** in [`docs/readme-adr-alignment-gaps.md`](../docs/readme-adr-alignment-gaps.md) (`navigator.onLine` vs Supabase reachability).
+
+## What this rule adds beyond “offline-first”
+
+This rule standardizes **how** the app represents and re-evaluates **connectivity and enhancement availability** (network hint, auth session, permissions, sync queue, provider errors)—not only the words shown to users. Messaging must reflect the **actual blocking reason** so users are not misled.
+
+## Separate the signals (do not collapse into one boolean)
+
+Treat these as **orthogonal inputs** to UI and guards; combine them only in named helpers (for example a future `deriveCloudCapability` / sync-allowed helper), not ad hoc in each page.
+
+| Signal | Typical source | User-facing meaning (examples) |
+| --- | --- | --- |
+| **Browser connectivity** | `navigator.onLine`, `online` / `offline` events | “No network” / “You appear offline” — a **hint**, not proof of reachability. |
+| **Auth session** | Supabase session / layout `data` | “Sign in to …” vs **logged in** — distinct from offline. |
+| **Enhancement permissions** | Profile / cookie flags (e.g. cloud sync, AI) | “Cloud sync disabled in your account” / “AI not allowed” — distinct from offline and from logged-out local use. |
+| **Provider / sync outcome** | `SyncService`, fetch errors, RLS, 401 | “Could not reach cloud” / “Sync failed, will retry” — may occur while `navigator.onLine === true`. |
+
+Do **not** treat **`navigator.onLine === true`** as “Supabase/OpenAI will succeed.” Prefer surfacing **last error or deferred state** from sync/cloud layers when UX needs accuracy (see alignment gaps doc).
+
+## Implementation expectations
+
+1. **Subscriptions and re-check:** Subscribe to browser `online` / `offline` where gating matters; on **visibility resume** or **window focus**, re-evaluate deferred network work (sync, session refresh) where the product already retries—avoid one-shot checks only at mount.
+2. **Sync and reconnect:** Pending local changes (`synced: false`, `sync_error`, tombstones per ADR-005 intent) should drive **retry or explicit “needs attention”** UI, not silent failure. Do not clear local recipe data because cloud is unavailable.
+3. **Load behavior:** Core recipe routes must not **block** on Supabase/OpenAI for Dexie-backed content (ADR-001, ADR-004). Align loading states with ADR-010 **cold / warm / stale** shell and document cache expectations from [offline-first-development.mdc](./offline-first-development.mdc).
+4. **Service worker:** Changes to `src/service-worker.js` that affect offline startup or GET caching remain governed by ADR-010; pair with manual or automated checks for recipe flows offline.
+
+## User-visible copy (discipline, not fixed strings)
+
+Prefer **distinct** explanations for: **offline / no network**; **logged out** (where sign-in is required for the action); **missing cloud or AI permission**; **AI disabled or unreachable**; **sync queued / failed / retrying**. Reuse shared components or helpers where the app already centralizes status. If copy cannot yet be precise, prefer honest **degraded** states (disabled control + short reason) over errors that block the local recipe book.
+
+## When you touch these areas
+
+For edits to root/layout loads, `network` stores, capability helpers, sync entrypoints, or cloud-gated actions: **state the matrix** (per offline-first rule), confirm **which signal** disables the action, and add or extend **re-check** behavior if the feature defers work until “online.”
+
+## Escalation
+
+Material matrix or policy change: update ADR-001 (or successor). Intentional drift: [`.cursor/rules/adr-compliance.mdc`](./adr-compliance.mdc) and [`docs/readme-adr-alignment-gaps.md`](../docs/readme-adr-alignment-gaps.md).

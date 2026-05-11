@@ -12,6 +12,7 @@
 | | jsdoc-conventions | Enterprise-grade JSDoc on all production TS and svelte files | alwaysApply |
 | | ui-conventions | bits-ui first component selection, design tokens | globs |
 | **ADR-Backed Conventions** | offline-first-development | ADR-001/010/004/007: matrix + SW vs Dexie; core recipe flows without mandatory cloud/AI | alwaysApply |
+| | offline-connectivity-capability | Offline vs session vs permissions; sync reconnect; SW/load checks; degraded UX + GAP-001/016 cross-links | alwaysApply |
 | | local-data-dexie-ownership | ADR-002: Dexie as local SoT; LiveQuery reads; mutations via stores/helpers | globs `src/lib/db.ts`, `src/lib/db/**`, `src/lib/stores/**` |
 | | ai-integration-boundary | ADR-007/006: server-only provider, Responses+Zod, prefs on generation, no client SDK/secrets | globs `src/lib/api/ai/**`, `src/lib/server/**`, `src/lib/openai/**`, `src/routes/api/**`, `src/routes/**/+page.server.ts` |
 | | supabase-enhancement-boundary | ADR-004/006: optional cloud auth/sync/share; local continuity; anon client; CloudService/SyncService seams | globs hooks, `+layout*.ts`, Supabase client modules, `src/lib/api/cloud/**`, account/auth API, `src/app.d.ts` |

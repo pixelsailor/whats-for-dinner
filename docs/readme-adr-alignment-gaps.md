@@ -10,7 +10,7 @@ Agents and contributors should **add rows as gaps are discovered** (for example 
 
 ## How to record a gap
 
-Use a new row in the table below, or add a subsection under **Deferred / investigated** with more detail and links.
+Use a new subsection under **Active gaps**, or add a subsection under **Deferred / investigated** with more detail and links.
 
 Suggested fields (adapt as needed):
 
@@ -29,19 +29,115 @@ Suggested fields (adapt as needed):
 
 ## Active gaps
 
-| ID | Status | Severity | Source | Observed | Expected | Notes | Owner |
-| -- | ------ | -------- | ------ | -------- | -------- | ----- | ----- |
-| GAP-001 | Open | Major | README — *Offline-first*; [ADR-001](../adrs/ADR-001-product-operating-model.md) capability matrix; [ADR-004](../adrs/ADR-004-account-and-cloud-enhancement-model.md) logged-out / offline continuity | Using the app while **offline** (or with unreliable network) can produce **slow loading and timeouts**, undermining practical offline use. | Once cached, the app should remain **useful offline** with **fast repeat loads** and core recipe flows without blocking on network, Supabase, or OpenAI. | Likely causes include uncapped `fetch` / TanStack Query behavior, layout loads that assume network, or missing offline-first loading paths; triage with DevTools (Network throttling / offline) and trace critical `+layout` / `+page` data dependencies. | — |
-| GAP-002 | Open | Major | [ADR-005](../adrs/ADR-005-sync-and-conflict-resolution.md) soft delete and restore behavior | Current sync planning reads active recipes only, filtering out rows with `deleted_at` or `archived` before building the plan. | Sync planning should include tombstoned rows so deletes and restores propagate across devices and do not reappear as active data. | Affected area: `src/lib/api/cloud/sync.service.ts` and `src/lib/api/cloud/cloud.model.ts`; remediation should include tombstone-aware planning and tests for delete/restore propagation. | — |
-| GAP-003 | Open | Minor | [ADR-006](../adrs/ADR-006-serverless-and-secret-boundary.md) — private env naming | The OpenAI key is read from `$env/static/private` but the variable name is `VITE_OPENAI_API_KEY` (also documented in [README](../README.md)). | Private-only configuration should use a name that does not suggest `import.meta.env` public embedding (for example `OPENAI_API_KEY`). | Low security risk if the key never appears in client bundles; renaming requires updating README, local `.env` examples, and deployment secrets. | — |
-| GAP-005 | Open | Major | [README](../README.md) — *Preferences shape suggestions*; [ADR-007](../adrs/ADR-007-ai-provider-contract.md) § preferences | **Revision**, **assistance**, and **addendum** flows in `src/lib/server/openai.ts` do not inject user preference text. `src/routes/api/recipes/new/+server.ts` reads `preferences` for gating only and does not pass dietary/preferences text into `appendRecipeDetails`. | Preferences and dietary constraints should influence **recipe-related** AI prompts broadly (at minimum revision and metadata addendum when AI is used). | Assistance may be partially exempt if framed as pure Q&A; revision and addendum are clear gaps. | — |
-| GAP-006 | Open | Minor | [ADR-007](../adrs/ADR-007-ai-provider-contract.md) § structured response contract | Deprecated **Chat Completions** handlers rely on `JSON.parse` and type assertions (`parseJsonPayload` in `src/lib/server/openai.ts`); suggestion routes parse model output again in `+server.ts` without `safeParse`. | AI JSON should be validated with **Zod** (or equivalent) at the server boundary before success responses. | `src/lib/api/ai/ai.schemas.ts` — `RecipeSuggestionsResponseSchema` includes `request_id` meant for the API layer but is bundled into the structured-output schema for the model; review schema vs handler merge in `src/routes/api/suggestions/+server.ts`. | — |
-| GAP-007 | Open | Major | [README](../README.md) — *Architecture Boundaries* (schema-led model); [ADR-008](../adrs/ADR-008-schema-led-domain-contracts.md) | **Duplicate domain types** in `src/lib/types.ts` (marked deprecated but still imported from routes, `src/lib/server/openai.ts`, `src/lib/db/remote.ts`, `src/lib/stores/preferences.ts`). **`PromptRequest`** in `src/lib/db.ts` has no Zod schema. **`src/lib/api/**/*.schemas.ts`** does not use `.strict()` on object schemas despite [AGENTS.md](../AGENTS.md). | Single Zod-led contract per entity; types from `z.infer`; validate persisted/API/AI shapes at boundaries; prefer `.strict()` on API domain objects. | Remove or re-export from `$lib/api` only; add `PromptRequest` schema if it remains a first-class stored row; add `.strict()` incrementally or in one pass. Overlaps GAP-006 for unvalidated AI JSON. | — |
-| GAP-008 | Open | Major | [ADR-009](../adrs/ADR-009-recommendations-engine-inputs.md) | Unused `recommendedRecipes` store (`src/lib/stores/recommendations.ts`) diverges from `src/routes/recommendations/+page.svelte`; refresh path uses unfiltered `db.recipes.toArray()` vs `is_current` / `!deleted_at`; “stale” buckets use **any** old `checkout_history` entry; in-place `.sort()` mutates the live recipe list; `svelte-check` errors on `recommendedRecipes` (string timestamps vs numeric sort/`dayDiff`). | Recommendations use **saved-recipe fields only** (per ADR-009), share consistent filters with other recipe views, avoid duplicate incompatible engines, and keep bucketing semantics aligned with ADR-009. | Per ADR-009, **user preferences do not apply** to recommendations; README wording corrected. See ADR-009 § Alignment gaps. | — |
-| GAP-009 | Open | Minor | [README](../README.md) — *Offline-first*; [ADR-010](../adrs/ADR-010-offline-cache-and-service-worker.md) | `src/service-worker.js` caches **successful same-origin GET** responses (including navigations and `/api/...` GETs) in `data-cache-*` with **no per-route opt-out or TTL**; `activate` does not call **`clients.claim()`**. | Shell and documents should support offline use without equating HTTP cache with Dexie; **highly dynamic or sensitive GET** surfaces should be excluded or freshness-bound; optional **immediate control** via `clients.claim()` when UX requires it. | Only **`/api/share/[token]`** is GET today; risk rises if more GET APIs ship without updating the worker. Versioned cache names still clear old generations on deploy. | — |
-| GAP-010 | Open | Major | [README](../README.md) — *Self-hosting as a future path*; [ADR-011](../adrs/ADR-011-self-hosting-provider-model.md) | (a) AI route handlers in `src/routes/api/suggestions/+server.ts`, `src/routes/api/recipes/+server.ts`, and `src/routes/api/recipes/new/+server.ts` reject any request without `permissions.ai_assistance`, with **no escape path for a validated personal AI provider**; (b) the `OpenAI` client in `src/lib/api/ai/ai.model.ts` and `src/lib/server/openai.ts` is a **singleton** keyed by `VITE_OPENAI_API_KEY`, so a per-request or personal-provider override cannot be supplied; (c) `PUBLIC_SUPABASE_URL` / `PUBLIC_SUPABASE_ANON_KEY` are read at compile time in `src/lib/supabaseClient.ts`, `src/hooks.server.ts`, and `src/lib/db/remote.ts`, so a deployment cannot point at a different Supabase project at runtime; (d) `src/lib/api/cloud/cloud.service.ts` is a Supabase-bound class with no provider-agnostic interface; (e) `src/routes/+layout.server.ts` exposes only `featureFlags.openai` as a single boolean — no `aiCapabilities` or `cloudCapabilities` set; (f) `src/lib/db.ts` header comment claims "By virtue of `ai_assistance` permission requirements, `suggestions` may only be stored for authenticated users," tying suggestion storage to a WFD-managed account. | AI gating should pair `permissions.ai_assistance` with a validated **personal-provider** path; AI clients should be resolvable per request from managed default or personal config; cloud URL/anon key should be resolvable at runtime; cloud database operations should be expressible against a capability matrix; `featureFlags` should expose AI/cloud capability sets; suggestion storage should follow [ADR-003](../adrs/ADR-003-ai-suggestion-lifecycle.md) regardless of WFD account state. | Pre-implementation drift: nothing currently advertises personal-provider support to users, but several seams already foreclose it. Remediation likely starts by factoring the `OpenAI` client behind a server-side resolver and widening `featureFlags`, then revisiting AI route gating. See [ADR-011](../adrs/ADR-011-self-hosting-provider-model.md) § Alignment gaps for the per-row breakdown. | — |
-| GAP-011 | Open | Minor | [agents.md](../agents.md) — *Architecture highlights* (OpenAI integration); [ADR-007](../adrs/ADR-007-ai-provider-contract.md) | Remaining `agents.md` content (Dexie paths, Zod file layout, Svelte heuristics, adapter wording) still predates ADR-008 / rules distribution. OpenAI bullets now match ADR-007 (Responses + Zod preferred; Chat Completions deprecated). | Full module-location and stack guidance should live in Cursor rules per [`adr-and-rules-todo.md`](./adr-and-rules-todo.md) *Legacy `agents.md` Distribution*. | README + `agents.md` OpenAI sections fixed with **GAP-004**; broader distribution still open. | — |
-| GAP-013 | Open | Minor | [agents.md](../agents.md) — *Zod Validation Rules*; [ADR-008](../adrs/ADR-008-schema-led-domain-contracts.md); [`src/lib/api/README.md`](../src/lib/api/README.md) | `agents.md` says "Define all api schemas in `src/lib/api/` — one file per domain entity," but ADR-008 and `src/lib/api/README.md` prescribe a **per-domain folder** with `*.schemas.ts`, `*.types.ts`, `*.model.ts`, `*.service.ts`, plus a barrel `index.ts`. | Schema/layout guidance should describe the multi-file split codified in ADR-008 rather than a single-file-per-entity model. | Replace the agents.md guidance during distribution; remove agents.md citation in [ADR-008](../adrs/ADR-008-schema-led-domain-contracts.md) (*Decision* §6, *Compliance*, *Implementation compliance*) once the new rule exists. | — |
+### GAP-001
+
+- **Status:** Open
+- **Severity:** Major
+- **Source:** README — *Offline-first*; [ADR-001](../adrs/ADR-001-product-operating-model.md) capability matrix; [ADR-004](../adrs/ADR-004-account-and-cloud-enhancement-model.md) logged-out / offline continuity
+- **Observed:** Using the app while **offline** (or with unreliable network) can produce **slow loading and timeouts**, undermining practical offline use.
+- **Expected:** Once cached, the app should remain **useful offline** with **fast repeat loads** and core recipe flows without blocking on network, Supabase, or OpenAI.
+- **Notes:** Likely causes include uncapped `fetch` / TanStack Query behavior, layout loads that assume network, or missing offline-first loading paths; triage with DevTools (Network throttling / offline) and trace critical `+layout` / `+page` data dependencies.
+- **Owner:** —
+
+### GAP-002
+
+- **Status:** Open
+- **Severity:** Major
+- **Source:** [ADR-005](../adrs/ADR-005-sync-and-conflict-resolution.md) soft delete and restore behavior
+- **Observed:** Current sync planning reads active recipes only, filtering out rows with `deleted_at` or `archived` before building the plan.
+- **Expected:** Sync planning should include tombstoned rows so deletes and restores propagate across devices and do not reappear as active data.
+- **Notes:** Affected area: `src/lib/api/cloud/sync.service.ts` and `src/lib/api/cloud/cloud.model.ts`; remediation should include tombstone-aware planning and tests for delete/restore propagation.
+- **Owner:** —
+
+### GAP-003
+
+- **Status:** Open
+- **Severity:** Minor
+- **Source:** [ADR-006](../adrs/ADR-006-serverless-and-secret-boundary.md) — private env naming
+- **Observed:** The OpenAI key is read from `$env/static/private` but the variable name is `VITE_OPENAI_API_KEY` (also documented in [README](../README.md)).
+- **Expected:** Private-only configuration should use a name that does not suggest `import.meta.env` public embedding (for example `OPENAI_API_KEY`).
+- **Notes:** Low security risk if the key never appears in client bundles; renaming requires updating README, local `.env` examples, and deployment secrets.
+- **Owner:** —
+
+### GAP-005
+
+- **Status:** Open
+- **Severity:** Major
+- **Source:** [README](../README.md) — *Preferences shape suggestions*; [ADR-007](../adrs/ADR-007-ai-provider-contract.md) § preferences
+- **Observed:** **Revision**, **assistance**, and **addendum** flows in `src/lib/server/openai.ts` do not inject user preference text. `src/routes/api/recipes/new/+server.ts` reads `preferences` for gating only and does not pass dietary/preferences text into `appendRecipeDetails`.
+- **Expected:** Preferences and dietary constraints should influence **recipe-related** AI prompts broadly (at minimum revision and metadata addendum when AI is used).
+- **Notes:** Assistance may be partially exempt if framed as pure Q&A; revision and addendum are clear gaps.
+- **Owner:** —
+
+### GAP-006
+
+- **Status:** Open
+- **Severity:** Minor
+- **Source:** [ADR-007](../adrs/ADR-007-ai-provider-contract.md) § structured response contract
+- **Observed:** Deprecated **Chat Completions** handlers rely on `JSON.parse` and type assertions (`parseJsonPayload` in `src/lib/server/openai.ts`); suggestion routes parse model output again in `+server.ts` without `safeParse`.
+- **Expected:** AI JSON should be validated with **Zod** (or equivalent) at the server boundary before success responses.
+- **Notes:** `src/lib/api/ai/ai.schemas.ts` — `RecipeSuggestionsResponseSchema` includes `request_id` meant for the API layer but is bundled into the structured-output schema for the model; review schema vs handler merge in `src/routes/api/suggestions/+server.ts`.
+- **Owner:** —
+
+### GAP-007
+
+- **Status:** Open
+- **Severity:** Major
+- **Source:** [README](../README.md) — *Architecture Boundaries* (schema-led model); [ADR-008](../adrs/ADR-008-schema-led-domain-contracts.md)
+- **Observed:** **Duplicate domain types** in `src/lib/types.ts` (marked deprecated but still imported from routes, `src/lib/server/openai.ts`, `src/lib/db/remote.ts`, `src/lib/stores/preferences.ts`). **`PromptRequest`** in `src/lib/db.ts` has no Zod schema. **`src/lib/api/**/*.schemas.ts`** does not use `.strict()` on object schemas despite [AGENTS.md](../AGENTS.md).
+- **Expected:** Single Zod-led contract per entity; types from `z.infer`; validate persisted/API/AI shapes at boundaries; prefer `.strict()` on API domain objects.
+- **Notes:** Remove or re-export from `$lib/api` only; add `PromptRequest` schema if it remains a first-class stored row; add `.strict()` incrementally or in one pass. Overlaps GAP-006 for unvalidated AI JSON.
+- **Owner:** —
+
+### GAP-008
+
+- **Status:** Open
+- **Severity:** Major
+- **Source:** [ADR-009](../adrs/ADR-009-recommendations-engine-inputs.md)
+- **Observed:** Unused `recommendedRecipes` store (`src/lib/stores/recommendations.ts`) diverges from `src/routes/recommendations/+page.svelte`; refresh path uses unfiltered `db.recipes.toArray()` vs `is_current` / `!deleted_at`; “stale” buckets use **any** old `checkout_history` entry; in-place `.sort()` mutates the live recipe list; `svelte-check` errors on `recommendedRecipes` (string timestamps vs numeric sort/`dayDiff`).
+- **Expected:** Recommendations use **saved-recipe fields only** (per ADR-009), share consistent filters with other recipe views, avoid duplicate incompatible engines, and keep bucketing semantics aligned with ADR-009.
+- **Notes:** Per ADR-009, **user preferences do not apply** to recommendations; README wording corrected. See ADR-009 § Alignment gaps.
+- **Owner:** —
+
+### GAP-009
+
+- **Status:** Open
+- **Severity:** Minor
+- **Source:** [README](../README.md) — *Offline-first*; [ADR-010](../adrs/ADR-010-offline-cache-and-service-worker.md)
+- **Observed:** `src/service-worker.js` caches **successful same-origin GET** responses (including navigations and `/api/...` GETs) in `data-cache-*` with **no per-route opt-out or TTL**; `activate` does not call **`clients.claim()`**.
+- **Expected:** Shell and documents should support offline use without equating HTTP cache with Dexie; **highly dynamic or sensitive GET** surfaces should be excluded or freshness-bound; optional **immediate control** via `clients.claim()` when UX requires it.
+- **Notes:** Only **`/api/share/[token]`** is GET today; risk rises if more GET APIs ship without updating the worker. Versioned cache names still clear old generations on deploy.
+- **Owner:** —
+
+### GAP-010
+
+- **Status:** Open
+- **Severity:** Major
+- **Source:** [README](../README.md) — *Self-hosting as a future path*; [ADR-011](../adrs/ADR-011-self-hosting-provider-model.md)
+- **Observed:** (a) AI route handlers in `src/routes/api/suggestions/+server.ts`, `src/routes/api/recipes/+server.ts`, and `src/routes/api/recipes/new/+server.ts` reject any request without `permissions.ai_assistance`, with **no escape path for a validated personal AI provider**; (b) the `OpenAI` client in `src/lib/api/ai/ai.model.ts` and `src/lib/server/openai.ts` is a **singleton** keyed by `VITE_OPENAI_API_KEY`, so a per-request or personal-provider override cannot be supplied; (c) `PUBLIC_SUPABASE_URL` / `PUBLIC_SUPABASE_ANON_KEY` are read at compile time in `src/lib/supabaseClient.ts`, `src/hooks.server.ts`, and `src/lib/db/remote.ts`, so a deployment cannot point at a different Supabase project at runtime; (d) `src/lib/api/cloud/cloud.service.ts` is a Supabase-bound class with no provider-agnostic interface; (e) `src/routes/+layout.server.ts` exposes only `featureFlags.openai` as a single boolean — no `aiCapabilities` or `cloudCapabilities` set; (f) `src/lib/db.ts` header comment claims "By virtue of `ai_assistance` permission requirements, `suggestions` may only be stored for authenticated users," tying suggestion storage to a WFD-managed account.
+- **Expected:** AI gating should pair `permissions.ai_assistance` with a validated **personal-provider** path; AI clients should be resolvable per request from managed default or personal config; cloud URL/anon key should be resolvable at runtime; cloud database operations should be expressible against a capability matrix; `featureFlags` should expose AI/cloud capability sets; suggestion storage should follow [ADR-003](../adrs/ADR-003-ai-suggestion-lifecycle.md) regardless of WFD account state.
+- **Notes:** Pre-implementation drift: nothing currently advertises personal-provider support to users, but several seams already foreclose it. Remediation likely starts by factoring the `OpenAI` client behind a server-side resolver and widening `featureFlags`, then revisiting AI route gating. See [ADR-011](../adrs/ADR-011-self-hosting-provider-model.md) § Alignment gaps for the per-row breakdown.
+- **Owner:** —
+
+### GAP-011
+
+- **Status:** Open
+- **Severity:** Minor
+- **Source:** [agents.md](../agents.md) — *Architecture highlights* (OpenAI integration); [ADR-007](../adrs/ADR-007-ai-provider-contract.md)
+- **Observed:** Remaining `agents.md` content (Dexie paths, Zod file layout, Svelte heuristics, adapter wording) still predates ADR-008 / rules distribution. OpenAI bullets now match ADR-007 (Responses + Zod preferred; Chat Completions deprecated).
+- **Expected:** Full module-location and stack guidance should live in Cursor rules per [`adr-and-rules-todo.md`](./adr-and-rules-todo.md) *Legacy `agents.md` Distribution*.
+- **Notes:** README + `agents.md` OpenAI sections fixed with **GAP-004**; broader distribution still open.
+- **Owner:** —
+
+### GAP-013
+
+- **Status:** Open
+- **Severity:** Minor
+- **Source:** [agents.md](../agents.md) — *Zod Validation Rules*; [ADR-008](../adrs/ADR-008-schema-led-domain-contracts.md); [`src/lib/api/README.md`](../src/lib/api/README.md)
+- **Observed:** `agents.md` says "Define all api schemas in `src/lib/api/` — one file per domain entity," but ADR-008 and `src/lib/api/README.md` prescribe a **per-domain folder** with `*.schemas.ts`, `*.types.ts`, `*.model.ts`, `*.service.ts`, plus a barrel `index.ts`.
+- **Expected:** Schema/layout guidance should describe the multi-file split codified in ADR-008 rather than a single-file-per-entity model.
+- **Notes:** Replace the agents.md guidance during distribution; remove agents.md citation in [ADR-008](../adrs/ADR-008-schema-led-domain-contracts.md) (*Decision* §6, *Compliance*, *Implementation compliance*) once the new rule exists.
+- **Owner:** —
 
 ---
 

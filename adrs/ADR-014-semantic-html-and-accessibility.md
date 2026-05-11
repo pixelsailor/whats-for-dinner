@@ -26,7 +26,7 @@ Without a single accessibility ADR, agents and contributors may regress semantic
 ### Supporting context
 
 - **Problem:** Accessibility rules were inherited from another product (fixed header/main/footer, command palette). WFD’s **shell markup evolves** with features; the ADR must encode **invariants**, not brittle copies of today’s DOM.
-- **Progressive enhancement and no-JS:** SvelteKit and client-side stores mean not everything runs without JavaScript; still, **core user-facing flows must not be exclusively gated on JS** when the platform can offer links, forms, or SSR HTML. That split is recorded in [ADR-015](ADR-015-progressive-enhancement-and-no-js-baseline.md).
+- **JavaScript runtime and progressive enhancement:** **Dexie-backed** local data **requires a browser JavaScript runtime** ([ADR-015](ADR-015-progressive-enhancement-and-no-js-baseline.md), [ADR-002](ADR-002-local-data-ownership.md)). Shell **navigation** and other flows should still prefer **real `href`s**, semantic controls, and native forms **where** they improve accessibility and resilience without contradicting local-first storage.
 - **bits-ui:** [ADR-013](ADR-013-ui-component-library-bits-ui.md) names bits-ui as the primary headless layer; this ADR does **not** relax native-first semantics—primitives must be composed so the **result** is accessible.
 
 ## Decision
@@ -116,7 +116,7 @@ Animations and transitions MUST respect **`prefers-reduced-motion`**. Non-animat
 | Risk | Mitigation |
 | ---- | ---------- |
 | Drift between ADR and actual layout | Update this ADR when changing primary landmarks; record stubborn gaps in [docs/readme-adr-alignment-gaps.md](../docs/readme-adr-alignment-gaps.md). |
-| Over-reliance on JS for core flows | [ADR-015](ADR-015-progressive-enhancement-and-no-js-baseline.md) names baseline expectations; align new features with both ADRs. |
+| Spurious JS-only navigation where `href` suffices | [ADR-015](ADR-015-progressive-enhancement-and-no-js-baseline.md) names Dexie+JS vs shell PE; align new features with both ADRs. |
 
 ## Operational impact
 
@@ -131,7 +131,7 @@ Animations and transitions MUST respect **`prefers-reduced-motion`**. Non-animat
 
 - **Code / architecture:** `src/routes/**/*.svelte`, `src/lib/ui/**` must conform to the **Decision** sections above.
 - **Cursor / agent rules:** [`.cursor/rules/svelte-5-ui-conventions.mdc`](../.cursor/rules/svelte-5-ui-conventions.mdc) must stay consistent with this ADR; update that file when guidance changes.
-- **When to revisit:** New shell patterns (e.g. global footer, marketing pages), new overlay patterns, or a change to [ADR-015](ADR-015-progressive-enhancement-and-no-js-baseline.md) baseline.
+- **When to revisit:** New shell patterns (e.g. global footer, marketing pages), new overlay patterns, or a change to [ADR-015](ADR-015-progressive-enhancement-and-no-js-baseline.md) (JS runtime / PE expectations).
 
 ## Supersession notes
 
@@ -148,7 +148,7 @@ Orchestration not required for authoring this ADR; orchestration applies per [GO
 
 - Prefer **native elements**; use bits-ui when it fits and **verify** keyboard and names on the composed control.
 - Keep **one `<main>`** (or ADR-documented successor) for primary content; do not drop primary landmarks without updating this ADR.
-- Use **`href`** for route navigation; do not make core destinations **JS-only** as the only path (see [ADR-015](ADR-015-progressive-enhancement-and-no-js-baseline.md)).
+- Use **`href`** for route navigation; do not make **shell** destinations **JS-only** as the only path (see [ADR-015](ADR-015-progressive-enhancement-and-no-js-baseline.md) § Decision 3—Dexie-backed data is still JS-only by architecture).
 - Preserve **heading order**; style with CSS, not wrong levels.
 - Do not hide the **only** path to an action with `display: none` / `aria-hidden` without an equivalent path.
 - Wrap **motion** in `prefers-reduced-motion` preference.

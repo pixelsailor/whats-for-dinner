@@ -1,8 +1,8 @@
-# ADR-015: Progressive enhancement and no-JavaScript baseline
+# ADR-015: JavaScript runtime, Dexie, and progressive enhancement
 
 ## Status
 
-**Proposed**
+**Accepted**
 
 ## Date
 
@@ -10,76 +10,86 @@
 
 ## Scope
 
-- **In scope:** What the product **expects** when JavaScript is unavailable, failing, or not yet executed; how that relates to SvelteKit **SSR** and **hydration**; and how **core** capabilities stay reachable without client JS **where the web platform allows**. Complements [ADR-014](ADR-014-semantic-html-and-accessibility.md) (semantic HTML and accessibility).
-- **Out of scope:** Full **PWA offline** document caching ([ADR-010](ADR-010-offline-cache-and-service-worker.md)) as the detailed cache policy; **capability matrix** enumerating every feature ([ADR-001](ADR-001-product-operating-model.md)); **Dexie**-only behaviors that inherently require a JS runtime on the client.
+- **In scope:** When **client JavaScript** is an **architectural requirement** vs an **optional enhancement**; explicit relationship to **Dexie / IndexedDB** ([ADR-002](ADR-002-local-data-ownership.md)); how **progressive enhancement** still applies to **navigation, forms, and document shape** without implying a no-JS local recipe book; constraints (performance, accessibility, offline) on **how** JS is used. Complements [ADR-014](ADR-014-semantic-html-and-accessibility.md).
+- **Out of scope:** Detailed **service worker** and Cache Storage policy ([ADR-010](ADR-010-offline-cache-and-service-worker.md)); full **capability matrix** per feature ([ADR-001](ADR-001-product-operating-model.md)); **secrets and server-only** boundaries ([ADR-006](ADR-006-serverless-and-secret-boundary.md)).
 
 ## Context
 
-WFD is implemented as a **SvelteKit** application. Much of the recipe experience is **enhanced** by client JavaScript (island of reactivity, Dexie, sync, AI calls). Users may disable scripts, block scripts, or load in environments where hydration is delayed or errors. **Accessibility is king:** core functionality must **not** be **gatekept** exclusively behind JavaScript when HTML and HTTP already allow a usable baseline.
+What’s For Dinner is a **SvelteKit** app with a **local-first** recipe book. **Dexie** is **critical** today: it is the client-side access layer to **IndexedDB** for durable domains in [ADR-002](ADR-002-local-data-ownership.md). **Dexie requires a JavaScript runtime** in the browser—it does not execute in HTML-only or no-script environments.
+
+Removing Dexie solely to satisfy a **strict no-JavaScript product** would imply a **bespoke IndexedDB** (or equivalent) client stack and a different data and routing story. That is **not in immediate or proposed plans**; it is **not ruled out** as a possible long-term direction if requirements change.
+
+The team wants **no confusion**: this is a **JavaScript-reliant** application for local data and many interactions. **JavaScript should be allowed** wherever it advances the product and is **not detrimental** to **performance**, **accessibility**, or **offline / local-first** behavior. The decision is how to combine that honesty with **progressive enhancement** where the web platform still helps (links, forms, meaningful SSR).
 
 ### Decision pressure (required)
 
-Without an explicit baseline, teams may ship **click-only** divs, omit `href`, or assume `onMount` always ran—blocking users who depend on real links, forms, or SSR output. That undermines [ADR-001](ADR-001-product-operating-model.md) (non-blocking, clear UI) and [ADR-014](ADR-014-semantic-html-and-accessibility.md) (native semantics first).
+Without this record, “no-JS” guidance can be read as **mandating removal or avoidance of Dexie**, or as conflicting with [ADR-002](ADR-002-local-data-ownership.md). Contributors need a single place that states **JS + Dexie as normative** while still encouraging **semantic HTML and resilient shell patterns** from [ADR-014](ADR-014-semantic-html-and-accessibility.md).
 
 ### Supporting context
 
-- **SvelteKit:** Server rendering can deliver **HTML first**; progressive enhancement means that HTML should be **meaningful** for navigation and static content. Full SPA behavior after hydration is an enhancement.
-- **Inevitable limits:** IndexedDB access, live sync, streaming AI, and many bits-ui interactions **require** a running client. The decision is **not** “everything works without JS”—it is “**core** user journeys are not **only** implemented in JS when the platform offers a link or document path.”
-- **Relationship to ADR-014:** Real `href`s, semantic controls, and landmark structure support both accessibility and the no-JS baseline.
+- **Serverless / SSR:** SvelteKit can still ship **meaningful HTML** for shells, auth, and static content; hydration and client stores **layer on** that foundation.
+- **Offline:** Offline usefulness depends on **cached shell**, **Dexie**, and worker policy together ([ADR-001](ADR-001-product-operating-model.md), [ADR-010](ADR-010-offline-cache-and-service-worker.md))—not on pretending recipes exist in SSR HTML without JS.
+- **Accessibility:** Client-heavy UI must still meet [ADR-014](ADR-014-semantic-html-and-accessibility.md); “more JS” is not an excuse to drop keyboard support, focus management, or native semantics where they apply.
 
 ## Decision
 
-1. **Principle — no exclusive gatekeeping:** Features that are **core** to using the local recipe book in the sense of [ADR-001](ADR-001-product-operating-model.md) (view and move between primary surfaces, consume SSR-provided content, submit straightforward forms) MUST NOT rely on client-only handlers **without** a real `href`, native form submission, or other **HTML-first** path that works for a full navigation or request. **Enhance** those paths with JS; do not **replace** them as the only option.
-2. **Enhancements that require JS:** Cloud sync orchestration, conflict UI that depends on live stores, AI generation, Dexie-backed lists that never SSR, and complex widgets MAY require JS. They MUST **degrade** clearly (disabled controls, honest copy per [ADR-004](ADR-004-account-and-cloud-enhancement-model.md) and connectivity rules) rather than failing as a blank or inert surface with no explanation.
-3. **Navigation:** Primary app routes SHOULD remain reachable via **anchor navigation** in SSR HTML where the layout renders links (see [ADR-014](ADR-014-semantic-html-and-accessibility.md) §2). Client-side routing may intercept **after** hydration; the document must not depend solely on `preventDefault` + router calls for the **first** paint of core destinations.
-4. **Forms:** Prefer native **`form`** and **`action`** (or SvelteKit form patterns that work without client JS) for auth and other critical POST flows unless a documented exception exists; progressive enhancement is the default bias.
-5. **When in doubt:** Prefer **more** usable HTML baseline over **fewer** bytes of JS-only UI for the same capability.
+1. **Formal client JavaScript requirement (local data):** The **local recipe book** and other **Dexie-backed** durable data in the sense of [ADR-002](ADR-002-local-data-ownership.md) **require a running JavaScript runtime** in the browser. **Dexie does not operate without JavaScript.** Features that read or write that data **may** be implemented entirely on the client when that matches the architecture; they **must not** be described as if they worked without JS unless an alternative path exists.
+2. **JavaScript is allowed by default:** Use client JavaScript **whenever it is appropriate for the product**, subject only to this ADR and to **not** harming:
+   - **Performance** (avoid unnecessary main-thread work, huge bundles without cause, pathological re-render patterns),
+   - **Accessibility** ([ADR-014](ADR-014-semantic-html-and-accessibility.md)),
+   - **Offline and local-first capability** ([ADR-001](ADR-001-product-operating-model.md), [ADR-010](ADR-010-offline-cache-and-service-worker.md)).  
+   There is **no** principle of minimizing JS for its own sake in a **JS-reliant** app.
+3. **Progressive enhancement (without denying Dexie):** Prefer **real `href` navigation**, **native `form` / SvelteKit actions**, and **semantic controls** for flows where they improve **resilience, accessibility, and clarity**—especially **auth**, **primary shell navigation**, and any surface that can degrade gracefully when hydration is delayed. This **does not** require that **Dexie-backed lists or editors** function without JS; it **does** require not replacing links with **click-only non-semantic** patterns **where** a normal anchor or button would serve the same **navigation or submit** role.
+4. **Dexie and alternatives:** Staying on **Dexie** is the **planned** approach. A future **non-Dexie** IndexedDB or storage layer remains possible but needs its **own ADR** if it changes the system-of-record story; it is **out of scope** here except to note that **no-JS-only local persistence** is not the current direction.
+5. **Honest degradation:** When scripts are disabled, fail to load, or error before stores initialize, the UI **should** communicate that **local features need JavaScript** (and, where relevant, IndexedDB)—not infinite spinners or silent empty states that imply SSR will populate recipe data (see [docs/readme-adr-alignment-gaps.md](../docs/readme-adr-alignment-gaps.md) **GAP-020** and related items).
 
 ## Explicit exclusions
 
-- **Guaranteeing** feature parity without JS for every future roadmap item ([ADR-012](ADR-012-feature-roadmap-boundaries.md)) — excluded; each feature envelope should state its JS requirement explicitly.
-- **Replacing** security or server-only constraints from [ADR-006](ADR-006-serverless-and-secret-boundary.md) — secrets stay server-side regardless of baseline.
+- **Guaranteeing** no-JS parity for every roadmap feature ([ADR-012](ADR-012-feature-roadmap-boundaries.md)) — excluded; feature envelopes may state JS + Dexie expectations explicitly.
+- **Replacing** [ADR-006](ADR-006-serverless-and-secret-boundary.md) server-only or secret-handling rules — excluded.
+- **Mandatory migration** off Dexie for progressive-enhancement reasons alone — excluded until a deliberate architectural ADR says otherwise.
 
 ## Alternatives considered
 
-### Require full application function without any JavaScript
+### House “JS required for local data” only in ADR-002 / ADR-001
 
-**Rejected:** Dexie-backed recipe storage and many planned interactions are **client-native**; the cost of a 100% no-JS app would misrepresent the product architecture.
+**Deferred:** ADR-002 already names Dexie as SoT; this ADR adds **platform and UX framing** (SSR vs client, confusion avoidance, PE bias) in one place. If duplication becomes noisy, fold a short summary into ADR-001/002 and **supersede** this ADR with a clear successor link.
 
-### Defer any baseline until a formal WCAG audit
+### Require a no-JS-readable local recipe book
 
-**Rejected:** Baseline expectations are architectural and affect every PR; they can be decided without waiting for a full audit program.
+**Rejected:** Would conflict with **Dexie** as the chosen access layer and with current delivery plans; could only be met with a **different persistence and rendering architecture** (not planned).
 
 ## Consequences
 
 ### Positive
 
-- Clear bar for “can this be a `div` with `on:click` only?” (usually no for core navigation).
-- Aligns marketing “offline-first” narrative with **document** semantics, not only client stores.
+- Clear answer: **JS + Dexie are expected** for local recipe data; no implied obligation to remove Dexie for PE reasons alone.
+- Still nudges **links, forms, and semantics** where they help **accessibility and resilience** without fighting ADR-002.
 
 ### Negative
 
-- Some UX will still **require** JS; copy and UI states must explain that honestly.
-- Developers must test **at least occasionally** with scripts disabled or with “view source / first HTML” mindset for critical paths.
+- “Progressive enhancement” in marketing language must be **careful**: it applies to **document and shell patterns**, not to **IndexedDB recipe bodies** without JS.
 
 ### Risks and mitigations
 
 | Risk | Mitigation |
 | ---- | ---------- |
-| Ambiguity on “core” vs optional | Tie to ADR-001 matrix and feature docs; refine in PR review. |
-| SvelteKit defaults encourage client-only patterns | Prefer documented Kit patterns that preserve progressive enhancement where feasible. |
+| Teams read only the title and assume “no rules” | Point to **Decision 2–3** and [ADR-014](ADR-014-semantic-html-and-accessibility.md). |
+| Spinners with no copy when JS is off | Track and fix under **readme-adr-alignment-gaps** (e.g. GAP-020). |
 
 ## Operational impact
 
-- Add no-JS or “first HTML” checks to manual test notes for auth and primary navigation when those areas change materially.
+- Manual checks: **first HTML** for **shell navigation** and **auth** when those areas change; separate checks for **Dexie** flows in browser with JS enabled.
+- Feature specs should say explicitly when a flow is **JS + Dexie required**.
 
 ## Enforcement rules
 
-- **When to revisit:** Major shell or router refactors, or material changes to ADR-001 capability matrix.
+- **When to revisit:** Change to default local storage technology, major shift in offline model, or merge of this content into ADR-001/002.
 
 ## Supersession notes
 
-- If baseline rules merge into ADR-001 or a dedicated “platform UX” ADR, supersede this file with a clear successor link.
+- **Stable file name:** `ADR-015-progressive-enhancement-and-no-js-baseline.md` is retained for links; the **title** reflects the current decision focus.
+- If superseded, link the replacement and state whether **Dexie** assumption changed.
 
 ---
 

@@ -135,6 +135,56 @@ Suggested fields (adapt as needed):
 - **Notes:** Documentation-only; no product behavior change. Optional: align ADR-010 checklist wording with the rule’s cold/warm/stale language.
 - **Owner:** —
 
+### GAP-019
+
+- **Status:** Open
+- **Severity:** Major
+- **Source:** Proposed [ADR-015](../adrs/ADR-015-progressive-enhancement-and-no-js-baseline.md) § Decision 3 (progressive enhancement for shell navigation); [ADR-014](../adrs/ADR-014-semantic-html-and-accessibility.md) § Decision 2 (equivalent paths to destinations).
+- **Observed:** Root [`+layout.svelte`](../src/routes/+layout.svelte) renders **no markup** in the `mobile--collapsed` branch (between expanded overlay and desktop layouts). The `Viewport` helper defaults **`#width` to `0`**, which sets **device = mobile** and **nav = collapsed**, so the initial layout state is **`mobile--collapsed`** until `svelte:window` binds a real `innerWidth`. That means **SSR and first paint** can ship **without** the sidebar anchor set (`/`, `/recipes`, preferences, auth links) that exists in expanded or desktop-minimized modes.
+- **Expected:** Primary app routes remain reachable via **real `<a href>`** (or equivalent) in the **first** HTML for typical mobile viewports—ADR-015 still prefers **href-based shell navigation** even though **Dexie** requires JS for recipe data.
+- **Notes:** Desktop-minimized already exposes `Button href` targets; fix is likely “always render a minimal `<nav>` strip for mobile collapsed” or “SSR default to expanded / desktop until `innerWidth` is known.” ADR-015 does **not** relax this shell concern: it separates **JS+Dexie for data** from **semantic / resilient navigation**.
+- **Owner:** —
+
+### GAP-020
+
+- **Status:** Open
+- **Severity:** Major
+- **Source:** Proposed [ADR-015](../adrs/ADR-015-progressive-enhancement-and-no-js-baseline.md) § Decision 5 (honest degradation); [ADR-001](../adrs/ADR-001-product-operating-model.md) capability matrix (local recipe book); [ADR-002](../adrs/ADR-002-local-data-ownership.md) (Dexie as system of record).
+- **Observed:** [`createLiveQueryStore`](../src/lib/stores/_utils.ts) initializes `{ loading: true }` and only resolves after **browser** `liveQuery` runs. Pages such as [`recipes/+page.svelte`](../src/routes/recipes/+page.svelte), [`recipes/[...id]/+page.svelte`](../src/routes/recipes/[...id]/+page.svelte), [`recommendations/+page.svelte`](../src/routes/recommendations/+page.svelte), and [`recipes/trash/+page.svelte`](../src/routes/recipes/trash/+page.svelte) gate content on `$…Store.loading` / `data` without a **no-JavaScript** and **no-IndexedDB** explanation. Without JS, users see **indefinite loading** or empty shells—not the “honest degraded state” ADR-015 describes for JS-dependent features.
+- **Expected:** Static copy in `<main>` (and/or `<noscript>`) explaining that **local recipes require JavaScript and IndexedDB (Dexie)**, plus links to surfaces that **do** work without JS where applicable; optional SSR snapshots only if product invests in them. ADR-015 now **formalizes** the Dexie+JS requirement—this gap is **UX honesty**, not a mandate to remove Dexie or SSR the recipe book.
+- **Notes:** Policy tension resolved in ADR-015 rewrite (2026-05-11): **Dexie requires JS**; remaining work is **messaging** and avoiding infinite spinners.
+- **Owner:** —
+
+### GAP-021
+
+- **Status:** Open
+- **Severity:** Minor
+- **Source:** Proposed [ADR-015](../adrs/ADR-015-progressive-enhancement-and-no-js-baseline.md) § Decision 3 (progressive enhancement for forms where helpful).
+- **Observed:** Home [`+page.svelte`](../src/routes/+page.svelte) AI prompt uses `onsubmit={getSuggestions}` with **`preventDefault`** and **`goto`** to `/suggestions?prompt=…` instead of a native **`GET` form** (`action="/suggestions"` + `name="prompt"`). The page still exposes static **`Button` links** to `/suggestions`, `/recommendations`, and `/recipes`, so navigation is not fully gated—only the **prompt submission path** is JS-only.
+- **Expected:** Prefer `method="get"` / `action` navigation for the prompt where possible; keep JS to enhance in-place results if desired.
+- **Notes:** Low risk; does not by itself justify revoking ADR-015.
+- **Owner:** —
+
+### GAP-022
+
+- **Status:** Open
+- **Severity:** Minor
+- **Source:** Proposed [ADR-015](../adrs/ADR-015-progressive-enhancement-and-no-js-baseline.md) § Decision 3 (native forms where helpful); [ADR-004](../adrs/ADR-004-account-and-cloud-enhancement-model.md) (session continuity).
+- **Observed:** Signed-in users sign out via a **plain `<button onclick={handleSignOut}>`** in [`+layout.svelte`](../src/routes/+layout.svelte) with **no** `method="POST"` form to a SvelteKit **logout action**. Without JavaScript, users cannot end the server session from the shell (contrast [`auth/+page.svelte`](../src/routes/auth/+page.svelte), which already uses **`method="POST"`** + **`action="?/login"`**).
+- **Expected:** Add a progressive **`form`** + server **`logout`** action (or documented Kit pattern) so sign-out works without client JS, **or** document sign-out as JS-required and show static guidance when scripts are disabled.
+- **Notes:** Severity stays **Minor** because anonymous use is primary and auth is enhancement; still matters for shared-device hygiene.
+- **Owner:** —
+
+### GAP-023
+
+- **Status:** Open
+- **Severity:** Major
+- **Source:** Proposed [ADR-015](../adrs/ADR-015-progressive-enhancement-and-no-js-baseline.md) § Decision 1 (Dexie + JS for local writes) and § Decision 5 (honest degradation); [ADR-002](../adrs/ADR-002-local-data-ownership.md) (local writes).
+- **Observed:** [`recipes/new/+page.svelte`](../src/routes/recipes/new/+page.svelte) declares **`method="POST"`** but **`saveRecipe` always calls `event.preventDefault()`** and persists via **`db.recipes.add`** / optional cloud—there is **no** [`+page.server.ts`](../src/routes/recipes/new/+page.server.ts) **form action** for a native submit fallback. Creating a recipe **requires** a running client and IndexedDB.
+- **Expected:** **Honest UX:** static or progressive copy that **JavaScript (and Dexie) are required to save** a recipe locally; optionally add a Kit action later only if product wants a server-mediated path—**not** required by ADR-015 as currently written. Misleading `method="POST"` without a real submit path may still warrant a **small** markup fix.
+- **Notes:** ADR-015 (2026-05-11) now states **client-side Dexie writes are allowed** as the architecture; this gap tracks **deception / confusion** (form looks progressively enhanced but is not) and **Decision 5** messaging.
+- **Owner:** —
+
 ---
 
 ## Deferred / investigated

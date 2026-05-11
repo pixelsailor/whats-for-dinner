@@ -36,7 +36,7 @@
 | [ADR-001](ADR-001-product-operating-model.md) | Platform | Product operating model | Accepted | Offline-first, anonymous-first recipe book; optional cloud and AI; binding capability matrix without auth/network/Supabase/OpenAI. |
 | [ADR-004](ADR-004-account-and-cloud-enhancement-model.md) | Platform | Account and cloud enhancement model | Accepted | Supabase as optional enhancement for auth, backup, sharing, and sync; logged-out/offline continuity required for local recipe flows. |
 | [ADR-012](ADR-012-feature-roadmap-boundaries.md) | Platform | Feature roadmap boundaries | Proposed | Per-feature envelopes for Calendar, URL recipe import, OCR import, and Meal planner: where logic runs, AI/cloud dependency, offline/anonymous behavior, and where each design doc should live. |
-| [ADR-015](ADR-015-progressive-enhancement-and-no-js-baseline.md) | Platform | Progressive enhancement and no-JavaScript baseline | Proposed | HTML-first path for core flows; SvelteKit SSR/hydration reality; JS required for Dexie/sync/AI and other enhancements; complements ADR-014 and ADR-001. |
+| [ADR-015](ADR-015-progressive-enhancement-and-no-js-baseline.md) | Platform | JavaScript runtime, Dexie, and progressive enhancement | Proposed | Dexie requires browser JS (ADR-002); JS allowed when not harmful to perf, a11y, or offline; PE for shell/forms/navigation without implying no-JS local recipe book; complements ADR-014. |
 
 ---
 
@@ -57,7 +57,7 @@
 | ID  | Domain | Title | Status | Description   |
 | --- | ------ | ----- | ------ | ------------- |
 | [ADR-013](ADR-013-ui-component-library-bits-ui.md) | UI | UI component library — bits-ui | Accepted | bits-ui as primary headless primitives under `src/lib/ui/`; compose with Tailwind/local patterns; no second headless toolkit without a new ADR; agent `llms.txt` fetch policy scoped to bits-ui work. |
-| [ADR-014](ADR-014-semantic-html-and-accessibility.md) | UI | Semantic HTML and accessibility | Accepted | Native-first semantics; bits-ui composition must remain accessible; landmarks, headings, keyboard, motion; shell invariants without freezing DOM; pairs with ADR-015 for no-JS baseline. |
+| [ADR-014](ADR-014-semantic-html-and-accessibility.md) | UI | Semantic HTML and accessibility | Accepted | Native-first semantics; bits-ui composition must remain accessible; landmarks, headings, keyboard, motion; shell invariants without freezing DOM; pairs with ADR-015 for JS runtime and progressive enhancement expectations. |
 
 ---
 

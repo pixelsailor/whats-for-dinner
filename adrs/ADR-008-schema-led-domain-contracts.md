@@ -47,7 +47,7 @@ The repo already documents an intended layout in [`src/lib/api/README.md`](../sr
 
 5. **Stores (`src/lib/stores/**`)** operate on **inferred domain types** and mutation helpers; they should not invent alternate entity shapes.
 
-6. **Strict object contracts:** New and materially revised **object** schemas in `src/lib/api/**` should use **`.strict()`** (or equivalent rejection of unknown keys) per [agents.md](../agents.md), so unexpected fields surface at validation time rather than silently flowing through.
+6. **Strict object contracts:** New and materially revised **object** schemas in `src/lib/api/**` should use **`.strict()`** (or equivalent rejection of unknown keys), so unexpected fields surface at validation time rather than silently flowing through.
 
 7. **Validation points:** Any code path that accepts **user input**, **network JSON**, or **model output** must validate before treating data as the domain type. Prefer `.safeParse()` and explicit error handling over unchecked casts.
 
@@ -90,7 +90,7 @@ The repo already documents an intended layout in [`src/lib/api/README.md`](../sr
 
 ## Compliance (optional)
 
-- Aligns with Zod + TypeScript conventions in [agents.md](../agents.md) (infer types from schemas; prefer `.strict()` on object schemas).
+- Aligns with the API module contract in [`src/lib/api/README.md`](../src/lib/api/README.md): infer types from schemas, keep boundary validation explicit, and use strict object contracts.
 
 ## Implementation compliance (discovered)
 
@@ -100,7 +100,7 @@ The following **known gaps** exist relative to this ADR as of authoring; they ar
 | ---- | ----- |
 | **Legacy `$lib/types.ts`** | Deprecated hand-written `RecipeSummary`, `Suggestion`, `FullRecipe`, `SavedRecipe`, `UserPreferences`, `RecipeAddendum`, and related API envelope types still exist and are imported from some routes, `src/lib/server/openai.ts`, `src/lib/db/remote.ts`, and `src/lib/stores/preferences.ts`, duplicating `$lib/api` contracts. |
 | **`PromptRequest` (Dexie)** | Defined only as a TypeScript type in [`src/lib/db.ts`](../src/lib/db.ts); no Zod schema or read-time validation. |
-| **`.strict()` on schemas** | [`agents.md`](../agents.md) requires `.strict()` on object schemas; current `src/lib/api/**/*.schemas.ts` files do not consistently apply it—tightening should happen as schemas are touched or in a focused pass. |
+| **`.strict()` on schemas** | ADR-008 requires `.strict()` on new/materially revised object schemas, but current `src/lib/api/**/*.schemas.ts` files do not consistently apply it—tightening should happen as schemas are touched or in a focused pass. |
 | **AI JSON without `safeParse`** | Partially overlaps [GAP-006](../docs/readme-adr-alignment-gaps.md): some deprecated Chat Completions paths parse JSON without Zod at the boundary. |
 
 ## Enforcement rules

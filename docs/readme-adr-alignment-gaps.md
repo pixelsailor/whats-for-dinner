@@ -129,16 +129,6 @@ Suggested fields (adapt as needed):
 - **Notes:** README + `agents.md` OpenAI sections fixed with **GAP-004**; broader distribution still open.
 - **Owner:** —
 
-### GAP-013
-
-- **Status:** Open
-- **Severity:** Minor
-- **Source:** [agents.md](../agents.md) — *Zod Validation Rules*; [ADR-008](../adrs/ADR-008-schema-led-domain-contracts.md); [`src/lib/api/README.md`](../src/lib/api/README.md)
-- **Observed:** `agents.md` says "Define all api schemas in `src/lib/api/` — one file per domain entity," but ADR-008 and `src/lib/api/README.md` prescribe a **per-domain folder** with `*.schemas.ts`, `*.types.ts`, `*.model.ts`, `*.service.ts`, plus a barrel `index.ts`.
-- **Expected:** Schema/layout guidance should describe the multi-file split codified in ADR-008 rather than a single-file-per-entity model.
-- **Notes:** Replace the agents.md guidance during distribution; remove agents.md citation in [ADR-008](../adrs/ADR-008-schema-led-domain-contracts.md) (*Decision* §6, *Compliance*, *Implementation compliance*) once the new rule exists.
-- **Owner:** —
-
 ---
 
 ## Deferred / investigated
@@ -156,6 +146,7 @@ Move **Fixed** items here with a one-line **Resolution** (and optional PR link) 
 | ID | Resolution |
 | -- | ---------- |
 | **GAP-004** | README *Technology Stack*, [`agents.md`](../agents.md), [`adrs/ADR-007-ai-provider-contract.md`](../adrs/ADR-007-ai-provider-contract.md) (including a **Legacy Chat Completions inventory** table), [`adrs/INDEX.md`](../adrs/INDEX.md), [`adrs/ADR-011-self-hosting-provider-model.md`](../adrs/ADR-011-self-hosting-provider-model.md), [`docs/adr-and-rules-todo.md`](./adr-and-rules-todo.md), and [`adrs/ADR-008-schema-led-domain-contracts.md`](../adrs/ADR-008-schema-led-domain-contracts.md) now treat **Chat Completions as deprecated** and document the **Responses API + Zod structured output** as preferred. Production call sites were not changed. |
+| **GAP-013** | [`agents.md`](../agents.md) now matches [ADR-008](../adrs/ADR-008-schema-led-domain-contracts.md) and [`src/lib/api/README.md`](../src/lib/api/README.md): API contracts are organized by **domain folder** with `*.schemas.ts`, `*.types.ts`, `*.model.ts`, `*.service.ts`, and a domain `index.ts` barrel. ADR-008 no longer depends on `agents.md` as the source for strict schema guidance. |
 | **GAP-012** | [`src/lib/db.ts`](../src/lib/db.ts) is the canonical Dexie application database; [`.cursor/rules/local-data-dexie-ownership.mdc`](../.cursor/rules/local-data-dexie-ownership.mdc), [`agents.md`](../agents.md), and migration docs now define `src/lib/db/` as a helper directory only. No production code referenced `$lib/db/local`; the unused `src/lib/db/local.ts` duplicate Dexie root was removed. |
 | **GAP-014** | [`agents.md`](../agents.md) serverless line, [`.cursor/rules/svelte-mcp-workflow.mdc`](../.cursor/rules/svelte-mcp-workflow.mdc), and [`.cursor/rules/svelte-5-ui-conventions.mdc`](../.cursor/rules/svelte-5-ui-conventions.mdc) now align with [`svelte.config.js`](../svelte.config.js) and [ADR-006](../adrs/ADR-006-serverless-and-secret-boundary.md): **Netlify** is the configured adapter; other runtimes are a portability discipline. |
 | **GAP-015** | [`agents.md`](../agents.md) and [`.cursor/rules/svelte-5-ui-conventions.mdc`](../.cursor/rules/svelte-5-ui-conventions.mdc) document **`$effect`** as a legitimate rune for true side effects, with **prefer `$derived`** for pure derivations when that does not harm clarity or performance (see migration note in [`docs/adr-and-rules-todo.md`](./adr-and-rules-todo.md)). |

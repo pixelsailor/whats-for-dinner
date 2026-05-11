@@ -119,6 +119,16 @@ Suggested fields (adapt as needed):
 - **Notes:** Pre-implementation drift: nothing currently advertises personal-provider support to users, but several seams already foreclose it. Remediation likely starts by factoring the `OpenAI` client behind a server-side resolver and widening `featureFlags`, then revisiting AI route gating. See [ADR-011](../adrs/ADR-011-self-hosting-provider-model.md) § Alignment gaps for the per-row breakdown.
 - **Owner:** —
 
+### GAP-016
+
+- **Status:** Open
+- **Severity:** Major
+- **Source:** [README](../README.md) env sample; [ADR-006](../adrs/ADR-006-serverless-and-secret-boundary.md) public env examples; [`.cursor/rules/supabase-enhancement-boundary.mdc`](../.cursor/rules/supabase-enhancement-boundary.mdc)
+- **Observed:** `src/routes/+layout.ts` builds the SSR/browser Supabase client from `PUBLIC_SUPABASE_PUBLISHABLE_KEY`, while `src/hooks.server.ts`, `src/lib/supabaseClient.ts`, `src/lib/db/remote.ts`, and `src/lib/api/common/common.model.ts` use `PUBLIC_SUPABASE_ANON_KEY`. README documents `PUBLIC_SUPABASE_ANON_KEY` only.
+- **Expected:** One **documented** public env name for the Supabase anon (publishable) key, used consistently by `hooks.server.ts`, root `+layout.ts`, and any standalone `createClient` helpers, so cookie/session state and layout clients agree.
+- **Notes:** Either align code to a single var (and update Netlify/README samples) or document both as required aliases with identical values. Auth continuity bugs are likely if only one var is set per README.
+- **Owner:** —
+
 ### GAP-011
 
 - **Status:** Open

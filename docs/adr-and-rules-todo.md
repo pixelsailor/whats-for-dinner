@@ -89,10 +89,11 @@ This backlog turns the project principles in the top-level README into enforceab
   - Avoid hard-coding OpenAI-only assumptions where a provider contract should allow future personal AI APIs.
   - **Done:** [`.cursor/rules/ai-integration-boundary.mdc`](../.cursor/rules/ai-integration-boundary.mdc) (globs `src/lib/api/ai/**/*.ts`, `src/lib/server/**/*.ts`, `src/lib/openai/**/*.ts`, `src/routes/api/**/*.ts`, `src/routes/**/+page.server.ts`).
 
-- [ ] **Rule: Supabase enhancement boundary**
+- [x] **Rule: Supabase enhancement boundary**
   - Treat Supabase as optional for backup, sync, sharing, and auth.
   - Require graceful behavior when users are logged out, offline, or missing cloud permissions.
   - Avoid hard-coding Supabase-only assumptions where a provider contract should allow future user-hosted databases.
+  - **Done:** [`.cursor/rules/supabase-enhancement-boundary.mdc`](../.cursor/rules/supabase-enhancement-boundary.mdc) (globs hooks, root layouts, standalone Supabase client modules, `src/lib/api/cloud/**`, account/auth API layers, `src/app.d.ts`). **Discrepancies surfaced during authoring:** `PUBLIC_SUPABASE_PUBLISHABLE_KEY` in `src/routes/+layout.ts` vs `PUBLIC_SUPABASE_ANON_KEY` elsewhere and in README — recorded as **GAP-016** in [`docs/readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md).
 
 - [ ] **Rule: Self-hosting compatibility**
   - Require new cloud or AI work to document whether it depends on WFD-managed services, user-provided services, or either.
@@ -181,6 +182,7 @@ The root [`agents.md`](../agents.md) predates the ADR system and the `.cursor/ru
 
 - [ ] **Migrate Supabase auth, sharing, and cloud-backup wiring**
   - Move the *Supabase Auth, Sharing and Cloud Backup* section (client at `src/lib/supabaseClient.ts`, route guards via `locals.supabase` in `src/hooks.server.ts`) into the planned **Rule: Supabase enhancement boundary** with cross-references to [ADR-004](../adrs/ADR-004-account-and-cloud-enhancement-model.md) and [ADR-006](../adrs/ADR-006-serverless-and-secret-boundary.md).
+  - **Progress:** Agent-facing boundary text now lives in [`.cursor/rules/supabase-enhancement-boundary.mdc`](../.cursor/rules/supabase-enhancement-boundary.mdc); verbatim migration from [`agents.md`](../agents.md) remains open.
 
 - [ ] **Reconcile Architecture highlights and Env & secrets**
   - Fold *Architecture highlights* into the relevant ADRs and scoped READMEs ([ADR-002](../adrs/ADR-002-local-data-ownership.md), [ADR-006](../adrs/ADR-006-serverless-and-secret-boundary.md), [ADR-007](../adrs/ADR-007-ai-provider-contract.md), [`src/lib/api/README.md`](../src/lib/api/README.md), [`src/lib/stores/README.md`](../src/lib/stores/README.md)) rather than restating in `agents.md`.

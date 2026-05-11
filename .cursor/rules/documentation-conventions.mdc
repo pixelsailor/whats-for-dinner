@@ -1,0 +1,131 @@
+---
+description: Enterprise JSDoc on production TypeScript; Svelte Language Server @component and script docs for .svelte files
+alwaysApply: true
+---
+# Documentation conventions
+
+**Goal:** Every production source file has clear, consistent documentation so intent, contracts, and non-obvious behavior are obvious in the editor and in review.
+
+**TypeScript:** Enterprise-grade JSDoc is required on all **production** `.ts` files under `src/`, following the spirit of structured file-level and symbol-level docs (see [Svelte FAQ — documenting components](https://svelte.dev/docs/svelte/faq/llms.txt) for `.svelte` specifics). Spec files, barrel `index.ts`, `config.ts`, and environment files are exempt.
+
+## Exemptions (JSDoc not required to the full standard)
+
+- Test and tooling: `**/*.spec.ts`, `**/*.test.ts`, `**/tests/**`, `**/e2e/**`, `scripts/**`
+- Generated or third-party vendored trees (if any appear under `src/`)
+- Pure re-export barrels: `index.ts` files that only `export … from` with no logic (a single `@fileoverview` line is still welcome)
+- Env/schema-only files where a one-line `@fileoverview` is enough and symbols are self-explanatory (prefer full docs for public APIs anyway)
+
+## File-level block (every substantive -- exports at least one function, class, or type used outside the file -- `.ts` file)
+
+Start the file with `@fileoverview` and `@module`:
+
+```ts
+/**
+ * @fileoverview Validates AI chat requests and streams assistant tokens to the client.
+ * @module routes/api/ai/server
+ */
+```
+
+- **`@fileoverview`:** One sentence, present tense or imperative, describing what the file *does*.
+- **`@module`:** Logical module id — typically a path relative to `src/` without leading `src/` (e.g. `lib/server/chat.service`, `routes/api/ai/server`). Adjust to match how the team navigates the tree; keep it stable and unique.
+
+## Functions, methods, and constants
+
+```ts
+/**
+ * Normalizes a visitor id for KV keys; empty input yields null.
+ * @param raw - Unvalidated string from the request
+ * @returns Trimmed non-empty string, or null when unusable
+ */
+export function normalizeVisitorId(raw: string | undefined): string | null {
+```
+
+- **`@param`** for every parameter (name, hyphen, description). Do not repeat TypeScript types in JSDoc (`@param {string}` is wrong here).
+- **`@returns`** for all non-void returns; **omit** `@returns` entirely for `void` (do not write `@returns {void}`).
+- **`@throws {ErrorType}`** when callers must handle or be aware of failure modes worth documenting.
+- **`@remarks`** for invariants, security notes, or performance caveats.
+- **`@see {@link OtherSymbol}`** for important cross-references (optional but encouraged for boundaries).
+- **`@deprecated`** with a short migration note when sunsetting an export.
+
+Exported constants whose meaning is not obvious from the name alone: a one-line `/** … */` (or `@remarks`) is enough.
+
+## Classes
+
+Class-level `/** … */` summary is required. Public/protected methods use the same `@param` / `@returns` / `@throws` rules as functions. Skip noise docs for trivial one-line wrappers unless behavior is surprising.
+
+## Interfaces, type aliases, and `z.infer` types
+
+- Type or interface: leading `/** … */` describing the shape’s role.
+- Properties: inline `/** … */` on non-obvious fields (ids, unions, optional semantics, units).
+- Use **`@remarks`** for design tradeoffs; **`@internal`** in JSDoc text only when the team agrees a symbol is not part of the public API (TypeScript’s `/** @internal */` is a separate compiler feature — use only when the project already relies on it).
+
+Prefer **`as const` + unions** over TypeScript `enum` for domain and API contract values; see [ADR-008](adrs/ADR-008-schema-led-domain-contracts.md). UI-only tokens may remain plain TypeScript per that ADR's exclusions. If an `enum` exists in legacy code, document non-obvious members inline.
+
+## SvelteKit route modules
+
+For `+server.ts`, `+page.ts`, `+page.server.ts`, `+layout*.ts`, etc., document:
+
+- **HTTP handlers:** purpose, auth expectations, status codes, and error behavior at a glance in the file overview; use per-function JSDoc on helpers and non-trivial handlers.
+- **`load`:** file overview plus `@returns` / `@throws` or `@remarks` when the data contract or redirect behavior is non-obvious.
+
+## `*.svelte` components (Svelte Language Server)
+
+Svelte tooling does **not** use the same file-level `@fileoverview` block at the top of the `.svelte` file as the primary component doc. Follow the [official FAQ](https://svelte.dev/docs/svelte/faq/llms.txt):
+
+1. **Component story (required for non-trivial components):** an HTML comment block with **`@component`** so hover/docs work in editors that use the Svelte Language Server. The **`@component`** line is **required** in that comment.
+
+````svelte
+<script lang="ts">
+	/** Accessible label for the close control. */
+	let { label = 'Close' }: { label?: string } = $props();
+</script>
+
+<!--
+@component
+Modal shell with focus trap and dismiss on Escape.
+
+- Use markdown in this block.
+- Example:
+  ```svelte
+  <Modal label="Dismiss" />
+  ```
+-->
+
+<div>...</div>
+````
+
+2. **Script exports and bindings:** document props, bindable state, and exported functions with `/** … */` immediately above the declaration (works for `$props()` destructuring, runes, and functions in `<script>`).
+
+3. **Placement:** put the `<!-- @component … -->` block where the language server can associate it with the component (typically after `<script>` / `<script module>`, before the markup root), matching the FAQ pattern.
+
+4. **Do not** duplicate TypeScript types inside JSDoc; describe *meaning* and *constraints* instead.
+
+## Anti-patterns
+
+- Duplicating TS types in JSDoc (`@param {string} name`).
+- Empty or generic filler (“returns a value”, “constructor”) that adds no information.
+- `@returns {void}` or documenting every trivial getter/setter.
+
+## Per-file checklist (TypeScript)
+
+- [ ] `@fileoverview` + `@module` on substantive modules
+- [ ] Exported functions/classes have summaries; non-void exports have `@returns` where helpful
+- [ ] Parameters documented with `@param` any public parameter is nullable, optional, or union-typed
+- [ ] Thrown errors documented where it affects callers
+- [ ] No type duplication in tags; prefer `@remarks` / `@see` for architecture notes
+
+## Per-file checklist (Svelte)
+
+- [ ] `<!-- @component … -->` present for components that are reused or non-trivial
+- [ ] Public props / exports have `/** … */` (or a documented `Props` interface with property comments)
+- [ ] Usage or behavior notes live in the `@component` block when markup alone is unclear
+
+## Behavioral notes (required when applicable)
+
+Use `@remarks` to document:
+
+- External side effects (DB, network, filesystem)
+- Caching behavior or memoization
+- Idempotency expectations
+- Concurrency or race-condition considerations
+- Streaming or partial-response behavior

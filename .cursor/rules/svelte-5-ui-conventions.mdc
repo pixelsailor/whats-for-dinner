@@ -28,7 +28,7 @@ Project-specific defaults for Svelte components and UI work. For **Svelte MCP** 
 
 ## Styling and UI primitives
 
-- Prefer **bits-ui** primitives and existing patterns when adding interactive controls.
+- Prefer **bits-ui** primitives and existing patterns when adding interactive controls; headless choice for `src/lib/ui/` is governed by [ADR-013](adrs/ADR-013-ui-component-library-bits-ui.md).
 - Use **TailwindCSS** utility classes consistently with the rest of the app; avoid one-off inline styles unless matching an established exception.
 
 ## Accessibility

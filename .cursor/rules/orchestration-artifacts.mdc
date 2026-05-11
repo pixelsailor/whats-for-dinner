@@ -1,0 +1,39 @@
+---
+description: Who may edit orchestration manifests and stage artifacts under .cursor/orchestrations/
+globs:
+  - .cursor/orchestrations/**/*.md
+  - .cursor/orchestrations/**/task-manifest.json
+alwaysApply: false
+---
+
+# Orchestration artifacts
+
+Full contracts: [`.cursor/agents/orchestrator.md`](.cursor/agents/orchestrator.md), [`.cursor/agents/planner.md`](.cursor/agents/planner.md), [`.cursor/agents/builder.md`](.cursor/agents/builder.md), [`.cursor/agents/test.md`](.cursor/agents/test.md), [`.cursor/agents/validator.md`](.cursor/agents/validator.md). Template: [`.cursor/orchestrations/_template/`](.cursor/orchestrations/_template/).
+
+## Path
+
+Runs live under **`.cursor/orchestrations/{task-id}/`**. Do not treat orchestration files as application source — they record pipeline state and stage outputs.
+
+## `task-manifest.json` — Orchestrator only
+
+- **Only the Orchestrator** (or a human following the same contract) may create or update **`task-manifest.json`**.
+- **Planner, Builder, Test, and Validator** must **not** edit the manifest — read-only for `task_id`, `objective`, `locked_artifacts`, `loop_count`, etc.
+
+## Per-stage writes (under `{task-id}/`)
+
+| Agent | May write |
+|-------|-----------|
+| **Orchestrator** | `task-manifest.json`; optional `human-approval.md` when recording approval |
+| **Planner** | `plan.md`, `acceptance-criteria.md` |
+| **Builder** | `build-log.md` only (plus application code per plan). **Not** `plan.md`, manifest, or other orchestration files |
+| **Test** | `test-report.md` only |
+| **Validator** | `validation-report.md` only |
+
+## Locks and scope
+
+- **`locked_artifacts`:** treat listed paths as read-only unless the manifest is updated to unlock (Orchestrator/human).
+- **Do not** expand scope via orchestration edits — `plan.md` is design truth; deviations belong in **`build-log.md`** under **Deviations from plan**.
+
+## Pipeline
+
+Default order: **Orchestrator → Planner → Builder → Test → Validator → Orchestrator** (human approval / loops per Orchestrator rules). After editing artifacts, align with the manifest’s **`current_agent`** and completed-stage contracts before invoking the next agent.

@@ -6,10 +6,11 @@
 
 | Category | Rule | One-liner | Activation |
 |----------|------|-----------|------------|
-| **Code Conventions** | project-best-practices | Project structuree, path aliases, Svelte patterns, key scripts | alwaysApply |
+| **Code Conventions** | project-best-practices | Project structure, path aliases, Svelte patterns, key scripts | alwaysApply |
 | | svelte-5-ui-conventions | Svelte 5 runes (`$state`, `$derived`, `$effect`), a11y, bits-ui/Tailwind, serverless note | globs `**/*.svelte` |
-| | lint-and-code-quality | TypeScript strict mode, template accessibility, SCSS patterns | alwaysApply |
-| | jsdoc-conventions | Enterprise-grade JSDoc on all production TS and svelte files | alwaysApply |
+| | lint-and-code-quality | Prettier+ESLint; strict TS habits; `{#await}` with `:catch`; ADR links for architecture | globs `src/**/*.ts`, `src/**/*.svelte` |
+| | documentation-conventions | Enterprise JSDoc on production TS; Svelte `@component` and script docs | alwaysApply |
+| | bits-ui-documentation | bits-ui `llms.txt` index; approved fetches for `src/lib/ui/**` work | globs `src/lib/ui/**` |
 | | ui-conventions | bits-ui first component selection, design tokens | globs |
 | **ADR-Backed Conventions** | offline-first-development | ADR-001/010/004/007: matrix + SW vs Dexie; core recipe flows without mandatory cloud/AI | alwaysApply |
 | | offline-connectivity-capability | Offline vs session vs permissions; sync reconnect; SW/load checks; degraded UX + GAP-001/016 cross-links | alwaysApply |
@@ -21,9 +22,10 @@
 | | error-handling-conventions | Shared error pages, per-service HTTP handling, no global interceptor | globs |
 | | security-sanitization | | globs |
 | | storage-conventions | Registered storage keys, naming, cleanup, and cache constraints | globs |
-| **Governance** | adr-compliance | ADR consultation, `_ARCHITECTURE_CONTRAINTS.md`, and architecture-gap escalation | alwaysApply |
+| **Governance** | adr-compliance | ADR index + governance; alignment gaps in `docs/readme-adr-alignment-gaps.md` | alwaysApply |
 | | readme-governance | Root README scope; deep docs → ADRs, scoped READMEs, `docs/` | globs `README.md` |
-| **Agent Workflow** | orchestrator | Orchestration controller for Plan-Build-Validate-Test loops | manual |
+| **Agent Workflow** | orchestration-artifacts | Who may edit `.cursor/orchestrations/**` manifests and stage files | globs `.cursor/orchestrations/**` |
+| | orchestrator | Orchestration controller for Plan-Build-Validate-Test loops | manual |
 | | planner | Creates executable phased plans and artifacts | manual |
 | | builder | Implements a single plan phase within strict scope | manual |
 | | validator | Fresh-context code review; produces punch list, no fixes | manual |
@@ -33,6 +35,6 @@
 
 | Mode | Behavior | Rules |
 |------|----------|-------|
-| **alwaysApply** | Loaded into every agent session automatically. No user action needed | project-best-practices, lint-and-code-quality, jsdoc-conventions, adr-compliance |
-| **globs** | Loaded when the agent touches files matching the glob pattern. | svelte-5-ui-conventions, local-data-dexie-ownership, ai-integration-boundary, serverless-compatibility, schema-and-type-safety, ui-conventions, error-handling-conventions, security-sanitization, storage-conventions |
+| **alwaysApply** | Loaded into every agent session automatically. No user action needed | project-best-practices, documentation-conventions, adr-compliance |
+| **globs** | Loaded when the agent touches files matching the glob pattern. | svelte-5-ui-conventions, lint-and-code-quality, bits-ui-documentation, local-data-dexie-ownership, ai-integration-boundary, serverless-compatibility, schema-and-type-safety, ui-conventions, orchestration-artifacts, error-handling-conventions, security-sanitization, storage-conventions |
 | **manual** | Loaded only when the user explicitly invokes the rule. | orchestrator, planner, builder, validator |

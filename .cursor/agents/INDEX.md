@@ -59,7 +59,7 @@ When ADRs apply, the Planner also publishes `_ARCHITECTURE_CONSTRAINTS.md`, and 
 | Validator | `validator.mdc`, `adr-compliance.mdc`, `project-best-practices.mdc`, `error-handling-conventions.mdc`, `logging-conventions.mdc`, `security-sanitization.mdc`, `storage-conventions.mdc`, `feature-flag-conventions.mdc` | adr-compliance-review, pre-commit-checklist |
 | Test | `test.mdc`, `adr-compliance.mdc`, `project-best-practices.mdc` | vitest-angular-component-test, browser-e2e-flow |
 
-All agents inherit the always-apply rules automatically, including `adr-compliance`, `lint-and-code-quality`, `jsdoc-conventions`, `agent-authentication`, and `subagent-action-handler`. Glob-activated rules (`ui-conventions`, `primeng-no-style-overrides`, `i18n-localization`, `error-handling-conventions`, `logging-conventions`, `security-sanitization`, `storage-conventions`, `feature-flag-conventions`) apply when touching matching files.
+Always-apply vs glob-activated rules are defined in each `.mdc` file's frontmatter. See [`.cursor/rules/index.md`](../rules/index.md). This repository uses **`documentation-conventions`** for JSDoc and Svelte component docs (there is no separate `jsdoc-conventions` rule file). **`lint-and-code-quality`** applies when editing `src/**/*.ts` or `src/**/*.svelte`. **`orchestration-artifacts`** applies under `.cursor/orchestrations/**`.
 
 ---
 

@@ -1,0 +1,18 @@
+---
+description: bits-ui llms.txt docs index; agents may fetch linked llms.txt without approval (ADR-013 + UI conventions + lib/ui README)
+globs:
+  - src/lib/ui/**
+alwaysApply: false
+---
+
+# bits-ui documentation (agents)
+
+**Authoritative policy:** [ADR-013: UI component library — bits-ui](adrs/ADR-013-ui-component-library-bits-ui.md), [Svelte 5 and UI conventions](./svelte-5-ui-conventions.mdc), and [`src/lib/ui/README.md`](src/lib/ui/README.md). See [`adrs/INDEX.md`](adrs/INDEX.md) (UI domain). Per [`adrs/GOVERNANCE.md`](adrs/GOVERNANCE.md), only **Accepted** ADRs are binding; until ADR-013 is accepted, follow the same bits-ui defaults via this rule and the UI README.
+
+## Where to read docs
+
+- **Index:** [https://bits-ui.com/llms.txt](https://bits-ui.com/llms.txt) — lists the complete documentation bundle and links to topic and component `llms.txt` pages.
+
+## Fetch permission
+
+When work in **`src/lib/ui/`** requires bits-ui API or behavior details, **agents may fetch** the index above and **any `llms.txt` URL linked from it** (for example under `https://bits-ui.com/docs/...`) **without asking the user for approval first**. Treat these as approved reference fetches for implementing or fixing bits-ui-based UI only — not a blanket permission to browse unrelated sites.

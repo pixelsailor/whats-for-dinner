@@ -3,7 +3,7 @@
 A reusable component library built using **bits-ui** and **TailwindCSS**. It provides customized
 components with consistent styling while reducing the boilerplate code often necessary with many of
 bits-ui more complex components. These component should be the foundation of all UI elements within
-**What's For Dinner**. Refer to [bits-ui documentation](https://bits-ui.com/docs/getting-started)
+**What's For Dinner**. Architectural decision: [ADR-013](../../../adrs/ADR-013-ui-component-library-bits-ui.md). Refer to [bits-ui documentation](https://bits-ui.com/docs/getting-started)
 for composing each component.
 
 ## General Guidelines

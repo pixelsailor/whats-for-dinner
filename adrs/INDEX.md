@@ -55,7 +55,7 @@
 
 | ID  | Domain | Title | Status | Description   |
 | --- | ------ | ----- | ------ | ------------- |
-| —   | UI     | —     | —      | _No ADRs yet_ |
+| [ADR-013](ADR-013-ui-component-library-bits-ui.md) | UI | UI component library — bits-ui | Proposed | bits-ui as primary headless primitives under `src/lib/ui/`; compose with Tailwind/local patterns; no second headless toolkit without a new ADR; agent `llms.txt` fetch policy scoped to bits-ui work. |
 
 ---
 

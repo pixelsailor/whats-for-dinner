@@ -1,0 +1,32 @@
+---
+description: >-
+  Server-only AI provider calls, Zod-validated I/O, preference injection on
+  generation paths, and no client-side secrets or SDK usage; Responses-first.
+globs: >-
+  src/lib/api/ai/**/*.ts,src/lib/server/**/*.ts,src/lib/openai/**/*.ts,src/routes/api/**/*.ts,src/routes/**/+page.server.ts
+alwaysApply: false
+---
+
+# AI integration boundary
+
+**Binding:** [ADR-007: AI provider contract](../adrs/ADR-007-ai-provider-contract.md) (Accepted), [ADR-006: Serverless and secret boundary](../adrs/ADR-006-serverless-and-secret-boundary.md) (Accepted). **Product context:** [ADR-001](../adrs/ADR-001-product-operating-model.md) (optional AI), [ADR-003](../adrs/ADR-003-ai-suggestion-lifecycle.md) (transient suggestions). **Schemas:** [ADR-008](../adrs/ADR-008-schema-led-domain-contracts.md). **Self-hosting direction (not binding until Accepted):** [ADR-011](../adrs/ADR-011-self-hosting-provider-model.md).
+
+## Where AI may run
+
+- **Provider clients and private env** live only in the **server graph**: `+server.ts`, `+page.server.ts` / `+layout.server.ts`, `hooks.server.ts`, and modules **only** imported from those (see ADR-006). The browser calls **same-origin HTTP APIs** under `src/routes/api/**` (or server loads); it does **not** construct `OpenAI` or hold API keys.
+- **`src/lib/api/ai/ai.queries.ts`** (and similar) may run in the client: they must **only** call those HTTP endpoints, not import `ai.model.ts` or any module that pulls in the OpenAI SDK or `$env/static/private`.
+
+## New and changed AI work
+
+- **Preferred path:** [Responses API](https://platform.openai.com/docs/api-reference/responses) + **Zod-structured output** via `$lib/api/ai` patterns ([`src/lib/api/ai/ai.model.ts`](../src/lib/api/ai/ai.model.ts)). **Do not add** new `chat.completions.create` call sites; legacy usage in [`src/lib/server/openai.ts`](../src/lib/server/openai.ts) is **deprecated** (migrate when touching those flows).
+- **Boundaries:** Parse and validate (or reject) provider output **before** returning success to the client. For Responses flows, the Zod schema paired with `zodTextFormat` is authoritative; do not return unvalidated JSON (ADR-007).
+- **Preferences:** **Recipe idea** and **full recipe from suggestion** flows must pass the caller’s **preferences string** into provider instructions (including empty when none). Other flows should include preferences when they affect dietary or constraint-sensitive output; if not yet wired, record drift in [`docs/readme-adr-alignment-gaps.md`](../docs/readme-adr-alignment-gaps.md) (ADR-007, preference inclusion).
+- **Errors:** Map missing key to a **disabled** outcome (`OPENAI_DISABLED` / **503** where established); never leak secrets or raw provider errors (ADR-007, errors and availability).
+
+## Provider-agnostic discipline
+
+- Do not embed **OpenAI-only** assumptions in **shared client types**, route **contracts**, or UI copy where a future **user-configured** or OpenAI-compatible gateway must satisfy the same JSON shapes and server-only config (ADR-007 future user-configured provider; ADR-011). Keep keys and base URLs **server-side only**; avoid barrel files that re-export server AI implementations to client-importable modules (ADR-006).
+
+## Escalation
+
+- Conflicts with Accepted ADRs or intentional contract drift: follow [`.cursor/rules/adr-compliance.mdc`](./adr-compliance.mdc) and [`docs/readme-adr-alignment-gaps.md`](../docs/readme-adr-alignment-gaps.md).

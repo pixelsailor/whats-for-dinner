@@ -83,10 +83,11 @@ This backlog turns the project principles in the top-level README into enforceab
   - Require mutations to flow through domain/store helpers rather than ad hoc component logic.
   - **Done:** [`.cursor/rules/local-data-dexie-ownership.mdc`](../.cursor/rules/local-data-dexie-ownership.mdc) (globs `src/lib/db.ts`, `src/lib/db/**/*.ts`, `src/lib/stores/**/*.ts`).
 
-- [ ] **Rule: AI integration boundary**
+- [x] **Rule: AI integration boundary**
   - Require OpenAI calls to stay in server-only modules or SvelteKit server routes.
   - Require request and response validation, preference inclusion, and no direct client-side AI calls.
   - Avoid hard-coding OpenAI-only assumptions where a provider contract should allow future personal AI APIs.
+  - **Done:** [`.cursor/rules/ai-integration-boundary.mdc`](../.cursor/rules/ai-integration-boundary.mdc) (globs `src/lib/api/ai/**/*.ts`, `src/lib/server/**/*.ts`, `src/lib/openai/**/*.ts`, `src/routes/api/**/*.ts`, `src/routes/**/+page.server.ts`).
 
 - [ ] **Rule: Supabase enhancement boundary**
   - Treat Supabase as optional for backup, sync, sharing, and auth.

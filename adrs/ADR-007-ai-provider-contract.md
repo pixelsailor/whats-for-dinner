@@ -103,7 +103,7 @@ The codebase has **two parallel integration styles** (deprecated Chat Completion
 
 ## Enforcement rules
 
-- **Cursor / agent rules:** Future “AI integration boundary” rule should reference this ADR alongside ADR-006.
+- **Cursor / agent rules:** [`.cursor/rules/ai-integration-boundary.mdc`](../.cursor/rules/ai-integration-boundary.mdc) references this ADR alongside ADR-006.
 - **Code / architecture:** New AI calls go through server routes or server actions; prefer `$lib/api/ai` structured patterns; include preferences on generation paths; document deviations in [`docs/readme-adr-alignment-gaps.md`](../docs/readme-adr-alignment-gaps.md).
 - **When to revisit:** Introduction of streaming, a single merged provider adapter, or first-class self-hosted AI configuration.
 

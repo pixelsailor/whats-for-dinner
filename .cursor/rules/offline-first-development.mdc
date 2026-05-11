@@ -1,0 +1,34 @@
+---
+description: >-
+  Offline-first product shape: local recipe book + cached local features after
+  initial load; anonymous/logged-out continuity; no mandatory cloud/AI for core
+  flows; service worker vs Dexie boundaries.
+alwaysApply: true
+---
+
+# Offline-first development
+
+**Binding:** [ADR-001: Product operating model](../adrs/ADR-001-product-operating-model.md) (Accepted) — capability matrix and exclusions. **Supporting:** [ADR-002: Local data ownership](../adrs/ADR-002-local-data-ownership.md), [ADR-004: Account and cloud enhancement model](../adrs/ADR-004-account-and-cloud-enhancement-model.md), [ADR-007: AI provider contract](../adrs/ADR-007-ai-provider-contract.md) § offline / no-AI behavior, [ADR-010: Offline cache and service worker](../adrs/ADR-010-offline-cache-and-service-worker.md).
+
+**Related rules:** [`.cursor/rules/local-data-dexie-ownership.mdc`](./local-data-dexie-ownership.mdc), [`.cursor/rules/supabase-enhancement-boundary.mdc`](./supabase-enhancement-boundary.mdc), [`.cursor/rules/ai-integration-boundary.mdc`](./ai-integration-boundary.mdc).
+
+## What “offline-first” means here
+
+- **In scope:** After the **app shell** is available (per ADR-010) and **local data** exists in Dexie, users must be able to use the **local recipe book** and other capabilities ADR-001 marks as required **without auth, without live network, without Supabase, and without OpenAI** — including **viewing locally cached AI suggestion content** already stored (matrix row).
+- **Not in scope:** A **fully standalone** product where every surface, import, sync, share, or **new** AI generation works offline. **Network-only** or **provider-only** features (cloud backup/sync, sharing, new AI calls) may require connectivity or configuration; they must **degrade** (disabled actions, empty states, clear availability) without blocking core recipe flows (ADR-001 “clear, non-blocking UI”).
+
+## Requirements for new or changed behavior
+
+1. **State the matrix:** For each feature, say how it behaves **anonymous vs signed-in**, **offline vs online**, **while loading** (cold cache, warm cache, stale document cache per ADR-010), and **on reconnect** (retry, queue, or discard) when network-only work was deferred.
+2. **Core recipe book:** Do not make **auth, Supabase session, OpenAI, or arbitrary network** a **hard prerequisite** for save/edit/search/organize/soft-delete/restore of **locally owned** recipes (ADR-001, ADR-004 continuity). Registered users **offline or logged out** keep the same local behaviors as anonymous users on that device, limited only by missing cloud-fresh data (ADR-001).
+3. **Data ownership:** Durable and transient **domain** data stays in **Dexie** (ADR-002). **Cache Storage / service worker** delivers shell and last-known documents only — **not** the system of record for recipes or suggestions (ADR-010).
+4. **AI:** New generation paths fail gracefully when the provider is disabled or unreachable; **do not** assume success payloads in UI that must remain usable without AI (ADR-007 §6).
+5. **Red flags:** Route guards or loaders that **block** recipe pages on session; global errors that **prevent** local navigation when cloud/AI fails; persisting user recipes **only** via HTTP cache; TanStack (or other) network cache treated as **authoritative** over Dexie for ADR-002 domains (see [local-data-dexie-ownership.mdc](./local-data-dexie-ownership.mdc)).
+
+## User-visible status copy
+
+Prefer distinct messaging for **offline / no network**, **logged out**, **missing cloud permissions**, and **AI disabled or unreachable** so users are not misled. Until the dedicated **Rule: Offline and connectivity user messaging** exists ([`docs/adr-and-rules-todo.md`](../docs/adr-and-rules-todo.md)), still apply ADR-004’s **graceful cloud unavailability** expectation in UI you touch.
+
+## Escalation
+
+Material changes to the capability matrix require an **ADR-001** update per that ADR’s enforcement. Intentional drift or unresolved ambiguity: [`.cursor/rules/adr-compliance.mdc`](./adr-compliance.mdc) and [`docs/readme-adr-alignment-gaps.md`](../docs/readme-adr-alignment-gaps.md).

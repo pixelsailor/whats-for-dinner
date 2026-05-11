@@ -155,6 +155,16 @@ Suggested fields (adapt as needed):
 - **Notes:** README + `agents.md` OpenAI sections fixed with **GAP-004**; broader distribution still open. **Scope clarification:** GAP-011 is **only** `agents.md` → rules/docs migration, not Supabase architecture (see [Deferred — Supabase consolidation audit](#supabase-consolidation-audit-2026-05-10)).
 - **Owner:** —
 
+### GAP-018
+
+- **Status:** Open
+- **Severity:** Cosmetic
+- **Source:** [ADR-001](../adrs/ADR-001-product-operating-model.md) § Enforcement rules (“Future rules… until those rules exist, use README… and agents.md”); [ADR-010](../adrs/ADR-010-offline-cache-and-service-worker.md) § Enforcement rules (“The future **offline-first development** rule…”).
+- **Observed:** [`.cursor/rules/offline-first-development.mdc`](../.cursor/rules/offline-first-development.mdc) now exists (`alwaysApply`), but the ADR bodies still describe that guidance as **future** and ADR-001 still lists `agents.md` as a secondary reference for this concern.
+- **Expected:** Accepted ADR enforcement text should cite the **current** Cursor rule (and drop or narrow stale `agents.md` pointers once distribution completes per [`adr-and-rules-todo.md`](./adr-and-rules-todo.md)).
+- **Notes:** Documentation-only; no product behavior change. Optional: align ADR-010 checklist wording with the rule’s cold/warm/stale language.
+- **Owner:** —
+
 ---
 
 ## Deferred / investigated

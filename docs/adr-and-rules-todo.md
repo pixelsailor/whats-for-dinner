@@ -69,9 +69,10 @@ This backlog turns the project principles in the top-level README into enforceab
   - Keep the top-level README focused on project purpose, principles, stack, and durable boundaries.
   - Direct detailed implementation guidance to ADRs, directory READMEs, or focused docs.
 
-- [ ] **Rule: Offline-first development**
+- [x] **Rule: Offline-first development**
   - Require new features to define anonymous, offline, loading, and reconnect behavior.
   - Flag changes that make auth, Supabase, OpenAI, or network access mandatory for core recipe book flows.
+  - **Done:** [`.cursor/rules/offline-first-development.mdc`](../.cursor/rules/offline-first-development.mdc) (`alwaysApply`). **Follow-up:** [ADR-001](../adrs/ADR-001-product-operating-model.md) and [ADR-010](../adrs/ADR-010-offline-cache-and-service-worker.md) enforcement sections still mention a “future” offline-first rule / `agents.md` — see [`docs/readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md) **GAP-018**.
 
 - [ ] **Rule: Offline and connectivity user messaging**
   - Require explicit, consistent user-facing messaging when the app is offline or when network-only capabilities are unavailable (including reconnect and queued/deferred work where applicable).

@@ -1,0 +1,38 @@
+---
+description: >-
+  ADR-006: serverless/edge-style portability, private vs public env, no secrets
+  in client graphs, and avoiding Node-only APIs in default server paths.
+globs: >-
+  src/hooks.server.ts,src/routes/**/+page.server.ts,src/routes/**/+layout.server.ts,src/routes/**/+server.ts,src/routes/api/**/*.ts,src/lib/server/**/*.ts,src/lib/openai/**/*.ts,src/lib/api/**/*.ts
+alwaysApply: false
+---
+
+# Serverless compatibility
+
+**Binding:** [ADR-006: Serverless and secret boundary](../adrs/ADR-006-serverless-and-secret-boundary.md) (Accepted). **Overlaps (read together):** [`.cursor/rules/ai-integration-boundary.mdc`](./ai-integration-boundary.mdc) (OpenAI paths, Responses + Zod), [`.cursor/rules/supabase-enhancement-boundary.mdc`](./supabase-enhancement-boundary.mdc) (anon vs privileged Supabase). **Deploy reference:** [`svelte.config.js`](../svelte.config.js) — **Netlify** adapter today; Cloudflare-style constraints are a **portability discipline**, not a promise every build is switched.
+
+## Where secrets and private env may live
+
+- **`$env/static/private`** and **`$env/dynamic/private`** only in the **server graph**: `hooks.server.ts`, `+server.ts`, `+page.server.ts` / `+layout.server.ts`, and modules **only** imported from those (or from other server-only modules).
+- **Never** in `.svelte` files, **`+page.ts` / `+layout.ts`** (universal client loads), or any module executed from the **client bundle**.
+- **`$env/static/public` / `$env/dynamic/public`**: OK in client or server when values are intentionally public; **never** put secrets in `PUBLIC_*` names.
+- **Privileged Supabase** (e.g. service role, if added) stays server-only; browser paths use the anon key + session (ADR-006).
+
+## Portability (Node vs Web)
+
+- In **default** SvelteKit server handlers and **`src/lib/api/**`** code on those import paths, **avoid Node-only** APIs (`node:fs`, `node:path`, implicit **`Buffer`**-only assumptions, `process` beyond what the edge runtime documents, blocking `fs` patterns, etc.). Prefer **Web platform** APIs (`fetch`, `Request`/`Response`, `crypto.subtle` where applicable, `URL`, streams) and **runtime-neutral** dependencies.
+- If a feature **requires** Node (long-lived TCP, native addons, filesystem layout assumptions), **isolate** it behind a clearly documented **Node-only** slice (separate module, build flag, or adapter config) and record intentional drift in [`docs/readme-adr-alignment-gaps.md`](../docs/readme-adr-alignment-gaps.md) if it contradicts ADR-006’s default expectation.
+
+## Shared modules and barrels
+
+- **`src/lib/api/**` is not automatically server-only** (ADR-006). Only modules **never** imported from client code may hold private env or privileged clients.
+- **Avoid barrel files** that re-export server implementations next to types consumed by the client; prefer **`*.types.ts` / `*.schemas.ts`** (or similar) for client-safe imports.
+
+## New or changed server work
+
+- **Review import direction** when adding shared `$lib` code: a single client import pulls the whole chain into the browser bundle.
+- **Experimental remote functions** and other server entrypoints must satisfy the **same** secret and portability rules as `+server.ts` / loads (see [SvelteKit remote functions](https://svelte.dev/docs/kit/remote-functions) docs).
+
+## Escalation
+
+Material boundary or adapter changes: successor ADR per ADR-006 **Supersession notes**. Conflicts, naming drift, or intentional exceptions: [`.cursor/rules/adr-compliance.mdc`](./adr-compliance.mdc) and [`docs/readme-adr-alignment-gaps.md`](../docs/readme-adr-alignment-gaps.md).

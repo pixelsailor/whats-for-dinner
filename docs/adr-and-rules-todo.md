@@ -108,9 +108,10 @@ This backlog turns the project principles in the top-level README into enforceab
   - Require TypeScript types to be inferred from schemas rather than duplicated manually.
   - **Done:** [`.cursor/rules/schema-and-type-safety.mdc`](../.cursor/rules/schema-and-type-safety.mdc) (globs `src/lib/api/**/*.ts`, `src/lib/types.ts`, `src/lib/db.ts`, `src/lib/db/**/*.ts`, `src/routes/api/**/*.ts`, `src/lib/stores/**/*.ts`). **Follow-up:** retire deprecated duplicate domain types in `$lib/types`, add Zod for first-class Dexie rows such as `PromptRequest`, and roll `.strict()` through `*.schemas.ts` in production (see [ADR-008 § Implementation compliance](../adrs/ADR-008-schema-led-domain-contracts.md#implementation-compliance-discovered) and resolved **GAP-007** in [`docs/readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md)).
 
-- [ ] **Rule: Serverless compatibility**
+- [x] **Rule: Serverless compatibility**
   - Flag Node-specific APIs in server code unless explicitly isolated from the Cloudflare target.
   - Require private environment imports only in server-side modules.
+  - **Done:** [`.cursor/rules/serverless-compatibility.mdc`](../.cursor/rules/serverless-compatibility.mdc) (globs `hooks.server.ts`, `src/routes/**/+*.server.ts`, `+server.ts`, `src/routes/api/**`, `src/lib/server/**`, `src/lib/openai/**`, `src/lib/api/**`). **Surfaced discrepancies:** [Deferred — Serverless compatibility rule notes](./readme-adr-alignment-gaps.md#serverless-compatibility-rule-notes-2026-05-11) in [`readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md).
 
 - [x] **Rule: ADR compliance**
   - Require agents to consult relevant ADRs before changing architecture, data flow, auth, sync, AI, or offline behavior.

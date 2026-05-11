@@ -204,6 +204,18 @@ Authoring [`.cursor/rules/offline-connectivity-capability.mdc`](../.cursor/rules
 
 **Naming discrepancy:** [`docs/adr-and-rules-todo.md`](./adr-and-rules-todo.md) listed this work as **Rule: Offline and connectivity user messaging**; the delivered artifact intentionally covers **capability state, implementation, and periodic re-check** in addition to user-facing copy. The todo row was renamed on completion.
 
+### Serverless compatibility rule notes (2026-05-11)
+
+Authoring [`.cursor/rules/serverless-compatibility.mdc`](../.cursor/rules/serverless-compatibility.mdc) encodes [ADR-006](../adrs/ADR-006-serverless-and-secret-boundary.md) for agents; it did **not** change product behavior. Cross-checks:
+
+| Topic | Where tracked / notes |
+| ----- | --------------------- |
+| Misleading **private** OpenAI env name (`VITE_OPENAI_API_KEY`) | **GAP-003** — ADR-006 *Notes*; rule defers to ADR wording |
+| **AI-specific** server paths, Responses + Zod, preference injection | [`.cursor/rules/ai-integration-boundary.mdc`](../.cursor/rules/ai-integration-boundary.mdc) — keep both rules when editing `src/lib/api/ai/**` and API routes |
+| ADR-006 **Enforcement rules** still mention **planned** rule language and [`agents.md`](../agents.md) | **Documentation lag:** ADR body updated to cite the Cursor rule; full retirement of `agents.md` authority remains [`docs/adr-and-rules-todo.md`](./adr-and-rules-todo.md) **Legacy `agents.md` Distribution** |
+| **Netlify** vs edge portability | **GAP-014** (resolved) — README/rules aligned on adapter vs discipline; [`svelte.config.js`](../svelte.config.js) has `adapter-netlify` with `runtime: 'edge'` commented out |
+| **SvelteKit `experimental.remoteFunctions`** | [`svelte.config.js`](../svelte.config.js) enables it; ADR-006 does not name remote functions explicitly — treat them like other **server entrypoints** under ADR-006 (same secret and portability bar). [`.cursor/rules/svelte-5-ui-conventions.mdc`](../.cursor/rules/svelte-5-ui-conventions.mdc) already points contributors at remote-functions docs with a deployment caveat |
+
 ---
 
 ## Resolved

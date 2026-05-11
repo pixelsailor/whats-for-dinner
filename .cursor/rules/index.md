@@ -16,6 +16,7 @@
 | | local-data-dexie-ownership | ADR-002: Dexie as local SoT; LiveQuery reads; mutations via stores/helpers | globs `src/lib/db.ts`, `src/lib/db/**`, `src/lib/stores/**` |
 | | ai-integration-boundary | ADR-007/006: server-only provider, Responses+Zod, prefs on generation, no client SDK/secrets | globs `src/lib/api/ai/**`, `src/lib/server/**`, `src/lib/openai/**`, `src/routes/api/**`, `src/routes/**/+page.server.ts` |
 | | supabase-enhancement-boundary | ADR-004/006: optional cloud auth/sync/share; local continuity; anon client; CloudService/SyncService seams | globs hooks, `+layout*.ts`, Supabase client modules, `src/lib/api/cloud/**`, account/auth API, `src/app.d.ts` |
+| | serverless-compatibility | ADR-006: private vs public env, no secrets in client graphs, Web APIs over Node in default server paths | globs `hooks.server.ts`, `src/routes/**/+*.server.ts`, `+server.ts`, `src/routes/api/**`, `src/lib/server/**`, `src/lib/openai/**`, `src/lib/api/**` |
 | | schema-and-type-safety | ADR-008: Zod-led contracts, z.infer, api `*.schemas`/`*.types`, `$lib/types` for generics, boundary `safeParse`, `.strict()` | globs `src/lib/api/**`, `src/lib/types.ts`, `src/lib/db.ts`, `src/lib/db/**`, `src/routes/api/**`, `src/lib/stores/**` |
 | | error-handling-conventions | Shared error pages, per-service HTTP handling, no global interceptor | globs |
 | | security-sanitization | | globs |
@@ -33,5 +34,5 @@
 | Mode | Behavior | Rules |
 |------|----------|-------|
 | **alwaysApply** | Loaded into every agent session automatically. No user action needed | project-best-practices, lint-and-code-quality, jsdoc-conventions, adr-compliance |
-| **globs** | Loaded when the agent touches files matching the glob pattern. | svelte-5-ui-conventions, local-data-dexie-ownership, ai-integration-boundary, schema-and-type-safety, ui-conventions, error-handling-conventions, security-sanitization, storage-conventions |
+| **globs** | Loaded when the agent touches files matching the glob pattern. | svelte-5-ui-conventions, local-data-dexie-ownership, ai-integration-boundary, serverless-compatibility, schema-and-type-safety, ui-conventions, error-handling-conventions, security-sanitization, storage-conventions |
 | **manual** | Loaded only when the user explicitly invokes the rule. | orchestrator, planner, builder, validator |

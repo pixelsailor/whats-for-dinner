@@ -66,7 +66,7 @@ Deployment targets are serverless or edge-capable (see [agents.md](../agents.md)
 | Risk | Mitigation |
 | ---- | ---------- |
 | Accidental client import of a server module with private env | SvelteKit/Vite should fail the build; code review; avoid barrel exports that mix server implementations with client-imported values. |
-| Node-only API in shared code | ESLint / review; future “serverless compatibility” rule in [.cursor/rules](../.cursor/rules/index.md). |
+| Node-only API in shared code | ESLint / review; [`.cursor/rules/serverless-compatibility.mdc`](../.cursor/rules/serverless-compatibility.mdc) in [.cursor/rules](../.cursor/rules/index.md). |
 | Misleading env var names | The project currently uses `VITE_OPENAI_API_KEY` with `$env/static/private` (see **Notes**); treat as technical debt to rename to a non-`VITE_` private name when convenient. |
 
 ## Operational impact
@@ -88,7 +88,7 @@ Deployment targets are serverless or edge-capable (see [agents.md](../agents.md)
 
 ## Enforcement rules
 
-- **Cursor / agent rules:** The planned **Rule: Serverless compatibility** in [`docs/adr-and-rules-todo.md`](../docs/adr-and-rules-todo.md) should cite this ADR; [agents.md](../agents.md) already states private keys in server code and no secrets in client components.
+- **Cursor / agent rules:** [`.cursor/rules/serverless-compatibility.mdc`](../.cursor/rules/serverless-compatibility.mdc) cites this ADR (server graphs, public vs private env, portability). [`agents.md`](../agents.md) remains a transitional reference until the **Legacy `agents.md` Distribution** work in [`docs/adr-and-rules-todo.md`](../docs/adr-and-rules-todo.md) completes.
 - **Code / architecture:** Block PRs that add `$env/static/private` or OpenAI clients to `.svelte` files, `+page.ts`/`+layout.ts` (client), or shared modules imported from those. Flag Node-only APIs in code paths used by `+server.ts` unless the project explicitly documents a Node-only deployment slice.
 - **When to revisit:** New deployment adapter (edge vs Node), introduction of Supabase service role, or a first-class **user-provided AI endpoint** model (likely paired with a future provider/self-host ADR).
 

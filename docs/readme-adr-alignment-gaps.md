@@ -49,16 +49,6 @@ Suggested fields (adapt as needed):
 - **Notes:** Affected area: `src/lib/api/cloud/sync.service.ts` and `src/lib/api/cloud/cloud.model.ts`; remediation should include tombstone-aware planning and tests for delete/restore propagation.
 - **Owner:** —
 
-### GAP-003
-
-- **Status:** Open
-- **Severity:** Minor
-- **Source:** [ADR-006](../adrs/ADR-006-serverless-and-secret-boundary.md) — private env naming
-- **Observed:** The OpenAI key is read from `$env/static/private` but the variable name is `VITE_OPENAI_API_KEY` (also documented in [README](../README.md)).
-- **Expected:** Private-only configuration should use a name that does not suggest `import.meta.env` public embedding (for example `OPENAI_API_KEY`).
-- **Notes:** Low security risk if the key never appears in client bundles; renaming requires updating README, local `.env` examples, and deployment secrets.
-- **Owner:** —
-
 ### GAP-005
 
 - **Status:** Open
@@ -94,7 +84,7 @@ Suggested fields (adapt as needed):
 - **Status:** Open
 - **Severity:** Major
 - **Source:** [README](../README.md) — *Self-hosting as a future path*; [ADR-011](../adrs/ADR-011-self-hosting-provider-model.md)
-- **Observed:** (a) AI route handlers in `src/routes/api/suggestions/+server.ts`, `src/routes/api/recipes/+server.ts`, and `src/routes/api/recipes/new/+server.ts` reject any request without `permissions.ai_assistance`, with **no escape path for a validated personal AI provider**; (b) the `OpenAI` client in `src/lib/api/ai/ai.model.ts` and `src/lib/server/openai.ts` is a **singleton** keyed by `VITE_OPENAI_API_KEY`, so a per-request or personal-provider override cannot be supplied; (c) `PUBLIC_SUPABASE_URL` / `PUBLIC_SUPABASE_ANON_KEY` are read at compile time in `src/lib/supabaseClient.ts`, `src/hooks.server.ts`, and `src/lib/db/remote.ts`, so a deployment cannot point at a different Supabase project at runtime; (d) `src/lib/api/cloud/cloud.service.ts` is a Supabase-bound class with no provider-agnostic interface; (e) `src/routes/+layout.server.ts` exposes only `featureFlags.openai` as a single boolean — no `aiCapabilities` or `cloudCapabilities` set; (f) `src/lib/db.ts` header comment claims "By virtue of `ai_assistance` permission requirements, `suggestions` may only be stored for authenticated users," tying suggestion storage to a WFD-managed account.
+- **Observed:** (a) AI route handlers in `src/routes/api/suggestions/+server.ts`, `src/routes/api/recipes/+server.ts`, and `src/routes/api/recipes/new/+server.ts` reject any request without `permissions.ai_assistance`, with **no escape path for a validated personal AI provider**; (b) the `OpenAI` client in `src/lib/api/ai/ai.model.ts` and `src/lib/server/openai.ts` is a **singleton** keyed by `OPENAI_API_KEY`, so a per-request or personal-provider override cannot be supplied; (c) `PUBLIC_SUPABASE_URL` / `PUBLIC_SUPABASE_ANON_KEY` are read at compile time in `src/lib/supabaseClient.ts`, `src/hooks.server.ts`, and `src/lib/db/remote.ts`, so a deployment cannot point at a different Supabase project at runtime; (d) `src/lib/api/cloud/cloud.service.ts` is a Supabase-bound class with no provider-agnostic interface; (e) `src/routes/+layout.server.ts` exposes only `featureFlags.openai` as a single boolean — no `aiCapabilities` or `cloudCapabilities` set; (f) `src/lib/db.ts` header comment claims "By virtue of `ai_assistance` permission requirements, `suggestions` may only be stored for authenticated users," tying suggestion storage to a WFD-managed account.
 - **Expected:** AI gating should pair `permissions.ai_assistance` with a validated **personal-provider** path; AI clients should be resolvable per request from managed default or personal config; cloud URL/anon key should be resolvable at runtime; cloud database operations should be expressible against a capability matrix; `featureFlags` should expose AI/cloud capability sets; suggestion storage should follow [ADR-003](../adrs/ADR-003-ai-suggestion-lifecycle.md) regardless of WFD account state.
 - **Notes:** Pre-implementation drift: nothing currently advertises personal-provider support to users, but several seams already foreclose it. Remediation likely starts by factoring the `OpenAI` client behind a server-side resolver and widening `featureFlags`, then revisiting AI route gating. See [ADR-011](../adrs/ADR-011-self-hosting-provider-model.md) § Alignment gaps for the per-row breakdown.
 - **Owner:** —
@@ -210,7 +200,7 @@ Authoring [`.cursor/rules/serverless-compatibility.mdc`](../.cursor/rules/server
 
 | Topic | Where tracked / notes |
 | ----- | --------------------- |
-| Misleading **private** OpenAI env name (`VITE_OPENAI_API_KEY`) | **GAP-003** — ADR-006 *Notes*; rule defers to ADR wording |
+| Private OpenAI env naming (`OPENAI_API_KEY` + `$env/static/private`) | **GAP-003** resolved — ADR-006 *Risks* / *Notes* and code/README aligned; [`.cursor/rules/serverless-compatibility.mdc`](../.cursor/rules/serverless-compatibility.mdc) defers to ADR-006 |
 | **AI-specific** server paths, Responses + Zod, preference injection | [`.cursor/rules/ai-integration-boundary.mdc`](../.cursor/rules/ai-integration-boundary.mdc) — keep both rules when editing `src/lib/api/ai/**` and API routes |
 | ADR-006 **Enforcement rules** still mention **planned** rule language and [`agents.md`](../agents.md) | **Documentation lag:** ADR body updated to cite the Cursor rule; full retirement of `agents.md` authority remains [`docs/adr-and-rules-todo.md`](./adr-and-rules-todo.md) **Legacy `agents.md` Distribution** |
 | **Netlify** vs edge portability | **GAP-014** (resolved) — README/rules aligned on adapter vs discipline; [`svelte.config.js`](../svelte.config.js) has `adapter-netlify` with `runtime: 'edge'` commented out |
@@ -231,3 +221,4 @@ Move **Fixed** items here with a one-line **Resolution** (and optional PR link) 
 | **GAP-012** | [`src/lib/db.ts`](../src/lib/db.ts) is the canonical Dexie application database; [`.cursor/rules/local-data-dexie-ownership.mdc`](../.cursor/rules/local-data-dexie-ownership.mdc), [`agents.md`](../agents.md), and migration docs now define `src/lib/db/` as a helper directory only. No production code referenced `$lib/db/local`; the unused `src/lib/db/local.ts` duplicate Dexie root was removed. |
 | **GAP-014** | [`agents.md`](../agents.md) serverless line, [`.cursor/rules/svelte-mcp-workflow.mdc`](../.cursor/rules/svelte-mcp-workflow.mdc), and [`.cursor/rules/svelte-5-ui-conventions.mdc`](../.cursor/rules/svelte-5-ui-conventions.mdc) now align with [`svelte.config.js`](../svelte.config.js) and [ADR-006](../adrs/ADR-006-serverless-and-secret-boundary.md): **Netlify** is the configured adapter; other runtimes are a portability discipline. |
 | **GAP-015** | [`agents.md`](../agents.md) and [`.cursor/rules/svelte-5-ui-conventions.mdc`](../.cursor/rules/svelte-5-ui-conventions.mdc) document **`$effect`** as a legitimate rune for true side effects, with **prefer `$derived`** for pure derivations when that does not harm clarity or performance (see migration note in [`docs/adr-and-rules-todo.md`](./adr-and-rules-todo.md)). |
+| **GAP-003** | Private OpenAI secret renamed to **`OPENAI_API_KEY`** (loaded only via `$env/static/private` in `src/lib/api/ai/ai.model.ts`, `src/lib/server/openai.ts`, `src/lib/openai/index.ts`, and boolean gating in `src/routes/+layout.server.ts`). [ADR-006](../adrs/ADR-006-serverless-and-secret-boundary.md) *Risks* / *Notes* and [ADR-011](../adrs/ADR-011-self-hosting-provider-model.md) citations updated; README / `.env` / deployment docs already aligned. |

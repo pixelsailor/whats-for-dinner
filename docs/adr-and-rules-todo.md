@@ -188,7 +188,7 @@ The root [`agents.md`](../agents.md) predates the ADR system and the `.cursor/ru
 - [ ] **Reconcile Architecture highlights and Env & secrets**
   - Fold *Architecture highlights* into the relevant ADRs and scoped READMEs ([ADR-002](../adrs/ADR-002-local-data-ownership.md), [ADR-006](../adrs/ADR-006-serverless-and-secret-boundary.md), [ADR-007](../adrs/ADR-007-ai-provider-contract.md), [`src/lib/api/README.md`](../src/lib/api/README.md), [`src/lib/stores/README.md`](../src/lib/stores/README.md)) rather than restating in `agents.md`.
   - Update the OpenAI module map: `agents.md` only lists `src/lib/server/openai.ts` and `src/lib/openai/*.ts`, but current code also uses `src/lib/api/ai/` per [ADR-007](../adrs/ADR-007-ai-provider-contract.md) (see [`readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md) GAP-011).
-  - *Env & secrets* is already covered by [ADR-006](../adrs/ADR-006-serverless-and-secret-boundary.md); confirm coverage and remove from `agents.md` (the `VITE_OPENAI_API_KEY` naming concern is GAP-003).
+  - *Env & secrets* is already covered by [ADR-006](../adrs/ADR-006-serverless-and-secret-boundary.md); confirm coverage and remove from `agents.md` (private OpenAI key naming aligned with **`OPENAI_API_KEY`**; **GAP-003** resolved in [`readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md)).
 
 - [ ] **Migrate Documentation References**
   - Move the external doc link list into the root [README](../README.md) Documentation Map (or a dedicated `docs/references.md`) and remove from `agents.md`.

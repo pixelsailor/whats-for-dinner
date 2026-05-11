@@ -18,7 +18,7 @@ Architecture highlights (what matters to agents)
 - Cloud sync uses Supabase for authorized users via `src/lib/supabaseClient.ts` (PUBLIC_SUPABASE_* envs).
 - OpenAI integration: server-side wrappers live under `src/lib/server/openai.ts` and higher-level
 	prompt logic in `src/lib/openai/*.ts` (see `recipe.ts`, `schema.ts`). Keep secret keys in server-only
-	envs (`$env/static/private`). Example: private key imported as `VITE_OPENAI_API_KEY` in this repo.
+	envs (`$env/static/private`). Example: private key imported as `OPENAI_API_KEY` in this repo.
 - API routes live under `src/routes/api/*`. Any code that touches secrets (OpenAI, private DB keys)
 	should run in server modules or route handlers, not in client components.
 
@@ -36,7 +36,7 @@ Env & secrets
 - Public keys: use `PUBLIC_*` env vars for values safe to expose (supabase URL/anon key found in
 	`src/lib/supabaseClient.ts`).
 - Private keys: use `$env/static/private` imports inside server code. This project uses
-	`VITE_OPENAI_API_KEY` (imported in `src/lib/openai/index.ts`) — do NOT expose it to client bundles.
+	`OPENAI_API_KEY` (imported in `src/lib/openai/index.ts`) — do NOT expose it to client bundles.
 
 Tests & CI hints
 - Unit tests use Vitest. Tests live next to routes/components (see `src/routes/*/*.test.ts` and

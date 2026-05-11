@@ -20,7 +20,7 @@ import type {
 import { PromptContextEnum } from '$lib/types';
 import type { ChatCompletionMessageParam } from 'openai/resources';
 import { OpenAI } from 'openai';
-import { VITE_OPENAI_API_KEY } from '$env/static/private';
+import { OPENAI_API_KEY } from '$env/static/private';
 
 const model = 'gpt-4.1-nano';
 
@@ -36,13 +36,13 @@ let client: OpenAI | null = null;
  * @returns The OpenAI client.
  */
 function getOpenAI(): OpenAI {
-	if (!VITE_OPENAI_API_KEY) {
+	if (!OPENAI_API_KEY) {
 		throw new Error(OPENAI_DISABLED_ERROR);
 	}
 
 	if (!client) {
 		client = new OpenAI({
-			apiKey: VITE_OPENAI_API_KEY
+			apiKey: OPENAI_API_KEY
 		});
 	}
 

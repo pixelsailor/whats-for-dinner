@@ -67,7 +67,7 @@ Deployment targets are serverless or edge-capable (see [agents.md](../agents.md)
 | ---- | ---------- |
 | Accidental client import of a server module with private env | SvelteKit/Vite should fail the build; code review; avoid barrel exports that mix server implementations with client-imported values. |
 | Node-only API in shared code | ESLint / review; [`.cursor/rules/serverless-compatibility.mdc`](../.cursor/rules/serverless-compatibility.mdc) in [.cursor/rules](../.cursor/rules/index.md). |
-| Misleading env var names | The project currently uses `VITE_OPENAI_API_KEY` with `$env/static/private` (see **Notes**); treat as technical debt to rename to a non-`VITE_` private name when convenient. |
+| `VITE_`-prefixed names for server-only secrets | Vite exposes `VITE_*` vars to client `import.meta.env`; keep privileged keys on non-`VITE_` names and load them only via `$env/static/private` (this repo uses `OPENAI_API_KEY` for OpenAI). |
 
 ## Operational impact
 
@@ -83,7 +83,7 @@ Deployment targets are serverless or edge-capable (see [agents.md](../agents.md)
 
 ## Notes (optional)
 
-- **Environment naming:** `VITE_OPENAI_API_KEY` is loaded via `$env/static/private` and is **not** a `import.meta.env.VITE_*` public embed. The `VITE_` prefix is historical/misleading; prefer a private-only name (for example `OPENAI_API_KEY`) in a future cleanup to avoid implying client exposure.
+- **Environment naming:** The OpenAI API key uses **`OPENAI_API_KEY`** via `$env/static/private` only (never `import.meta.env` on the client). Do not use a `VITE_` prefix for secrets; Vite’s `VITE_*` convention is for values that may be embedded in client bundles ([Vite env variables and modes](https://vite.dev/guide/env-and-mode)).
 - **Implementation verification (2026-05-09):** Repository scan showed `$env/static/private` only in `src/lib/api/ai/ai.model.ts`, `src/lib/openai/index.ts`, `src/lib/server/openai.ts`, and `src/routes/+layout.server.ts`. No `node:` core imports under `src/`. Client AI access goes through HTTP handlers. No evidence of service-role Supabase keys in the repo.
 
 ## Enforcement rules

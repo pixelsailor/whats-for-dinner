@@ -193,7 +193,7 @@ export type Recipe = z.infer<typeof RecipeSchema>;
 - Reactive stores use small helpers (see `src/lib/stores/_utils.ts` -> `createLiveQueryStore`) and
 	derived/readable stores in `src/lib/stores/*.ts` (examples: `recipes.ts`, `suggestions.ts`).
 - Cloud sync uses Supabase for authorized users via `src/lib/supabaseClient.ts` (PUBLIC_SUPABASE_* envs).
-- OpenAI integration (dual path, [ADR-007](adrs/ADR-007-ai-provider-contract.md)): **preferred** — `src/lib/api/ai/ai.model.ts` uses the **Responses API** with Zod (`zodTextFormat`) for suggestion flows and related structured outputs; consumed from `src/routes/api/suggestions/*`. **Deprecated legacy** — `src/lib/server/openai.ts` still uses **Chat Completions** for some recipe actions and Q&A until migrated; treat edits there as migration debt, not patterns to copy. Prompt strings live in `src/lib/openai/*.ts` (see `recipe.ts`, `schema.ts`). Keep secret keys in server-only envs (`$env/static/private`). This repo imports the private key as `VITE_OPENAI_API_KEY`.
+- OpenAI integration (dual path, [ADR-007](adrs/ADR-007-ai-provider-contract.md)): **preferred** — `src/lib/api/ai/ai.model.ts` uses the **Responses API** with Zod (`zodTextFormat`) for suggestion flows and related structured outputs; consumed from `src/routes/api/suggestions/*`. **Deprecated legacy** — `src/lib/server/openai.ts` still uses **Chat Completions** for some recipe actions and Q&A until migrated; treat edits there as migration debt, not patterns to copy. Prompt strings live in `src/lib/openai/*.ts` (see `recipe.ts`, `schema.ts`). Keep secret keys in server-only envs (`$env/static/private`). This repo imports the private key as `OPENAI_API_KEY`.
 - API routes live under `src/routes/api/*`. Any code that touches secrets (OpenAI, private DB keys)
 	should run in server modules or route handlers, not in client components.
   
@@ -204,7 +204,7 @@ export type Recipe = z.infer<typeof RecipeSchema>;
 - Public keys: use `PUBLIC_*` env vars for values safe to expose (supabase URL/anon key found in
 	`src/lib/supabaseClient.ts`).
 - Private keys: use `$env/static/private` imports inside server code. This project uses
-	`VITE_OPENAI_API_KEY` (imported in `src/lib/openai/index.ts`) — do NOT expose it to client bundles.
+	`OPENAI_API_KEY` (imported in `src/lib/openai/index.ts`) — do NOT expose it to client bundles.
 
 ---
 

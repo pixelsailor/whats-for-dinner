@@ -1,4 +1,4 @@
-import { VITE_OPENAI_API_KEY } from '$env/static/private';
+import { OPENAI_API_KEY } from '$env/static/private';
 import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = async ({ locals, cookies }) => {
@@ -15,7 +15,7 @@ export const load: LayoutServerLoad = async ({ locals, cookies }) => {
 		permissions,
 		permissionFlags,
 		featureFlags: {
-			openai: Boolean(VITE_OPENAI_API_KEY)
+			openai: Boolean(OPENAI_API_KEY)
 		},
 		cookies: cookies.getAll()
 	};

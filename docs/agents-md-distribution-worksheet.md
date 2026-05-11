@@ -18,7 +18,7 @@ Audit of [root `agents.md`](../agents.md): each block mapped to its **target hom
 | 12 | **General Code Style** (167–176) | Same as row 7 (code conventions rule / `lint-and-code-quality`) | Reconcile 2-space indent vs “respect indents” in TypeScript section |
 | 13 | **Accessibility and UX** (180–186) | **Rule: Svelte 5 and UI conventions** (a11y subsection) and/or code-conventions rule | Todo: *Migrate TypeScript…* bundles a11y with code style |
 | 14 | **Architecture highlights** (190–198) | [ADR-002](../adrs/ADR-002-local-data-ownership.md), [ADR-006](../adrs/ADR-006-serverless-and-secret-boundary.md), [ADR-007](../adrs/ADR-007-ai-provider-contract.md), [`src/lib/api/README.md`](../src/lib/api/README.md), [`src/lib/stores/README.md`](../src/lib/stores/README.md) | Todo: *Reconcile Architecture highlights…*; module map vs [GAP-011](readme-adr-alignment-gaps.md) |
-| 15 | **Env & secrets** (202–207) | [ADR-006](../adrs/ADR-006-serverless-and-secret-boundary.md) | Confirm no gap beyond [GAP-003](readme-adr-alignment-gaps.md); drop from `agents.md` |
+| 15 | **Env & secrets** (202–207) | [ADR-006](../adrs/ADR-006-serverless-and-secret-boundary.md) | **GAP-003** resolved (`OPENAI_API_KEY` + `$env/static/private`); drop from `agents.md` when reconciling Architecture / env blocks |
 | 16 | **Documentation References** (211–220) | README Documentation Map and/or **`docs/references.md`** | Todo: *Migrate Documentation References* |
 
 ## Cross-cutting follow-ups (not a separate `agents.md` section)

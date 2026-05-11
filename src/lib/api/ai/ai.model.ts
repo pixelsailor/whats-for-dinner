@@ -12,7 +12,7 @@
 import { OpenAI } from 'openai';
 import { zodTextFormat } from 'openai/helpers/zod';
 
-import { VITE_OPENAI_API_KEY } from '$env/static/private';
+import { OPENAI_API_KEY } from '$env/static/private';
 
 import {
 	type PromptContext,
@@ -38,13 +38,13 @@ let client: OpenAI | null = null;
  * @returns The OpenAI client.
  */
 function getOpenAI(): OpenAI {
-	if (!VITE_OPENAI_API_KEY) {
+	if (!OPENAI_API_KEY) {
 		throw new Error(OPENAI_DISABLED_ERROR);
 	}
 
 	if (!client) {
 		client = new OpenAI({
-			apiKey: VITE_OPENAI_API_KEY
+			apiKey: OPENAI_API_KEY
 		});
 	}
 

@@ -16,6 +16,7 @@ alwaysApply: false
 - **`$env/static/private`** and **`$env/dynamic/private`** only in the **server graph**: `hooks.server.ts`, `+server.ts`, `+page.server.ts` / `+layout.server.ts`, and modules **only** imported from those (or from other server-only modules).
 - **Never** in `.svelte` files, **`+page.ts` / `+layout.ts`** (universal client loads), or any module executed from the **client bundle**.
 - **`$env/static/public` / `$env/dynamic/public`**: OK in client or server when values are intentionally public; **never** put secrets in `PUBLIC_*` names.
+- **Vite `VITE_*` convention:** Do not use the `VITE_` prefix for server-only secrets; Vite may expose those names to client `import.meta.env` ([Vite env variables and modes](https://vite.dev/guide/env-and-mode)). OpenAI uses **`OPENAI_API_KEY`** via `$env/static/private` only.
 - **Privileged Supabase** (e.g. service role, if added) stays server-only; browser paths use the anon key + session (ADR-006).
 
 ## Portability (Node vs Web)

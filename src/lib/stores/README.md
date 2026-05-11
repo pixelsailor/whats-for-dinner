@@ -31,3 +31,7 @@ timestamp in ISO format.
 
 Synchronization conflicts should be resolved by the data with the most recent `updated_at`
 timestamp taking priority.
+
+Deterministic **recommendations** (saved-library bucketing per ADR-009) live in
+[`src/lib/recommendations/recommendations.ts`](../recommendations/recommendations.ts) and read from the
+same Dexie-backed recipe stores as the rest of the app — not a separate live-query store.

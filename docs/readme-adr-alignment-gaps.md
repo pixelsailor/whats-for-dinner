@@ -79,16 +79,6 @@ Suggested fields (adapt as needed):
 - **Notes:** `src/lib/api/ai/ai.schemas.ts` — `RecipeSuggestionsResponseSchema` includes `request_id` meant for the API layer but is bundled into the structured-output schema for the model; review schema vs handler merge in `src/routes/api/suggestions/+server.ts`.
 - **Owner:** —
 
-### GAP-008
-
-- **Status:** Open
-- **Severity:** Major
-- **Source:** [ADR-009](../adrs/ADR-009-recommendations-engine-inputs.md)
-- **Observed:** Unused `recommendedRecipes` store (`src/lib/stores/recommendations.ts`) diverges from `src/routes/recommendations/+page.svelte`; refresh path uses unfiltered `db.recipes.toArray()` vs `is_current` / `!deleted_at`; “stale” buckets use **any** old `checkout_history` entry; in-place `.sort()` mutates the live recipe list; `svelte-check` errors on `recommendedRecipes` (string timestamps vs numeric sort/`dayDiff`).
-- **Expected:** Recommendations use **saved-recipe fields only** (per ADR-009), share consistent filters with other recipe views, avoid duplicate incompatible engines, and keep bucketing semantics aligned with ADR-009.
-- **Notes:** Per ADR-009, **user preferences do not apply** to recommendations; README wording corrected. See ADR-009 § Alignment gaps.
-- **Owner:** —
-
 ### GAP-009
 
 - **Status:** Open
@@ -222,6 +212,7 @@ Move **Fixed** items here with a one-line **Resolution** (and optional PR link) 
 
 | ID | Resolution |
 | -- | ---------- |
+| **GAP-008** | Shared deterministic bucketing in [`src/lib/recommendations/recommendations.ts`](../src/lib/recommendations/recommendations.ts) (filter `is_current` + `!deleted_at`, **last** checkout for stale tiers, mutually exclusive 2–6 month vs 6+ month buckets, non-mutating sort for “all time” popularity, ISO-safe `toMillis`). [`src/routes/recommendations/+page.svelte`](../src/routes/recommendations/+page.svelte) uses `unsortedRecipesStore` + that module only; unused `recommendedRecipes` store file under `src/lib/stores/` removed. Vitest: [`src/lib/recommendations/recommendations.test.ts`](../src/lib/recommendations/recommendations.test.ts). ADR-009 alignment table updated. |
 | **GAP-007** | **Policy / agent guidance closed:** [`.cursor/rules/schema-and-type-safety.mdc`](../.cursor/rules/schema-and-type-safety.mdc) encodes ADR-008 (Zod source of truth, `z.infer`, `src/lib/api/**` layout, `$lib/types` for cross-cutting generics only, `.svelte` not for shared domain types, `.strict()` on new/revised API object schemas, `safeParse` at boundaries). **Residual implementation** (deprecated duplicate imports from `src/lib/types.ts`, `PromptRequest` without Zod, incremental `.strict()` on existing schemas, overlap with **GAP-006** on some AI paths) is deferred to a dedicated code refactor; [ADR-008 § Implementation compliance](../adrs/ADR-008-schema-led-domain-contracts.md#implementation-compliance-discovered) remains the checklist until that work lands. |
 | **GAP-004** | README *Technology Stack*, [`agents.md`](../agents.md), [`adrs/ADR-007-ai-provider-contract.md`](../adrs/ADR-007-ai-provider-contract.md) (including a **Legacy Chat Completions inventory** table), [`adrs/INDEX.md`](../adrs/INDEX.md), [`adrs/ADR-011-self-hosting-provider-model.md`](../adrs/ADR-011-self-hosting-provider-model.md), [`docs/adr-and-rules-todo.md`](./adr-and-rules-todo.md), and [`adrs/ADR-008-schema-led-domain-contracts.md`](../adrs/ADR-008-schema-led-domain-contracts.md) now treat **Chat Completions as deprecated** and document the **Responses API + Zod structured output** as preferred. Production call sites were not changed. |
 | **GAP-013** | [`agents.md`](../agents.md) now matches [ADR-008](../adrs/ADR-008-schema-led-domain-contracts.md) and [`src/lib/api/README.md`](../src/lib/api/README.md): API contracts are organized by **domain folder** with `*.schemas.ts`, `*.types.ts`, `*.model.ts`, `*.service.ts`, and a domain `index.ts` barrel. ADR-008 no longer depends on `agents.md` as the source for strict schema guidance. |

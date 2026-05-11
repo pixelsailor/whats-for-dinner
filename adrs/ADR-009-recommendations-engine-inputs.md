@@ -143,15 +143,17 @@ orchestration not required for documenting this decision; follow Plan–Build–
 
 ### Alignment gaps (current implementation vs this ADR)
 
-The following gaps were identified when comparing this ADR to the codebase; they are also recorded in [docs/readme-adr-alignment-gaps.md](../docs/readme-adr-alignment-gaps.md) as **GAP-008**.
+**GAP-008 (resolved):** [docs/readme-adr-alignment-gaps.md](../docs/readme-adr-alignment-gaps.md#resolved) — shared module [`src/lib/recommendations/recommendations.ts`](../src/lib/recommendations/recommendations.ts), route consumes `unsortedRecipesStore` + `categorizeRecipes` only, last-checkout semantics, mutually exclusive stale tiers, non-mutating ranking, Vitest coverage.
 
-| Topic | ADR expectation | Observed |
+Historical comparison (pre-fix):
+
+| Topic | ADR expectation | Was observed (fixed) |
 | --- | --- | --- |
-| **Single source of recommendation logic** | Prefer shared, testable helpers; avoid incompatible duplicates. | `src/lib/stores/recommendations.ts` exports `recommendedRecipes` but **nothing imports it**; the **route** `src/routes/recommendations/+page.svelte` implements separate categorization. |
-| **Consistent recipe sets** | Use the same filters as other recipe surfaces (`is_current`, soft delete) when reading the collection. | `loadRecommendations()` uses `db.recipes.toArray()` without the `is_current` / `deleted_at` filtering applied in `unsortedRecipesStore`. |
-| **Schema-aligned types in stores** | Sorting and date math should match `SavedRecipe` field types (ISO datetimes). | `recommendedRecipes` sorts with `b.created_at - a.created_at` and passes `last_opened` into numeric `dayDiff`; `svelte-check` reports type errors on those lines (strings vs arithmetic). |
-| **Bucket semantics** | “Not made in 2 months” vs “6 months” should be defined (e.g. based on **last** checkout, mutually exclusive tiers). | Current filters use **any** checkout older than a threshold, so recipes can appear in multiple “stale” buckets and **old** checkouts dominate even if the user cooked recently. |
-| **Non-mutation of shared arrays** | Avoid mutating store-backed arrays in place when deriving views. | `categorizeRecipes` calls `recipes.sort(...)` on the **live** recipe list for “most popular all time,” which mutates the derived array in place. |
+| **Single source of recommendation logic** | Prefer shared, testable helpers; avoid incompatible duplicates. | Unused `recommendedRecipes` store diverged from the route; **now** one module + tests. |
+| **Consistent recipe sets** | Use the same filters as other recipe surfaces (`is_current`, soft delete) when reading the collection. | Refresh used unfiltered `db.recipes.toArray()`; **now** only `unsortedRecipesStore` / `filterRecommendableRecipes`. |
+| **Schema-aligned types** | Date math should match `SavedRecipe` field types (ISO datetimes). | Numeric subtract on ISO strings in removed store; **now** `toMillis` throughout. |
+| **Bucket semantics** | Based on **last** checkout, mutually exclusive stale tiers where applicable. | **Any** old checkout matched multiple stale buckets; **now** `getLastCheckoutMs` + 2–6 month band vs 6+ month. |
+| **Non-mutation of shared arrays** | Avoid in-place sort on live lists. | In-place `recipes.sort` on derived data; **now** `[...base].sort` for popularity. |
 
 ### Planning artifact
 
@@ -172,5 +174,5 @@ The following gaps were identified when comparing this ADR to the codebase; they
 ### Merge / workflow gates
 
 - [x] ADR created for durable recommendation/input boundary.
-- [x] Known deviations documented as alignment gaps.
+- [x] Known deviations documented as alignment gaps (**GAP-008** resolved in code; see Resolved table in alignment gaps doc).
 - [ ] Validation checklist for recommendation behavior (optional until orchestration template exists).

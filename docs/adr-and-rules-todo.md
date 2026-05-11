@@ -93,7 +93,7 @@ This backlog turns the project principles in the top-level README into enforceab
   - Treat Supabase as optional for backup, sync, sharing, and auth.
   - Require graceful behavior when users are logged out, offline, or missing cloud permissions.
   - Avoid hard-coding Supabase-only assumptions where a provider contract should allow future user-hosted databases.
-  - **Done:** [`.cursor/rules/supabase-enhancement-boundary.mdc`](../.cursor/rules/supabase-enhancement-boundary.mdc) (globs hooks, root layouts, standalone Supabase client modules, `src/lib/api/cloud/**`, account/auth API layers, `src/app.d.ts`). **Discrepancies surfaced during authoring:** `PUBLIC_SUPABASE_PUBLISHABLE_KEY` in `src/routes/+layout.ts` vs `PUBLIC_SUPABASE_ANON_KEY` elsewhere and in README — recorded as **GAP-016** in [`docs/readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md).
+  - **Done:** [`.cursor/rules/supabase-enhancement-boundary.mdc`](../.cursor/rules/supabase-enhancement-boundary.mdc) (globs hooks, root layouts, standalone Supabase client modules, `src/lib/api/cloud/**`, account/auth API layers, `src/app.d.ts`). **Follow-up:** [`docs/readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md) — **GAP-016** (dual Supabase keys, docs, browser-verified migration off legacy anon path) and **GAP-017** (unified Supabase client interface).
 
 - [ ] **Rule: Self-hosting compatibility**
   - Require new cloud or AI work to document whether it depends on WFD-managed services, user-provided services, or either.

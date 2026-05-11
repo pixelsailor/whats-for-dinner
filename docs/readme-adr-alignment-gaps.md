@@ -123,11 +123,27 @@ Suggested fields (adapt as needed):
 
 - **Status:** Open
 - **Severity:** Major
-- **Source:** [README](../README.md) env sample; [ADR-006](../adrs/ADR-006-serverless-and-secret-boundary.md) public env examples; [`.cursor/rules/supabase-enhancement-boundary.mdc`](../.cursor/rules/supabase-enhancement-boundary.mdc)
-- **Observed:** `src/routes/+layout.ts` builds the SSR/browser Supabase client from `PUBLIC_SUPABASE_PUBLISHABLE_KEY`, while `src/hooks.server.ts`, `src/lib/supabaseClient.ts`, `src/lib/db/remote.ts`, and `src/lib/api/common/common.model.ts` use `PUBLIC_SUPABASE_ANON_KEY`. README documents `PUBLIC_SUPABASE_ANON_KEY` only.
-- **Expected:** One **documented** public env name for the Supabase anon (publishable) key, used consistently by `hooks.server.ts`, root `+layout.ts`, and any standalone `createClient` helpers, so cookie/session state and layout clients agree.
-- **Notes:** Either align code to a single var (and update Netlify/README samples) or document both as required aliases with identical values. Auth continuity bugs are likely if only one var is set per README.
-- **Owner:** —
+- **Source:** [README](../README.md) env sample; [ADR-006](../adrs/ADR-006-serverless-and-secret-boundary.md) public env examples; [`.cursor/rules/supabase-enhancement-boundary.mdc`](../.cursor/rules/supabase-enhancement-boundary.mdc); maintainer confirmation (distinct Supabase-issued keys, multiple official examples).
+- **Observed:**
+  - **`PUBLIC_SUPABASE_PUBLISHABLE_KEY`** is used in [`src/routes/+layout.ts`](../src/routes/+layout.ts) (`createBrowserClient` / `createServerClient` for universal load + UI).
+  - **`PUBLIC_SUPABASE_ANON_KEY`** is used in [`src/hooks.server.ts`](../src/hooks.server.ts), [`src/lib/supabaseClient.ts`](../src/lib/supabaseClient.ts), [`src/lib/db/remote.ts`](../src/lib/db/remote.ts), and [`src/lib/api/common/common.model.ts`](../src/lib/api/common/common.model.ts).
+  - The [README](../README.md) env section documents **`PUBLIC_SUPABASE_ANON_KEY` only**, so the publishable key path is undocumented for new contributors and deployment templates.
+  - The split traces to **different Supabase-supplied examples** applied in different parts of the app, not a single deliberate key strategy.
+  - **Product reality:** both keys are **distinct** credentials available from the Supabase project (not two names for one pasted string). The **`anon`-key env var is a likely legacy / obsolete carry-over** relative to Supabase’s current **preferred publishable-key** guidance; the repo has not yet completed a verified migration to one consistent key story end-to-end.
+- **Expected:**
+  - **Documentation first:** README (and any `.env.example` / host docs) state **both** public env vars until migration is finished, and include a short **matrix**: which dashboard key each var holds, which routes/modules consume it, and why (SSR cookie client vs layout client vs sessionless server route, etc.).
+  - **Single preferred direction:** align new work and eventual refactors with Supabase’s **current preferred** public key (`PUBLIC_SUPABASE_PUBLISHABLE_KEY` path), and plan deprecation of **`PUBLIC_SUPABASE_ANON_KEY`** only after parity is proven—not assumed.
+  - **Acceptance gate (mandatory):** no change to which key a production module reads, and no removal of `PUBLIC_SUPABASE_ANON_KEY` from deployment, until **browser-verified** flows pass (e.g. sign-in / session refresh, layout-driven auth, cloud sync, share-by-token, and any path using `locals.supabase`). Automated tests alone are insufficient for this gap’s closure if they do not cover those behaviors.
+- **Notes:** Pairs with **GAP-017** (unified client surface). Implementation inventory: [Deferred — Supabase consolidation audit](#supabase-consolidation-audit-2026-05-10). Update [ADR-006](../adrs/ADR-006-serverless-and-secret-boundary.md) public-env examples when the key story is decided.
+
+### GAP-017
+
+- **Status:** Open
+- **Severity:** Major
+- **Source:** [ADR-004](../adrs/ADR-004-account-and-cloud-enhancement-model.md) (service boundaries); [ADR-006](../adrs/ADR-006-serverless-and-secret-boundary.md); [`.cursor/rules/supabase-enhancement-boundary.mdc`](../.cursor/rules/supabase-enhancement-boundary.mdc); **GAP-016** (dual-key drift).
+- **Observed:** Supabase JS clients are created in **multiple disconnected ways** (`@supabase/ssr` in `hooks.server.ts` and `+layout.ts`, plain `createClient` in `supabaseClient.ts`, deprecated `remote.ts`, unused `common.model.ts`), mixing **legacy anon-key** wiring with **publishable-key** wiring. There is **no single documented module or interface** that answers “which factory for authenticated SSR vs universal layout vs anonymous server handler,” so the codebase perpetuates a split between example-driven paths instead of one consistent boundary.
+- **Expected:** A **planned** (then implemented) unified approach: e.g. one small internal API—factories or adapters that take explicit configuration, document session vs sessionless usage, and route all new code through it; `CloudService` / `AccountService` continue to receive an injected `SupabaseClient` built from that layer. Legacy `anon`-named env usage is phased out only per **GAP-016** acceptance gate.
+- **Notes:** **No production refactor until** GAP-016 documentation + browser verification strategy is agreed. Overlaps items (2)–(3) in [Deferred — Supabase consolidation audit](#supabase-consolidation-audit-2026-05-10).
 
 ### GAP-011
 
@@ -136,7 +152,7 @@ Suggested fields (adapt as needed):
 - **Source:** [agents.md](../agents.md) — *Architecture highlights* (OpenAI integration); [ADR-007](../adrs/ADR-007-ai-provider-contract.md)
 - **Observed:** Remaining `agents.md` content (Dexie paths, Zod file layout, Svelte heuristics, adapter wording) still predates ADR-008 / rules distribution. OpenAI bullets now match ADR-007 (Responses + Zod preferred; Chat Completions deprecated).
 - **Expected:** Full module-location and stack guidance should live in Cursor rules per [`adr-and-rules-todo.md`](./adr-and-rules-todo.md) *Legacy `agents.md` Distribution*.
-- **Notes:** README + `agents.md` OpenAI sections fixed with **GAP-004**; broader distribution still open.
+- **Notes:** README + `agents.md` OpenAI sections fixed with **GAP-004**; broader distribution still open. **Scope clarification:** GAP-011 is **only** `agents.md` → rules/docs migration, not Supabase architecture (see [Deferred — Supabase consolidation audit](#supabase-consolidation-audit-2026-05-10)).
 - **Owner:** —
 
 ---
@@ -145,7 +161,45 @@ Suggested fields (adapt as needed):
 
 Use this section for longer write-ups, spikes, or gaps that need design before a table row is enough.
 
-_(None yet.)_
+### Supabase consolidation audit (2026-05-10)
+
+Cross-check of Supabase-related code after env secrets were restored and **GAP-011** scope was clarified (GAP-011 = `agents.md` migration, not Supabase keys).
+
+#### How permissions and “online” interact today
+
+| Mechanism | Role | Files / notes |
+| --------- | ---- | --------------- |
+| **Supabase session** | Identity + JWT for RLS-scoped `SupabaseClient` calls | `hooks.server.ts` (`locals.supabase`, `safeGetSession`), `+layout.ts` (client passed to pages), `auth/+page.server.ts`, `auth/confirm/+server.ts` |
+| **Permission flags** | `ai_assistance` and `cloud_storage` from `user_profiles`, cached in **httpOnly cookie** after login | `AccountService` in `auth/+page.server.ts`; `getSessionPermissions` / `setSessionPermissions` in [`src/lib/utils/session.ts`](../src/lib/utils/session.ts); exposed as `data.permissions` in [`+layout.server.ts`](../src/routes/+layout.server.ts) |
+| **Browser “online”** | `navigator.onLine` only — **not** a probe of Supabase reachability | [`src/lib/stores/network.ts`](../src/lib/stores/network.ts); gates sync in [`+layout.svelte`](../src/routes/+layout.svelte) (`runSync` bails if `!network.online`) |
+| **AI capability UI** | Combines online + `featureFlags.openai` + session + `aiAssistedRecipe` permission | [`src/lib/utils/capabilities.ts`](../src/lib/utils/capabilities.ts) `deriveAICapability` — **no** cloud/Sync capability helper parallel to this |
+
+**Implication:** A user can be “online” per the browser but still fail cloud calls (DNS, 401, RLS); sync currently surfaces errors via try/catch and `syncStore`, not via a unified “cloud reachable” signal. **Proposed direction:** keep `navigator.onLine` as a cheap gate, optionally add explicit Supabase health or failed-call backoff in `SyncService` / layout, and introduce a **`deriveCloudCapability`**-style helper (session + `cloudSync` + online) if UX needs symmetry with AI.
+
+#### Supabase client entry points (inventory)
+
+| # | Location | Client type | Session / cookies | Still used? |
+| - | -------- | ------------- | ----------------- | ----------- |
+| 1 | [`src/hooks.server.ts`](../src/hooks.server.ts) | `createServerClient` + `PUBLIC_SUPABASE_ANON_KEY` | Yes — canonical SSR | **Yes** — **GAP-016**: distinct dashboard key vs publishable path |
+| 2 | [`src/routes/+layout.ts`](../src/routes/+layout.ts) | `createBrowserClient` / `createServerClient` + `PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Yes (server branch uses cookies from layout data) | **Yes** — Supabase-preferred key path here; must stay coherent with (1) for sessions (**GAP-016**) |
+| 3 | [`src/lib/supabaseClient.ts`](../src/lib/supabaseClient.ts) | `createClient` + `PUBLIC_SUPABASE_ANON_KEY` | **No** — singleton | **Yes** — share route only; **GAP-016** / **GAP-017** |
+| 4 | [`src/lib/db/remote.ts`](../src/lib/db/remote.ts) | Same as (3) | No | **Deprecated** — no live imports (commented-only); safe to delete after confirming no external callers |
+| 5 | [`src/lib/api/common/common.model.ts`](../src/lib/api/common/common.model.ts) | Same as (3) | No | **Unused** — duplicate singleton; remove or fold into a single “server anon for RLS-public routes” module |
+| 6 | Injected `SupabaseClient` | From layout `data` into `CloudService` / `AccountService` | Yes | **Yes** — preferred pattern for user-scoped cloud |
+
+**Discrepancy — dual SSR clients:** `hooks.server.ts` and `+layout.ts` each construct an SSR Supabase client. That matches `@supabase/ssr` patterns but duplicates configuration; different **values** or meanings between `PUBLIC_SUPABASE_ANON_KEY` and `PUBLIC_SUPABASE_PUBLISHABLE_KEY` can break auth continuity (**GAP-016**).
+
+**Proposed consolidation (phased):**
+
+1. **Document and verify (GAP-016):** Capture the two **distinct** dashboard keys in README + deployment docs; run the **browser acceptance** checklist before any module switches which env var it reads; then plan migrating off `PUBLIC_SUPABASE_ANON_KEY` where Supabase’s preferred publishable key is appropriate.
+2. **Unified client factory (GAP-017):** Replace ad hoc `createClient` / duplicate SSR setup with one documented internal surface (names TBD) so “legacy anon example” vs “publishable `@supabase/ssr` example” is not reintroduced file-by-file.
+3. **Remove dead paths:** Delete or archive `common.model.ts` export if unused; remove `remote.ts` after grep + CI confirm.
+4. **Capability matrix in layout data (aligns with GAP-010):** Extend `+layout.server.ts` (or a helper) with explicit `cloudCapabilities` / `syncAllowed` derived from `session` + `cloud_storage` + optional feature flag, mirroring `deriveAICapability`, so pages stop re-deriving policy ad hoc.
+5. **Longer term (ADR-004 / ADR-011):** Introduce a narrow interface implemented by `CloudService` for testability and alternate DB providers; keep Supabase types at the adapter edge.
+
+#### Note on `PUBLIC_SUPABASE_PUBLISHABLE_KEY` vs `PUBLIC_SUPABASE_ANON_KEY`
+
+**Maintainer position:** these env vars correspond to **two different keys** issued by Supabase (not duplicate names for one paste). **`PUBLIC_SUPABASE_ANON_KEY` is likely obsolete** for forward-looking work; **`PUBLIC_SUPABASE_PUBLISHABLE_KEY`** reflects the **preferred** Supabase client pattern used in `+layout.ts`. Full remediation is **GAP-016** (docs + browser-verified migration) and **GAP-017** (unified client interface).
 
 ---
 

@@ -79,16 +79,6 @@ Suggested fields (adapt as needed):
 - **Notes:** `src/lib/api/ai/ai.schemas.ts` — `RecipeSuggestionsResponseSchema` includes `request_id` meant for the API layer but is bundled into the structured-output schema for the model; review schema vs handler merge in `src/routes/api/suggestions/+server.ts`.
 - **Owner:** —
 
-### GAP-007
-
-- **Status:** Open
-- **Severity:** Major
-- **Source:** [README](../README.md) — *Architecture Boundaries* (schema-led model); [ADR-008](../adrs/ADR-008-schema-led-domain-contracts.md)
-- **Observed:** **Duplicate domain types** in `src/lib/types.ts` (marked deprecated but still imported from routes, `src/lib/server/openai.ts`, `src/lib/db/remote.ts`, `src/lib/stores/preferences.ts`). **`PromptRequest`** in `src/lib/db.ts` has no Zod schema. **`src/lib/api/**/*.schemas.ts`** does not use `.strict()` on object schemas despite [AGENTS.md](../AGENTS.md).
-- **Expected:** Single Zod-led contract per entity; types from `z.infer`; validate persisted/API/AI shapes at boundaries; prefer `.strict()` on API domain objects.
-- **Notes:** Remove or re-export from `$lib/api` only; add `PromptRequest` schema if it remains a first-class stored row; add `.strict()` incrementally or in one pass. Overlaps GAP-006 for unvalidated AI JSON.
-- **Owner:** —
-
 ### GAP-008
 
 - **Status:** Open
@@ -232,6 +222,7 @@ Move **Fixed** items here with a one-line **Resolution** (and optional PR link) 
 
 | ID | Resolution |
 | -- | ---------- |
+| **GAP-007** | **Policy / agent guidance closed:** [`.cursor/rules/schema-and-type-safety.mdc`](../.cursor/rules/schema-and-type-safety.mdc) encodes ADR-008 (Zod source of truth, `z.infer`, `src/lib/api/**` layout, `$lib/types` for cross-cutting generics only, `.svelte` not for shared domain types, `.strict()` on new/revised API object schemas, `safeParse` at boundaries). **Residual implementation** (deprecated duplicate imports from `src/lib/types.ts`, `PromptRequest` without Zod, incremental `.strict()` on existing schemas, overlap with **GAP-006** on some AI paths) is deferred to a dedicated code refactor; [ADR-008 § Implementation compliance](../adrs/ADR-008-schema-led-domain-contracts.md#implementation-compliance-discovered) remains the checklist until that work lands. |
 | **GAP-004** | README *Technology Stack*, [`agents.md`](../agents.md), [`adrs/ADR-007-ai-provider-contract.md`](../adrs/ADR-007-ai-provider-contract.md) (including a **Legacy Chat Completions inventory** table), [`adrs/INDEX.md`](../adrs/INDEX.md), [`adrs/ADR-011-self-hosting-provider-model.md`](../adrs/ADR-011-self-hosting-provider-model.md), [`docs/adr-and-rules-todo.md`](./adr-and-rules-todo.md), and [`adrs/ADR-008-schema-led-domain-contracts.md`](../adrs/ADR-008-schema-led-domain-contracts.md) now treat **Chat Completions as deprecated** and document the **Responses API + Zod structured output** as preferred. Production call sites were not changed. |
 | **GAP-013** | [`agents.md`](../agents.md) now matches [ADR-008](../adrs/ADR-008-schema-led-domain-contracts.md) and [`src/lib/api/README.md`](../src/lib/api/README.md): API contracts are organized by **domain folder** with `*.schemas.ts`, `*.types.ts`, `*.model.ts`, `*.service.ts`, and a domain `index.ts` barrel. ADR-008 no longer depends on `agents.md` as the source for strict schema guidance. |
 | **GAP-012** | [`src/lib/db.ts`](../src/lib/db.ts) is the canonical Dexie application database; [`.cursor/rules/local-data-dexie-ownership.mdc`](../.cursor/rules/local-data-dexie-ownership.mdc), [`agents.md`](../agents.md), and migration docs now define `src/lib/db/` as a helper directory only. No production code referenced `$lib/db/local`; the unused `src/lib/db/local.ts` duplicate Dexie root was removed. |

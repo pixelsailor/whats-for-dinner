@@ -105,7 +105,7 @@ The following **known gaps** exist relative to this ADR as of authoring; they ar
 
 ## Enforcement rules
 
-- **Cursor / agent rules:** The backlog **Rule: Schema and type safety** in [`docs/adr-and-rules-todo.md`](../docs/adr-and-rules-todo.md) should reference this ADR once added.
+- **Cursor / agent rules:** [`.cursor/rules/schema-and-type-safety.mdc`](../.cursor/rules/schema-and-type-safety.mdc) (backlog item in [`docs/adr-and-rules-todo.md`](../docs/adr-and-rules-todo.md) marked done).
 - **Code / architecture:** Domain entities and API payloads live under `src/lib/api/**` with the `schemas` / `types` / `model` / `service` split; Dexie entity generics import from API barrels; no new parallel domain `type` blocks in `$lib/types.ts`.
 - **When to revisit:** Introduction of a second persistence layer, shared mobile client, or non-Zod validation technology.
 
@@ -128,7 +128,7 @@ Orchestration not required for adopting this ADR; removing legacy duplicates and
 
 ### Alignment gaps
 
-See **Implementation compliance (discovered)** above and GAP-007 in [`docs/readme-adr-alignment-gaps.md`](../docs/readme-adr-alignment-gaps.md).
+See **Implementation compliance (discovered)** above for remaining **code** drift. **GAP-007** is **resolved** as a governance gap ([`.cursor/rules/schema-and-type-safety.mdc`](../.cursor/rules/schema-and-type-safety.mdc); [Resolved](../docs/readme-adr-alignment-gaps.md#resolved) table).
 
 ### Merge / workflow gates
 

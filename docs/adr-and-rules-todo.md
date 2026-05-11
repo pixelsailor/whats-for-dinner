@@ -103,9 +103,10 @@ This backlog turns the project principles in the top-level README into enforceab
   - Require Svelte MCP validation when Svelte components are written or changed.
   - **Done:** [`.cursor/rules/svelte-5-ui-conventions.mdc`](../.cursor/rules/svelte-5-ui-conventions.mdc) (globs `**/*.svelte`); MCP workflow remains in [`.cursor/rules/svelte-mcp-workflow.mdc`](../.cursor/rules/svelte-mcp-workflow.mdc).
 
-- [ ] **Rule: Schema and type safety**
+- [x] **Rule: Schema and type safety**
   - Require Zod schemas for external, persisted, and AI-generated data.
   - Require TypeScript types to be inferred from schemas rather than duplicated manually.
+  - **Done:** [`.cursor/rules/schema-and-type-safety.mdc`](../.cursor/rules/schema-and-type-safety.mdc) (globs `src/lib/api/**/*.ts`, `src/lib/types.ts`, `src/lib/db.ts`, `src/lib/db/**/*.ts`, `src/routes/api/**/*.ts`, `src/lib/stores/**/*.ts`). **Follow-up:** retire deprecated duplicate domain types in `$lib/types`, add Zod for first-class Dexie rows such as `PromptRequest`, and roll `.strict()` through `*.schemas.ts` in production (see [ADR-008 § Implementation compliance](../adrs/ADR-008-schema-led-domain-contracts.md#implementation-compliance-discovered) and resolved **GAP-007** in [`docs/readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md)).
 
 - [ ] **Rule: Serverless compatibility**
   - Flag Node-specific APIs in server code unless explicitly isolated from the Cloudflare target.
@@ -168,7 +169,7 @@ The root [`agents.md`](../agents.md) predates the ADR system and the `.cursor/ru
   - Reconcile indentation guidance: *General Code Style* says 2-space indents while *TypeScript Conventions* says "Respect indents. Keep nested items aligned. Do not reset tabs for nested content." Decide which wording survives.
 
 - [ ] **Migrate Zod validation rules**
-  - Move *Zod Validation Rules* content (per-domain placement in `src/lib/api/**`, `.strict()`, `.safeParse()`, schema-derived types, `.transform()`, composite schemas) into the planned **Rule: Schema and type safety**.
+  - Move *Zod Validation Rules* content (per-domain placement in `src/lib/api/**`, `.strict()`, `.safeParse()`, schema-derived types, `.transform()`, composite schemas) into **Rule: Schema and type safety** ([`.cursor/rules/schema-and-type-safety.mdc`](../.cursor/rules/schema-and-type-safety.mdc)) — **core rule done**; verbatim `agents.md` migration may still add examples.
   - Update [ADR-008](../adrs/ADR-008-schema-led-domain-contracts.md) to source the `.strict()` requirement directly (or cite the new rule) instead of pointing back at `agents.md`.
 
 - [ ] **Migrate Dexie + LiveQueryStores guidelines**

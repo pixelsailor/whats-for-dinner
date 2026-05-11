@@ -1,0 +1,45 @@
+---
+description: >-
+  Zod-led domain contracts, z.infer types, API module layout (*.schemas/types),
+  $lib/types for cross-cutting generics, boundary validation, and .strict()
+  discipline per ADR-008.
+globs: >-
+  src/lib/api/**/*.ts,src/lib/types.ts,src/lib/db.ts,src/lib/db/**/*.ts,src/routes/api/**/*.ts,src/lib/stores/**/*.ts
+alwaysApply: false
+---
+
+# Schema and type safety
+
+**Binding:** [ADR-008: Schema-led domain contracts](../adrs/ADR-008-schema-led-domain-contracts.md) (Accepted). **AI validation:** [ADR-007](../adrs/ADR-007-ai-provider-contract.md). **Module layout:** [`src/lib/api/README.md`](../src/lib/api/README.md).
+
+## Zod and inference
+
+- **Source of truth:** Zod schemas for persisted domain rows, HTTP API bodies/responses under `src/routes/api/**`, validated Supabase/sync/AI JSON, and any structure serialized to IndexedDB or the wire (ADR-008).
+- **Types:** Use `z.infer<typeof Schema>` (or equivalent from composed schemas). **Do not** hand-duplicate the same field contract in a parallel `interface` / `type` for those entities.
+- **Boundaries:** Validate user input, network JSON, and model output with **`.safeParse()`** (or transforms) before treating values as domain types; avoid unchecked casts at trust boundaries (ADR-008 §7; overlaps deprecated AI paths in [`docs/readme-adr-alignment-gaps.md`](../docs/readme-adr-alignment-gaps.md) **GAP-006**).
+
+## Where types live
+
+| Situation | Placement |
+| --------- | --------- |
+| Domain entities, API envelopes, AI structured shapes | `src/lib/api/<domain>/`: **`*.schemas.ts`** (Zod), **`*.types.ts`** (inferred re-exports and rare type-only helpers that **do not** duplicate entity fields), **`*.model.ts`**, **`*.service.ts`**, **`index.ts`** — see [`src/lib/api/README.md`](../src/lib/api/README.md). |
+| Dexie `Table<>` entities and rows | Types imported from the **owning domain barrel** (`$lib/api/...`); **new tables** get a Zod schema in that domain before widening generics (ADR-008 §4). |
+| **Generic** or **cross-cutting** contracts reused across many non-Svelte modules (e.g. shared layout data, app-wide utilities, feature-flag shapes) | `src/lib/types.ts` (or a dedicated module under `src/lib/` if size warrants) — **not** a second home for recipe/suggestion/preferences/etc. that already belong under `$lib/api/**`. |
+| Single-file helpers | Colocate small `type` aliases with the implementation when they are not imported elsewhere. |
+
+## Svelte components
+
+- **`.svelte` files** are not modules for shared exports. Do **not** define **shared** domain or app-wide interfaces in `.svelte` only to reuse them across files; move them to **`$lib/types`** (cross-cutting) or **`$lib/api/<domain>`** (domain).
+
+## Strict object schemas
+
+- New or materially revised **object** schemas under `src/lib/api/**` should use **`.strict()`** (or equivalent) so unknown keys fail validation (ADR-008 §6). When tightening legacy schemas, prefer incremental updates in the same change that touches the schema.
+
+## Imports
+
+- Prefer **`import type`** for type-only imports to avoid accidental runtime cycles and unnecessary bundle edges.
+- Prefer consuming domain types from **`$lib/api/<domain>`** barrels rather than legacy parallel paths (ADR-008 *Implementation compliance*; deprecated duplicates in `$lib/types` are being retired in a separate code pass).
+
+## Escalation
+
+- Conflicts with Accepted ADRs or intentional contract drift: [`.cursor/rules/adr-compliance.mdc`](./adr-compliance.mdc) and [`docs/readme-adr-alignment-gaps.md`](../docs/readme-adr-alignment-gaps.md).

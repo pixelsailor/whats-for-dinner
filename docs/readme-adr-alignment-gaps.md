@@ -231,6 +231,17 @@ Cross-check of Supabase-related code after env secrets were restored and **GAP-0
 
 **Maintainer position:** these env vars correspond to **two different keys** issued by Supabase (not duplicate names for one paste). **`PUBLIC_SUPABASE_ANON_KEY` is likely obsolete** for forward-looking work; **`PUBLIC_SUPABASE_PUBLISHABLE_KEY`** reflects the **preferred** Supabase client pattern used in `+layout.ts`. Full remediation is **GAP-016** (docs + browser-verified migration) and **GAP-017** (unified client interface).
 
+### Supabase wiring migration notes (2026-05-12)
+
+Migrating *Supabase Auth, Sharing and Cloud Backup* from [`agents.md`](../agents.md) into [`.cursor/rules/supabase-enhancement-boundary.mdc`](../.cursor/rules/supabase-enhancement-boundary.mdc) (worksheet row 10 in [`docs/agents-md-distribution-worksheet.md`](./agents-md-distribution-worksheet.md)) replaced two legacy bullets with a **multi-surface map** aligned to the [Supabase consolidation audit](#supabase-consolidation-audit-2026-05-10). **No new GAP rows.**
+
+| Topic | Resolution / where tracked |
+| ----- | -------------------------- |
+| **`agents.md` named `supabaseClient.ts` for “authentication at login”** | **Inaccurate for current code.** Password and OTP flows use **`locals.supabase`** in [`src/routes/auth/+page.server.ts`](../src/routes/auth/+page.server.ts) and [`src/routes/auth/confirm/+server.ts`](../src/routes/auth/confirm/+server.ts). [`src/lib/supabaseClient.ts`](../src/lib/supabaseClient.ts) is a standalone `createClient` used on a **narrow** path (e.g. share-by-token server route). |
+| **`agents.md` named only `hooks.server.ts` “for route guards”** | **Incomplete.** Guards depend on **`safeGetSession`**, `locals.session` / `user` / `permissions`, and layout data — not `locals.supabase` alone. See the rule’s client-surface table and the consolidation audit’s “How permissions and ‘online’ interact today.” |
+| **Dual public keys and multiple client factories** | **GAP-016**, **GAP-017** — do not switch env vars or consolidate factories without maintainer sign-off and **browser-verified** auth/sync/share flows ([`.cursor/rules/supabase-enhancement-boundary.mdc`](../.cursor/rules/supabase-enhancement-boundary.mdc)). |
+| **Sharing / backup vs auth** | Product scope: [ADR-004](../adrs/ADR-004-account-and-cloud-enhancement-model.md). Implementation: prefer **`CloudService` / `SyncService`** with injected `SupabaseClient` ([`src/lib/api/cloud/README.md`](../src/lib/api/cloud/README.md)). |
+
 ### Offline connectivity rule notes (2026-05-11)
 
 Authoring [`.cursor/rules/offline-connectivity-capability.mdc`](../.cursor/rules/offline-connectivity-capability.mdc) did not open new product gaps; it **documents agent/review discipline** against existing drift:

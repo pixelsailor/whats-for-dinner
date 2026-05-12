@@ -23,6 +23,20 @@ alwaysApply: false
 - **Privileged credentials:** use **only** browser-safe project keys in client and SSR client graphs; **never** import service-role or other privileged Supabase secrets into client graphs or shared modules ([ADR-006](../adrs/ADR-006-serverless-and-secret-boundary.md)).
 - **Remote recipe/cloud mutations:** prefer `CloudService` / `SyncService` under `src/lib/api/cloud/` (constructor-injected `SupabaseClient` + `userId`) rather than scattering ad hoc table access ([ADR-004](../adrs/ADR-004-account-and-cloud-enhancement-model.md) enforcement). Standalone `createClient` modules (`supabaseClient.ts`, `db/remote.ts`, `api/common/common.model.ts`) should shrink over time, not multiply.
 
+## Auth, sharing, and backup — client surfaces (legacy `agents.md` distribution)
+
+Root [`agents.md`](../agents.md) used to summarize Supabase in two bullets (`supabaseClient.ts` for login; `locals.supabase` for route guards). **Authoritative wiring** is the table below — it supersedes that wording when they disagree.
+
+| Surface | Role | Typical files |
+| --- | --- | --- |
+| **`event.locals.supabase`** | Per-request SSR client (`@supabase/ssr` `createServerClient`, `PUBLIC_SUPABASE_ANON_KEY` today). Cookie-backed session; used by **`safeGetSession`**, auth **form actions** (`signInWithPassword`, `verifyOtp`, etc.), and the **`authGuard`** chain that sets `event.locals.session`, `user`, and `permissions`. | [`src/hooks.server.ts`](../src/hooks.server.ts), [`src/routes/auth/+page.server.ts`](../src/routes/auth/+page.server.ts), [`src/routes/auth/confirm/+server.ts`](../src/routes/auth/confirm/+server.ts) |
+| **`data.supabase` from layout load** | Universal client: browser `createBrowserClient` or SSR branch `createServerClient` with `PUBLIC_SUPABASE_PUBLISHABLE_KEY`. Exposed to pages for session reads, **`CloudService` / `AccountService`**, and other layout consumers; server branch reads cookies supplied via layout data (see comments in the load). | [`src/routes/+layout.ts`](../src/routes/+layout.ts) |
+| **`src/lib/supabaseClient.ts`** | Standalone `createClient` + `PUBLIC_SUPABASE_ANON_KEY` **without** the SSR cookie adapter — **narrow** use today (e.g. share-by-token API). **Not** the primary password/OTP login path. Prefer `locals.supabase` or layout-injected clients for new auth or user-scoped cloud work. | [`src/lib/supabaseClient.ts`](../src/lib/supabaseClient.ts), [`src/routes/api/share/[token]/+server.ts`](../src/routes/api/share/%5Btoken%5D/+server.ts) |
+
+**Backup, sync, and sharing** behavior and layering: [ADR-004](../adrs/ADR-004-account-and-cloud-enhancement-model.md), [`src/lib/api/cloud/README.md`](../src/lib/api/cloud/README.md). **Secrets and which keys may appear in client graphs:** [ADR-006](../adrs/ADR-006-serverless-and-secret-boundary.md).
+
+**Legacy discrepancy:** The old `agents.md` bullets omitted **`+layout.ts` / `data.supabase`** and implied **`supabaseClient.ts` owns “authentication at login.”** Current login flows use **`locals.supabase`**. Dual public keys and factory sprawl remain **GAP-016** / **GAP-017** in [`docs/readme-adr-alignment-gaps.md`](../docs/readme-adr-alignment-gaps.md) and the [Supabase consolidation audit](../docs/readme-adr-alignment-gaps.md#supabase-consolidation-audit-2026-05-10).
+
 ## New and changed Supabase-related work
 
 - **Logged out / offline / missing permission:** core local recipe flows stay usable; cloud actions **degrade** (disable, defer, explain) instead of breaking unrelated UI ([ADR-004](../adrs/ADR-004-account-and-cloud-enhancement-model.md) continuity).

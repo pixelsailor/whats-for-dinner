@@ -109,8 +109,11 @@ Canonical home: [`docs/tanstack-query.md`](docs/tanstack-query.md) (offline-firs
 
 ## Supabase Auth, Sharing and Cloud Backup
 
-- Uses the `supabaseClient` in `src/lib/supabaseClient.ts` for authentication at login
-- Uses `locals.supabase` in `src/hooks.server.ts` for route guards
+Canonical home: [`.cursor/rules/supabase-enhancement-boundary.mdc`](.cursor/rules/supabase-enhancement-boundary.mdc) (*Wiring conventions* and *Auth, sharing, and backup — client surfaces*). Binding ADRs: [ADR-004](adrs/ADR-004-account-and-cloud-enhancement-model.md), [ADR-006](adrs/ADR-006-serverless-and-secret-boundary.md). The bullets below remain a short summary until `agents.md` is retired.
+
+- SSR auth and guards: `event.locals.supabase` and `safeGetSession` from [`src/hooks.server.ts`](src/hooks.server.ts); password and OTP actions use the same `locals.supabase`.
+- Layout client: [`src/routes/+layout.ts`](src/routes/+layout.ts) exposes `data.supabase` for pages, cloud services, and the SSR branch (publishable key path).
+- Standalone [`src/lib/supabaseClient.ts`](src/lib/supabaseClient.ts) is a narrow `createClient` edge (e.g. share-by-token); prefer injected clients for new work. Dual-key and factory consolidation: [`docs/readme-adr-alignment-gaps.md`](docs/readme-adr-alignment-gaps.md) (GAP-016, GAP-017).
 
 ## Zod Validation Rules
 
@@ -153,7 +156,7 @@ Canonical homes: [ADR-014: Semantic HTML and accessibility](adrs/ADR-014-semanti
 - Client-first SvelteKit app. Local data lives in IndexedDB via Dexie: `src/lib/db.ts`
 - Reactive stores use small helpers (see `src/lib/stores/_utils.ts` -> `createLiveQueryStore`) and
 	derived/readable stores in `src/lib/stores/*.ts` (examples: `recipes.ts`, `suggestions.ts`).
-- Cloud sync uses Supabase for authorized users via `src/lib/supabaseClient.ts` (PUBLIC_SUPABASE_* envs).
+- Cloud sync and account-scoped Supabase calls use the layout-injected **`data.supabase`** client for signed-in users ([ADR-004](adrs/ADR-004-account-and-cloud-enhancement-model.md)); SSR session and auth actions use **`locals.supabase`** from [`src/hooks.server.ts`](src/hooks.server.ts). See [`.cursor/rules/supabase-enhancement-boundary.mdc`](.cursor/rules/supabase-enhancement-boundary.mdc).
 - OpenAI integration (dual path, [ADR-007](adrs/ADR-007-ai-provider-contract.md)): **preferred** — `src/lib/api/ai/ai.model.ts` uses the **Responses API** with Zod (`zodTextFormat`) for suggestion flows and related structured outputs; consumed from `src/routes/api/suggestions/*`. **Deprecated legacy** — `src/lib/server/openai.ts` still uses **Chat Completions** for some recipe actions and Q&A until migrated; treat edits there as migration debt, not patterns to copy. Prompt strings live in `src/lib/openai/*.ts` (see `recipe.ts`, `schema.ts`). Keep secret keys in server-only envs (`$env/static/private`). This repo imports the private key as `OPENAI_API_KEY`.
 - API routes live under `src/routes/api/*`. Any code that touches secrets (OpenAI, private DB keys)
 	should run in server modules or route handlers, not in client components.
@@ -162,8 +165,7 @@ Canonical homes: [ADR-014: Semantic HTML and accessibility](adrs/ADR-014-semanti
 
 ## Env & secrets
 
-- Public keys: use `PUBLIC_*` env vars for values safe to expose (supabase URL/anon key found in
-	`src/lib/supabaseClient.ts`).
+- Public keys: use `PUBLIC_*` env vars for values safe to expose. Supabase wiring uses **`PUBLIC_SUPABASE_URL`** plus **different public key env vars by surface** (layout vs hooks vs standalone module — see [`.cursor/rules/supabase-enhancement-boundary.mdc`](.cursor/rules/supabase-enhancement-boundary.mdc) and [`docs/readme-adr-alignment-gaps.md`](docs/readme-adr-alignment-gaps.md) GAP-016).
 - Private keys: use `$env/static/private` imports inside server code. This project uses
 	`OPENAI_API_KEY` (imported in `src/lib/openai/index.ts`) — do NOT expose it to client bundles.
 

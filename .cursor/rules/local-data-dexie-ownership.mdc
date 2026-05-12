@@ -58,6 +58,7 @@ export const recipesStore = readable([], (set) => {
 ## Remote and cache layers
 
 - **TanStack Query** (or similar) caches **network** results; it does not replace Dexie as system of record for the recipe book and ADR-002 domains. Reconcile into local tables through validated paths and existing store patterns; keep query `queryFn` side-effect free—mutations belong in dedicated helpers.
+- **Patterns and examples** (`createQuery`, runes, Zod validation, offline fallbacks): [`docs/tanstack-query.md`](docs/tanstack-query.md).
 
 ## Escalation
 

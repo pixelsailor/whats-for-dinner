@@ -99,26 +99,11 @@ Canonical home: [`.cursor/rules/local-data-dexie-ownership.mdc`](.cursor/rules/l
 
 ## TanStack Query `createQuery()`
 
-- Use `createQuery` from `@tanstack/svelte-query` whenever remote data should stay in sync with UI state. Call it with an options object or store containing at least a stable `queryKey` and `queryFn`, and optionally `select`, `enabled`, `staleTime`, `gcTime`, `placeholderData`, `initialData`, or suspense helpers. A custom `queryClient` can be passed as the second argument when shared caching is required.
-- The helper returns a store that fulfills the TanStack `CreateQueryResult<TData, TError>` contract (or `DefinedCreateQueryResult` when `initialData`/`placeholderData` guarantee data). Expect shape-aligned fields such as `data`, `error`, `status`, `fetchStatus`, `isPending`, `isSuccess`, `refetch`, and `failureCount`, which you can read reactively inside components.
-- Typical usage keeps the query result outside template logic and derives consumable state with runes:
-  ```
-  import { createQuery } from '@tanstack/svelte-query';
+Canonical home: [`docs/tanstack-query.md`](docs/tanstack-query.md) (offline-first + Zod + `queryFn` expectations, runes pattern). API layer pointer: [`src/lib/api/README.md`](src/lib/api/README.md) (*Data fetching*). Dexie vs cache boundary: [`.cursor/rules/local-data-dexie-ownership.mdc`](.cursor/rules/local-data-dexie-ownership.mdc) (*Remote and cache layers*). The bullets below remain a short summary until `agents.md` is retired.
 
-  const recipesQueryStore = $derived(createQuery({
-    queryKey: ['recipes', filters],
-    queryFn: fetchRecipes,
-    placeholderData: []
-  }));
-
-  // Subscribe to store changes
-  const recipesQueryResults = $derived($recipesQueryStore);
-
-  const recipes = $derived(recipesQueryResults.data ?? []);
-  const refreshRecipes = recipesQuery.refetch;
-  ```
-- Prefer Dexie for durable offline reads and write-behind sync; wrap `queryFn` implementations so they validate responses with Zod and fall back to local cached values when offline. Keep TanStack queries side-effect free—mutations belong in dedicated request helpers or remote functions.  
-Reference: [TanStack Query createQuery](https://tanstack.com/query/v5/docs/framework/svelte/reference/functions/createquery)
+- Use `createQuery` from `@tanstack/svelte-query` for remote data; stable `queryKey` + `queryFn`; optional `queryClient` as second argument.
+- Subscribe with `$derived($queryStore)` and read `data` / `refetch` from the result object.
+- Prefer Dexie for durable offline reads; validate HTTP with Zod in the fetch path; keep `queryFn` side-effect free—mutations in dedicated helpers.
 
 ---
 

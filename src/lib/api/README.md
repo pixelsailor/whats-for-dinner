@@ -13,6 +13,10 @@ This service layer is organized into functional domains, each handling specific 
 - **Consistent Patterns**: Standardized service patterns across all modules. Both **remote** and **local** requests should conform to standard **Fetch API** models
 - **Monitoring Ready**: Built-in health checks and metrics collection for observability
 
+## Data fetching (TanStack Query)
+
+For **remote** HTTP data synchronized with the UI, WFD uses **`@tanstack/svelte-query`** (`createQuery`, shared `queryClient` where needed). Queries must stay compatible with **offline-first** behavior and **Dexie as system of record**—validate responses with Zod, avoid treating query cache as authoritative for ADR-002 domains, and keep `queryFn` free of mutation side effects. See **[`docs/tanstack-query.md`](../../../docs/tanstack-query.md)** and [`.cursor/rules/local-data-dexie-ownership.mdc`](../../../.cursor/rules/local-data-dexie-ownership.mdc) (*Remote and cache layers*).
+
 ## File Structure and Organization Principles
 
 1. Separation of concerns: validation (schemas), types (types), business logic (models), API calls (service)

@@ -185,9 +185,9 @@ The root [`agents.md`](../agents.md) predates the ADR system and the `.cursor/ru
 	- Module-location guidance is reconciled: [`src/lib/db.ts`](../src/lib/db.ts) is the single Dexie application database; files under `src/lib/db/` are helpers that use it, per the rule.
 	- **Done:** rule sections *Reads and LiveQuery* and *Conventions* expanded (`liveQuery` vs `createLiveQueryStore`, derived views, Zod row types, minimal example); [`agents.md`](../agents.md) defers to the rule + ADR-002 with a short summary until retire.
 
-- [ ] **Migrate TanStack Query guidance**
+- [x] **Migrate TanStack Query guidance**
   - Move *TanStack Query `createQuery()`* content into **`docs/tanstack-query.md`** with a short pointer from [`src/lib/api/README.md`](../src/lib/api/README.md) (**audit decision** in [`docs/agents-md-distribution-worksheet.md`](./agents-md-distribution-worksheet.md)); offline-first integration remains cross-linked from **Rule: Local data and Dexie ownership** ([`.cursor/rules/local-data-dexie-ownership.mdc`](../.cursor/rules/local-data-dexie-ownership.mdc) *Remote and cache layers*).
-  - Confirm that TanStack Query usage remains compatible with [ADR-001](../adrs/ADR-001-product-operating-model.md) offline-first and [ADR-002](../adrs/ADR-002-local-data-ownership.md) Dexie-as-system-of-record (queries should validate responses with Zod and fall back to local cache when offline).
+  - Confirm that TanStack Query usage remains compatible with [ADR-001](../adrs/ADR-001-product-operating-model.md) offline-first and [ADR-002](../adrs/ADR-002-local-data-ownership.md) Dexie-as-system-of-record (queries should validate responses with Zod and fall back to local cache when offline). **Done:** [`docs/tanstack-query.md`](./tanstack-query.md) encodes the matrix; [`agents.md`](../agents.md) defers with a short summary until retire.
 
 - [ ] **Migrate Supabase auth, sharing, and cloud-backup wiring**
   - Move the *Supabase Auth, Sharing and Cloud Backup* section (client at `src/lib/supabaseClient.ts`, route guards via `locals.supabase` in `src/hooks.server.ts`) into the planned **Rule: Supabase enhancement boundary** with cross-references to [ADR-004](../adrs/ADR-004-account-and-cloud-enhancement-model.md) and [ADR-006](../adrs/ADR-006-serverless-and-secret-boundary.md).

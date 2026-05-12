@@ -141,28 +141,10 @@ Reference: [TanStack Query createQuery](https://tanstack.com/query/v5/docs/frame
 
 ## Zod Validation Rules
 
-- Organize API contracts by domain under `src/lib/api/<domain>/` with a split of `*.schemas.ts`, `*.types.ts`, `*.model.ts`, `*.service.ts`, plus a barrel `index.ts` (see `src/lib/api/README.md` and ADR-008).
-- Always call .strict() on schemas to reject unexpected keys.
-- Use .safeParse() for user or AI-generated data and handle validation errors gracefully.
-- Derive all TypeScript interfaces from Zod schemas:
-```ts
-export const RecipeSchema = z.object({
-  id: z.string().uuid(),
-  title: z.string(),
-  ingredients: z.array(z.string()),
-  steps: z.array(z.string()),
-}).strict();
+Canonical home: [`.cursor/rules/schema-and-type-safety.mdc`](.cursor/rules/schema-and-type-safety.mdc) (placement under `src/lib/api/**`, `.strict()`, `.safeParse()`, `z.infer`, `.transform()`, composites, persisted vs transient). Binding ADR: [ADR-008](adrs/ADR-008-schema-led-domain-contracts.md). The bullets below remain a short summary until `agents.md` is retired.
 
-export type Recipe = z.infer<typeof RecipeSchema>;
-```
-- Validate responses from any external APIs (e.g., OpenAI, Supabase) before use.
-
-- For transformations, prefer Zod .transform() instead of ad hoc mutation logic.
-- Create composite schemas for structured entities such as:
-  - Suggestion
-  - FullRecipe
-  - SavedRecipe
-- Each schema should clearly define what’s persisted locally versus what’s transient or generated.
+- Domain modules: `*.schemas.ts`, `*.types.ts`, `*.model.ts`, `*.service.ts`, barrel `index.ts` per [`src/lib/api/README.md`](src/lib/api/README.md).
+- Reject unknown keys on object schemas (`.strict()`); validate boundaries with `.safeParse()`; derive entity types with `z.infer<typeof …>`.
 
 ---
 

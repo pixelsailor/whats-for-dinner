@@ -47,7 +47,7 @@ The repo already documents an intended layout in [`src/lib/api/README.md`](../sr
 
 5. **Stores (`src/lib/stores/**`)** operate on **inferred domain types** and mutation helpers; they should not invent alternate entity shapes.
 
-6. **Strict object contracts:** New and materially revised **object** schemas in `src/lib/api/**` should use **`.strict()`** (or equivalent rejection of unknown keys), so unexpected fields surface at validation time rather than silently flowing through.
+6. **Strict object contracts:** New and materially revised **object** schemas in `src/lib/api/**` should use **`.strict()`** (or equivalent rejection of unknown keys), so unexpected fields surface at validation time rather than silently flowing through. **Operational detail** (boundary use of `.safeParse()`, `.transform()`, composite schemas, and file layout examples) is maintained in [`.cursor/rules/schema-and-type-safety.mdc`](../.cursor/rules/schema-and-type-safety.mdc)—not in ad hoc per-agent summaries.
 
 7. **Validation points:** Any code path that accepts **user input**, **network JSON**, or **model output** must validate before treating data as the domain type. Prefer `.safeParse()` and explicit error handling over unchecked casts.
 

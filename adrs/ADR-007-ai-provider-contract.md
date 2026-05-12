@@ -48,6 +48,7 @@ The codebase has **two parallel integration styles** (deprecated Chat Completion
 
 3. **Structured response contract**
    - For Responses-based calls, the Zod schema passed to `zodTextFormat` is the **authoritative** shape for that response; the model output must be treated as invalid if the SDK/schema pipeline fails.
+   - **`zodTextFormat` schema shape:** The SDK maps Zod to provider structured-output constraints; **advanced Zod** (notably **`.transform()`**, **`.pipe()`**, and refinements that do not correspond to plain JSON properties) is **not reliably supported**. Schemas used **directly** with `zodTextFormat` should be **standard JSON object trees**—objects, arrays, strings, numbers, booleans, and null where the contract allows—plus **`.describe()`** (and similar field metadata) to guide the model. **Normalization** (coercion, derived fields, merging API-layer fields) belongs in a **separate** Zod parse or helper **after** structured output succeeds, not on the schema object passed into `zodTextFormat`.
    - For **deprecated** Chat Completions JSON-in-message flows, prompts must require **raw JSON only**; the server must **parse** and **validate or reject** before returning success. Current legacy code often uses `JSON.parse` and type assertions — **new code must not add unvalidated parses**; tightening validation on legacy paths is encouraged in the same PR when touching them.
 
 4. **User preferences in prompts**
@@ -88,6 +89,7 @@ The codebase has **two parallel integration styles** (deprecated Chat Completion
 | Risk | Mitigation |
 | ---- | ---------- |
 | Schema drift between OpenAI output and UI | Co-locate Zod schemas with AI module; use strict parsing at the route boundary when returning JSON. |
+| Overly rich Zod on `zodTextFormat` | Keep structured-output schemas JSON-plain + `.describe()`; run transforms in a second parse (see **Structured response contract** § `zodTextFormat` schema shape). |
 | Accidental client import of server AI module | Follow ADR-006; avoid barrels that mix server implementations with client imports. |
 | Provider outage or rate limits | User-visible errors; optional future retry policy; dedup/throttle for suggestions per ADR-003. |
 

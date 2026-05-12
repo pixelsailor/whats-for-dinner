@@ -16,7 +16,7 @@ alwaysApply: false
 
 - **Source of truth:** Zod schemas for persisted domain rows, HTTP API bodies/responses under `src/routes/api/**`, validated Supabase/sync/AI JSON, and any structure serialized to IndexedDB or the wire (ADR-008).
 - **Types:** Use `z.infer<typeof Schema>` (or equivalent from composed schemas). **Do not** hand-duplicate the same field contract in a parallel `interface` / `type` for those entities.
-- **Boundaries:** Validate user input, network JSON, and model output with **`.safeParse()`** (or transforms) before treating values as domain types; avoid unchecked casts at trust boundaries (ADR-008 §7; overlaps deprecated AI paths in [`docs/readme-adr-alignment-gaps.md`](../docs/readme-adr-alignment-gaps.md) **GAP-006**).
+- **Boundaries:** Validate user input, **network JSON** (including **OpenAI** and **Supabase** responses where the app asserts shape), and model output with **`.safeParse()`** (or transforms) before treating values as domain types; avoid unchecked casts at trust boundaries (ADR-008 §7; overlaps deprecated AI paths in [`docs/readme-adr-alignment-gaps.md`](../docs/readme-adr-alignment-gaps.md) **GAP-006**).
 
 ## Where types live
 
@@ -34,6 +34,34 @@ alwaysApply: false
 ## Strict object schemas
 
 - New or materially revised **object** schemas under `src/lib/api/**` should use **`.strict()`** (or equivalent) so unknown keys fail validation (ADR-008 §6). When tightening legacy schemas, prefer incremental updates in the same change that touches the schema.
+
+## Transforms and composition
+
+- **Transforms:** Prefer schema **`.transform()`** (and related Zod coercion helpers) at validation boundaries instead of mutating parsed objects with ad hoc logic—keeps invariants and errors in one place.
+- **Composite schemas:** Model structured entities (e.g. suggestion payloads, full vs saved recipe shapes) by **composing** smaller schemas (`merge`, `extend`, shared bases under `api/common`) rather than copy-pasting fields.
+- **Persisted vs transient:** Make it obvious in naming, module split, or short comments which parts of a domain are **durable Dexie rows**, **HTTP-only envelopes**, or **ephemeral AI output**—ADR-008 exclusions still apply for purely ephemeral structs.
+
+## OpenAI Responses structured output (`zodTextFormat`)
+
+- Schemas passed to **`zodTextFormat`** (see [`src/lib/api/ai/ai.model.ts`](../src/lib/api/ai/ai.model.ts)) must stay **JSON-schema-friendly**: straightforward object and array shapes and primitives; use **`.describe()`** (and similar) for model guidance.
+- **Do not** rely on **`.transform()`**, **`.pipe()`**, or non-trivial **`.refine()`** on that **same** Zod object—the Responses + Zod integration does not handle them well. **Normalize** in a **second** schema or `safeParse` **after** the structured response is valid ([ADR-007](../adrs/ADR-007-ai-provider-contract.md) structured response contract).
+
+## Example (object schema + inferred type)
+
+```ts
+export const RecipeSchema = z
+	.object({
+		id: z.string().uuid(),
+		title: z.string(),
+		ingredients: z.array(z.string()),
+		steps: z.array(z.string())
+	})
+	.strict();
+
+export type Recipe = z.infer<typeof RecipeSchema>;
+```
+
+Use **`.safeParse()`** on `RecipeSchema` (or composed schemas) for user input, network JSON, and model output before treating values as `Recipe`.
 
 ## Imports
 

@@ -1,9 +1,13 @@
 /**
- * AI Schemas
- * 
- * Contains the schemas for interacting with the OpenAI API. Schemas used for OpenAI structured
- * output responses must have an "object" root and properties must be required: Must not be optional
- * but can be null.
+ * @fileoverview Zod contracts for AI routes and OpenAI structured output (`zodTextFormat`).
+ * @module lib/api/ai/ai.schemas
+ *
+ * @remarks Schemas passed to `zodTextFormat` must be plain JSON-shaped object trees (plus
+ * `.describe()` on fields where helpful). Avoid `.transform()`, `.pipe()`, and heavy `.refine()` on
+ * those schemas—apply normalization in a follow-up parse after structured output succeeds
+ * ({@link ../../../../adrs/ADR-007-ai-provider-contract.md ADR-007} structured response contract).
+ * Structured output roots use object shapes; properties are required (use `null` instead of optional)
+ * where the OpenAI contract requires it.
  */
 
 import { z } from 'zod';

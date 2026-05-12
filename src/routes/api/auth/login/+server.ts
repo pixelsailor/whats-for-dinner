@@ -2,23 +2,23 @@
 // import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types.js';
 // import { createClient } from '@supabase/supabase-js';
-// import { PUBLIC_SUPABASE_ANON_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public';
+// import { PUBLIC_SUPABASE_PUBLISHABLE_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public';
 
 export const POST: RequestHandler = async ({ locals, request }) => {
-  const { email, password } = await request.json();
+	const { email, password } = await request.json();
 
-  const { error } = await locals.supabase.auth.signInWithPassword({
-    email,
-    password
-  });
+	const { error } = await locals.supabase.auth.signInWithPassword({
+		email,
+		password
+	});
 
-  if (error) {
+	if (error) {
 		return new Response(error.message, { status: 401 });
 	}
 
 	// Cookie is automatically set by auth-helpers
 	return new Response('OK', { status: 200 });
-}
+};
 
 // export const POST: RequestHandler = async ({ request, cookies }) => {
 //   try {
@@ -29,7 +29,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 //     }
 
 //     // Create Supabase client
-//     const supabase = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY);
+//     const supabase = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY);
 
 //     // Attempt to sign in
 //     const { data, error: authError } = await supabase.auth.signInWithPassword({
@@ -72,11 +72,11 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 
 //   } catch (err) {
 //     console.error('Login API error:', err);
-    
+
 //     if (err instanceof Error && 'status' in err) {
 //       throw err;
 //     }
-    
+
 //     throw error(500, 'Internal server error');
 //   }
 // };

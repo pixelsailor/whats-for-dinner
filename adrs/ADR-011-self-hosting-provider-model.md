@@ -23,7 +23,7 @@ Without a governing decision, contributors will keep adding Supabase-only checks
 
 The current implementation already has shape that **forecloses** self-hosting if not deliberately constrained:
 
-- `PUBLIC_SUPABASE_URL` / `PUBLIC_SUPABASE_ANON_KEY` are **compile-time** public env vars consumed by [`src/lib/supabaseClient.ts`](../src/lib/supabaseClient.ts), [`src/hooks.server.ts`](../src/hooks.server.ts), and [`src/lib/db/remote.ts`](../src/lib/db/remote.ts); there is no runtime way to point at a different cloud database.
+- `PUBLIC_SUPABASE_URL` / `PUBLIC_SUPABASE_PUBLISHABLE_KEY` are **compile-time** public env vars consumed by Supabase client entry points such as [`src/lib/supabaseClient.ts`](../src/lib/supabaseClient.ts), [`src/hooks.server.ts`](../src/hooks.server.ts), and [`src/lib/db/remote.ts`](../src/lib/db/remote.ts); there is no runtime way to point at a different cloud database.
 - AI server routes ([`src/routes/api/suggestions/+server.ts`](../src/routes/api/suggestions/+server.ts), [`src/routes/api/recipes/+server.ts`](../src/routes/api/recipes/+server.ts), [`src/routes/api/recipes/new/+server.ts`](../src/routes/api/recipes/new/+server.ts)) gate AI access with `permissions.ai_assistance` derived from a Supabase-issued cookie ([`src/lib/utils/session.ts`](../src/lib/utils/session.ts)); a user with their own AI key but no WFD-managed account is currently blocked.
 - The AI client in [`src/lib/api/ai/ai.model.ts`](../src/lib/api/ai/ai.model.ts) and [`src/lib/server/openai.ts`](../src/lib/server/openai.ts) is a **singleton** keyed by one server env var (`OPENAI_API_KEY`); there is no per-request or per-deployment override.
 - [`src/lib/api/cloud/cloud.service.ts`](../src/lib/api/cloud/cloud.service.ts) is a Supabase **class**, not a generic interface; sync helpers and route handlers depend on it directly.
@@ -50,7 +50,7 @@ We define three orthogonal **roles** that today are bundled together. Self-hosti
 | Role | What it does today | Self-hosting target |
 | --- | --- | --- |
 | **AI provider** | OpenAI **Responses** calls (preferred, `$lib/api/ai/ai.model.ts`) and deprecated **Chat Completions** calls (legacy, `$lib/server/openai.ts`). | A user-configured **OpenAI-compatible** endpoint (base URL + key, optional model overrides). Must satisfy [ADR-007](ADR-007-ai-provider-contract.md) request and structured-response shapes. |
-| **Cloud database** | Supabase Postgres tables (`recipes`, `shared_links`) accessed through `CloudService` and `SyncService`. | A user-hosted Postgres-shaped backend that supports the **same row schemas and operations** WFD already uses. v1 target is **another Supabase project** (BYO project URL/anon key); other Postgres backends are unsupported until they implement the same `CloudService` operations. |
+| **Cloud database** | Supabase Postgres tables (`recipes`, `shared_links`) accessed through `CloudService` and `SyncService`. | A user-hosted Postgres-shaped backend that supports the **same row schemas and operations** WFD already uses. v1 target is **another Supabase project** (BYO project URL/publishable key); other Postgres backends are unsupported until they implement the same `CloudService` operations. |
 | **Identity / auth** | Supabase Auth via `@supabase/ssr` in `hooks.server.ts`. | **Out of scope** for this ADR. Self-hosting v1 expects users still authenticate against the configured Supabase project (which may be their own). |
 
 ### 2. Required vs optional vs unsupported provider capabilities
@@ -60,7 +60,7 @@ Each adapter **declares** which capabilities it implements. The UI must degrade 
 **AI provider capability matrix**
 
 | Capability | Status | Notes |
-| --- | --- | --- |
+| ---------- | ------ | ----- |
 | Recipe **suggestions** generation (structured array of ideas) | Required | Must accept the suggestion prompt shape and return data validatable against the suggestion schema in `$lib/api/ai`. |
 | **Full recipe** generation from suggestion | Required | Must accept preference text and return data validatable against `RecipeSchema`. |
 | Recipe **revision** | Optional | Provider may decline; UI degrades to "AI revision unavailable." |
@@ -72,7 +72,7 @@ Each adapter **declares** which capabilities it implements. The UI must degrade 
 **Cloud database capability matrix**
 
 | Capability | Status | Notes |
-| --- | --- | --- |
+| ---------- | ------ | ----- |
 | Recipe upsert / fetch / list by owner | Required | Must accept `SavedRecipe`-shaped rows including soft-delete and `checkout_history`. |
 | Soft-delete and tombstone propagation | Required | See [ADR-005](ADR-005-sync-and-conflict-resolution.md). Provider must preserve `deleted_at` rows so restore works across devices. |
 | Shared-recipe tokens | Optional | If unsupported, sharing UI is disabled; backup/sync still works. |
@@ -85,7 +85,7 @@ Each adapter **declares** which capabilities it implements. The UI must degrade 
 User-supplied provider configuration is **device-local** by default and **never** ships in the client bundle.
 
 - **AI provider config** (base URL, API key, optional model name) is held in **server-only** state per request (e.g. resolved from a per-deployment env var, a per-request header validated server-side, or a future signed configuration cookie). The key **must not** appear in `.svelte`, `+page.ts`, `+layout.ts`, or shared client modules ([ADR-006](ADR-006-serverless-and-secret-boundary.md)).
-- **Cloud database config** (Supabase project URL and anon key) may be public per Supabase's own model, but a self-hosted deployment that swaps URL/anon key still does so via deployment env or a server-rendered runtime config. The current compile-time `PUBLIC_SUPABASE_URL` / `PUBLIC_SUPABASE_ANON_KEY` are **acceptable for v1** but are **drift relative to runtime self-hosting** (recorded as a gap below).
+- **Cloud database config** (Supabase project URL and publishable key) may be public per Supabase's own model, but a self-hosted deployment that swaps URL/publishable key still does so via deployment env or a server-rendered runtime config. The current compile-time `PUBLIC_SUPABASE_URL` / `PUBLIC_SUPABASE_PUBLISHABLE_KEY` are **acceptable for v1** but are **drift relative to runtime self-hosting** (recorded as a gap below).
 - **No telemetry, log, or error response** may include the user's AI key, alternate base URL, or other secret values. Logging may include a stable **provider id** (e.g. `openai-default`, `personal-openai-compat`) for debugging.
 
 ### 4. Permission semantics under self-hosting
@@ -142,7 +142,7 @@ The client must treat **absent** capabilities as feature-off (hide or disable), 
 ### Risks and mitigations
 
 | Risk | Mitigation |
-| --- | --- |
+| ---- | ---------- |
 | Personal-AI key leaks via logs or error response | Stable provider-id logging only; redact request headers carrying keys; review checklist in route handlers; no key in `featureFlags`. |
 | OpenAI-compatible gateway returns slightly different JSON shape | Zod `safeParse` at the boundary; failure surfaces as a normal AI error to the client, never as silently corrupt data. |
 | User-hosted Supabase has different RLS / column set | Sync planning must surface schema mismatches as plan-level errors ([ADR-005](ADR-005-sync-and-conflict-resolution.md)); document required Postgres schema in a future implementation doc. |
@@ -219,10 +219,10 @@ Orchestration **not required** for authoring this ADR. Plan–Build–Validate�
 The following gaps were identified while authoring this ADR and are recorded in [`docs/readme-adr-alignment-gaps.md`](../docs/readme-adr-alignment-gaps.md) as **GAP-010**.
 
 | Topic | ADR expectation | Observed |
-| --- | --- | --- |
+| ----- | --------------- | -------- |
 | **AI gating uses capability + permission** | A request with valid personal AI config should not be rejected solely on `permissions.ai_assistance`. | [`src/routes/api/suggestions/+server.ts`](../src/routes/api/suggestions/+server.ts), [`src/routes/api/recipes/+server.ts`](../src/routes/api/recipes/+server.ts), and [`src/routes/api/recipes/new/+server.ts`](../src/routes/api/recipes/new/+server.ts) reject when `permissions.ai_assistance` is false; no personal-provider escape hatch exists. |
 | **Per-request AI provider resolution** | The `OpenAI` client should be resolvable per request from managed default or personal config. | [`src/lib/api/ai/ai.model.ts`](../src/lib/api/ai/ai.model.ts) and [`src/lib/server/openai.ts`](../src/lib/server/openai.ts) build a singleton client from `OPENAI_API_KEY` only. |
-| **Runtime cloud provider configuration** | Cloud URL/anon key should be resolvable at runtime so a deployment can swap Supabase projects without rebuilding. | [`src/lib/supabaseClient.ts`](../src/lib/supabaseClient.ts) and [`src/hooks.server.ts`](../src/hooks.server.ts) read `PUBLIC_SUPABASE_URL` / `PUBLIC_SUPABASE_ANON_KEY` from `$env/static/public` (compile-time). |
+| **Runtime cloud provider configuration** | Cloud URL/publishable key should be resolvable at runtime so a deployment can swap Supabase projects without rebuilding. | [`src/lib/supabaseClient.ts`](../src/lib/supabaseClient.ts) and [`src/hooks.server.ts`](../src/hooks.server.ts) read `PUBLIC_SUPABASE_URL` / `PUBLIC_SUPABASE_PUBLISHABLE_KEY` from `$env/static/public` (compile-time). |
 | **Cloud adapter shape** | Cloud database operations should be expressible against the capability matrix in §2, not a Supabase-only class. | [`src/lib/api/cloud/cloud.service.ts`](../src/lib/api/cloud/cloud.service.ts) is a Supabase-bound class with no provider-agnostic interface; the deprecated [`src/lib/db/remote.ts`](../src/lib/db/remote.ts) is similarly Supabase-only. |
 | **Capability advertisement to client** | `featureFlags` should expose AI and cloud capability sets, not a single boolean. | [`src/routes/+layout.server.ts`](../src/routes/+layout.server.ts) exposes only `featureFlags.openai` derived from the managed key. |
 | **Suggestion storage independent of WFD account** | Suggestions remain transient-local under [ADR-003](ADR-003-ai-suggestion-lifecycle.md); they should not require a WFD-managed account to be cached locally. | [`src/lib/db.ts`](../src/lib/db.ts) header comment claims "By virtue of `ai_assistance` permission requirements, `suggestions` may only be stored for authenticated users." This conflicts with anonymous + personal-AI usage. |

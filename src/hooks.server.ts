@@ -1,4 +1,4 @@
-import { PUBLIC_SUPABASE_ANON_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public';
+import { PUBLIC_SUPABASE_PUBLISHABLE_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public';
 import { createServerClient } from '@supabase/ssr';
 import { getSessionPermissions } from '$lib/utils/session';
 import { type Handle, redirect } from '@sveltejs/kit';
@@ -10,7 +10,7 @@ const supabase: Handle = async ({ event, resolve }) => {
 	 *
 	 * The Supabase client gets the Auth token from the request cookies.
 	 */
-	event.locals.supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
+	event.locals.supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
 		cookies: {
 			getAll: () => event.cookies.getAll(),
 			/**
@@ -66,7 +66,7 @@ const supabase: Handle = async ({ event, resolve }) => {
 
 /**
  * Authentication Guard
- * 
+ *
  * Protects routes from unauthorized access.
  * Redirects to the home page if the user is not authenticated.
  */

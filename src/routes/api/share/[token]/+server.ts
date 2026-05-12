@@ -1,18 +1,18 @@
-import { json, error } from '@sveltejs/kit';
+/**
+ * @fileoverview Resolves public recipe share tokens through the browser-safe Supabase client.
+ * @module routes/api/share/[token]/server
+ */
+
+import { error, json } from '@sveltejs/kit';
 import { supabase } from '$lib/supabaseClient';
 
-export async function GET({ params }) {
+import type { RequestHandler } from './$types';
+
+export const GET: RequestHandler = async ({ params }) => {
 	const { token } = params;
 
-	console.log('get', token);
-	
-
 	// Step 1: Find the recipe_id from the share token
-	const { data: link, error: linkErr } = await supabase
-		.from('shared_links')
-		.select('recipe_id')
-		.eq('token', token)
-		.maybeSingle();
+	const { data: link, error: linkErr } = await supabase.from('shared_links').select('recipe_id').eq('token', token).maybeSingle();
 
 	if (linkErr || !link) {
 		throw error(404, 'Link not found');
@@ -31,4 +31,4 @@ export async function GET({ params }) {
 	}
 
 	return json(recipe);
-}
+};

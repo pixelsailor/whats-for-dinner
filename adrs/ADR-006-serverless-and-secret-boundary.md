@@ -11,7 +11,7 @@
 ## Scope
 
 - **In scope:** Where OpenAI and other privileged server work may run; how secrets and `$env/static/private` (and dynamic private env) may be used; what client-side modules and `.svelte` files must never import; portability expectations for serverless and edge-style runtimes (including Cloudflare Workers/Pages–style constraints).
-- **Out of scope:** Detailed OpenAI request/response contracts ([ADR-007](ADR-007-ai-provider-contract.md)), self-hosted AI/database wiring, Zod schema placement (future schema ADR), and Supabase data model beyond “which side of the boundary” the anon client vs any future service role lives on.
+- **Out of scope:** Detailed OpenAI request/response contracts ([ADR-007](ADR-007-ai-provider-contract.md)), self-hosted AI/database wiring, Zod schema placement (future schema ADR), and Supabase data model beyond “which side of the boundary” the publishable client vs any future service role lives on.
 
 ## Context
 
@@ -36,9 +36,9 @@ Deployment targets are serverless or edge-capable (see [agents.md](../agents.md)
    - `+page.ts` / `+layout.ts` / `src/routes/**/+layout.ts` client load (universal load that ships to the client),
    - or any module imported by the client bundle for execution (including shared `src/lib/**` files used from components).
 
-3. **Public environment** (`$env/static/public`, `$env/dynamic/public`) may be used in client or server code when the value is intentionally exposed (for example `PUBLIC_SUPABASE_URL`, `PUBLIC_SUPABASE_ANON_KEY`). Never place secrets in `PUBLIC_*` vars.
+3. **Public environment** (`$env/static/public`, `$env/dynamic/public`) may be used in client or server code when the value is intentionally exposed (for example `PUBLIC_SUPABASE_URL`, `PUBLIC_SUPABASE_PUBLISHABLE_KEY`). Never place secrets in `PUBLIC_*` vars.
 
-4. **Supabase privileged work**: The browser and shared client code use the **anon** key with user session (see `hooks.server.ts` and client helpers). **Service role** or other privileged Supabase credentials, if introduced later, belong **only** in server-only modules and must never be imported from client code.
+4. **Supabase privileged work**: The browser and shared client code use the browser-safe **publishable** key with user session (see `hooks.server.ts` and client helpers). **Service role**, Supabase secret keys, or other privileged Supabase credentials, if introduced later, belong **only** in server-only modules and must never be imported from client code.
 
 5. **Serverless / portability**: New server code must avoid **Node-only** APIs (`node:fs`, `node:path`, implicit `Buffer` reliance, etc.) **unless** isolated behind a build target that guarantees Node (this project does not assume that for core handlers). Prefer Web APIs and runtime-neutral dependencies. This keeps the door open to Netlify Edge, Cloudflare Workers/Pages, and similar targets alongside the current adapter choice.
 

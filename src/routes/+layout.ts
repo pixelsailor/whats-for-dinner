@@ -9,7 +9,8 @@ export const load: LayoutLoad = async ({ data, depends, fetch }) => {
 	 */
 	depends('supabase:auth');
 
-	const supabase = isBrowser()
+	const browser = isBrowser();
+	const supabase = browser
 		? createBrowserClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
 				global: {
 					fetch
@@ -26,11 +27,13 @@ export const load: LayoutLoad = async ({ data, depends, fetch }) => {
 				}
 			});
 
-	/**
-	 * It's fine to use `getSession` here, because on the client, `getSession` is
-	 * safe, and on the server, it reads `session` from the `LayoutData`, which
-	 * safely checked the session using `safeGetSession`.
-	 */
+	if (!browser) {
+		return {
+			...data,
+			supabase
+		};
+	}
+
 	const {
 		data: { session }
 	} = await supabase.auth.getSession();

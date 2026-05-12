@@ -126,11 +126,11 @@ Create a local environment file with values for the optional services you are us
 
 ```bash
 PUBLIC_SUPABASE_URL=your_supabase_project_url
-PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key
 OPENAI_API_KEY=your_openai_api_key
 ```
 
-`PUBLIC_*` values are safe for client exposure. OpenAI keys and other secrets must be imported only from server-side code using SvelteKit private environment APIs.
+`PUBLIC_SUPABASE_PUBLISHABLE_KEY` is the browser-safe Supabase key used by client and SSR auth/session code. `PUBLIC_*` values are safe for client exposure. OpenAI keys and other secrets must be imported only from server-side code using SvelteKit private environment APIs.
 
 ## Development Workflow
 

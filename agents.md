@@ -72,12 +72,14 @@ This is a serverless app: keep handlers compatible with constrained runtimes per
 
 ## TypeScript Conventions
 
+Canonical home: [`.cursor/rules/lint-and-code-quality.mdc`](.cursor/rules/lint-and-code-quality.mdc) (TypeScript and Formatting sections) and [`.cursor/rules/schema-and-type-safety.mdc`](.cursor/rules/schema-and-type-safety.mdc) for Zod-led types. The bullets below remain a summary until `agents.md` is retired.
+
 - Enable strict mode in `tsconfig.json`.
 - Infer types from Zod schemas using `z.infer<typeof Schema>` whenever applicable.
 - Avoid `any`; if a type is uncertain, narrow it through validation or explicit typing.
 - Always provide explicit return types for exported functions and stores.
 - Use descriptive names for stores, variables, and functions.
-- Respect indents. Keep nested items aligned. Do not reset tabs for nested content.
+- Respect the indentation that **Prettier** is configured for in [`.prettierrc`](.prettierrc) (do not restate values here). Keep nested items aligned; do not mix indentation characters within a file or override the formatter in new code.
 - When working with Svelte runes, prefer clear naming for derived and reactive state:
 ```ts
   const count = $state(0);
@@ -166,7 +168,9 @@ export type Recipe = z.infer<typeof RecipeSchema>;
 
 ## General Code Style
 
-- Use 2-space indentation.
+Canonical home: [`.cursor/rules/lint-and-code-quality.mdc`](.cursor/rules/lint-and-code-quality.mdc) (Formatting and general style); JSDoc expectations live in [`.cursor/rules/documentation-conventions.mdc`](.cursor/rules/documentation-conventions.mdc). The bullets below remain a summary until `agents.md` is retired.
+
+- Use the indentation Prettier is configured for in [`.prettierrc`](.prettierrc) (do not restate the value here). Run `pnpm run format` rather than hand-formatting; do not mix indentation characters or override the formatter in new code.
 - Prefer arrow functions and const declarations.
 - Keep imports ordered: external → internal → local.
 - Write small, composable functions.
@@ -178,6 +182,8 @@ export type Recipe = z.infer<typeof RecipeSchema>;
 ---
 
 ## Accessibility and UX
+
+Canonical homes: [ADR-014: Semantic HTML and accessibility](adrs/ADR-014-semantic-html-and-accessibility.md) (Accepted) and [`.cursor/rules/svelte-5-ui-conventions.mdc`](.cursor/rules/svelte-5-ui-conventions.mdc) (a11y section). Cross-cutting hooks (loading/error states for any async work, simplicity over micro-optimization) also appear in [`.cursor/rules/lint-and-code-quality.mdc`](.cursor/rules/lint-and-code-quality.mdc). The bullets below remain a summary until `agents.md` is retired.
 
 - Always use semantic HTML tags and accessible form controls.
 - Provide aria-label or descriptive text for all interactive elements.

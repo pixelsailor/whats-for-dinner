@@ -1,14 +1,35 @@
 ---
-description: Core best practices and conventions for the What's For Dinner webapp
-version: 0.1.0
+description: Repo layout and rule routing; official Svelte best-practices pointer and svelte-core-bestpractices skill
+version: 0.2.0
 alwaysApply: true
 ---
 
 # What's For Dinner (WFD) Best Practices
 
-## Project Structure
+## Scope (this rule)
+
+**Owns:** High-level **project layout** and **where other guidance lives** so agents pick the right rule first.
+
+**Does not own:** Lint configuration, Svelte runes/UI specifics, or Svelte MCP tool order — those live in the rules linked below.
+
+## Project structure
 
 This is a Svelte 5.x web application with:
 
-- **Main app**: `src/routes/` -- Routable webpages
-- **App libraries**: `src/lib/` -- Zod schemas, API handlers, LLM prompts, Database stores, and reusable UI components
+- **Main app:** `src/routes/` — routable pages and layouts
+- **App libraries:** `src/lib/` — Zod schemas, API handlers, LLM prompts, Dexie stores, and reusable UI components
+
+## Rule routing (use the narrowest match)
+
+| Need | Rule |
+| --- | --- |
+| ESLint / Prettier, TypeScript style in `.ts` and cross-file discipline | [`.cursor/rules/lint-and-code-quality.mdc`](./lint-and-code-quality.mdc) |
+| `.svelte` runes, UI, bits-ui / Tailwind, component patterns | [`.cursor/rules/svelte-5-ui-conventions.mdc`](./svelte-5-ui-conventions.mdc) |
+| Svelte MCP (`list-sections`, `get-documentation`, `svelte-autofixer`), stack commands, adapter/runtime notes | [`.cursor/rules/svelte-mcp-workflow.mdc`](./svelte-mcp-workflow.mdc) |
+| ADR compliance and architecture | [`.cursor/rules/adr-compliance.mdc`](./adr-compliance.mdc) and [`adrs/INDEX.md`](adrs/INDEX.md) |
+
+## Official Svelte guidance (framework idioms)
+
+For **framework-level** Svelte 5 guidance (runes, `$derived` vs `$effect`, snippets, keyed `{#each}`, events, context, avoiding legacy APIs), treat the upstream contract as authoritative: [Svelte — Best practices (llms.txt)](https://svelte.dev/docs/svelte/best-practices/llms.txt).
+
+**Skill:** When the **svelte-core-bestpractices** skill is available in the environment, **read and follow it** for those idioms so project rules are not a stale duplicate of upstream. This repository’s [`.cursor/rules/svelte-5-ui-conventions.mdc`](./svelte-5-ui-conventions.mdc) adds **WFD-specific** UI, ADR-linked constraints, and tooling hooks (MCP); it does not replace the official best-practices document for generic Svelte behavior.

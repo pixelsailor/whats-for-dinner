@@ -1,18 +1,25 @@
 ---
-description: Project stack and Svelte MCP tools (docs + svelte-autofixer) for agents
+description: Stack commands, adapter/runtime constraints, and Svelte MCP tool order for agents
 alwaysApply: true
 ---
 
 # Project stack and Svelte MCP workflow
 
+## Scope (this rule)
+
+**Owns:** **Agent stack facts** (language, package manager, common commands), **SvelteKit deployment/runtime discipline** (adapter, constrained runtimes), **Svelte MCP** tool order, and pointers to ADR entrypoints.
+
+**Does not own:** ESLint/Prettier specifics ([`.cursor/rules/lint-and-code-quality.mdc`](./lint-and-code-quality.mdc)), `.svelte` runes and UI patterns ([`.cursor/rules/svelte-5-ui-conventions.mdc`](./svelte-5-ui-conventions.mdc)), or repo folder map ([`.cursor/rules/project-best-practices.mdc`](./project-best-practices.mdc)).
+
 ## Stack (for agents)
 
-- **Language:** TypeScript  
-- **Package manager:** npm  
-- **Common commands:** `npm run dev`, `npm run build`, `npm run check`, `npm run lint`, `npm run test`  
-- **Tooling:** ESLint, Prettier, Vitest, `@sveltejs/adapter-netlify` (see [ADR-006](adrs/ADR-006-serverless-and-secret-boundary.md) for portability vs configured adapter)
+- **Language:** TypeScript
+- **Package manager:** pnpm
+- **Common commands:** `pnpm run dev`, `pnpm run build`, `pnpm run check`, `pnpm run lint`, `pnpm run test`
+- **Tooling:** ESLint, Prettier, Vitest, `@sveltejs/adapter-netlify` — portability vs configured adapter: [ADR-006](adrs/ADR-006-serverless-and-secret-boundary.md)
+- **Runtime discipline:** Keep server-side code compatible with constrained runtimes; avoid Node-only APIs in shared handlers unless isolated per ADR-006. Prefer SvelteKit [**remote functions**](https://svelte.dev/docs/kit/remote-functions/llms.txt) only when they fit those deployment constraints.
 
-Architecture and boundaries are defined in **`adrs/INDEX.md`** (Accepted ADRs only) and **`adrs/GOVERNANCE.md`**.
+Architecture and boundaries: **`adrs/INDEX.md`** (Accepted ADRs) and **`adrs/GOVERNANCE.md`**.
 
 ## Svelte MCP server
 
@@ -36,4 +43,4 @@ Only after the user **confirms** they want a playground link. **Do not** call if
 
 ---
 
-Svelte **runes, UI, accessibility, and bits-ui / Tailwind** conventions live in [`.cursor/rules/svelte-5-ui-conventions.mdc`](./svelte-5-ui-conventions.mdc). Remaining `agents.md` content is being distributed per [`docs/adr-and-rules-todo.md`](docs/adr-and-rules-todo.md). Human contributors can rely on **`README.md`**, **`adrs/INDEX.md`**, and `.cursor/rules/` for entrypoints.
+Human contributors: **`README.md`**, **`adrs/INDEX.md`**, and `.cursor/rules/`. Agent-oriented distribution of `agents.md`: [`docs/adr-and-rules-todo.md`](docs/adr-and-rules-todo.md).

@@ -40,7 +40,7 @@ Env & secrets
 
 Tests & CI hints
 - Unit tests use Vitest. Tests live next to routes/components (see `src/routes/*/*.test.ts` and
-	`demo.spec.ts`). Use `npm run test` for local runs. Playwright is available in devDependencies
+	`demo.spec.ts`). Use `pnpm run test` for local runs. Playwright is available in devDependencies
 	for future E2E tests.
 
 Files you will consult/modify most often

@@ -31,7 +31,7 @@ WFD is organized around a recipe book, a recommendations experience, and optiona
 
 - **Application**: Svelte 5, SvelteKit 2, TypeScript, Vite
 - **UI**: bits-ui, TailwindCSS 4, Flowbite Svelte, Carbon Icons
-- **Local data**: Dexie, IndexedDB, Dexie live queries, Svelte stores
+- **Local data**: Dexie and IndexedDB, reactive reads via **LiveQuery-backed stores** (`createLiveQueryStore` in `src/lib/stores/`), Svelte stores
 - **Remote state and validation**: TanStack Query, Zod
 - **Cloud services**: Supabase for auth, backup, sharing, and sync
 - **AI services**: OpenAI SDK on the server. **Preferred:** [Responses API](https://platform.openai.com/docs/api-reference/responses) with Zod-structured output (`src/lib/api/ai/`, consumed by suggestion routes). **Deprecated (legacy):** Chat Completions (`chat.completions.create` in `src/lib/server/openai.ts`) remains in use until migrated; new work should follow [ADR-007](adrs/ADR-007-ai-provider-contract.md).
@@ -87,7 +87,7 @@ Detailed guidance should live near the code it governs. Use the top-level README
 
 ## Documentation Map
 
-- [`AGENTS.md`](./AGENTS.md): Agent-facing development rules and coding expectations.
+- [`agents.md`](./agents.md): Agent-facing development rules and coding expectations (to be retired when distribution in [`docs/adr-and-rules-todo.md`](./docs/adr-and-rules-todo.md) finishes).
 - [`adrs/INDEX.md`](./adrs/INDEX.md): ADR index; [`adrs/TEMPLATE.md`](./adrs/TEMPLATE.md) for authoring new ADRs.
 - [`src/lib/api/README.md`](./src/lib/api/README.md): API service layer organization.
 - [`src/lib/ui/README.md`](./src/lib/ui/README.md): UI component library guidance.

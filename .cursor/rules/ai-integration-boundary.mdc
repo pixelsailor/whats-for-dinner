@@ -1,7 +1,7 @@
 ---
 description: >-
-  Server-only AI provider calls, Zod-validated I/O, preference injection on
-  generation paths, and no client-side secrets or SDK usage; Responses-first.
+  Offline-capable core product vs optional AI/cloud; server-only provider
+  calls, Zod-validated I/O, preference injection, no client secrets; Responses-first.
 globs: >-
   src/lib/api/ai/**/*.ts,src/lib/server/**/*.ts,src/lib/openai/**/*.ts,src/routes/api/**/*.ts,src/routes/**/+page.server.ts
 alwaysApply: false
@@ -10,6 +10,12 @@ alwaysApply: false
 # AI integration boundary
 
 **Binding:** [ADR-007: AI provider contract](../adrs/ADR-007-ai-provider-contract.md) (Accepted), [ADR-006: Serverless and secret boundary](../adrs/ADR-006-serverless-and-secret-boundary.md) (Accepted). **Product context:** [ADR-001](../adrs/ADR-001-product-operating-model.md) (optional AI), [ADR-003](../adrs/ADR-003-ai-suggestion-lifecycle.md) (transient suggestions). **Schemas:** [ADR-008](../adrs/ADR-008-schema-led-domain-contracts.md). **Self-hosting direction (not binding until Accepted):** [ADR-011](../adrs/ADR-011-self-hosting-provider-model.md).
+
+## Operating context
+
+Core recipe book flows must work **offline** and **without** Supabase or OpenAI once the app shell and local data are present ([ADR-001](../adrs/ADR-001-product-operating-model.md)). **Supabase** (auth, backup, sharing, sync) and **OpenAI** are **optional enhancements**; do not make them **hard prerequisites** for save, edit, search, organize, or restore of locally owned recipes. When AI is unavailable, **degrade** (clear UI, disabled actions) instead of blocking the recipe book ([ADR-001](../adrs/ADR-001-product-operating-model.md), [ADR-007](../adrs/ADR-007-ai-provider-contract.md) offline / no-AI behavior).
+
+For **new or changed AI features**, prefer **Responses API** + **Zod-structured output** under `$lib/api/ai/` ([ADR-007](../adrs/ADR-007-ai-provider-contract.md)); **do not extend** legacy **Chat Completions** in [`src/lib/server/openai.ts`](../src/lib/server/openai.ts) — see **New and changed AI work** below.
 
 ## Where AI may run
 

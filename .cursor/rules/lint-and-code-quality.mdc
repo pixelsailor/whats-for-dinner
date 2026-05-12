@@ -1,5 +1,5 @@
 ---
-description: TypeScript and Svelte patterns for consistent, lint-friendly code (strict nullability, async, formatting)
+description: ESLint/Prettier discipline, TypeScript strictness, imports, async/logging — file-scoped to src TS and Svelte
 globs:
   - src/**/*.ts
   - src/**/*.svelte
@@ -8,30 +8,55 @@ alwaysApply: false
 
 # Lint and code quality
 
-**Commands:** `npm run lint` runs Prettier (`--check`) and ESLint. `npm run format` applies Prettier. Address failures before review.
+## Scope (this rule)
 
-**Architecture:** Follow **Accepted** ADRs in [`adrs/INDEX.md`](adrs/INDEX.md) and [`adrs/GOVERNANCE.md`](adrs/GOVERNANCE.md). Commonly relevant here: [ADR-002](adrs/ADR-002-local-data-ownership.md) (local data / Dexie), [ADR-006](adrs/ADR-006-serverless-and-secret-boundary.md) (serverless and secrets), [ADR-007](adrs/ADR-007-ai-provider-contract.md) (AI provider), [ADR-008](adrs/ADR-008-schema-led-domain-contracts.md) (Zod-led types). [ADR-005](adrs/ADR-005-sync-and-conflict-resolution.md) covers sync semantics when you touch cloud replication (Proposed — design intent, not binding until Accepted).
+**Owns:** **Tooling-backed** quality for `src/**/*.ts` and `src/**/*.svelte` — Prettier/ESLint as source of truth, TypeScript strictness and patterns, imports, async/logging habits, and **minimal** Svelte markup reminders that mirror lint expectations.
+
+**Does not own:** Rich `.svelte` UI/runes guidance ([`.cursor/rules/svelte-5-ui-conventions.mdc`](./svelte-5-ui-conventions.mdc)), **Svelte MCP** workflow ([`.cursor/rules/svelte-mcp-workflow.mdc`](./svelte-mcp-workflow.mdc)), **repo layout** ([`.cursor/rules/project-best-practices.mdc`](./project-best-practices.mdc)), or **JSDoc depth** ([`.cursor/rules/documentation-conventions.mdc`](./documentation-conventions.mdc)).
+
+**Commands:** `pnpm run lint` runs Prettier (`--check`) and ESLint. `pnpm run format` applies Prettier. Address failures before review.
+
+**Tooling configuration is the source of truth.** Do **not** restate Prettier or ESLint option values in this rule, in [`agents.md`](agents.md), or in code comments — read [`.prettierrc`](.prettierrc) and [`eslint.config.js`](eslint.config.js) directly when you need specifics. If you change a config option, update the config file and (if behavior changes) the relevant ADR or rule prose, not duplicate values across files.
+
+**Architecture:** Follow **Accepted** ADRs in [`adrs/INDEX.md`](adrs/INDEX.md) and [`adrs/GOVERNANCE.md`](adrs/GOVERNANCE.md). Commonly relevant here: [ADR-002](adrs/ADR-002-local-data-ownership.md) (local data / Dexie), [ADR-006](adrs/ADR-006-serverless-and-secret-boundary.md) (serverless and secrets), [ADR-007](adrs/ADR-007-ai-provider-contract.md) (AI provider), [ADR-008](adrs/ADR-008-schema-led-domain-contracts.md) (Zod-led types), [ADR-014](adrs/ADR-014-semantic-html-and-accessibility.md) (semantic HTML and accessibility). [ADR-005](adrs/ADR-005-sync-and-conflict-resolution.md) covers sync semantics when you touch cloud replication (Proposed — design intent, not binding until Accepted).
 
 ## TypeScript
 
+- **Strict mode:** the project enables TypeScript `strict` (see [`tsconfig.json`](tsconfig.json) via `@sveltejs/kit`); preserve it. Do not relax compiler strictness to silence local errors — narrow the type, validate at the boundary, or add a Zod schema per [ADR-008](adrs/ADR-008-schema-led-domain-contracts.md).
+- **Schemas as the type source:** Derive domain types with `z.infer<typeof Schema>` rather than hand-duplicating fields. Cross-rule: [`.cursor/rules/schema-and-type-safety.mdc`](./schema-and-type-safety.mdc).
+- **Avoid `any`:** if a value is uncertain, narrow through Zod `safeParse`, explicit type guards, or `unknown` + checks. An unchecked `any` at a trust boundary is a bug, not a shortcut.
+- **Explicit return types** on exported functions, exported store factories, and `async` functions where the contract is not trivially inferable from a one-line body.
 - Trust the type system: avoid `?.` when types already exclude null/undefined; avoid `??` when the left-hand side cannot be null/undefined per its type.
-- Prefer explicit checks for nullable values (e.g. `if (value !== undefined)`) instead of truthiness when “defined” is what you mean — especially for objects and indexed access.
+- Prefer explicit checks for nullable values (e.g. `if (value !== undefined)`) instead of truthiness when "defined" is what you mean — especially for objects and indexed access.
 - For `Record<K, V>` or dynamic keys, treat a missing key as possibly undefined; narrow before use (cast to `V | undefined`, `in` checks, or guards) — align with [ADR-008](adrs/ADR-008-schema-led-domain-contracts.md) and explicit typing discipline.
 - Prefer object rest to omit keys; avoid `delete` on objects you control.
-- Add explicit return types on exported functions and on `async` functions when it clarifies the contract.
+- Use **descriptive names** for stores, exports, and helpers. Store naming convention is `<entity>Store` (see [`.cursor/rules/local-data-dexie-ownership.mdc`](./local-data-dexie-ownership.mdc)).
 - In tests, assert or narrow types before property access so access is type-safe.
 - Remove unused imports and dead code.
 
 ```ts
 // Narrow optional record access
 const row = byId[id] as Row | undefined;
-if (row !== undefined && row.title.trim() !== "") {
+if (row !== undefined && row.title.trim() !== '') {
 	// ...
 }
 
 // Prefer rest over delete
 const { [key]: _removed, ...rest } = obj;
 ```
+
+Runes **naming** for derived/reactive state: [`.cursor/rules/svelte-5-ui-conventions.mdc`](./svelte-5-ui-conventions.mdc); prefer clear names like `const count = $state(0); const doubled = $derived(count * 2);` over single-letter or abbreviated identifiers.
+
+## Formatting and general style
+
+- **Formatter wins.** Run `pnpm run format` (Prettier) rather than hand-formatting. Indentation, quote style, trailing commas, and line width come from [`.prettierrc`](.prettierrc); do not override them with editor settings or inline disables in new code.
+- **Match the existing style** of source you touch. If a file or directory already uses a consistent indentation character or quote style, keep it; do not mix indentation characters within a file or introduce a new style in a partial edit. Whole-file restyling belongs in its own change.
+- **Lint follows the config.** [`eslint.config.js`](eslint.config.js) is authoritative for enabled rules (including import-sort options, unused-vars discipline, and TypeScript/Svelte plugins). When a lint rule and this guidance disagree, fix the disagreement at the config or rule level rather than silencing the linter in code.
+- Prefer **arrow functions** and `const` declarations for module-local helpers and callbacks; use `function` declarations when hoisting or `this` semantics matter.
+- Keep **imports grouped**: external packages → SvelteKit / project aliases (`$app`, `$env`, `$lib`) → relative paths. Declaration-order grouping is a review convention today; member sort behavior is what [`eslint.config.js`](eslint.config.js) actually enforces.
+- Prefer **`import type`** for type-only imports (also called out by [`.cursor/rules/schema-and-type-safety.mdc`](./schema-and-type-safety.mdc)).
+- Write **small, composable functions**. Keep helpers focused; lift shared utilities into the right `$lib/` location rather than copy-pasting.
+- **Clarity over cleverness.** Favor readable, maintainable code over micro-optimizations. JSDoc and component documentation expectations live in [`.cursor/rules/documentation-conventions.mdc`](./documentation-conventions.mdc) — that rule is authoritative for what gets a doc block.
 
 ## Async and callbacks
 
@@ -41,8 +66,17 @@ const { [key]: _removed, ...rest } = obj;
 ## Logging and errors
 
 - Avoid `console.*` in UI and general app code for routine logging. Prefer explicit error states in UI, typed outcomes in server modules under `$lib/server/`, and [`+error.svelte` / `+error.ts`](https://svelte.dev/docs/kit/errors) where SvelteKit error boundaries apply. See [`.cursor/rules/adr-compliance.mdc`](./adr-compliance.mdc) when behavior touches architecture or offline/cloud contracts.
+- For asynchronous work (AI requests, Dexie updates, cloud sync, network fetches), surface **loading and error states** to the user — never leave the UI silently stalled. Component-level patterns: [`.cursor/rules/svelte-5-ui-conventions.mdc`](./svelte-5-ui-conventions.mdc); offline / connectivity: [`.cursor/rules/offline-first-development.mdc`](./offline-first-development.mdc) and [`.cursor/rules/offline-connectivity-capability.mdc`](./offline-connectivity-capability.mdc).
 
-## Svelte markup
+## Svelte markup (lint-aligned only)
 
-- Use `{#if}`, `{#each}`, `{#await}` (include `:catch` when awaiting a promise so failures surface in markup) instead of imperative DOM for control flow. Async UI patterns: [`.cursor/rules/svelte-5-ui-conventions.mdc`](./svelte-5-ui-conventions.mdc).
-- For accessibility (labels, buttons, landmarks), follow [`.cursor/rules/svelte-5-ui-conventions.mdc`](./svelte-5-ui-conventions.mdc) and [ADR-004](adrs/ADR-004-account-and-cloud-enhancement-model.md).
+- Use `{#if}`, `{#each}`, `{#await}` (include `:catch` when awaiting a promise so failures surface in markup) instead of imperative DOM for control flow. Rich async and runes guidance: [`.cursor/rules/svelte-5-ui-conventions.mdc`](./svelte-5-ui-conventions.mdc).
+
+## Accessibility (TypeScript and markup contracts)
+
+Component-level patterns and ADR-014 detail: [`.cursor/rules/svelte-5-ui-conventions.mdc`](./svelte-5-ui-conventions.mdc). This rule repeats only what applies when **authoring or typing** code that shapes HTML:
+
+- Prefer **semantic HTML** and accessible form controls in any markup you author or generate; use ARIA only where HTML cannot express the semantics ([ADR-014](adrs/ADR-014-semantic-html-and-accessibility.md) § 1).
+- Interactive elements need an **accessible name** (visible text, label association, or `aria-label` only when text alone is insufficient).
+- **Motion** must respect `prefers-reduced-motion` ([ADR-014](adrs/ADR-014-semantic-html-and-accessibility.md) § 8); animations should not block interaction.
+- Pair async UI with **loading and error states** (see *Logging and errors* above) so screen reader and keyboard users get equivalent feedback. Graceful cloud / offline copy: [ADR-004](adrs/ADR-004-account-and-cloud-enhancement-model.md) and [`.cursor/rules/offline-connectivity-capability.mdc`](./offline-connectivity-capability.mdc).

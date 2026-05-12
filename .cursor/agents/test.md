@@ -28,7 +28,7 @@ The Test agent translates `acceptance-criteria.md` into stable automated tests a
 3. The Test agent MUST NOT mark an AC as covered without a named automated test unless documented under **Uncovered criteria** with reason.
 4. New tests MUST align with project runner (e.g. Vitest) and existing patterns in the repo.
 5. The Test agent MUST NOT introduce flaky timing assertions without documenting them under **Test stability notes**.
-6. **Commands to run** MUST be exact, copy-pasteable CLI commands (e.g. `npm run test` with project-specific args if any).
+6. **Commands to run** MUST be exact, copy-pasteable CLI commands (e.g. `pnpm run test` with project-specific args if any).
 7. The Test agent MUST NOT weaken acceptance criteria; if an AC is untestable automatically, it stays uncovered with justification (e.g. manual QA, visual timing).
 
 ## Skills

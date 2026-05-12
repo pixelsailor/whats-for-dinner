@@ -161,13 +161,20 @@ The root [`agents.md`](../agents.md) predates the ADR system and the `.cursor/ru
   - Capture the audit as a worksheet (table or checklist) so distribution can proceed in bounded passes without losing context.
   - **Done:** [`docs/agents-md-distribution-worksheet.md`](./agents-md-distribution-worksheet.md) — the thematic migration bullets below do not replace this inventory (they skip intro/MCP duplication and do not record line-level mapping or the TanStack home decision).
 
+- [x] **README: title + stack intro (worksheet row 1)**
+  - Human-facing project title, principles, and Technology Stack in [README](../README.md) are the canonical home for the content that `agents.md` lines 1–7 summarized; README [governance rule](../.cursor/rules/readme-governance.mdc) unchanged. Duplicate intro text remains in [`agents.md`](../agents.md) until that file is retired.
+
+- [x] **Offline + AI path framing (worksheet row 2)**
+  - [ADR-001](../adrs/ADR-001-product-operating-model.md) and [ADR-007](../adrs/ADR-007-ai-provider-contract.md) already carry the binding matrix and provider contract. Agent-facing summary lives under **Operating context** in [`.cursor/rules/ai-integration-boundary.mdc`](../.cursor/rules/ai-integration-boundary.mdc). Duplicate sentences remain in [`agents.md`](../agents.md) until retire.
+
 - [x] **Migrate Svelte 5 + runes guidance**
   - Move the *Svelte 5 + Runes Best Practices* and *Reactive `$:` statements* sections (runes, `$props`, snippets, animations, accessibility, Dexie store subscription pattern) into the planned **Rule: Svelte 5 and UI conventions**.
   - **`$effect` guidance:** canonical wording is in [`.cursor/rules/svelte-5-ui-conventions.mdc`](../.cursor/rules/svelte-5-ui-conventions.mdc) and summarized in [`agents.md`](../agents.md) until that file is retired — prefer `$derived` for pure derivations; use `$effect` for true side effects; do not avoid `$effect` when it is clearer or more efficient.
 
-- [ ] **Migrate TypeScript and general code-style conventions**
+- [x] **Migrate TypeScript and general code-style conventions**
   - Move *TypeScript Conventions*, *General Code Style*, and *Accessibility and UX* into a code-conventions Cursor rule (an existing `lint-and-code-quality` rule is referenced in [`.cursor/rules/index.md`](../.cursor/rules/index.md) — extend or create as appropriate).
   - Reconcile indentation guidance: *General Code Style* says 2-space indents while *TypeScript Conventions* says "Respect indents. Keep nested items aligned. Do not reset tabs for nested content." Decide which wording survives.
+  - **Done:** TypeScript + Formatting bullets extended in [`.cursor/rules/lint-and-code-quality.mdc`](../.cursor/rules/lint-and-code-quality.mdc); accessibility content stays in [ADR-014](../adrs/ADR-014-semantic-html-and-accessibility.md) and [`.cursor/rules/svelte-5-ui-conventions.mdc`](../.cursor/rules/svelte-5-ui-conventions.mdc) with cross-cutting bullets (async loading/error states, clarity-over-cleverness) added to the lint rule. **Indentation reconciled:** the rule and the [`agents.md`](../agents.md) mirror defer to [`.prettierrc`](../.prettierrc) as the source of truth instead of restating values, so the rule does not drift when config changes; the legacy "2-space" wording in *General Code Style* was inaccurate against the actual formatter and codebase. **Surfaced discrepancies:** recorded under [Deferred — TypeScript and general code-style migration notes](./readme-adr-alignment-gaps.md#typescript-and-general-code-style-migration-notes-2026-05-11) in [`readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md).
 
 - [ ] **Migrate Zod validation rules**
   - Move *Zod Validation Rules* content (per-domain placement in `src/lib/api/**`, `.strict()`, `.safeParse()`, schema-derived types, `.transform()`, composite schemas) into **Rule: Schema and type safety** ([`.cursor/rules/schema-and-type-safety.mdc`](../.cursor/rules/schema-and-type-safety.mdc)) — **core rule done**; verbatim `agents.md` migration may still add examples.

@@ -1,12 +1,20 @@
 ---
-description: Svelte 5 runes, component patterns, accessibility, bits-ui/Tailwind, and MCP validation
+description: WFD-specific Svelte 5 components: runes, UI, accessibility, bits-ui/Tailwind, Dexie/TanStack in views
 globs: "**/*.svelte"
 alwaysApply: false
 ---
 
 # Svelte 5 and UI conventions
 
-Project-specific defaults for Svelte components and UI work. For **Svelte MCP** tool order (`list-sections`, `get-documentation`, `svelte-autofixer`, `playground-link`), see [`.cursor/rules/svelte-mcp-workflow.mdc`](./svelte-mcp-workflow.mdc).
+## Scope (this rule)
+
+**Owns:** **`.svelte` files** — WFD-specific runes usage, component structure, styling with bits-ui/Tailwind, accessibility in components, async UI patterns, Dexie/TanStack subscription examples, and component testing pointers.
+
+**Does not own:** ESLint/Prettier or TypeScript module style ([`.cursor/rules/lint-and-code-quality.mdc`](./lint-and-code-quality.mdc)), **Svelte MCP** tool order ([`.cursor/rules/svelte-mcp-workflow.mdc`](./svelte-mcp-workflow.mdc)), **repo layout** ([`.cursor/rules/project-best-practices.mdc`](./project-best-practices.mdc)), or **adapter/runtime** constraints (stack section in [`.cursor/rules/svelte-mcp-workflow.mdc`](./svelte-mcp-workflow.mdc)).
+
+**Upstream:** Generic Svelte 5 idioms — [Svelte best practices (llms.txt)](https://svelte.dev/docs/svelte/best-practices/llms.txt) and, when present, the **svelte-core-bestpractices** skill.
+
+For **Svelte MCP** (`list-sections`, `get-documentation`, `svelte-autofixer`, `playground-link`), follow [`.cursor/rules/svelte-mcp-workflow.mdc`](./svelte-mcp-workflow.mdc).
 
 ## Runes and reactivity
 
@@ -45,12 +53,8 @@ let queryStoreResults = $derived($queryStore);
 let queryData = $derived(queryStoreResults?.data);
 ```
 
-Durable Dexie ownership and store patterns are governed by [ADR-002](adrs/ADR-002-local-data-ownership.md) and (when added) the **Rule: Local data and Dexie ownership**.
+Durable Dexie ownership and store patterns are governed by [ADR-002](adrs/ADR-002-local-data-ownership.md) and [`.cursor/rules/local-data-dexie-ownership.mdc`](./local-data-dexie-ownership.mdc).
 
 ## Testing
 
 - Follow [Svelte testing](https://svelte.dev/docs/svelte/testing/llms.txt) for component tests.
-
-## Serverless / portability
-
-- Keep server-side code compatible with constrained runtimes: avoid Node-only APIs in shared handlers unless isolated per [ADR-006](adrs/ADR-006-serverless-and-secret-boundary.md). **Netlify** is the configured SvelteKit adapter today (`svelte.config.js`); other edge targets are a **portability discipline**, not a guarantee that configs are switched. Prefer SvelteKit [**remote functions**](https://svelte.dev/docs/kit/remote-functions/llms.txt) only when they fit those deployment constraints.

@@ -5,7 +5,7 @@ alwaysApply: true
 
 # ADR compliance (build tasks)
 
-**Scope — “build task”:** Any work that adds, changes, or removes project code, configuration that encodes architecture, dependencies, or APIs — including features, fixes, refactors, and tooling changes that affect how the app is structured or behaves. Not limited to running `npm run build`.
+**Scope — “build task”:** Any work that adds, changes, or removes project code, configuration that encodes architecture, dependencies, or APIs — including features, fixes, refactors, and tooling changes that affect how the app is structured or behaves. Not limited to running `pnpm run build`.
 
 ## High-impact areas
 

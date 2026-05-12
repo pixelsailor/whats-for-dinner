@@ -90,22 +90,10 @@ Canonical home: [`.cursor/rules/lint-and-code-quality.mdc`](.cursor/rules/lint-a
 
 ## Dexie + LiveQueryStores Guidelines
 
-- Define the single Dexie application database in `src/lib/db.ts`, exporting the Dexie instance and table definitions. Files under `src/lib/db/` are helpers that use that database, not alternate Dexie roots.
-- Tables should use interfaces derived from Zod schemas for type safety.
-- Query data using `liveQuery()` and expose the results as readable Svelte stores.
-- Store naming convention: `<entity>Store`, e.g. `recipesStore`, `suggestionsStore`.
-- Treat store values as immutable snapshots — all modifications go through Dexie operations.
-- Use derived stores for filtered or sorted data views.
-- Wrap multi-table operations in `db.transaction()` to maintain atomic updates.
-- Keep local state in sync with DB updates using reactive subscriptions.
+Canonical home: [`.cursor/rules/local-data-dexie-ownership.mdc`](.cursor/rules/local-data-dexie-ownership.mdc) (globs `src/lib/db.ts`, `src/lib/db/**/*.ts`, `src/lib/stores/**/*.ts`). Binding ADR: [ADR-002](adrs/ADR-002-local-data-ownership.md). The bullets below remain a short summary until `agents.md` is retired.
 
-Example:
-```ts
-import { liveQuery } from "dexie";
-import { db } from "$lib/db";
-
-export const recipesStore = liveQuery(() => db.recipes.toArray());
-```
+- Single Dexie application database in `src/lib/db.ts`; `src/lib/db/` holds helpers that use `db`, not alternate Dexie roots.
+- `liveQuery` / `createLiveQueryStore` expose readable stores; treat snapshots as read-only in UI, route mutations through store or domain helpers, and use `db.transaction('rw', …)` for multi-table writes.
 
 ---
 

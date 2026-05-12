@@ -180,12 +180,13 @@ The root [`agents.md`](../agents.md) predates the ADR system and the `.cursor/ru
   - Move *Zod Validation Rules* content (per-domain placement in `src/lib/api/**`, `.strict()`, `.safeParse()`, schema-derived types, `.transform()`, composite schemas) into **Rule: Schema and type safety** ([`.cursor/rules/schema-and-type-safety.mdc`](../.cursor/rules/schema-and-type-safety.mdc)) — **done:** transforms, composition, persisted vs transient, and example block added; `agents.md` defers to the rule + ADR-008.
   - Update [ADR-008](../adrs/ADR-008-schema-led-domain-contracts.md) to source the `.strict()` requirement directly (or cite the new rule) instead of pointing back at `agents.md` — **done:** decision §6 cross-references `.cursor/rules/schema-and-type-safety.mdc` for operational patterns (ADR body already stated `.strict()`; no `agents.md` authority).
 
-- [ ] **Migrate Dexie + LiveQueryStores guidelines**
-  - Move *Dexie + LiveQueryStores Guidelines* into the planned **Rule: Local data and Dexie ownership**, with cross-references to [ADR-002](../adrs/ADR-002-local-data-ownership.md).
-	- Module-location guidance is reconciled: [`src/lib/db.ts`](../src/lib/db.ts) is the single Dexie application database; files under `src/lib/db/` are helpers that use it, per [`.cursor/rules/local-data-dexie-ownership.mdc`](../.cursor/rules/local-data-dexie-ownership.mdc).
+- [x] **Migrate Dexie + LiveQueryStores guidelines**
+  - Move *Dexie + LiveQueryStores Guidelines* into **Rule: Local data and Dexie ownership** ([`.cursor/rules/local-data-dexie-ownership.mdc`](../.cursor/rules/local-data-dexie-ownership.mdc)), with cross-references to [ADR-002](../adrs/ADR-002-local-data-ownership.md).
+	- Module-location guidance is reconciled: [`src/lib/db.ts`](../src/lib/db.ts) is the single Dexie application database; files under `src/lib/db/` are helpers that use it, per the rule.
+	- **Done:** rule sections *Reads and LiveQuery* and *Conventions* expanded (`liveQuery` vs `createLiveQueryStore`, derived views, Zod row types, minimal example); [`agents.md`](../agents.md) defers to the rule + ADR-002 with a short summary until retire.
 
 - [ ] **Migrate TanStack Query guidance**
-  - Move *TanStack Query `createQuery()`* content into **`docs/tanstack-query.md`** with a short pointer from [`src/lib/api/README.md`](../src/lib/api/README.md) (**audit decision** in [`docs/agents-md-distribution-worksheet.md`](./agents-md-distribution-worksheet.md)); offline-first integration remains cross-linked from the planned **Rule: Local data and Dexie ownership**.
+  - Move *TanStack Query `createQuery()`* content into **`docs/tanstack-query.md`** with a short pointer from [`src/lib/api/README.md`](../src/lib/api/README.md) (**audit decision** in [`docs/agents-md-distribution-worksheet.md`](./agents-md-distribution-worksheet.md)); offline-first integration remains cross-linked from **Rule: Local data and Dexie ownership** ([`.cursor/rules/local-data-dexie-ownership.mdc`](../.cursor/rules/local-data-dexie-ownership.mdc) *Remote and cache layers*).
   - Confirm that TanStack Query usage remains compatible with [ADR-001](../adrs/ADR-001-product-operating-model.md) offline-first and [ADR-002](../adrs/ADR-002-local-data-ownership.md) Dexie-as-system-of-record (queries should validate responses with Zod and fall back to local cache when offline).
 
 - [ ] **Migrate Supabase auth, sharing, and cloud-backup wiring**

@@ -22,10 +22,12 @@ alwaysApply: false
 
 Use the existing import style (e.g. `import { db } from '$lib/db'`).
 
-## Reads
+## Reads and LiveQuery
 
-- Expose local-first data to the UI through **Dexie-backed** live-query stores under `src/lib/stores/` (or thin wrappers those stores call).
-- In `.svelte` files, subscribe via the store contract and runes (e.g. `$derived($recipesStore)`); keep components free of raw `db.table` queries unless you are extending the store layer.
+- **Reactive reads:** query tables with Dexie’s **`liveQuery(() => …)`** and expose the result as a **readable** Svelte store (or a thin wrapper). This codebase often uses **`createLiveQueryStore`** in [`src/lib/stores/_utils.ts`](../src/lib/stores/_utils.ts) so consumers get a consistent `{ data, loading, error }` envelope—follow existing stores such as [`src/lib/stores/recipes.ts`](../src/lib/stores/recipes.ts) when adding new entity subscriptions.
+- Expose local-first data to the UI through those **Dexie-backed** stores under `src/lib/stores/` (or helpers they call); keep route and component code free of ad hoc `db.table` reads unless you are intentionally extending the store layer.
+- **Filtered or sorted views:** prefer **derived** stores or `$derived` chains over base query stores rather than duplicating full `liveQuery` subscriptions for every sort or filter, unless profiling shows a separate query is required.
+- In `.svelte` files, subscribe via the store contract and runes (e.g. `$derived($recipesStore)`); rune and subscription patterns: [`.cursor/rules/svelte-5-ui-conventions.mdc`](./svelte-5-ui-conventions.mdc). **Keep UI state in sync** with IndexedDB by reading through these subscriptions—do not treat store snapshots as a second writable source of truth.
 
 ## Writes and mutations
 
@@ -35,8 +37,23 @@ Use the existing import style (e.g. `import { db } from '$lib/db'`).
 
 ## Conventions
 
-- Prefer store module names like `<entity>Store` where the codebase already does (`recipesStore`, `suggestionsStore`, …).
-- Row shapes should follow Zod-led contracts per [ADR-008](../adrs/ADR-008-schema-led-domain-contracts.md) (see also the planned schema/type-safety rule).
+- Prefer store export names like `<entity>Store` where the codebase already does (`recipesStore`, `suggestionsStore`, …).
+- **Table row types** should align with **Zod** schemas (`z.infer<typeof …>`) per [ADR-008](../adrs/ADR-008-schema-led-domain-contracts.md) and [`.cursor/rules/schema-and-type-safety.mdc`](./schema-and-type-safety.mdc); avoid a parallel hand-maintained interface hierarchy for persisted rows that can drift from validation.
+
+### Minimal `liveQuery` + `readable` example
+
+`liveQuery(...)` yields an **Observable**, not a Svelte store. Bridge it with **`readable`** (see [`src/lib/stores/suggestions.ts`](../src/lib/stores/suggestions.ts) `suggestionHistory` / `recentSuggestions`) or use **`createLiveQueryStore`** when you want the shared `{ data, loading, error }` envelope.
+
+```ts
+import { liveQuery } from 'dexie';
+import { readable } from 'svelte/store';
+import { db } from '$lib/db';
+
+export const recipesStore = readable([], (set) => {
+	const subscription = liveQuery(() => db.recipes.toArray()).subscribe(set);
+	return () => subscription.unsubscribe();
+});
+```
 
 ## Remote and cache layers
 

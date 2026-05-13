@@ -246,6 +246,32 @@ export class SyncService {
   }
 
   /**
+   * Fetches one owned recipe from the cloud and persists it to Dexie (same normalization as {@link SyncService.downloadRecipes}).
+   *
+   * @param recipeId - Primary key of the recipe in the cloud.
+   * @returns The recipe after merge into local storage, or null if the cloud returned no row (when supported by the client).
+   */
+  async downloadRecipeById(recipeId: string): Promise<SavedRecipe | null> {
+    const remote = await this.cloud.downloadRecipeById(recipeId);
+    if (!remote) return null;
+    await this.downloadRecipes([remote]);
+    return remote;
+  }
+
+  /**
+   * Fetches a publicly shared recipe by `shared_id` and persists it to Dexie.
+   *
+   * @param sharedId - Share token on `recipes.shared_id`.
+   * @returns The recipe after merge into local storage, or null if not found.
+   */
+  async downloadRecipeBySharedId(sharedId: string): Promise<SavedRecipe | null> {
+    const remote = await this.cloud.downloadRecipeBySharedId(sharedId);
+    if (!remote) return null;
+    await this.downloadRecipes([remote]);
+    return remote;
+  }
+
+  /**
    * Resolve a conflict between a local and a cloud recipe.
    * 
    * @param conflict - The conflict to resolve.

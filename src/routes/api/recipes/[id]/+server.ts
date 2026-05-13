@@ -1,32 +1,50 @@
-// import { json } from '@sveltejs/kit';
-// import type { RequestHandler } from './$types';
-// import { getRecipeBySharedId, getRecipeFromRemote } from '$lib/db/remote';
+/**
+ * @fileoverview HTTP GET for loading a single cloud recipe by primary id (owner-scoped) or by public `shared_id`.
+ * @module routes/api/recipes/[id]/server
+ */
 
-// /** Get cloud recipe */
-// export const GET: RequestHandler = async ({ url }) => {
-//   const shared = url.searchParams.get('shared');
-//   const id = url.searchParams.get('id');
+import { error, json } from '@sveltejs/kit';
 
-//   try {
-//     if (shared) {
-//       const recipe = await getRecipeBySharedId(shared);
-//       return json({ recipe });
-//     }
-//     if (id) {
-//       const recipe = await getRecipeFromRemote(id);
-//       return json({ recipe });
-//     }
-//     return json({ error: 'No valid query parameters provided.' }, { status: 400 });
-//   } catch (err) {
-//     return json({ error: (err as Error).message }, { status: 404 });
-//   }
-// };
+import { CloudService } from '$lib/api/cloud';
 
-// /** Update cloud recipe */
-// // export const PUT: RequestHandler = async ({ request }) => {
-// // 	try {
+import type { RequestHandler } from './$types';
 
-// // 	} catch (err) {
-// // 		return json({});
-// // 	}
-// // };
+export const GET: RequestHandler = async ({ url, locals, params }) => {
+	const shared = url.searchParams.get('shared');
+	const idFromQuery = url.searchParams.get('id');
+	const recipeId = idFromQuery ?? params.id;
+
+	const { supabase, user } = locals;
+
+	try {
+		if (shared) {
+			const cloud = new CloudService(supabase, user?.id ?? '');
+			const recipe = await cloud.downloadRecipeBySharedId(shared);
+			if (!recipe) {
+				throw error(404, 'Recipe not found');
+			}
+			return json({ recipe });
+		}
+
+		if (recipeId) {
+			if (!user) {
+				throw error(401, 'Authentication required');
+			}
+			const cloud = new CloudService(supabase, user.id);
+			const recipe = await cloud.downloadRecipeById(recipeId);
+			if (!recipe) {
+				throw error(404, 'Recipe not found');
+			}
+			return json({ recipe });
+		}
+
+		throw error(400, 'Provide a recipe id (path or query) or a shared token (?shared=).');
+	} catch (err) {
+		if (err && typeof err === 'object' && 'status' in err) {
+			throw err;
+		}
+		const message = err instanceof Error ? err.message : 'Internal server error';
+		return json({ error: message }, { status: 500 });
+	}
+};
+

@@ -95,7 +95,7 @@ Suggested fields (adapt as needed):
 - **Severity:** Major
 - **Source:** [README](../README.md) env sample; [ADR-006](../adrs/ADR-006-serverless-and-secret-boundary.md) public env examples; [`.cursor/rules/supabase-enhancement-boundary.mdc`](../.cursor/rules/supabase-enhancement-boundary.mdc); maintainer confirmation (distinct Supabase-issued keys, multiple official examples).
 - **Observed:**
-  - **Historical:** `PUBLIC_SUPABASE_PUBLISHABLE_KEY` was used in [`src/routes/+layout.ts`](../src/routes/+layout.ts), while `PUBLIC_SUPABASE_ANON_KEY` was used in [`src/hooks.server.ts`](../src/hooks.server.ts), [`src/lib/supabaseClient.ts`](../src/lib/supabaseClient.ts), [`src/lib/db/remote.ts`](../src/lib/db/remote.ts), and [`src/lib/api/common/common.model.ts`](../src/lib/api/common/common.model.ts).
+  - **Historical:** `PUBLIC_SUPABASE_PUBLISHABLE_KEY` was used in [`src/routes/+layout.ts`](../src/routes/+layout.ts), while `PUBLIC_SUPABASE_ANON_KEY` was used in [`src/hooks.server.ts`](../src/hooks.server.ts), [`src/lib/supabaseClient.ts`](../src/lib/supabaseClient.ts), `src/lib/db/remote.ts` (since **removed**; recipe cloud I/O lives under [`src/lib/api/cloud/`](../src/lib/api/cloud/)), and [`src/lib/api/common/common.model.ts`](../src/lib/api/common/common.model.ts).
   - **Current source direction:** production Supabase client entry points now read **`PUBLIC_SUPABASE_PUBLISHABLE_KEY`**. [`src/routes/+layout.server.ts`](../src/routes/+layout.server.ts) supplies validated `session` / `user` from `locals.safeGetSession`, and [`src/routes/+layout.ts`](../src/routes/+layout.ts) avoids duplicate server-side auth reads while retaining the Supabase SvelteKit SSR/client pattern needed by UI consumers.
   - The [README](../README.md) env section now documents **`PUBLIC_SUPABASE_PUBLISHABLE_KEY`**.
   - The split traced to **different Supabase-supplied examples** applied in different parts of the app, not a single deliberate key strategy.
@@ -104,14 +104,14 @@ Suggested fields (adapt as needed):
   - **Documentation:** README (and any `.env.example` / host docs) state the publishable key expected by the app.
   - **Single preferred direction:** new work and eventual refactors align with Supabase’s **current preferred** public key (`PUBLIC_SUPABASE_PUBLISHABLE_KEY` path).
   - **Acceptance gate (mandatory):** browser-verified flows pass after the key migration (e.g. sign-in / session refresh, layout-driven auth, cloud sync, share-by-token, and any path using `locals.supabase`). Automated tests alone are insufficient for this gap’s closure if they do not cover those behaviors.
-- **Notes:** Pairs with **GAP-017** (unified client surface). Implementation inventory: [Deferred — Supabase consolidation audit](#supabase-consolidation-audit-2026-05-10). **2026-05-12 update:** production source and ADR-006 examples now use `PUBLIC_SUPABASE_PUBLISHABLE_KEY`; keep this gap open until the browser acceptance checklist is completed against the deployed Supabase project.
+- **Notes:** Pairs with **GAP-017** (unified client surface). Implementation inventory: [Deferred — Supabase consolidation audit](#supabase-consolidation-audit-2026-05-10). **2026-05-12 update:** production source and ADR-006 examples now use `PUBLIC_SUPABASE_PUBLISHABLE_KEY`; keep this gap open until the browser acceptance checklist is completed against the deployed Supabase project. **2026-05-14 update:** `src/lib/db/remote.ts` was removed; cloud recipe access is consolidated under [`src/lib/api/cloud/`](../src/lib/api/cloud/).
 
 ### GAP-017
 
 - **Status:** Open
 - **Severity:** Major
 - **Source:** [ADR-004](../adrs/ADR-004-account-and-cloud-enhancement-model.md) (service boundaries); [ADR-006](../adrs/ADR-006-serverless-and-secret-boundary.md); [`.cursor/rules/supabase-enhancement-boundary.mdc`](../.cursor/rules/supabase-enhancement-boundary.mdc); **GAP-016** (dual-key drift).
-- **Observed:** Supabase JS clients are created in **multiple disconnected ways** (`@supabase/ssr` in `hooks.server.ts` and `+layout.ts`, plain `createClient` in `supabaseClient.ts`, deprecated `remote.ts`, unused `common.model.ts`). The legacy anon-key split has been removed from production source, but there is still no single documented module or interface that answers “which factory for authenticated SSR vs universal layout vs anonymous server handler,” so the codebase can still perpetuate example-driven client creation.
+- **Observed:** Supabase JS clients are still created in **multiple disconnected ways** (`@supabase/ssr` in `hooks.server.ts` and `+layout.ts`, plain `createClient` in `supabaseClient.ts`, unused `common.model.ts`). The legacy anon-key split and standalone `src/lib/db/remote.ts` factory have been **removed** from production source (cloud recipe paths use [`src/lib/api/cloud/`](../src/lib/api/cloud/) with an injected `SupabaseClient`). There is still no single documented module or interface that answers “which factory for authenticated SSR vs universal layout vs anonymous server handler,” so the codebase can still perpetuate example-driven client creation.
 - **Expected:** A **planned** (then implemented) unified approach: e.g. one small internal API—factories or adapters that take explicit configuration, document session vs sessionless usage, and route all new code through it; `CloudService` / `AccountService` continue to receive an injected `SupabaseClient` built from that layer.
 - **Notes:** **No production refactor until** GAP-016 documentation + browser verification strategy is agreed. Overlaps items (2)–(3) in [Deferred — Supabase consolidation audit](#supabase-consolidation-audit-2026-05-10).
 
@@ -213,7 +213,7 @@ Cross-check of Supabase-related code after env secrets were restored and **GAP-0
 | 1 | [`src/hooks.server.ts`](../src/hooks.server.ts) | `createServerClient` + `PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Yes — canonical trusted SSR auth/session path | **Yes** — key migrated; **GAP-016** remains browser-verification pending |
 | 2 | [`src/routes/+layout.ts`](../src/routes/+layout.ts) | `createBrowserClient` / SSR `createServerClient` + `PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Yes (SSR branch reads cookies from layout data); trusted session/user comes from `+layout.server.ts` | **Yes** — matches publishable-key path; still part of **GAP-017** factory consolidation |
 | 3 | [`src/lib/supabaseClient.ts`](../src/lib/supabaseClient.ts) | `createClient` + `PUBLIC_SUPABASE_PUBLISHABLE_KEY` | **No** — singleton | **Yes** — share route only; **GAP-017** |
-| 4 | [`src/lib/db/remote.ts`](../src/lib/db/remote.ts) | Same as (3) | No | **Deprecated** — no live imports (commented-only); safe to delete after confirming no external callers |
+| 4 | ~~`src/lib/db/remote.ts`~~ **removed** | Was standalone `createClient` + `PUBLIC_SUPABASE_PUBLISHABLE_KEY` | No | **No** — superseded by [`src/lib/api/cloud/`](../src/lib/api/cloud/) (`CloudService` / `SyncService` with the injected-client pattern in row 6). Example: [`src/routes/api/recipes/[id]/+server.ts`](../src/routes/api/recipes/%5Bid%5D/+server.ts) uses `locals.supabase` + `CloudService`. |
 | 5 | [`src/lib/api/common/common.model.ts`](../src/lib/api/common/common.model.ts) | Same as (3) | No | **Unused** — duplicate singleton; remove or fold into a single sessionless public-client module |
 | 6 | Injected `SupabaseClient` | From layout `data` into `CloudService` / `AccountService` | Yes | **Yes** — preferred pattern for user-scoped cloud |
 
@@ -223,7 +223,7 @@ Cross-check of Supabase-related code after env secrets were restored and **GAP-0
 
 1. **Verify (GAP-016):** Run the **browser acceptance** checklist after the publishable-key migration before closing the gap.
 2. **Unified client factory (GAP-017):** Replace ad hoc `createClient` / duplicate SSR setup with one documented internal surface (names TBD) so “legacy anon example” vs “publishable `@supabase/ssr` example” is not reintroduced file-by-file.
-3. **Remove dead paths:** Delete or archive `common.model.ts` export if unused; remove `remote.ts` after grep + CI confirm.
+3. **Remove dead paths:** `src/lib/db/remote.ts` **removed** (superseded by `src/lib/api/cloud/`). Delete or archive `common.model.ts` export if unused.
 4. **Capability matrix in layout data (aligns with GAP-010):** Extend `+layout.server.ts` (or a helper) with explicit `cloudCapabilities` / `syncAllowed` derived from `session` + `cloud_storage` + optional feature flag, mirroring `deriveAICapability`, so pages stop re-deriving policy ad hoc.
 5. **Longer term (ADR-004 / ADR-011):** Introduce a narrow interface implemented by `CloudService` for testability and alternate DB providers; keep Supabase types at the adapter edge.
 
@@ -241,6 +241,7 @@ Migrating _Supabase Auth, Sharing and Cloud Backup_ from [`agents.md`](../agents
 | **`agents.md` named only `hooks.server.ts` “for route guards”** | **Incomplete.** Guards depend on **`safeGetSession`**, `locals.session` / `user` / `permissions`, and layout data — not `locals.supabase` alone. See the rule’s client-surface table and the consolidation audit’s “How permissions and ‘online’ interact today.” |
 | **Dual public keys and multiple client factories** | The dual-key production source split has been migrated to `PUBLIC_SUPABASE_PUBLISHABLE_KEY`; **GAP-016** remains open for browser verification, and **GAP-017** tracks factory consolidation ([`.cursor/rules/supabase-enhancement-boundary.mdc`](../.cursor/rules/supabase-enhancement-boundary.mdc)). |
 | **Sharing / backup vs auth** | Product scope: [ADR-004](../adrs/ADR-004-account-and-cloud-enhancement-model.md). Implementation: prefer **`CloudService` / `SyncService`** with injected `SupabaseClient` ([`src/lib/api/cloud/README.md`](../src/lib/api/cloud/README.md)). |
+| **`remote.ts` removed** | Standalone `src/lib/db/remote.ts` (deprecated recipe sync helpers) is **gone**; use `CloudService` / `SyncService` and server `locals.supabase` per [`.cursor/rules/supabase-enhancement-boundary.mdc`](../.cursor/rules/supabase-enhancement-boundary.mdc). ADR text: [ADR-008](../adrs/ADR-008-schema-led-domain-contracts.md), [ADR-011](../adrs/ADR-011-self-hosting-provider-model.md). |
 
 ### Offline connectivity rule notes (2026-05-11)
 

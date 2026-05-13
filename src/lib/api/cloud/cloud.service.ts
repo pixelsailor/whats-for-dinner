@@ -233,7 +233,26 @@ export class CloudService {
       .select('*')
       .eq('owner_id', this._userId)
       .eq('id', recipeId)
-      .single();
+      .maybeSingle();
+
+    if (error) throw error;
+
+    return data;
+  }
+
+  /**
+   * Download a recipe that is exposed via `recipes.shared_id` (public share token on the row).
+   * Does not filter by {@link CloudService._userId}; access is governed by Supabase RLS for the request client.
+   *
+   * @param sharedId - Token stored on `recipes.shared_id` (synced from `shared_links`).
+   * @returns The recipe row, or null when none matches.
+   */
+  async downloadRecipeBySharedId(sharedId: string): Promise<SavedRecipe | null> {
+    const { data, error }: { data: SavedRecipe | null; error: Error | null } = await this.supabase
+      .from('recipes')
+      .select('*')
+      .eq('shared_id', sharedId)
+      .maybeSingle();
 
     if (error) throw error;
 

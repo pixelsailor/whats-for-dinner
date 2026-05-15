@@ -89,6 +89,7 @@ Detailed guidance should live near the code it governs. Use the top-level README
 
 - [`agents.md`](./agents.md): Agent-facing development rules and coding expectations (to be retired when distribution in [`docs/adr-and-rules-todo.md`](./docs/adr-and-rules-todo.md) finishes).
 - [`adrs/INDEX.md`](./adrs/INDEX.md): ADR index; [`adrs/TEMPLATE.md`](./adrs/TEMPLATE.md) for authoring new ADRs.
+- [`docs/ORCHESTRATED_DEVELOPMENT.md`](./docs/ORCHESTRATED_DEVELOPMENT.md): WFD agentic orchestration workflow, task artifacts, gates, and handoff prompts.
 - [`src/lib/api/README.md`](./src/lib/api/README.md): API service layer organization.
 - [`src/lib/ui/README.md`](./src/lib/ui/README.md): UI component library guidance.
 - [`src/lib/stores/README.md`](./src/lib/stores/README.md): Store patterns and local data flow.

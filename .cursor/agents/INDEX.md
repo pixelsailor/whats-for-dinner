@@ -1,84 +1,89 @@
 # Agents Index
 
-> **Version 1.3.0** | Last updated: 2026-03-08
+> **Version 2.0.0** | Last updated: 2026-05-15
 
-Quick-reference for the Orchestrator and developers to select the right agent and route work through the pipeline.
+Quick reference for routing WFD work through the task-folder orchestration model. The detailed guide lives in [`docs/ORCHESTRATED_DEVELOPMENT.md`](../../docs/ORCHESTRATED_DEVELOPMENT.md).
 
 ## Agents
 
-| Agent | Role | Writes Code? | Skills |
-|-------|------|:------------:|--------|
-| **Orchestrator** | Coordinates loop, enforces gates, produces directives | No | 4 (archive-orchestration, create-adr, aims-gate-zero, human-approval-gate) |
-| **Planner** | Produces _ORCH_PLAN / _ACCEPTANCE / _RISKS / _ARCHITECTURE_CONSTRAINTS / _TEST_MATRIX | No | 1 (adr-impact-review) |
-| **Builder** | Implements assigned phase from the plan | Yes | 10 (see Bindings Summary) |
-| **Validator** | Fresh-context audit + commands, punch list only | No | 2 (adr-compliance-review, pre-commit-checklist) |
-| **Test** | Vitest specs + Playwright E2E when applicable + _TEST_MATRIX, no prod code except minimal hooks | Spec files only | 2 (vitest-angular-component-test, browser-e2e-flow) |
-
----
+| Agent | Role | Writes code? | Owns artifacts |
+| --- | --- | :---: | --- |
+| **Orchestrator** | Coordinates the run, enforces gates, updates manifest state, issues directives, records human approval | No | `task-manifest.json`, optional `human-approval.md` |
+| **Planner** | Converts objective into executable scope, interfaces, ADR implications, commands, and ACs | No | `plan.md`, `acceptance-criteria.md` |
+| **Builder** | Implements exactly the planned scope and records implementation evidence | Yes | `build-log.md` |
+| **Test** | Maps ACs to automated tests and records test evidence | Test files and harness only | `test-report.md` |
+| **Validator** | Performs fresh-context audit after tests and writes verdict/remediations | No | `validation-report.md` |
 
 ## Default Pipeline
 
 ```mermaid
 graph LR
     Orch["Orchestrator"] -->|directive| Plan["Planner"]
-    Plan -->|artifacts| Orch
+    Plan -->|plan + ACs| Orch
     Orch -->|directive| Build["Builder"]
-    Build -->|implementation| Orch
+    Build -->|build log| Orch
+    Orch -->|directive| TestAgent["Test"]
+    TestAgent -->|test report| Orch
     Orch -->|directive| Valid["Validator"]
-    Valid -->|PASS| Orch
-    Valid -->|"FAIL: punch list"| Orch
+    Valid -->|"PASS or PASS_WITH_NOTES"| Orch
+    Valid -->|"FAIL: remediations"| Orch
     Orch -->|"fix directive"| Build
-    Orch -->|directive| Test["Test"]
-    Test -->|specs + matrix| Orch
-    Test -->|"FAIL: blocker"| Orch
+    Orch -->|"Gate 6 approval"| Complete["Complete"]
 ```
 
-Validator or Test failures route back through a **fresh Builder session** with the punch list / blocker. The Orchestrator never self-reviews or self-fixes.
+Validator `FAIL` routes through a fresh Builder session, then `Test`, then `Validator` again. The Orchestrator never self-reviews or self-fixes.
 
-When ADRs apply, the Planner also publishes `_ARCHITECTURE_CONSTRAINTS.md`, and the Validator must review against it before Gate 4 can pass.
+## Run State
 
----
+Every run lives under `.cursor/orchestrations/{task-id}/`.
 
-## When to Skip
+| File | Owner | Purpose |
+| --- | --- | --- |
+| `task-manifest.json` | Orchestrator | Source of truth for status, current agent, gates, loops, locks, sessions, approval |
+| `plan.md` | Planner | Design truth, scope boundary, file map, interfaces, ADR implications |
+| `acceptance-criteria.md` | Planner | Stable `AC-01` style criteria for Test and Validator |
+| `build-log.md` | Builder | Files changed, command evidence, deviations, gaps |
+| `test-report.md` | Test | AC-to-test map, uncovered criteria, stability notes, commands |
+| `validation-report.md` | Validator | Verdict, evidence, ADR compliance, regressions, remediations |
+| `human-approval.md` | Orchestrator | Gate 6 evidence summary and approval/rework record |
 
-| Change Size | Example | Pipeline |
-|-------------|---------|----------|
-| **Small** (1-2 files, bug fix) | Typo, one-liner fix | Orchestrator > Builder > (optional Validator) |
-| **Medium** (new component, 5-10 files) | Add a widget, new route | Full loop, single phase |
-| **Large** (multi-phase, cross-cutting) | Major feature, refactor | Full loop, repeated per phase |
+## Lifecycle Gates
 
----
+| Gate | Name | Required for |
+| --- | --- | --- |
+| 0 | Intake and risk tier | Every run |
+| 1 | Requirements freeze | Planned runs |
+| 2 | Executable plan | Planned runs |
+| 3 | Build complete | Every code-changing run |
+| 4 | Tests mapped | Every code-changing run unless explicitly recorded as skipped for a small non-testable change |
+| 5 | Validation green | Medium/large runs and small runs when not explicitly skipped |
+| 6 | Human approval | Every code-changing run before `complete` |
 
-## Bindings Summary
+## Right-Sized Flows
 
-| Agent | Rule Bindings | Skill Bindings |
-|-------|---------------|----------------|
-| Orchestrator | `orchestrator.mdc`, `adr-compliance.mdc`, `project-best-practices.mdc` | archive-orchestration, create-adr, aims-gate-zero, human-approval-gate |
-| Planner | `planner.mdc`, `adr-compliance.mdc`, `project-best-practices.mdc` | adr-impact-review |
-| Builder | `builder.mdc`, `adr-compliance.mdc`, `project-best-practices.mdc`, `error-handling-conventions.mdc`, `logging-conventions.mdc`, `security-sanitization.mdc`, `storage-conventions.mdc`, `feature-flag-conventions.mdc` | scaffold-angular-component, add-feature-route, add-rbac-guard, integrate-portal-api, i18n-add-strings, add-dashboard-widget, add-signal-store, add-feature-flag, add-error-page, pre-commit-checklist |
-| Validator | `validator.mdc`, `adr-compliance.mdc`, `project-best-practices.mdc`, `error-handling-conventions.mdc`, `logging-conventions.mdc`, `security-sanitization.mdc`, `storage-conventions.mdc`, `feature-flag-conventions.mdc` | adr-compliance-review, pre-commit-checklist |
-| Test | `test.mdc`, `adr-compliance.mdc`, `project-best-practices.mdc` | vitest-angular-component-test, browser-e2e-flow |
+| Change size | Example | Pipeline |
+| --- | --- | --- |
+| **Small** | One-file copy fix, isolated doc tweak, low-risk UI polish | Orchestrator -> Builder -> Test or Validator as justified -> Orchestrator Gate 6 |
+| **Medium** | New component, route behavior, local store change | Orchestrator -> Planner -> Builder -> Test -> Validator -> Orchestrator Gate 6 |
+| **Large** | Multi-phase feature, sync/auth/AI/offline/security work, ADR-governed architecture | Orchestrator -> Planner -> (Builder -> Test -> Validator) x N -> Orchestrator Gate 6 |
 
-Always-apply vs glob-activated rules are defined in each `.mdc` file's frontmatter. See [`.cursor/rules/index.md`](../rules/index.md). This repository uses **`documentation-conventions`** for JSDoc and Svelte component docs (there is no separate `jsdoc-conventions` rule file). **`lint-and-code-quality`** applies when editing `src/**/*.ts` or `src/**/*.svelte`. **`orchestration-artifacts`** applies under `.cursor/orchestrations/**`.
+Planner and Validator should not be skipped for durable architecture, Accepted ADR boundaries, local data ownership, offline behavior, auth/cloud sync, AI provider work, service worker changes, or security-sensitive changes.
 
----
+## Binding References
 
-## Version Alignment
+| Area | Reference |
+| --- | --- |
+| Role contracts | `.cursor/agents/orchestrator.md`, `planner.md`, `builder.md`, `test.md`, `validator.md` |
+| Artifact edit ownership | `.cursor/rules/orchestration-artifacts.mdc` |
+| ADR authority | `adrs/INDEX.md`, `adrs/GOVERNANCE.md` |
+| Project conventions | `.cursor/rules/project-best-practices.mdc`, `.cursor/rules/documentation-conventions.mdc`, `.cursor/rules/lint-and-code-quality.mdc` |
+| Svelte workflow | `.cursor/rules/svelte-mcp-workflow.mdc`, `.cursor/rules/svelte-5-ui-conventions.mdc` |
 
-- Keep each role's rule and agent definition aligned as a pair (`.cursor/rules/<role>.mdc` and `.cursor/agents/<role>.md`).
-- When one side changes workflow semantics, required inputs, outputs, bindings, or gate behavior, review the counterpart in the same pass.
-- If only one file needs a version bump, document the reason in `.cursor/CHANGELOG.md` so the mismatch is intentional rather than drift.
+There are no per-role `.cursor/rules/<role>.mdc` files in WFD. The role contracts in `.cursor/agents/*.md` plus the artifact rule are the local source of truth.
 
-## Skill Versioning Policy
+## Common Starts
 
-- **Patch**: typo fixes, wording clarifications, or metadata-only edits that do not change the procedure.
-- **Minor**: additive procedure changes, new guardrails, updated examples, new references, or stronger validation steps.
-- **Major**: breaking workflow changes that require callers or roles to change how they invoke the skill.
-
----
-
-## Common Flows
-
-- **Small bug fix**: Orchestrator > Builder > (optional Validator)
-- **Medium feature**: Orchestrator > Planner > Builder > Validator > Test
-- **Large multi-phase**: Orchestrator > Planner > (Builder > Validator > Test) x N phases
+- **Full feature:** Start with Orchestrator, classify tier, create manifest, route Planner.
+- **Targeted resume:** Start with Orchestrator, adopt task folder, inspect manifest and artifacts, route the next required role.
+- **Validation failure:** Orchestrator reads `validation-report.md`, increments `loop_count` when allowed, routes Builder with Required remediations, then Test and Validator.
+- **Human rework request:** Orchestrator records `rework_history`, increments `rework_count`, clears stale completion approval fields, and routes Builder unless scope changed enough to require Planner.

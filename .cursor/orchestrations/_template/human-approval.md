@@ -1,18 +1,50 @@
-# Human approval — wfd-000
+# Human Approval — wfd-000
 
-Replace `wfd-000` with `task_id`. Complete after Validator verdict is **PASS** or **PASS_WITH_NOTES** and before the run is marked `complete`.
+Replace `wfd-000` with `task_id`. Complete Gate 6 after Validator verdict is **PASS** or **PASS_WITH_NOTES** and before the run is marked `complete`.
 
-| Field                  | Value |
-| ---------------------- | ----- |
-| Task ID                |       |
-| Approver               |       |
-| Approved at (ISO-8601) |       |
-| Notes                  |       |
+## Evidence Summary
 
-**Confirmation:** I have reviewed the implementation, tests, and validation report for this task and approve closing this orchestration run.
+| Field | Value |
+| --- | --- |
+| Task ID |  |
+| Objective |  |
+| Risk tier |  |
+| Files changed |  |
+| Acceptance coverage |  |
+| Validation verdict |  |
+| Commands run |  |
+| Commands not run |  |
+| Rework count |  |
+| Known follow-ups |  |
+
+## Approval Decision
+
+| Field | Value |
+| --- | --- |
+| Approver |  |
+| Outcome | pending / approved / approved_with_conditions / rejected / rejected_rework |
+| Approved at (ISO-8601) |  |
+| Conditions |  |
+| Notes |  |
+
+## Rework Directive
+
+Complete only when the outcome is `rejected_rework`.
+
+| Field | Value |
+| --- | --- |
+| Rejected by |  |
+| Rejection timestamp (ISO-8601) |  |
+| Rejection reason |  |
+| Required rework |  |
+| Return stage | Builder / Planner |
+
+## Confirmation
+
+I have reviewed the implementation, tests, validation report, and command evidence for this task and approve the recorded Gate 6 outcome.
 
 **Signature / record:** (name or system ID)
 
 ---
 
-Mirror the same fields in `task-manifest.json` under `human_approval` when recording approval.
+Mirror the same outcome fields in `task-manifest.json` under `human_approval`. If the outcome is `rejected_rework`, increment `rework_count`, append `rework_history`, and route the run back through Builder -> Test -> Validator unless the rework changes scope enough to require Planner.

@@ -18,12 +18,13 @@ Runs live under **`.cursor/orchestrations/{task-id}/`**. Do not treat orchestrat
 
 - **Only the Orchestrator** (or a human following the same contract) may create or update **`task-manifest.json`**.
 - **Planner, Builder, Test, and Validator** must **not** edit the manifest — read-only for `task_id`, `objective`, `locked_artifacts`, `loop_count`, etc.
+- Manifest fields such as `risk_tier`, `gate_status`, `completed_stages`, `rework_count`, `rework_history`, `session_counts`, `command_evidence`, `flags`, and `human_approval` are Orchestrator-owned routing and audit state. Other agents report facts in their owned artifact; the Orchestrator mirrors summaries into the manifest when routing.
 
 ## Per-stage writes (under `{task-id}/`)
 
 | Agent | May write |
 |-------|-----------|
-| **Orchestrator** | `task-manifest.json`; optional `human-approval.md` when recording approval |
+| **Orchestrator** | `task-manifest.json`; `human-approval.md` when recording Gate 6 approval, rejection, or rework |
 | **Planner** | `plan.md`, `acceptance-criteria.md` |
 | **Builder** | `build-log.md` only (plus application code per plan). **Not** `plan.md`, manifest, or other orchestration files |
 | **Test** | `test-report.md` only |
@@ -36,4 +37,4 @@ Runs live under **`.cursor/orchestrations/{task-id}/`**. Do not treat orchestrat
 
 ## Pipeline
 
-Default order: **Orchestrator → Planner → Builder → Test → Validator → Orchestrator** (human approval / loops per Orchestrator rules). After editing artifacts, align with the manifest’s **`current_agent`** and completed-stage contracts before invoking the next agent.
+Default order: **Orchestrator → Planner → Builder → Test → Validator → Orchestrator** (human approval / loops per Orchestrator rules). After editing artifacts, align with the manifest’s **`current_agent`** and completed-stage contracts before invoking the next agent. Validator **FAIL** and human `rejected_rework` outcomes return to Builder, then continue through Test and Validator unless the Orchestrator routes back to Planner for a scope-changing rework.

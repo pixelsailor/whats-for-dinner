@@ -96,6 +96,7 @@ Detailed guidance should live near the code it governs. Use the top-level README
 - [`docs/suggestions-architecture.md`](./docs/suggestions-architecture.md): Suggestions system architecture.
 - [`docs/suggestions-flow.md`](./docs/suggestions-flow.md): Suggestions user flow.
 - [`docs/adr-and-rules-todo.md`](./docs/adr-and-rules-todo.md): ADR, Cursor rule, and workflow governance backlog.
+- [`docs/pr-and-commit-guide.md`](./docs/pr-and-commit-guide.md): PR descriptions, commit messages, and test evidence ([`CONTRIBUTING.md`](./CONTRIBUTING.md), [`.github/pull_request_template.md`](./.github/pull_request_template.md)).
 - [`docs/readme-adr-alignment-gaps.md`](./docs/readme-adr-alignment-gaps.md): Working backlog where implementation diverges from README or Accepted ADRs (offline, anonymous, local-first, and related intent).
 
 ## Development

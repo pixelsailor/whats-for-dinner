@@ -96,7 +96,7 @@ Binding contract: [`.cursor/rules/workflow-gates.mdc`](../.cursor/rules/workflow
 
 **Who may claim merge-ready:** Validator issues verdict only; Orchestrator may set `awaiting_human` after a passing validation path that satisfies merge-ready gates; `complete` requires human approval (Gate 6). Builder, Test, and Planner must not assert merge-ready in chat or artifacts.
 
-Non-orchestrated architecture PRs still satisfy ADR, gap, and tooling gates; link test evidence or state residual risk in the PR body.
+Non-orchestrated architecture PRs still satisfy ADR, gap, and tooling gates; link test evidence or state residual risk in the PR body. Summary format: [`docs/pr-and-commit-guide.md`](./pr-and-commit-guide.md) and [`.github/pull_request_template.md`](../.github/pull_request_template.md).
 
 ## Usage Modes
 

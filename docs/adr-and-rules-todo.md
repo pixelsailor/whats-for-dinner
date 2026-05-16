@@ -167,10 +167,10 @@ This backlog turns the project principles in the top-level README into enforceab
   - Require validation output before merge-ready claims.
   - **Done (2026-05-16):** [`.cursor/rules/workflow-gates.mdc`](../.cursor/rules/workflow-gates.mdc) (agent contract for orchestrated runs and architecture-touching PRs; MG-01–MG-05). Cross-links in [`.cursor/rules/orchestration-artifacts.mdc`](../.cursor/rules/orchestration-artifacts.mdc), [GOVERNANCE.md §10.5](../adrs/GOVERNANCE.md#105-merge-ready-gates-orchestrated-efforts), [TEMPLATE.md](../adrs/TEMPLATE.md) *Merge / workflow gates*, [`docs/validation-checklist.md`](./validation-checklist.md), [`.cursor/agents/INDEX.md`](../.cursor/agents/INDEX.md). Prior partial coverage remains in [`.cursor/rules/adr-compliance.mdc`](../.cursor/rules/adr-compliance.mdc) (ADR index + alignment gaps).
 
-- [ ] **Harden PR and commit expectations**
+- [x] **Harden PR and commit expectations**
   - Require summaries to distinguish product behavior, architecture changes, and gap remediation.
   - Require test evidence or explicit untested risk for each change.
-  - **Note (2026-05-16):** No repo-level PR template, `CONTRIBUTING.md`, or Cursor rule yet; orchestration artifacts record test/validation evidence per task but do not define human PR/commit summary format.
+  - **Done (2026-05-16):** [`docs/pr-and-commit-guide.md`](./pr-and-commit-guide.md) (canonical); [`.github/pull_request_template.md`](../.github/pull_request_template.md); [`.cursor/rules/pr-commit-expectations.mdc`](../.cursor/rules/pr-commit-expectations.mdc) (`alwaysApply`); thin [`CONTRIBUTING.md`](../CONTRIBUTING.md) pointer. Cross-links in [`.cursor/rules/workflow-gates.mdc`](../.cursor/rules/workflow-gates.mdc), [`docs/validation-checklist.md`](./validation-checklist.md), [`docs/ORCHESTRATED_DEVELOPMENT.md`](./ORCHESTRATED_DEVELOPMENT.md), [README](../README.md) Documentation Map. Merge-ready gates unchanged ([workflow-gates](../.cursor/rules/workflow-gates.mdc)).
 
 ## Legacy `agents.md` Distribution
 

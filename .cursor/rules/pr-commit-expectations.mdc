@@ -1,0 +1,43 @@
+---
+description: PR and commit summary format — product vs architecture vs gaps; test evidence or untested risk; defers merge-ready gates to workflow-gates
+alwaysApply: true
+---
+
+# PR and commit expectations
+
+**Canonical guide:** [`docs/pr-and-commit-guide.md`](../docs/pr-and-commit-guide.md). **GitHub template:** [`.github/pull_request_template.md`](../../.github/pull_request_template.md).
+
+Merge-ready **policy** (ADR, gaps, validation artifacts, tooling) remains in [workflow-gates.mdc](./workflow-gates.mdc) and [adr-compliance.mdc](./adr-compliance.mdc). This rule defines **communication** so reviewers and future readers can classify the change without reading every diff.
+
+## PR descriptions
+
+For every pull request (including agent-created PRs via `gh pr create`), fill the template sections:
+
+1. **Product / UX** — user-visible behavior; **None** if not applicable.
+2. **Architecture / ADR** — durable design and ADR links; **None** if not applicable.
+3. **Alignment gaps** — **GAP-*** updates in [`docs/readme-adr-alignment-gaps.md`](../docs/readme-adr-alignment-gaps.md); **None** if implementation matches cited Accepted ADRs.
+4. **Test evidence** — commands run, spec paths, or named manual steps; **Untested risk** is **required** when nothing was verified.
+5. **Merge-ready** — only for architecture-touching work; check [workflow-gates.mdc](./workflow-gates.mdc) and link orchestration `validation-report.md` / `test-report.md` when applicable.
+
+Do **not** claim merge-ready in the PR summary unless [workflow-gates.mdc](./workflow-gates.mdc) gates are satisfied (orchestrated: Validator verdict + human approval per orchestrator contract).
+
+## Commit messages
+
+When the user asks for a commit:
+
+- **Subject:** imperative, concise (~72 chars); optional `Fix GAP-NNN:` when primarily remediating a gap row.
+- **Body (optional):** same three buckets + one line of test evidence when the commit needs context without a PR.
+
+Do **not** create commits unless the user explicitly requests them.
+
+## Agents creating PRs
+
+Use `gh pr create` with a body that follows the template (HEREDOC). Pull applicable checklist rows from [`docs/validation-checklist.md`](../docs/validation-checklist.md) into review comments when touching offline, auth, cloud, AI, schema, or a11y boundaries.
+
+## Related
+
+| Topic | Location |
+| ----- | -------- |
+| Merge-ready gates | [workflow-gates.mdc](./workflow-gates.mdc) |
+| Checklist IDs | [validation-checklist.mdc](./validation-checklist.mdc) |
+| ADR + gaps before implementation | [adr-compliance.mdc](./adr-compliance.mdc) |

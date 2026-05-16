@@ -26,6 +26,7 @@
 | | readme-governance | Root README scope; deep docs → ADRs, scoped READMEs, `docs/` | globs `README.md` |
 | **Agent Workflow** | orchestration-artifacts | Who may edit `.cursor/orchestrations/**` manifests and stage files | globs `.cursor/orchestrations/**` |
 | | workflow-gates | Merge-ready gates: ADR, alignment gaps, validation-report, test-report, MG-* checklist | globs `.cursor/orchestrations/**`, orchestration agent defs, `docs/ORCHESTRATED_DEVELOPMENT.md` |
+| | pr-commit-expectations | PR/commit buckets (product, architecture, gaps); test evidence or untested risk | alwaysApply |
 | | validation-checklist | Cross-cutting Validator/PR audit: offline, auth, cloud, AI, schema, a11y, tests | globs `.cursor/orchestrations/**`, `docs/validation-checklist.md` |
 | | test-matrix | Test layers (UNIT/COMP/INTG/OFFL), Vitest projects, test-matrix.md + test-report.md | globs `.cursor/orchestrations/**`, `docs/test-matrix-template.md` |
 | | orchestrator | Orchestration controller for Plan-Build-Validate-Test loops | manual |

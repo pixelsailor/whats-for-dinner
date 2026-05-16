@@ -10,7 +10,7 @@ Reusable audit checklist for **orchestrated Validator runs**, **human PR review*
 | ------- | ------ |
 | **Orchestrated Validator** | Read this file; mark each **applicable** item in `validation-report.md` → **Checklist audit** (✅ / ⚠️ / ❌ / N/A + evidence). Any ❌ on a required item blocks **PASS** unless escalated as **PASS_WITH_NOTES** with explicit human/Orchestrator acceptance. |
 | **Planner** | Pull relevant rows into `plan.md` → **Validation steps** and map to AC IDs; do not duplicate the entire checklist unless the task is broad. |
-| **Human PR review** | Copy the applicable sections into the PR description or review comment; link alignment gaps when deviating. |
+| **Human PR review** | Use [PR template](../.github/pull_request_template.md) and [`docs/pr-and-commit-guide.md`](./pr-and-commit-guide.md) (product / architecture / gaps + test evidence); copy applicable checklist sections into review comments; link alignment gaps when deviating. |
 
 **Evidence** means file:line, test name, command output, or a named manual step (e.g. “offline smoke: recipes list loads with DevTools offline”).
 

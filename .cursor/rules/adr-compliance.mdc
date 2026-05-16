@@ -43,5 +43,6 @@ ADR consultation and alignment gaps are necessary but not sufficient for merge-r
 | What is decided and binding | `adrs/INDEX.md` (Accepted rows) |
 | Process, proposals, conflicts, orchestration | `adrs/GOVERNANCE.md` |
 | Merge-ready gates (orchestration) | [workflow-gates.mdc](./workflow-gates.mdc) |
+| PR / commit summaries | [pr-commit-expectations.mdc](./pr-commit-expectations.mdc), [`docs/pr-and-commit-guide.md`](../docs/pr-and-commit-guide.md) |
 | Implementation vs ADR drift (tracked) | `docs/readme-adr-alignment-gaps.md` |
 | New ADR shape | `adrs/TEMPLATE.md` |

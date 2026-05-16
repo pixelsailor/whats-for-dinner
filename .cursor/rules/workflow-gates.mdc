@@ -81,6 +81,7 @@ When work is **not** under `.cursor/orchestrations/`, a merge-ready claim (in PR
 
 | Topic | Location |
 | ----- | -------- |
+| PR / commit summary format (product vs architecture vs gaps; test evidence) | [pr-commit-expectations.mdc](./pr-commit-expectations.mdc), [`docs/pr-and-commit-guide.md`](../docs/pr-and-commit-guide.md) |
 | Who edits which file | [orchestration-artifacts.mdc](./orchestration-artifacts.mdc) |
 | Validator checklist | [validation-checklist.mdc](./validation-checklist.mdc) |
 | Test layers | [test-matrix.mdc](./test-matrix.mdc) |

@@ -137,8 +137,8 @@ This backlog turns the project principles in the top-level README into enforceab
   - **Done:** [`docs/readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md)
 
 - [x] **Create a planning artifact template**
-  - Require scoped phases, files likely to change, validation steps, risks, and rollback notes before significant implementation.
-  - **Done (2026-05-16):** [`.cursor/orchestrations/_template/`](../.cursor/orchestrations/_template/) — `plan.md`, `acceptance-criteria.md`, `build-log.md`, `README.md`; [`.cursor/agents/planner.md`](../.cursor/agents/planner.md) output contract includes **Phases**, **Validation steps**, **Risks**, and **Rollback**; cross-links in [`.cursor/rules/orchestration-artifacts.mdc`](../.cursor/rules/orchestration-artifacts.mdc), [`docs/ORCHESTRATED_DEVELOPMENT.md`](./ORCHESTRATED_DEVELOPMENT.md), and [ADR `TEMPLATE.md`](../adrs/TEMPLATE.md) *Planning artifact*.
+  - Require scoped phases, files likely to change, validation commands, risks, and rollback notes before significant implementation.
+  - **Done (2026-05-16):** [`.cursor/orchestrations/_template/`](../.cursor/orchestrations/_template/) — `plan.md`, `acceptance-criteria.md`, `build-log.md`, `README.md`; [`.cursor/agents/planner.md`](../.cursor/agents/planner.md) output contract includes **Phases**, **Validation commands**, **Risks**, and **Rollback**; cross-links in [`.cursor/rules/orchestration-artifacts.mdc`](../.cursor/rules/orchestration-artifacts.mdc), [`docs/ORCHESTRATED_DEVELOPMENT.md`](./ORCHESTRATED_DEVELOPMENT.md), and [ADR `TEMPLATE.md`](../adrs/TEMPLATE.md) *Planning artifact*.
 
 - [x] **Create a validation checklist**
   - Cover offline behavior and user-visible offline/connectivity messaging, anonymous behavior, auth boundaries, cloud behavior, AI disabled behavior, self-hosted provider behavior, schema validation, accessibility, and tests.
@@ -171,6 +171,22 @@ This backlog turns the project principles in the top-level README into enforceab
   - Require summaries to distinguish product behavior, architecture changes, and gap remediation.
   - Require test evidence or explicit untested risk for each change.
   - **Done (2026-05-16):** [`docs/pr-and-commit-guide.md`](./pr-and-commit-guide.md) (canonical); [`.github/pull_request_template.md`](../.github/pull_request_template.md); [`.cursor/rules/pr-commit-expectations.mdc`](../.cursor/rules/pr-commit-expectations.mdc) (`alwaysApply`); thin [`CONTRIBUTING.md`](../CONTRIBUTING.md) pointer. Cross-links in [`.cursor/rules/workflow-gates.mdc`](../.cursor/rules/workflow-gates.mdc), [`docs/validation-checklist.md`](./validation-checklist.md), [`docs/ORCHESTRATED_DEVELOPMENT.md`](./ORCHESTRATED_DEVELOPMENT.md), [README](../README.md) Documentation Map. Merge-ready gates unchanged ([workflow-gates](../.cursor/rules/workflow-gates.mdc)).
+
+## Post-rebase follow-ups (2026-05-16)
+
+Rebased `origin/main` orchestration docs onto local `9f5bb10` (webtech pipeline, Gates 0–6, manifest v2). Resolved conflicts in agent contracts, templates, and guides. Items below need human review or a focused pass — not blocking local work.
+
+- [ ] **Audit `docs/validation-checklist.md` against Gate 0–6 and `gate_status`**
+  - Confirm MG-01–MG-05 and domain rows (OFF-*, AUTH-*, etc.) map clearly to lifecycle Gates 4–5 and merge-ready gates without contradicting small-run skip policy in [`.cursor/agents/orchestrator.md`](../.cursor/agents/orchestrator.md).
+
+- [ ] **Reconcile GOVERNANCE §10.5 with lifecycle Gates 0–6**
+  - [GOVERNANCE.md §10.5](../adrs/GOVERNANCE.md#105-merge-ready-gates-orchestrated-efforts) and [workflow-gates.mdc](../.cursor/rules/workflow-gates.mdc) use merge-ready numbering; [`docs/ORCHESTRATED_DEVELOPMENT.md`](./ORCHESTRATED_DEVELOPMENT.md) uses pipeline Gates 0–6. Add a short cross-reference table if readers confuse the two.
+
+- [ ] **End-to-end dry run**
+  - Bootstrap a throwaway `.cursor/orchestrations/wfd-dry-run/` from `_template/` and walk Orchestrator → Planner → Builder → Test → Validator prompts once to catch stale terminology (`validation steps`, legacy artifact names).
+
+- [ ] **Force-push rebased `main`**
+  - Local `main` replaces remote history (`9f5bb10` + 7 rebased commits). Coordinate with anyone who based work on pre-rebase `origin/main` before `git push --force-with-lease`.
 
 ## Legacy `agents.md` Distribution
 

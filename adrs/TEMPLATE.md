@@ -143,7 +143,7 @@ List ADR numbers and titles the **Planner** must read before drafting an executa
 
 ### Planning artifact
 
-Link or path to the scoped plan (phases, files likely to change, validation steps, risks, rollback). For orchestrated runs, the plan lives at `.cursor/orchestrations/{task-id}/plan.md` using [`.cursor/orchestrations/_template/plan.md`](../.cursor/orchestrations/_template/plan.md). Omit until a plan exists.
+Link or path to the scoped plan (phases, files likely to change, validation commands, risks, rollback). For orchestrated runs, the plan lives at `.cursor/orchestrations/{task-id}/plan.md` using [`.cursor/orchestrations/_template/plan.md`](../.cursor/orchestrations/_template/plan.md). Omit until a plan exists.
 
 - Plan: `.cursor/orchestrations/{task-id}/plan.md` or `docs/…` / issue / PR link
 

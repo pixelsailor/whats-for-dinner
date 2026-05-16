@@ -138,27 +138,37 @@ This backlog turns the project principles in the top-level README into enforceab
 
 - [ ] **Create a planning artifact template**
   - Require scoped phases, files likely to change, validation steps, risks, and rollback notes before significant implementation.
+  - **Partial (2026-05-16):** [`.cursor/orchestrations/_template/`](../.cursor/orchestrations/_template/) has `task-manifest.json` and `human-approval.md`; [`.cursor/agents/planner.md`](../.cursor/agents/planner.md) defines required `plan.md` / `acceptance-criteria.md` sections (file map, interface contracts, ADR implications, open questions). [`docs/ORCHESTRATED_DEVELOPMENT.md`](./ORCHESTRATED_DEVELOPMENT.md) documents the per-task artifact set.
+  - **Remaining:** copy-paste templates under `_template/` for `plan.md`, `acceptance-criteria.md`, and `build-log.md`; extend Planner output contract with **phases**, **validation steps**, **risks**, and **rollback** (called out in backlog and in [ADR `TEMPLATE.md`](../adrs/TEMPLATE.md) *Planning artifact* subsection).
 
 - [ ] **Create a validation checklist**
   - Cover offline behavior and user-visible offline/connectivity messaging, anonymous behavior, auth boundaries, cloud behavior, AI disabled behavior, self-hosted provider behavior, schema validation, accessibility, and tests.
+  - **Partial (2026-05-16):** [`.cursor/agents/validator.md`](../.cursor/agents/validator.md) defines `validation-report.md` (verdict, AC audit, ADR compliance, regressions, remediations). Per-ADR *Merge / workflow gates* and [GOVERNANCE.md §10.5](../adrs/GOVERNANCE.md) require validation output before merge-ready claims.
+  - **Remaining:** a single reusable checklist (file or rule) spanning offline/connectivity, anonymous, auth, cloud, AI-disabled, self-hosted, schema, a11y, and tests — still referenced as optional in [ADR-009](../adrs/ADR-009-recommendations-engine-inputs.md) and [ADR-010](../adrs/ADR-010-offline-cache-and-service-worker.md).
 
 - [ ] **Create a test matrix template**
   - Track expected coverage for unit, component, browser, offline, and integration-like flows.
+  - **Partial (2026-05-16):** [`.cursor/agents/test.md`](../.cursor/agents/test.md) uses per-run `test-report.md` (coverage map per AC, uncovered criteria, stability notes, commands). [ADR `TEMPLATE.md`](../adrs/TEMPLATE.md) *Test role and evidence* still names `_TEST_MATRIX.md` (legacy naming from [`.cursor/agents/orchestrator.md.backup`](../.cursor/agents/orchestrator.md.backup)).
+  - **Remaining:** standalone test-matrix template aligned with WFD runners (Vitest; Playwright only if adopted) and reconcile naming in [`.cursor/agents/INDEX.md`](../.cursor/agents/INDEX.md) (still lists Angular-oriented skill names).
 
-- [ ] **Define Plan-Build-Validate-Test roles**
+- [x] **Define Plan-Build-Validate-Test roles**
   - Planner produces an executable plan and identifies relevant ADRs.
   - Builder implements one bounded phase.
   - Validator reviews against ADRs, rules, and [`readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md).
   - Test role adds or updates focused tests and records residual risk.
+  - **Done (2026-05-16):** Role contracts in [`.cursor/agents/`](../.cursor/agents/) (`orchestrator`, `planner`, `builder`, `validator`, `test`), artifact ownership in [`.cursor/rules/orchestration-artifacts.mdc`](../.cursor/rules/orchestration-artifacts.mdc), narrative guide [`docs/ORCHESTRATED_DEVELOPMENT.md`](./ORCHESTRATED_DEVELOPMENT.md), and orchestration policy in [GOVERNANCE.md §10](../adrs/GOVERNANCE.md#10-orchestrated-development-wfd).
 
 - [ ] **Add workflow gate rules**
   - Require ADR creation or update before changing durable architecture.
   - Require alignment gaps for known deviations that are not fixed in the same change.
   - Require validation output before merge-ready claims.
+  - **Partial (2026-05-16):** Gates are encoded in [`.cursor/rules/adr-compliance.mdc`](../.cursor/rules/adr-compliance.mdc) (ADR index + alignment gaps), [GOVERNANCE.md §10.5](../adrs/GOVERNANCE.md#105-merge-ready-gates-orchestrated-efforts), and per-ADR *Merge / workflow gates* in [TEMPLATE.md](../adrs/TEMPLATE.md).
+  - **Remaining:** a dedicated Cursor rule (or extension of `orchestration-artifacts` / `adr-compliance`) that agents load for orchestrated runs, tying merge-ready claims to `validation-report.md` / `test-report.md` without relying on ADR bodies alone.
 
 - [ ] **Harden PR and commit expectations**
   - Require summaries to distinguish product behavior, architecture changes, and gap remediation.
   - Require test evidence or explicit untested risk for each change.
+  - **Note (2026-05-16):** No repo-level PR template, `CONTRIBUTING.md`, or Cursor rule yet; orchestration artifacts record test/validation evidence per task but do not define human PR/commit summary format.
 
 ## Legacy `agents.md` Distribution
 

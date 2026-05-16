@@ -21,6 +21,7 @@ The Builder implements `plan.md` exactly, producing minimal, reviewable code cha
 4. On remediation: `.cursor/orchestrations/{task-id}/build-log.md` (prior) and `.cursor/orchestrations/{task-id}/validation-report.md` (**Required remediations** section is mandatory reading).
 5. Relevant existing source files per `plan.md` component/file map.
 6. `package.json` scripts referenced by `plan.md` validation commands.
+7. Optional scaffold: [`.cursor/orchestrations/_template/build-log.md`](../orchestrations/_template/build-log.md).
 
 ## Rules
 
@@ -53,6 +54,8 @@ The Builder implements `plan.md` exactly, producing minimal, reviewable code cha
    - **Scope pressure** — Any needed but unapproved scope expansion; empty section if none.
    - **Unresolved open questions** — Each plan open question and outcome.
    - **Known gaps** — Incomplete or fragile areas the Builder is aware of.
+
+   Canonical shape: [`.cursor/orchestrations/_template/build-log.md`](../orchestrations/_template/build-log.md).
 
 ## Handoff Instruction
 

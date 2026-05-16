@@ -42,12 +42,22 @@ The pipeline can be right-sized for small work, but the Orchestrator must record
 Inside `.cursor/orchestrations/{task-id}/`:
 
 - `task-manifest.json` - authoritative orchestration state.
-- `plan.md` - implementation plan and scope boundary.
+- `plan.md` - implementation plan and scope boundary (phases, file map, interface contracts, ADR implications, validation commands, risks, rollback, open questions).
 - `acceptance-criteria.md` - verifiable AC list using stable `AC-01`, `AC-02`, ... IDs.
 - `build-log.md` - implemented changes, command evidence, deviations, unresolved questions, known gaps.
 - `test-report.md` - AC-to-test coverage map, gaps, stability notes, commands.
 - `validation-report.md` - verdict plus evidence and remediations.
 - `human-approval.md` - Gate 6 evidence summary and approval/rework record when approval is collected.
+
+### Bootstrap from templates
+
+Copy from [`.cursor/orchestrations/_template/`](../.cursor/orchestrations/_template/) into a new `{task-id}` folder:
+
+1. `task-manifest.json` — set `task_id`, `objective`, `locked_artifacts`, and initial `gate_status` / `risk_tier` per Orchestrator.
+2. `plan.md` and `acceptance-criteria.md` — Planner fills every section (see template comments); delete guidance before handoff.
+3. `build-log.md` — optional at start; Builder completes after implementation.
+
+See [`_template/README.md`](../.cursor/orchestrations/_template/README.md) for the full file table.
 
 ## Lifecycle Gates
 
@@ -211,7 +221,8 @@ Task folder:
 .cursor/orchestrations/<task-id>/
 
 Read task-manifest.json, adrs/INDEX.md, adrs/GOVERNANCE.md, and relevant Accepted ADRs.
-Produce plan.md and acceptance-criteria.md with scope, interfaces, commands, ADR implications, open questions, and phase boundaries.
+Produce plan.md and acceptance-criteria.md following section order in .cursor/orchestrations/_template/plan.md (risk/phase strategy, phases, file map, validation commands, risks, rollback).
+Include concrete file-level scope, interface contracts, ADR implications (not pointer-only), and stable AC IDs mapped to validation commands.
 ```
 
 ### Builder Manual Handoff

@@ -21,11 +21,12 @@ The Planner converts the orchestration objective into an executable plan that th
 4. `adrs/GOVERNANCE.md` (for lifecycle and conflict handling awareness).
 5. Existing codebase paths implied by the objective (read enough to name real files and contracts).
 6. `package.json` scripts (read enough to name real WFD validation commands).
+7. Optional scaffold: copy from [`.cursor/orchestrations/_template/plan.md`](../orchestrations/_template/plan.md) and [`.cursor/orchestrations/_template/acceptance-criteria.md`](../orchestrations/_template/acceptance-criteria.md), then replace placeholders.
 
 ## Rules
 
 1. The Planner MUST produce both `plan.md` and `acceptance-criteria.md` under `.cursor/orchestrations/{task-id}/` before handoff.
-2. `plan.md` MUST contain every section listed in the Output Contract, in order: Objective restatement; Risk and phase strategy; Scope boundary; Component/file map; Interface contracts; ADR references; Validation commands; Open questions.
+2. `plan.md` MUST contain every section listed in the Output Contract, in order. Section headings MUST match the template so Orchestrator, Builder, Test, and Validator can rely on stable anchors.
 3. Each ADR reference in `plan.md` MUST state implication for this task (not-only pointer text such as “see ADR-003”).
 4. `acceptance-criteria.md` MUST use the title format `# Acceptance Criteria — {task_id}` and MUST use structured `- [ ] AC-NN: …` checkboxes for every criterion.
 5. Each acceptance criterion MUST be independently verifiable by Test or Validator without inferring unstated intent.
@@ -37,6 +38,9 @@ The Planner converts the orchestration objective into an executable plan that th
 11. `acceptance-criteria.md` MUST cover user-visible behavior, loading/empty/error states when relevant, edge cases, out-of-scope items, and offline/anonymous/cloud/AI behavior when the objective touches those capabilities.
 12. If the objective touches offline-first, local data, auth/cloud sync, AI provider boundaries, service worker behavior, UI accessibility, schema-led contracts, or security, the Planner MUST cite the relevant Accepted ADRs and include concrete implications.
 13. The Planner MUST define test intent for each AC: automated, manual, or explicitly uncovered until the Test agent decides final implementation.
+14. **Phases** MUST bound work into PR-sized slices; each phase MUST name deliverables, files touched, and dependencies. Single-phase work still uses one phase row.
+15. **Validation commands** MUST list concrete `pnpm` commands or checks from `package.json` and tie to AC IDs where applicable.
+16. **Risks** and **Rollback** MUST be filled; use “None identified” / “Revert commit” only when genuinely applicable, not as empty placeholders.
 
 ## Skills
 
@@ -46,16 +50,24 @@ The Planner converts the orchestration objective into an executable plan that th
 
 ## Output Contract
 
-1. **`.cursor/orchestrations/{task-id}/plan.md`** — Sections:
+1. **`.cursor/orchestrations/{task-id}/plan.md`** — Sections (in order):
    - **Objective restatement** — One sentence: what done looks like.
    - **Risk and phase strategy** — Manifest tier, phase count, skipped-stage assumptions if any, and change budget when useful.
    - **Scope boundary** — Explicit in-scope and out-of-scope lists.
-   - **Component/file map** — Every file to create or modify, with purpose.
+   - **Phases** — Table plus per-phase deliverables, files touched, dependencies.
+   - **Component/file map** — Every file to create or modify, with purpose (aligned with phases).
    - **Interface contracts** — Props, function signatures, data shapes.
    - **ADR references** — Which Accepted ADRs apply and how (implications spelled out).
-   - **Validation commands** — Exact `pnpm` commands from `package.json` and any narrower targeted commands when known.
+   - **Validation commands** — Exact `pnpm` commands from `package.json` and any narrower targeted commands when known; map to AC IDs where helpful.
+   - **Risks** — Likelihood, impact, mitigation table.
+   - **Rollback** — How to undo code, data, and config safely.
    - **Open questions** — Unresolved items; Builder must not invent answers.
+
+   Canonical shape: [`.cursor/orchestrations/_template/plan.md`](../orchestrations/_template/plan.md).
+
 2. **`.cursor/orchestrations/{task-id}/acceptance-criteria.md`** — Checklist grouped (e.g. Functional, Architectural, Offline/anonymous/cloud behavior, Accessibility, Tests) with stable AC IDs (`AC-01`, …). Include out-of-scope and non-goals when they prevent accidental expansion.
+
+   Canonical shape: [`.cursor/orchestrations/_template/acceptance-criteria.md`](../orchestrations/_template/acceptance-criteria.md).
 
 ## Handoff Instruction
 

@@ -8,7 +8,9 @@ alwaysApply: false
 
 # Orchestration artifacts
 
-Full contracts: [`.cursor/agents/orchestrator.md`](.cursor/agents/orchestrator.md), [`.cursor/agents/planner.md`](.cursor/agents/planner.md), [`.cursor/agents/builder.md`](.cursor/agents/builder.md), [`.cursor/agents/test.md`](.cursor/agents/test.md), [`.cursor/agents/validator.md`](.cursor/agents/validator.md). Template: [`.cursor/orchestrations/_template/`](.cursor/orchestrations/_template/).
+Full contracts: [`.cursor/agents/orchestrator.md`](.cursor/agents/orchestrator.md), [`.cursor/agents/planner.md`](.cursor/agents/planner.md), [`.cursor/agents/builder.md`](.cursor/agents/builder.md), [`.cursor/agents/test.md`](.cursor/agents/test.md), [`.cursor/agents/validator.md`](.cursor/agents/validator.md).
+
+**Templates** ([`.cursor/orchestrations/_template/`](.cursor/orchestrations/_template/)): `task-manifest.json`, `plan.md`, `acceptance-criteria.md`, `build-log.md`, `human-approval.md`, and [`README.md`](.cursor/orchestrations/_template/README.md) (copy into `{task-id}/` when bootstrapping).
 
 ## Path
 

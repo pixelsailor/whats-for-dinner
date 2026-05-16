@@ -136,10 +136,9 @@ This backlog turns the project principles in the top-level README into enforceab
   - Include owner, severity, affected files or domains, recommended remediation, and whether the gap blocks future work.
   - **Done:** [`docs/readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md)
 
-- [ ] **Create a planning artifact template**
+- [x] **Create a planning artifact template**
   - Require scoped phases, files likely to change, validation steps, risks, and rollback notes before significant implementation.
-  - **Partial (2026-05-16):** [`.cursor/orchestrations/_template/`](../.cursor/orchestrations/_template/) has `task-manifest.json` and `human-approval.md`; [`.cursor/agents/planner.md`](../.cursor/agents/planner.md) defines required `plan.md` / `acceptance-criteria.md` sections (file map, interface contracts, ADR implications, open questions). [`docs/ORCHESTRATED_DEVELOPMENT.md`](./ORCHESTRATED_DEVELOPMENT.md) documents the per-task artifact set.
-  - **Remaining:** copy-paste templates under `_template/` for `plan.md`, `acceptance-criteria.md`, and `build-log.md`; extend Planner output contract with **phases**, **validation steps**, **risks**, and **rollback** (called out in backlog and in [ADR `TEMPLATE.md`](../adrs/TEMPLATE.md) *Planning artifact* subsection).
+  - **Done (2026-05-16):** [`.cursor/orchestrations/_template/`](../.cursor/orchestrations/_template/) — `plan.md`, `acceptance-criteria.md`, `build-log.md`, `README.md`; [`.cursor/agents/planner.md`](../.cursor/agents/planner.md) output contract includes **Phases**, **Validation steps**, **Risks**, and **Rollback**; cross-links in [`.cursor/rules/orchestration-artifacts.mdc`](../.cursor/rules/orchestration-artifacts.mdc), [`docs/ORCHESTRATED_DEVELOPMENT.md`](./ORCHESTRATED_DEVELOPMENT.md), and [ADR `TEMPLATE.md`](../adrs/TEMPLATE.md) *Planning artifact*.
 
 - [ ] **Create a validation checklist**
   - Cover offline behavior and user-visible offline/connectivity messaging, anonymous behavior, auth boundaries, cloud behavior, AI disabled behavior, self-hosted provider behavior, schema validation, accessibility, and tests.

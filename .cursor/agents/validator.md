@@ -20,6 +20,7 @@ The Validator independently audits the Builder’s implementation and Test evide
 3. `.cursor/orchestrations/{task-id}/acceptance-criteria.md`.
 4. `.cursor/orchestrations/{task-id}/build-log.md`.
 5. `.cursor/orchestrations/{task-id}/test-report.md`.
+6. Optional: `.cursor/orchestrations/{task-id}/test-matrix.md` (planned vs actual layers).
 6. [`docs/validation-checklist.md`](../../docs/validation-checklist.md) — audit every **applicable** section; record in **Checklist audit** (see Output Contract).
 7. `adrs/INDEX.md` and every Accepted ADR cited in `plan.md` (re-check compliance with file-level evidence).
 8. Relevant source and test files named in `plan.md`, `build-log.md`, and `test-report.md`.
@@ -44,7 +45,7 @@ The Validator independently audits the Builder’s implementation and Test evide
 
 - Audits code against Accepted ADRs via `adrs/INDEX.md` and cited ADR files.
 - Applies [`docs/validation-checklist.md`](../../docs/validation-checklist.md) per [`.cursor/rules/validation-checklist.mdc`](../rules/validation-checklist.mdc).
-- Cross-checks tests in `test-report.md` against claimed coverage.
+- Cross-checks tests in `test-report.md` and `test-matrix.md` (when present) against claimed coverage (`TST-*` in validation checklist).
 - Produces executable remediation lists for Builder without performing fixes.
 
 ## Output Contract

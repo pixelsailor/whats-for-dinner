@@ -232,6 +232,7 @@ Before claiming merge-ready for orchestrated work, confirm (same checklist as th
 - ADR created or updated **before** durable architecture change (or an explicit follow-up exists).
 - Known deviations are documented as alignment gaps when not fixed in scope.
 - Validation output exists for behavior the ADR cares about (orchestrated: `validation-report.md` with **Checklist audit** per [`docs/validation-checklist.md`](../docs/validation-checklist.md)).
+- Test evidence exists when orchestration applies (`test-report.md`; `test-matrix.md` when planned layers were scoped — per [`docs/test-matrix-template.md`](../docs/test-matrix-template.md)).
 
 ---
 

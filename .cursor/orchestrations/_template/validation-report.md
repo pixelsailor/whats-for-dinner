@@ -30,6 +30,10 @@ Replace `wfd-000` with `task_id`. Delete guidance comments before handoff.
 | -- | ------ | --------------------- |
 | MG-01 | | |
 
+## Test and command evidence
+
+<!-- Planned commands from build-log.md and test-report.md; gaps or failures -->
+
 ## Regressions
 
 <!-- Suspected broken existing behavior, or "None identified" -->

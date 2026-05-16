@@ -32,9 +32,9 @@ The pipeline can be right-sized for small work, but the Orchestrator must record
 | Agent | Owns | Must not do |
 | --- | --- | --- |
 | `Orchestrator` | Lifecycle, routing, manifest state, gate policy, human approval, rework routing | Write application code, plan implementation details, test, or validate its own work |
-| `Planner` | `plan.md`, `acceptance-criteria.md`, scope, commands, ADR implications | Implement, test, edit manifest, or guess through open questions |
+| `Planner` | `plan.md`, `acceptance-criteria.md`, `test-matrix.md` (planned), scope, commands, ADR implications | Implement, test, edit manifest, or guess through open questions |
 | `Builder` | Code/config changes in plan scope, `build-log.md`, command evidence | Redesign, expand scope silently, edit plan/manifest/tests |
-| `Test` | Automated tests and `test-report.md` AC coverage map | Redesign feature code or weaken acceptance criteria |
+| `Test` | Vitest specs, `test-matrix.md` (actual), `test-report.md` AC coverage map | Redesign feature code or weaken acceptance criteria |
 | `Validator` | Independent audit and `validation-report.md` verdict | Fix code, rewrite tests, edit manifest, or approve missing ACs |
 
 ## Artifact Contract
@@ -44,12 +44,13 @@ Inside `.cursor/orchestrations/{task-id}/`:
 - `task-manifest.json` - authoritative orchestration state.
 - `plan.md` - implementation plan and scope boundary (phases, file map, interface contracts, ADR implications, validation commands, risks, rollback, open questions).
 - `acceptance-criteria.md` - verifiable AC list using stable `AC-01`, `AC-02`, ... IDs.
+- `test-matrix.md` - planned (Planner) and actual (Test) coverage by layer and AC.
 - `build-log.md` - implemented changes, command evidence, deviations, unresolved questions, known gaps.
 - `test-report.md` - AC-to-test coverage map, gaps, stability notes, commands.
 - `validation-report.md` - verdict, AC/ADR/checklist audits, test/command evidence, and remediations.
 - `human-approval.md` - Gate 6 evidence summary and approval/rework record when approval is collected.
 
-Cross-cutting validation items (offline, auth, cloud, AI, schema, a11y, tests): [`docs/validation-checklist.md`](./validation-checklist.md).
+Cross-cutting validation: [`docs/validation-checklist.md`](./validation-checklist.md). Test layers and runners: [`docs/test-matrix-template.md`](./test-matrix-template.md).
 
 ### Bootstrap from templates
 
@@ -57,7 +58,9 @@ Copy from [`.cursor/orchestrations/_template/`](../.cursor/orchestrations/_templ
 
 1. `task-manifest.json` — set `task_id`, `objective`, `locked_artifacts`, and initial `gate_status` / `risk_tier` per Orchestrator.
 2. `plan.md` and `acceptance-criteria.md` — Planner fills every section (see template comments); delete guidance before handoff.
-3. `build-log.md` — optional at start; Builder completes after implementation.
+3. `test-matrix.md` — recommended for non-trivial tasks; Planner fills **Planned coverage**.
+4. `build-log.md` — optional at start; Builder completes after implementation.
+5. `test-report.md` — Test completes after specs run (copy template if missing).
 
 See [`_template/README.md`](../.cursor/orchestrations/_template/README.md) for the full file table.
 
@@ -247,8 +250,9 @@ You are the Test agent. Use the test rule.
 Task folder:
 .cursor/orchestrations/<task-id>/
 
-Read task-manifest.json, acceptance-criteria.md, plan.md, and build-log.md.
-Write/update automated tests and produce test-report.md mapping every AC to tests or an explicit uncovered reason.
+Read task-manifest.json, acceptance-criteria.md, plan.md, build-log.md, and test-matrix.md (if present).
+Write/update Vitest tests; update test-matrix.md (actual coverage) when applicable; produce test-report.md mapping every AC to tests or an explicit uncovered reason.
+Layer IDs and runners: docs/test-matrix-template.md
 ```
 
 ### Validator Manual Handoff

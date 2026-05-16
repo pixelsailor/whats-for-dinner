@@ -67,7 +67,7 @@ Replace `wfd-000` with `task_id`. Delete HTML comments and placeholder bullets b
 | Step | Owner | Command or check | Pass criteria |
 | ---- | ----- | ---------------- | ------------- |
 | Lint / types | Builder / Validator | `pnpm run lint`, `pnpm run check` | No new errors in touched paths |
-| Unit / component tests | Test | `pnpm run test` (scoped if noted) | AC-… covered |
+| Unit / component tests | Test | `pnpm run test` or scoped `--project server` / `client` (see `docs/test-matrix-template.md`) | AC-… covered in `test-report.md` |
 | Offline / anonymous smoke | Test / Validator | (describe: Dexie-only path, `navigator.onLine`, etc.) | AC-… |
 | Manual QA | Human | (only if automation cannot cover) | AC-… |
 

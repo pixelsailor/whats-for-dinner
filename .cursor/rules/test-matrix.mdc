@@ -1,0 +1,29 @@
+---
+description: WFD test matrix layers and orchestration test artifacts (test-matrix.md, test-report.md)
+globs:
+  - .cursor/orchestrations/**
+  - docs/test-matrix-template.md
+alwaysApply: false
+---
+
+# Test matrix
+
+**Canonical template:** [`docs/test-matrix-template.md`](../docs/test-matrix-template.md)
+
+## When to use
+
+- **Planner:** Fill **Planned coverage** in `test-matrix.md` for non-trivial tasks; align layers with `plan.md` → **Validation steps** and AC IDs.
+- **Test agent:** Implement Vitest specs; complete **Actual coverage** in `test-matrix.md` and `test-report.md` per [`.cursor/agents/test.md`](../agents/test.md).
+- **Validator:** Cross-check `test-report.md` and `test-matrix.md` against `acceptance-criteria.md` (`TST-*` in [`docs/validation-checklist.md`](../docs/validation-checklist.md)).
+
+## Runners (WFD)
+
+- **Vitest** `server` project — unit / Node (`src/**/*.{test,spec}.ts`, not `*.svelte.test.ts`).
+- **Vitest** `client` project — component / browser (`src/**/*.svelte.{test,spec}.ts`; Playwright as Vitest browser provider).
+- **Standalone Playwright Test (`playwright test`)** — not adopted; do not require **E2E** layer until scripts and policy exist.
+
+## Related
+
+- [`.cursor/orchestrations/_template/test-matrix.md`](../orchestrations/_template/test-matrix.md)
+- [`.cursor/orchestrations/_template/test-report.md`](../orchestrations/_template/test-report.md)
+- [`.cursor/rules/orchestration-artifacts.mdc`](./orchestration-artifacts.mdc)

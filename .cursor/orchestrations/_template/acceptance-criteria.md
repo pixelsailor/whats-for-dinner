@@ -21,4 +21,4 @@ Replace `wfd-000` with `task_id`. Each criterion must be independently verifiabl
 
 ## Test evidence
 
-- [ ] AC-06: Automated test(s) named in `test-report.md` cover … OR documented under **Uncovered criteria** with reason.
+- [ ] AC-06: Automated test(s) named in `test-report.md` cover … OR documented under **Uncovered criteria** with reason. When `test-matrix.md` exists, map this AC to layer(s) per [`docs/test-matrix-template.md`](../../../docs/test-matrix-template.md).

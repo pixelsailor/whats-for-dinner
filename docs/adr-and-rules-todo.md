@@ -144,10 +144,15 @@ This backlog turns the project principles in the top-level README into enforceab
   - Cover offline behavior and user-visible offline/connectivity messaging, anonymous behavior, auth boundaries, cloud behavior, AI disabled behavior, self-hosted provider behavior, schema validation, accessibility, and tests.
   - **Done (2026-05-16):** [`docs/validation-checklist.md`](./validation-checklist.md) (canonical IDs and applicability table); [`.cursor/rules/validation-checklist.mdc`](../.cursor/rules/validation-checklist.mdc) (orchestration globs); [`.cursor/orchestrations/_template/validation-report.md`](../.cursor/orchestrations/_template/validation-report.md); [`.cursor/agents/validator.md`](../.cursor/agents/validator.md) **Checklist audit** output contract. ADR-009/010 merge gates updated to reference the checklist.
 
-- [ ] **Create a test matrix template**
+- [x] **Create a test matrix template**
   - Track expected coverage for unit, component, browser, offline, and integration-like flows.
-  - **Partial (2026-05-16):** [`.cursor/agents/test.md`](../.cursor/agents/test.md) uses per-run `test-report.md` (coverage map per AC, uncovered criteria, stability notes, commands). [ADR `TEMPLATE.md`](../adrs/TEMPLATE.md) *Test role and evidence* still names `_TEST_MATRIX.md` (legacy naming from [`.cursor/agents/orchestrator.md.backup`](../.cursor/agents/orchestrator.md.backup)).
-  - **Remaining:** standalone test-matrix template aligned with WFD runners (Vitest; Playwright only if adopted) and reconcile naming in [`.cursor/agents/INDEX.md`](../.cursor/agents/INDEX.md) (still lists Angular-oriented skill names).
+  - **Done (2026-05-16):** [`docs/test-matrix-template.md`](./test-matrix-template.md) (canonical layer IDs: UNIT, COMP, INTG, OFFL; Vitest `server`/`client` projects; Playwright as Vitest browser provider only — standalone E2E not adopted). Per-run [`.cursor/orchestrations/_template/test-matrix.md`](../.cursor/orchestrations/_template/test-matrix.md) (planned → actual) and [`.cursor/orchestrations/_template/test-report.md`](../.cursor/orchestrations/_template/test-report.md). [`.cursor/rules/test-matrix.mdc`](../.cursor/rules/test-matrix.mdc); Planner/Test/orchestration-artifacts contracts updated; [ADR `TEMPLATE.md`](../adrs/TEMPLATE.md) and [`.cursor/agents/INDEX.md`](../.cursor/agents/INDEX.md) reconciled to WFD artifact names (legacy `_TEST_MATRIX.md` retired).
+
+- [ ] **Adopt standalone Playwright Test (E2E) and update test matrix**
+  - Add `@playwright/test` as a first-class runner (config, `e2e/` or equivalent layout, `package.json` scripts such as `test:e2e`, CI wiring) so full-app flows (offline smoke, auth-gated routes, multi-page journeys) can be automated beyond Vitest component/browser projects.
+  - Update [`docs/test-matrix-template.md`](./test-matrix-template.md): promote **E2E** from reserved to required where applicable; document when **COMP** (Vitest browser) vs **E2E** (Playwright Test) applies; add commands and file patterns.
+  - Sync [`.cursor/orchestrations/_template/test-matrix.md`](../.cursor/orchestrations/_template/test-matrix.md), [`.cursor/agents/test.md`](../.cursor/agents/test.md), [`.cursor/agents/INDEX.md`](../.cursor/agents/INDEX.md), [`.cursor/rules/test-matrix.mdc`](../.cursor/rules/test-matrix.mdc), and [`docs/validation-checklist.md`](./validation-checklist.md) (`TST-*`) so orchestrated runs expect E2E evidence when planned.
+  - **Note:** Playwright is already a **Vitest browser provider** (`vite.config.ts` → `client` project); this item is for **standalone** `@playwright/test`, not replacing component tests.
 
 - [x] **Define Plan-Build-Validate-Test roles**
   - Planner produces an executable plan and identifies relevant ADRs.

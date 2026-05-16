@@ -2,7 +2,7 @@
 
 Reusable audit checklist for **orchestrated Validator runs**, **human PR review**, and **Planner scoping** (`plan.md` → Validation steps). It complements per-task `acceptance-criteria.md` with cross-cutting product and architecture gates from Accepted ADRs and Cursor rules.
 
-**Related artifacts:** [`validation-report.md`](../.cursor/orchestrations/_template/validation-report.md) (orchestrated output), [`.cursor/agents/validator.md`](../.cursor/agents/validator.md), [`docs/readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md), [`adrs/INDEX.md`](../adrs/INDEX.md).
+**Related artifacts:** [`validation-report.md`](../.cursor/orchestrations/_template/validation-report.md) (orchestrated output), [`test-report.md`](../.cursor/orchestrations/_template/test-report.md), [`test-matrix.md`](../.cursor/orchestrations/_template/test-matrix.md), [`docs/test-matrix-template.md`](./test-matrix-template.md), [`.cursor/agents/validator.md`](../.cursor/agents/validator.md), [`docs/readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md), [`adrs/INDEX.md`](../adrs/INDEX.md).
 
 ## How to use
 
@@ -149,12 +149,13 @@ Binding for orchestrated work per [GOVERNANCE.md §10.5](../adrs/GOVERNANCE.md#1
 
 ## Tests and evidence
 
-**Refs:** [`.cursor/agents/test.md`](../.cursor/agents/test.md), `package.json` scripts.
+**Refs:** [`.cursor/agents/test.md`](../.cursor/agents/test.md), [`docs/test-matrix-template.md`](./test-matrix-template.md), `package.json` scripts.
 
 - [ ] **TST-01:** Every AC in `acceptance-criteria.md` is mapped in `test-report.md` to a test, command, or explicit “untested” reason.
-- [ ] **TST-02:** New logic has focused unit/component tests where Vitest is practical; flaky or E2E gaps recorded as residual risk.
-- [ ] **TST-03:** Offline or anonymous smoke is documented when the change affects ADR-001/010 paths (automated or manual step name in test/validation report).
+- [ ] **TST-02:** New logic has focused unit/component tests where Vitest is practical; flaky or browser gaps recorded as residual risk in `test-report.md` / `test-matrix.md`.
+- [ ] **TST-03:** Offline or anonymous smoke is documented when the change affects ADR-001/010 paths (automated or manual step name in test/validation report; **OFFL** layer when `test-matrix.md` exists).
 - [ ] **TST-04:** Commands in `test-report.md` were run or the report states why not (e.g. environment limitation).
+- [ ] **TST-05:** When `test-matrix.md` exists, **Actual coverage** matches **Planned coverage** or gaps are listed in **Gaps vs plan** / `test-report.md` **Uncovered criteria**.
 
 ---
 
@@ -181,5 +182,6 @@ Use when the task touches these domains (in addition to sections above).
 | Version | Date | Notes |
 | ------- | ---- | ----- |
 | 1.0.0 | 2026-05-16 | Initial checklist: offline, connectivity, anonymous, auth, cloud, AI, self-host, schema, a11y, tests, ADR-009/010 annexes |
+| 1.0.1 | 2026-05-16 | TST-05 + cross-links to test matrix template and orchestration test artifacts |
 
 When checklist items change, bump the version table and sync [`.cursor/agents/validator.md`](../.cursor/agents/validator.md) if the output contract changes.

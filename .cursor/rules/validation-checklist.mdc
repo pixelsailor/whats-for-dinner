@@ -25,5 +25,6 @@ alwaysApply: false
 
 - [`.cursor/agents/validator.md`](../agents/validator.md)
 - [`.cursor/orchestrations/_template/validation-report.md`](../orchestrations/_template/validation-report.md)
+- [`docs/test-matrix-template.md`](../docs/test-matrix-template.md)
 - [ADR compliance](./adr-compliance.mdc)
 - [GOVERNANCE.md §10.5](../../adrs/GOVERNANCE.md#105-merge-ready-gates-orchestrated-efforts)

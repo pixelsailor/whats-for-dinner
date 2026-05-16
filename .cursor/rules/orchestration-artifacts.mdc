@@ -10,7 +10,7 @@ alwaysApply: false
 
 Full contracts: [`.cursor/agents/orchestrator.md`](.cursor/agents/orchestrator.md), [`.cursor/agents/planner.md`](.cursor/agents/planner.md), [`.cursor/agents/builder.md`](.cursor/agents/builder.md), [`.cursor/agents/test.md`](.cursor/agents/test.md), [`.cursor/agents/validator.md`](.cursor/agents/validator.md).
 
-**Templates** ([`.cursor/orchestrations/_template/`](.cursor/orchestrations/_template/)): `task-manifest.json`, `plan.md`, `acceptance-criteria.md`, `build-log.md`, `test-report.md`, `validation-report.md`, `human-approval.md`, and [`README.md`](.cursor/orchestrations/_template/README.md) (copy into `{task-id}/` when bootstrapping). Cross-cutting audit items: [`docs/validation-checklist.md`](../docs/validation-checklist.md).
+**Templates** ([`.cursor/orchestrations/_template/`](.cursor/orchestrations/_template/)): `task-manifest.json`, `plan.md`, `acceptance-criteria.md`, `test-matrix.md`, `build-log.md`, `test-report.md`, `validation-report.md`, `human-approval.md`, and [`README.md`](.cursor/orchestrations/_template/README.md) (copy into `{task-id}/` when bootstrapping). Cross-cutting audit: [`docs/validation-checklist.md`](../docs/validation-checklist.md). Test layers: [`docs/test-matrix-template.md`](../docs/test-matrix-template.md).
 
 ## Path
 
@@ -27,9 +27,9 @@ Runs live under **`.cursor/orchestrations/{task-id}/`**. Do not treat orchestrat
 | Agent | May write |
 |-------|-----------|
 | **Orchestrator** | `task-manifest.json`; `human-approval.md` when recording Gate 6 approval, rejection, or rework |
-| **Planner** | `plan.md`, `acceptance-criteria.md` |
+| **Planner** | `plan.md`, `acceptance-criteria.md`; `test-matrix.md` (**Planned coverage** only, recommended for non-trivial tasks) |
 | **Builder** | `build-log.md` only (plus application code per plan). **Not** `plan.md`, manifest, or other orchestration files |
-| **Test** | `test-report.md` only |
+| **Test** | `test-report.md`; `test-matrix.md` (**Actual coverage**; create from template if missing) |
 | **Validator** | `validation-report.md` only |
 
 ## Locks and scope

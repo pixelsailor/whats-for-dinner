@@ -22,6 +22,7 @@ The Planner converts the orchestration objective into an executable plan that th
 5. Existing codebase paths implied by the objective (read enough to name real files and contracts).
 6. `package.json` scripts (read enough to name real WFD validation commands).
 7. Optional scaffold: copy from [`.cursor/orchestrations/_template/plan.md`](../orchestrations/_template/plan.md) and [`.cursor/orchestrations/_template/acceptance-criteria.md`](../orchestrations/_template/acceptance-criteria.md), then replace placeholders.
+8. For non-trivial or test-heavy tasks, copy [`.cursor/orchestrations/_template/test-matrix.md`](../orchestrations/_template/test-matrix.md) and fill **Planned coverage** using layer IDs from [`docs/test-matrix-template.md`](../../docs/test-matrix-template.md).
 
 ## Rules
 
@@ -69,6 +70,8 @@ The Planner converts the orchestration objective into an executable plan that th
 
    Canonical shape: [`.cursor/orchestrations/_template/acceptance-criteria.md`](../orchestrations/_template/acceptance-criteria.md).
 
+3. **`.cursor/orchestrations/{task-id}/test-matrix.md`** (recommended when the task adds or changes testable logic, UI, offline paths, or API boundaries) — **Planned coverage** only; Test completes **Actual coverage**. Canonical shape: [`.cursor/orchestrations/_template/test-matrix.md`](../orchestrations/_template/test-matrix.md); layer definitions: [`docs/test-matrix-template.md`](../../docs/test-matrix-template.md).
+
 ## Handoff Instruction
 
-Do not edit `task-manifest.json`. Signal completion to the Orchestrator by ensuring both files exist and meet the Output Contract; the Orchestrator updates `completed_stages` and sets `current_agent` to `builder`.
+Do not edit `task-manifest.json`. Signal completion to the Orchestrator by ensuring required artifacts exist and meet the Output Contract; the Orchestrator updates `completed_stages` and sets `current_agent` to `builder`.

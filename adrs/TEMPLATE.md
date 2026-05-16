@@ -116,7 +116,7 @@ Treat Plan–Build–Validate–Test orchestration as **required** when any of t
 
 ### Authoritative workflow artifacts and gates
 
-Orchestration contracts for this repo live under `.cursor/agents/` and `.cursor/orchestrations/`. Read [.cursor/agents/orchestrator.md](../.cursor/agents/orchestrator.md) for stage order, manifest fields, and artifacts such as `plan.md`, `acceptance-criteria.md`, `build-log.md`, `test-report.md`, `validation-report.md`, and (when used) names like `_ORCH_PLAN.md`, `_ACCEPTANCE.md`, `_RISKS.md`, `_ARCHITECTURE_CONSTRAINTS.md`, `_VALIDATION_REPORT.md`, `_TEST_MATRIX.md`, `_TELEMETRY.md`. Use paths **inside** `.cursor/orchestrations/{task-id}/` as that file specifies.
+Orchestration contracts for this repo live under `.cursor/agents/` and `.cursor/orchestrations/`. Read [.cursor/agents/orchestrator.md](../.cursor/agents/orchestrator.md) for stage order, manifest fields, and artifacts such as `plan.md`, `acceptance-criteria.md`, `test-matrix.md`, `build-log.md`, `test-report.md`, `validation-report.md`. Legacy underscore-prefixed names (`_ORCH_PLAN.md`, `_TEST_MATRIX.md`, etc.) from older orchestrator drafts are **not** used in this repo — use the kebab-case files under `.cursor/orchestrations/{task-id}/` and templates in [`.cursor/orchestrations/_template/`](../.cursor/orchestrations/_template/).
 
 For a human-readable walkthrough of the same model, see [docs/ORCHESTRATED_DEVELOPMENT.md](../docs/ORCHESTRATED_DEVELOPMENT.md).
 
@@ -157,7 +157,7 @@ What the **Validator** must verify against **this ADR**, [agents.md](../agents.m
 
 ### Test role and evidence
 
-What the **Test** role should add or update (unit, component, browser, offline, integration-style). Prefer Vitest commands from [package.json](../package.json) `scripts`. Record residual risk if something is intentionally untested. When orchestration applies, update `_TEST_MATRIX.md` per [.cursor/agents/orchestrator.md](../.cursor/agents/orchestrator.md).
+What the **Test** role should add or update (unit, component, browser, offline, integration-style). Prefer Vitest commands from [package.json](../package.json) `scripts` and layer IDs from [`docs/test-matrix-template.md`](../docs/test-matrix-template.md). Record residual risk if something is intentionally untested. When orchestration applies, update `test-matrix.md` (actual coverage) and `test-report.md` per [.cursor/agents/test.md](../.cursor/agents/test.md).
 
 ### Alignment gaps
 

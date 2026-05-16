@@ -65,7 +65,7 @@ We will **not** require an account, live network, Supabase, or OpenAI for any ca
 
 ### Positive
 
-- Single checklist for reviewers and agents when evaluating feature design.
+- Single checklist for reviewers and agents when evaluating feature design ([`docs/validation-checklist.md`](../docs/validation-checklist.md)).
 - Aligns implementation with README and deployment on serverless/offline-friendly stacks.
 - Reduces accidental coupling of core UX to optional services.
 

@@ -46,8 +46,10 @@ Inside `.cursor/orchestrations/{task-id}/`:
 - `acceptance-criteria.md` - verifiable AC list using stable `AC-01`, `AC-02`, ... IDs.
 - `build-log.md` - implemented changes, command evidence, deviations, unresolved questions, known gaps.
 - `test-report.md` - AC-to-test coverage map, gaps, stability notes, commands.
-- `validation-report.md` - verdict plus evidence and remediations.
+- `validation-report.md` - verdict, AC/ADR/checklist audits, test/command evidence, and remediations.
 - `human-approval.md` - Gate 6 evidence summary and approval/rework record when approval is collected.
+
+Cross-cutting validation items (offline, auth, cloud, AI, schema, a11y, tests): [`docs/validation-checklist.md`](./validation-checklist.md).
 
 ### Bootstrap from templates
 
@@ -257,8 +259,8 @@ You are the Validator. Use the validator rule.
 Task folder:
 .cursor/orchestrations/<task-id>/
 
-Read plan.md, acceptance-criteria.md, build-log.md, test-report.md, adrs/INDEX.md, and cited Accepted ADRs.
-Produce validation-report.md with Verdict: PASS | PASS_WITH_NOTES | FAIL, AC evidence, ADR evidence, regressions, required remediations, and recommended remediations.
+Read plan.md, acceptance-criteria.md, build-log.md, test-report.md, docs/validation-checklist.md (applicable items), adrs/INDEX.md, and cited Accepted ADRs.
+Produce validation-report.md with Verdict: PASS | PASS_WITH_NOTES | FAIL, AC audit, ADR compliance, checklist audit, test/command evidence, regressions, required remediations, and recommended remediations.
 ```
 
 ### Resume After Validator FAIL

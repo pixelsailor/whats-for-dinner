@@ -12,7 +12,7 @@ Quick reference for routing WFD work through the task-folder orchestration model
 | **Planner** | Converts objective into executable scope, interfaces, ADR implications, commands, and ACs | No | `plan.md`, `acceptance-criteria.md` |
 | **Builder** | Implements exactly the planned scope and records implementation evidence | Yes | `build-log.md` |
 | **Test** | Maps ACs to automated tests and records test evidence | Test files and harness only | `test-report.md` |
-| **Validator** | Performs fresh-context audit after tests and writes verdict/remediations | No | `validation-report.md` |
+| **Validator** | Fresh-context audit after Test using [`docs/validation-checklist.md`](../../docs/validation-checklist.md) where applicable; verdict and remediations only | No | `validation-report.md` |
 
 ## Default Pipeline
 

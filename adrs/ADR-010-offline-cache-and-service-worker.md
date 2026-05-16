@@ -138,4 +138,4 @@ The following gaps were identified when comparing this ADR to `src/service-worke
 
 - [x] ADR created for offline cache and service worker policy.
 - [x] Known deviations documented as alignment gaps.
-- [ ] Optional validation checklist for offline shell behavior (when workflow template exists).
+- [x] Validation checklist for offline shell behavior — [`docs/validation-checklist.md`](../docs/validation-checklist.md) **Offline behavior** (`OFF-*`) and **ADR-specific annexes → Service worker (ADR-010)** (`SW-*` items).

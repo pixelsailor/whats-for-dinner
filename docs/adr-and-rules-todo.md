@@ -140,10 +140,9 @@ This backlog turns the project principles in the top-level README into enforceab
   - Require scoped phases, files likely to change, validation steps, risks, and rollback notes before significant implementation.
   - **Done (2026-05-16):** [`.cursor/orchestrations/_template/`](../.cursor/orchestrations/_template/) — `plan.md`, `acceptance-criteria.md`, `build-log.md`, `README.md`; [`.cursor/agents/planner.md`](../.cursor/agents/planner.md) output contract includes **Phases**, **Validation steps**, **Risks**, and **Rollback**; cross-links in [`.cursor/rules/orchestration-artifacts.mdc`](../.cursor/rules/orchestration-artifacts.mdc), [`docs/ORCHESTRATED_DEVELOPMENT.md`](./ORCHESTRATED_DEVELOPMENT.md), and [ADR `TEMPLATE.md`](../adrs/TEMPLATE.md) *Planning artifact*.
 
-- [ ] **Create a validation checklist**
+- [x] **Create a validation checklist**
   - Cover offline behavior and user-visible offline/connectivity messaging, anonymous behavior, auth boundaries, cloud behavior, AI disabled behavior, self-hosted provider behavior, schema validation, accessibility, and tests.
-  - **Partial (2026-05-16):** [`.cursor/agents/validator.md`](../.cursor/agents/validator.md) defines `validation-report.md` (verdict, AC audit, ADR compliance, regressions, remediations). Per-ADR *Merge / workflow gates* and [GOVERNANCE.md §10.5](../adrs/GOVERNANCE.md) require validation output before merge-ready claims.
-  - **Remaining:** a single reusable checklist (file or rule) spanning offline/connectivity, anonymous, auth, cloud, AI-disabled, self-hosted, schema, a11y, and tests — still referenced as optional in [ADR-009](../adrs/ADR-009-recommendations-engine-inputs.md) and [ADR-010](../adrs/ADR-010-offline-cache-and-service-worker.md).
+  - **Done (2026-05-16):** [`docs/validation-checklist.md`](./validation-checklist.md) (canonical IDs and applicability table); [`.cursor/rules/validation-checklist.mdc`](../.cursor/rules/validation-checklist.mdc) (orchestration globs); [`.cursor/orchestrations/_template/validation-report.md`](../.cursor/orchestrations/_template/validation-report.md); [`.cursor/agents/validator.md`](../.cursor/agents/validator.md) **Checklist audit** output contract. ADR-009/010 merge gates updated to reference the checklist.
 
 - [ ] **Create a test matrix template**
   - Track expected coverage for unit, component, browser, offline, and integration-like flows.

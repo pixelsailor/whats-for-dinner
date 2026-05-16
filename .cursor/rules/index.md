@@ -25,6 +25,7 @@
 | **Governance** | adr-compliance | ADR index + governance; alignment gaps in `docs/readme-adr-alignment-gaps.md` | alwaysApply |
 | | readme-governance | Root README scope; deep docs → ADRs, scoped READMEs, `docs/` | globs `README.md` |
 | **Agent Workflow** | orchestration-artifacts | Who may edit `.cursor/orchestrations/**` manifests and stage files | globs `.cursor/orchestrations/**` |
+| | validation-checklist | Cross-cutting Validator/PR audit: offline, auth, cloud, AI, schema, a11y, tests | globs `.cursor/orchestrations/**`, `docs/validation-checklist.md` |
 | | orchestrator | Orchestration controller for Plan-Build-Validate-Test loops | manual |
 | | planner | Creates executable phased plans and artifacts | manual |
 | | builder | Implements a single plan phase within strict scope | manual |

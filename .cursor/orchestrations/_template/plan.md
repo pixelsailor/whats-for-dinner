@@ -62,7 +62,7 @@ Replace `wfd-000` with `task_id`. Delete HTML comments and placeholder bullets b
 
 ## Validation commands
 
-<!-- Exact pnpm commands from package.json. How Test and Validator confirm success. Tie to AC IDs where helpful. -->
+<!-- Exact pnpm commands from package.json. How Test and Validator confirm success. Tie to AC IDs where helpful. Pull applicable items from docs/validation-checklist.md (OFF-*, NET-*, AUTH-*, etc.). -->
 
 | Step | Owner | Command or check | Pass criteria |
 | ---- | ----- | ---------------- | ------------- |

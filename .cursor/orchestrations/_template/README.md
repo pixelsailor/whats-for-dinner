@@ -8,6 +8,8 @@ Copy these files into **`.cursor/orchestrations/{task-id}/`** when starting a ne
 | `plan.md` | Planner | Before Builder; fill all sections, delete guidance comments |
 | `acceptance-criteria.md` | Planner | With `plan.md`; every AC must map to validation steps |
 | `build-log.md` | Builder | After implementation (starts from template or empty sections) |
+| `test-report.md` | Test | After automated tests and AC coverage map |
+| `validation-report.md` | Validator | After audit; use template + [`docs/validation-checklist.md`](../../../docs/validation-checklist.md) |
 | `human-approval.md` | Orchestrator / human | After Validator **PASS** or **PASS_WITH_NOTES** |
 
 **Do not** commit filled task folders under `.cursor/orchestrations/{task-id}/` unless the team explicitly tracks orchestration runs in git.

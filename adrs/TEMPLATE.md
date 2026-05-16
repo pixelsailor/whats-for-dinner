@@ -169,4 +169,4 @@ Confirm before claiming merge-ready (orchestrated work):
 
 - [ ] ADR created or updated **before** durable architecture change (or follow-up filed with explicit timeline).
 - [ ] Known deviations documented as alignment gaps when not fixed here.
-- [ ] Validation output recorded (checklist or equivalent) for behavior this ADR cares about.
+- [ ] Validation output recorded for behavior this ADR cares about ([`docs/validation-checklist.md`](../docs/validation-checklist.md) or equivalent).

@@ -175,4 +175,4 @@ Historical comparison (pre-fix):
 
 - [x] ADR created for durable recommendation/input boundary.
 - [x] Known deviations documented as alignment gaps (**GAP-008** resolved in code; see Resolved table in alignment gaps doc).
-- [ ] Validation checklist for recommendation behavior (optional until orchestration template exists).
+- [x] Validation checklist for recommendation behavior — [`docs/validation-checklist.md`](../docs/validation-checklist.md) **ADR-specific annexes → Recommendations (ADR-009)** (`REC-*` items).

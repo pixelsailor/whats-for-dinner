@@ -39,7 +39,7 @@ The Planner converts the orchestration objective into an executable plan that th
 12. If the objective touches offline-first, local data, auth/cloud sync, AI provider boundaries, service worker behavior, UI accessibility, schema-led contracts, or security, the Planner MUST cite the relevant Accepted ADRs and include concrete implications.
 13. The Planner MUST define test intent for each AC: automated, manual, or explicitly uncovered until the Test agent decides final implementation.
 14. **Phases** MUST bound work into PR-sized slices; each phase MUST name deliverables, files touched, and dependencies. Single-phase work still uses one phase row.
-15. **Validation commands** MUST list concrete `pnpm` commands or checks from `package.json` and tie to AC IDs where applicable.
+15. **Validation commands** MUST list concrete `pnpm` commands or checks from `package.json` and tie to AC IDs where applicable. Pull applicable rows from [`docs/validation-checklist.md`](../../docs/validation-checklist.md) when the task touches offline, auth, cloud, AI, schema, or a11y boundaries.
 16. **Risks** and **Rollback** MUST be filled; use “None identified” / “Revert commit” only when genuinely applicable, not as empty placeholders.
 
 ## Skills

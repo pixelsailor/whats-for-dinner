@@ -32,11 +32,16 @@ Treat the following as **always** requiring ADR index review and relevant **Acce
 
 If the change **cannot** be brought into compliance with an **Accepted** ADR within scope, do **not** hide the mismatch in implementation comments alone. **Add or update** an entry in [`docs/readme-adr-alignment-gaps.md`](docs/readme-adr-alignment-gaps.md) using that file’s fields (owner, severity, affected domain/files, remediation). This matches [`adrs/GOVERNANCE.md`](adrs/GOVERNANCE.md) section 5.6: escalate multi-file or architectural debt to a documented follow-up rather than silent drift.
 
+## Merge-ready (orchestrated work)
+
+ADR consultation and alignment gaps are necessary but not sufficient for merge-ready claims. Orchestrated runs also require `validation-report.md` and `test-report.md` per [workflow-gates.mdc](./workflow-gates.mdc) and [GOVERNANCE.md §10.5](adrs/GOVERNANCE.md#105-merge-ready-gates-orchestrated-efforts).
+
 ## Quick reference
 
 | Need | Where |
 |------|--------|
 | What is decided and binding | `adrs/INDEX.md` (Accepted rows) |
 | Process, proposals, conflicts, orchestration | `adrs/GOVERNANCE.md` |
+| Merge-ready gates (orchestration) | [workflow-gates.mdc](./workflow-gates.mdc) |
 | Implementation vs ADR drift (tracked) | `docs/readme-adr-alignment-gaps.md` |
 | New ADR shape | `adrs/TEMPLATE.md` |

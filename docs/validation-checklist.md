@@ -37,7 +37,7 @@ Run a section when the change **touches** that domain. When unsure, include the 
 
 ## Merge-ready gates
 
-Binding for orchestrated work per [GOVERNANCE.md §10.5](../adrs/GOVERNANCE.md#105-merge-ready-gates-orchestrated-efforts) and [ADR template — Merge / workflow gates](../adrs/TEMPLATE.md).
+Binding for orchestrated work per [GOVERNANCE.md §10.5](../adrs/GOVERNANCE.md#105-merge-ready-gates-orchestrated-efforts), [`.cursor/rules/workflow-gates.mdc`](../.cursor/rules/workflow-gates.mdc), and [ADR template — Merge / workflow gates](../adrs/TEMPLATE.md).
 
 - [ ] **MG-01:** Accepted ADRs cited in `plan.md` were read; implementation matches or deviation is documented in [`readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md).
 - [ ] **MG-02:** Durable architecture change has an ADR create/update **before** merge, or an explicit follow-up with timeline (not comment-only).

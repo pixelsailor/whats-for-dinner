@@ -28,3 +28,4 @@ alwaysApply: false
 - [`docs/test-matrix-template.md`](../docs/test-matrix-template.md)
 - [ADR compliance](./adr-compliance.mdc)
 - [GOVERNANCE.md §10.5](../../adrs/GOVERNANCE.md#105-merge-ready-gates-orchestrated-efforts)
+- [Workflow gates](./workflow-gates.mdc)

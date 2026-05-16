@@ -80,6 +80,24 @@ WFD uses explicit lifecycle gates within the task-folder model:
 
 Validator `FAIL` routes back to Builder within `max_loops`, then continues `Builder -> Test -> Validator`. Rejected human approval with rework follows the same loop under the same task id and increments rework tracking.
 
+## Merge-ready gates
+
+Lifecycle gates (0–6) track **pipeline stage** completion. **Merge-ready** is a separate bar: do not treat a green build or finished `build-log.md` as merge-ready.
+
+Binding contract: [`.cursor/rules/workflow-gates.mdc`](../.cursor/rules/workflow-gates.mdc) (also [GOVERNANCE.md §10.5](../adrs/GOVERNANCE.md#105-merge-ready-gates-orchestrated-efforts), checklist **MG-01**–**MG-05** in [`validation-checklist.md`](./validation-checklist.md)).
+
+| Merge-ready gate | Requirement |
+| --- | --- |
+| ADR | Create or update before durable architecture change, or documented follow-up (**MG-02**) |
+| Alignment gaps | Deviations from Accepted ADRs recorded in [`readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md) when not fixed in scope (**MG-01**) |
+| Validation | `validation-report.md` with **PASS** or **PASS_WITH_NOTES** and full checklist audit (**MG-03**) |
+| Tests | `test-report.md` (+ `test-matrix.md` actual when planned) (**MG-04**, **TST-05**) |
+| Tooling | `pnpm run check` and `pnpm run lint` for touched paths (**MG-05**) |
+
+**Who may claim merge-ready:** Validator issues verdict only; Orchestrator may set `awaiting_human` after a passing validation path that satisfies merge-ready gates; `complete` requires human approval (Gate 6). Builder, Test, and Planner must not assert merge-ready in chat or artifacts.
+
+Non-orchestrated architecture PRs still satisfy ADR, gap, and tooling gates; link test evidence or state residual risk in the PR body.
+
 ## Usage Modes
 
 ### Manual Mode

@@ -227,7 +227,7 @@ When orchestration applies, the ADR must use the **subsection headings** from [T
 
 ### 10.5 Merge-ready gates (orchestrated efforts)
 
-Before claiming merge-ready for orchestrated work, confirm (same checklist as the template’s **Merge / workflow gates**):
+Before claiming merge-ready for orchestrated work, confirm (same checklist as the template’s **Merge / workflow gates** and agent rule [`.cursor/rules/workflow-gates.mdc`](../.cursor/rules/workflow-gates.mdc)):
 
 - ADR created or updated **before** durable architecture change (or an explicit follow-up exists).
 - Known deviations are documented as alignment gaps when not fixed in scope.
@@ -242,4 +242,4 @@ This governance document is a foundational policy artifact; it does not need its
 
 ---
 
-_Last updated: 2026-05-10_
+_Last updated: 2026-05-16_

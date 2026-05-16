@@ -161,12 +161,11 @@ This backlog turns the project principles in the top-level README into enforceab
   - Test role adds or updates focused tests and records residual risk.
   - **Done (2026-05-16):** Role contracts in [`.cursor/agents/`](../.cursor/agents/) (`orchestrator`, `planner`, `builder`, `validator`, `test`), artifact ownership in [`.cursor/rules/orchestration-artifacts.mdc`](../.cursor/rules/orchestration-artifacts.mdc), narrative guide [`docs/ORCHESTRATED_DEVELOPMENT.md`](./ORCHESTRATED_DEVELOPMENT.md), and orchestration policy in [GOVERNANCE.md §10](../adrs/GOVERNANCE.md#10-orchestrated-development-wfd).
 
-- [ ] **Add workflow gate rules**
+- [x] **Add workflow gate rules**
   - Require ADR creation or update before changing durable architecture.
   - Require alignment gaps for known deviations that are not fixed in the same change.
   - Require validation output before merge-ready claims.
-  - **Partial (2026-05-16):** Gates are encoded in [`.cursor/rules/adr-compliance.mdc`](../.cursor/rules/adr-compliance.mdc) (ADR index + alignment gaps), [GOVERNANCE.md §10.5](../adrs/GOVERNANCE.md#105-merge-ready-gates-orchestrated-efforts), and per-ADR *Merge / workflow gates* in [TEMPLATE.md](../adrs/TEMPLATE.md).
-  - **Remaining:** a dedicated Cursor rule (or extension of `orchestration-artifacts` / `adr-compliance`) that agents load for orchestrated runs, tying merge-ready claims to `validation-report.md` / `test-report.md` without relying on ADR bodies alone.
+  - **Done (2026-05-16):** [`.cursor/rules/workflow-gates.mdc`](../.cursor/rules/workflow-gates.mdc) (agent contract for orchestrated runs and architecture-touching PRs; MG-01–MG-05). Cross-links in [`.cursor/rules/orchestration-artifacts.mdc`](../.cursor/rules/orchestration-artifacts.mdc), [GOVERNANCE.md §10.5](../adrs/GOVERNANCE.md#105-merge-ready-gates-orchestrated-efforts), [TEMPLATE.md](../adrs/TEMPLATE.md) *Merge / workflow gates*, [`docs/validation-checklist.md`](./validation-checklist.md), [`.cursor/agents/INDEX.md`](../.cursor/agents/INDEX.md). Prior partial coverage remains in [`.cursor/rules/adr-compliance.mdc`](../.cursor/rules/adr-compliance.mdc) (ADR index + alignment gaps).
 
 - [ ] **Harden PR and commit expectations**
   - Require summaries to distinguish product behavior, architecture changes, and gap remediation.

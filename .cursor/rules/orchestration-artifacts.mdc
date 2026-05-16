@@ -40,3 +40,7 @@ Runs live under **`.cursor/orchestrations/{task-id}/`**. Do not treat orchestrat
 ## Pipeline
 
 Default order: **Orchestrator → Planner → Builder → Test → Validator → Orchestrator** (human approval / loops per Orchestrator rules). After editing artifacts, align with the manifest’s **`current_agent`** and completed-stage contracts before invoking the next agent. Validator **FAIL** and human `rejected_rework` outcomes return to Builder, then continue through Test and Validator unless the Orchestrator routes back to Planner for a scope-changing rework.
+
+## Merge-ready (do not conflate with stage completion)
+
+**Merge-ready** claims are governed by [workflow-gates.mdc](./workflow-gates.mdc) (ADR + alignment gaps + `validation-report.md` + `test-report.md` + tooling). Stage artifacts alone are insufficient: Builder/Test must not assert merge-ready; Orchestrator uses `awaiting_human` only after Validator **PASS** / **PASS_WITH_NOTES** and applicable MG gates; `complete` requires human approval in the manifest.

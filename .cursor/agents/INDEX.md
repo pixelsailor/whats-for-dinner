@@ -81,10 +81,10 @@ WFD uses **agent contracts** in `.cursor/agents/*.md` plus **topic rules** (not 
 | Agent | Topic rules (representative) |
 | --- | --- |
 | Orchestrator | `orchestration-artifacts.mdc`, `workflow-gates.mdc`, `adr-compliance.mdc` |
-| Planner | `orchestration-artifacts.mdc`, `test-matrix.mdc`, `adr-compliance.mdc` |
-| Builder | `orchestration-artifacts.mdc`, `adr-compliance.mdc`, `lint-and-code-quality.mdc`, domain rules per touched paths |
-| Test | `orchestration-artifacts.mdc`, `test-matrix.mdc`, `adr-compliance.mdc`, `lint-and-code-quality.mdc` for `*.test.ts` |
-| Validator | `orchestration-artifacts.mdc`, `validation-checklist.mdc`, `workflow-gates.mdc`, `adr-compliance.mdc` |
+| Planner | `orchestration-artifacts.mdc`, `workflow-gates.mdc`, `test-matrix.mdc`, `adr-compliance.mdc` |
+| Builder | `orchestration-artifacts.mdc`, `workflow-gates.mdc`, `adr-compliance.mdc`, `lint-and-code-quality.mdc`, domain rules per touched paths |
+| Test | `orchestration-artifacts.mdc`, `workflow-gates.mdc`, `test-matrix.mdc`, `adr-compliance.mdc`, `lint-and-code-quality.mdc` for `*.test.ts` |
+| Validator | `orchestration-artifacts.mdc`, `workflow-gates.mdc`, `validation-checklist.mdc`, `adr-compliance.mdc` |
 
 Always-apply vs glob-activated rules: [`.cursor/rules/index.md`](../rules/index.md).
 

@@ -44,7 +44,7 @@ The Orchestrator owns the lifecycle of a single WFD orchestration run: it create
       - Append `max_loops_exceeded` to `flags` if not present.
       - Halt and surface to a human.
 11. **Remediation continuation:** After a remediation **Builder** completes, the Orchestrator MUST set `current_agent` to `test` (then `validator` after Test) — the pipeline `Builder → Test → Validator` MUST NOT skip Test on loops.
-12. **Validator non-FAIL routing:** IF verdict is **PASS** or **PASS_WITH_NOTES**, the Orchestrator MUST set `status` to `awaiting_human`, `current_agent` to `orchestrator`, and MUST NOT set `status` to `complete` until human approval is recorded per rule 13.
+12. **Validator non-FAIL routing:** IF verdict is **PASS** or **PASS_WITH_NOTES**, the Orchestrator MUST confirm [workflow gates](../rules/workflow-gates.mdc) (MG-01–MG-05 satisfied in `validation-report.md` / `test-report.md` as applicable), then set `status` to `awaiting_human`, `current_agent` to `orchestrator`, and MUST NOT set `status` to `complete` until human approval is recorded per rule 13.
 13. **Human approval (required for completion):** After a successful validation path (verdict **PASS** or **PASS_WITH_NOTES**), the Orchestrator MUST present an evidence summary from `build-log.md`, `test-report.md`, `validation-report.md`, and manifest command evidence before requesting approval. Upon approval, the Orchestrator MUST set `human_approval.status` to `approved` or `approved_with_conditions`, fill `approved_at` (ISO-8601), `approver`, optional `conditions`, and optional `notes` in `task-manifest.json`, create or update `.cursor/orchestrations/{task-id}/human-approval.md` with the same facts, and set `status` to `complete`. If the human rejects, set `human_approval.status` to `rejected`, record notes, and set `status` to `blocked`. If the human rejects with rework, set `human_approval.status` to `rejected_rework`, increment `rework_count`, append `rework_history`, clear stale completion approval fields, set `status` to `in_progress`, and route to Builder unless the requested rework changes scope enough to require Planner.
 14. **Objective readiness (pre-Planner):**
     The Orchestrator MUST verify that `objective` is present and minimally actionable before invoking the Planner. If the objective is missing, empty, or lacks a concrete, actionable outcome, the Orchestrator MUST set `status` to `blocked`, append `objective_incomplete` to `flags`, set `current_agent` to `orchestrator`, and halt pending human clarification.
@@ -59,7 +59,7 @@ The Orchestrator owns the lifecycle of a single WFD orchestration run: it create
 
 ## Skills
 
-- Reads and applies `adrs/INDEX.md` and `adrs/GOVERNANCE.md` only to avoid contradicting Accepted ADRs when setting `flags` or interpreting `locked_artifacts` (Orchestrator does not implement ADRs in code).
+- Reads and applies `adrs/INDEX.md`, `adrs/GOVERNANCE.md`, and [`.cursor/rules/workflow-gates.mdc`](../rules/workflow-gates.mdc) to avoid contradicting Accepted ADRs when setting `flags`, interpreting `locked_artifacts`, or routing after validation (Orchestrator does not implement ADRs in code).
 - Manages serial pipelines and idempotent manifest updates without corrupting JSON.
 - Produces precise, fresh-session Next Agent Directives for manual or delegated execution.
 

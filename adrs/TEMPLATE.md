@@ -165,8 +165,9 @@ If current implementation differs from this ADR and the gap is not fixed in the 
 
 ### Merge / workflow gates
 
-Confirm before claiming merge-ready (orchestrated work):
+Confirm before claiming merge-ready (orchestrated work). Agent contract: [`.cursor/rules/workflow-gates.mdc`](../.cursor/rules/workflow-gates.mdc); checklist IDs **MG-01**–**MG-05** in [`docs/validation-checklist.md`](../docs/validation-checklist.md).
 
 - [ ] ADR created or updated **before** durable architecture change (or follow-up filed with explicit timeline).
 - [ ] Known deviations documented as alignment gaps when not fixed here.
-- [ ] Validation output recorded for behavior this ADR cares about ([`docs/validation-checklist.md`](../docs/validation-checklist.md) or equivalent).
+- [ ] Validation output recorded for behavior this ADR cares about ([`docs/validation-checklist.md`](../docs/validation-checklist.md) or equivalent; orchestrated: `validation-report.md` with **Checklist audit**).
+- [ ] Test evidence recorded when orchestration applies (`test-report.md`; `test-matrix.md` actual coverage when planned — per [GOVERNANCE.md §10.5](GOVERNANCE.md#105-merge-ready-gates-orchestrated-efforts)).

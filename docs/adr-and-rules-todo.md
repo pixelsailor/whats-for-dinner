@@ -237,8 +237,9 @@ The root [`agents.md`](../agents.md) predates the ADR system and the `.cursor/ru
   - Update the OpenAI module map: `agents.md` only lists `src/lib/server/openai.ts` and `src/lib/openai/*.ts`, but current code also uses `src/lib/api/ai/` per [ADR-007](../adrs/ADR-007-ai-provider-contract.md) (see [`readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md) GAP-011).
   - *Env & secrets* is already covered by [ADR-006](../adrs/ADR-006-serverless-and-secret-boundary.md); confirm coverage and remove from `agents.md` (private OpenAI key naming aligned with **`OPENAI_API_KEY`**; **GAP-003** resolved in [`readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md)).
 
-- [ ] **Migrate Documentation References**
+- [x] **Migrate Documentation References**
   - Move the external doc link list into the root [README](../README.md) Documentation Map (or a dedicated `docs/references.md`) and remove from `agents.md`.
+  - **Done:** [`docs/references.md`](./references.md) (grouped links + in-repo cross-refs); [README](../README.md) Documentation Map entry; [`agents.md`](../agents.md) defers with canonical link until retire.
 
 - [ ] **Update ADRs that cite `agents.md`**
   - [ADR-002](../adrs/ADR-002-local-data-ownership.md) (*Supporting context*), [ADR-006](../adrs/ADR-006-serverless-and-secret-boundary.md) (*Decision pressure*, *Enforcement rules*), and [ADR-008](../adrs/ADR-008-schema-led-domain-contracts.md) (*Decision* §6, *Compliance*, *Implementation compliance*) currently cite `agents.md` as authority. Replace those citations with self-contained statements or references to the new Cursor rule(s) once authored.

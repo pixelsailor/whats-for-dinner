@@ -173,11 +173,4 @@ Canonical homes: [ADR-014: Semantic HTML and accessibility](adrs/ADR-014-semanti
 
 ## Documentation References
 
-- [svelte](https://svelte.dev/docs/svelte/llms-small.txt)
-- [sveltekit](https://svelte.dev/docs/kit/llms-small.txt)
-- [bits-ui](https://bits-ui.com/docs/llms.txt)
-- [tailwindcss](https://github.com/tailwindlabs/tailwindcss)
-- [dexie](https://dexie.org/docs/Tutorial/Svelte)
-- [liveQuery](https://dexie.org/docs/liveQuery())
-- [supabase](https://supabase.com/docs/reference/javascript)
-- [tanstack query](https://tanstack.com/query/latest/docs/framework/svelte/overview)
+Canonical home: [`docs/references.md`](docs/references.md) (also in the [README Documentation Map](README.md#documentation-map)). The link list was removed from this file; add new external refs there, not here.

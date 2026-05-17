@@ -98,6 +98,7 @@ Detailed guidance should live near the code it governs. Use the top-level README
 - [`docs/adr-and-rules-todo.md`](./docs/adr-and-rules-todo.md): ADR, Cursor rule, and workflow governance backlog.
 - [`docs/pr-and-commit-guide.md`](./docs/pr-and-commit-guide.md): PR descriptions, commit messages, and test evidence ([`CONTRIBUTING.md`](./CONTRIBUTING.md), [`.github/pull_request_template.md`](./.github/pull_request_template.md)).
 - [`docs/readme-adr-alignment-gaps.md`](./docs/readme-adr-alignment-gaps.md): Working backlog where implementation diverges from README or Accepted ADRs (offline, anonymous, local-first, and related intent).
+- [`docs/references.md`](./docs/references.md): External framework and library documentation (Svelte, UI, Dexie, Supabase, TanStack Query).
 
 ## Development
 

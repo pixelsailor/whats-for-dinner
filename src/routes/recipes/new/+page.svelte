@@ -78,8 +78,6 @@
   /** Whether the user wants to use AI assistance for augmenting user recipes. */
   let useAiAssistance = $derived(preferences?.use_ai_assistance && canUseAI);
 
-  $inspect('useAiAssistance', useAiAssistance);
-
   let recipeTitle = $state<string>('');
   let shortDescription = $state<string>('');
   let longDescription = $state<string>('');

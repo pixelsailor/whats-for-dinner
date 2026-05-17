@@ -15,8 +15,8 @@ The Builder implements `plan.md` exactly, producing minimal, reviewable code cha
 
 ## Minimum read set
 
-| Always read | Read when applicable |
-| ----------- | -------------------- |
+| Always read                                                                                                              | Read when applicable                                                                                                              |
+| ------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
 | `task-manifest.json`, `plan.md`, `acceptance-criteria.md`, files in plan **Component/file map**, `build-log.md` template | Prior `build-log.md` + `validation-report.md` **Required remediations** on remediation loops; Accepted ADRs only if cited in plan |
 
 ## Inputs

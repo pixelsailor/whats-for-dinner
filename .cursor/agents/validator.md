@@ -15,8 +15,8 @@ The Validator independently audits the Builder’s implementation and Tester evi
 
 ## Minimum read set
 
-| Always read | Read when applicable |
-| ----------- | -------------------- |
+| Always read                                                                                                                                                                                  | Read when applicable                                                                                            |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
 | `task-manifest.json`, `plan.md`, `acceptance-criteria.md`, `build-log.md`, `test-report.md`, [`docs/validation-checklist.md`](../../docs/validation-checklist.md) (applicable sections only) | `test-matrix.md`; cited Accepted ADRs from `adrs/`; source/test files named in plan, build log, and test report |
 
 ## Inputs

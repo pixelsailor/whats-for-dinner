@@ -15,8 +15,8 @@ The Planner converts the orchestration objective into an executable plan that th
 
 ## Minimum read set
 
-| Always read | Read when applicable |
-| ----------- | -------------------- |
+| Always read                                                                                            | Read when applicable                                                                                                                                                                                                                                                                     |
+| ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `task-manifest.json`, `adrs/INDEX.md`, `adrs/GOVERNANCE.md`, `package.json` scripts, plan/AC templates | Cited Accepted ADRs (full files); codebase paths from objective; [`docs/validation-checklist.md`](../../docs/validation-checklist.md) rows for offline/auth/cloud/AI/schema/a11y; [`docs/test-matrix-template.md`](../../docs/test-matrix-template.md) when `test-matrix.md` is required |
 
 ## Inputs

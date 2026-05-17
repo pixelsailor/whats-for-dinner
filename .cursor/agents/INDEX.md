@@ -6,13 +6,13 @@ Quick reference for routing WFD work through the task-folder orchestration model
 
 ## Agents
 
-| Agent            | Role                                                                                                                                                      |        Writes code?         | Owns artifacts                                                                                     |
-| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------: | -------------------------------------------------------------------------------------------------- |
-| **Orchestrator** | Coordinates the run, enforces gates, updates manifest state, issues directives, records human approval                                                    |             No              | `task-manifest.json`, `human-approval.md` (Gate 6 record)                                          |
-| **Planner**      | Converts objective into executable scope, interfaces, ADR implications, commands, ACs, and planned test layers                                            |             No              | `plan.md`, `acceptance-criteria.md`, `test-matrix.md` (planned; required for medium/large or testable code changes) |
-| **Builder**      | Implements exactly the planned scope and records implementation evidence                                                                                  |             Yes             | `build-log.md`                                                                                     |
-| **Tester**       | Maps ACs to Vitest tests and records coverage evidence                                                                                                    | Test files and harness only | `test-report.md`, `test-matrix.md` (actual)                                                        |
-| **Validator**    | Fresh-context audit after Tester using [`docs/validation-checklist.md`](../../docs/validation-checklist.md) where applicable; verdict and remediations only |             No              | `validation-report.md`                                                                             |
+| Agent            | Role                                                                                                                                                        |        Writes code?         | Owns artifacts                                                                                                      |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------: | ------------------------------------------------------------------------------------------------------------------- |
+| **Orchestrator** | Coordinates the run, enforces gates, updates manifest state, issues directives, records human approval                                                      |             No              | `task-manifest.json`, `human-approval.md` (Gate 6 record)                                                           |
+| **Planner**      | Converts objective into executable scope, interfaces, ADR implications, commands, ACs, and planned test layers                                              |             No              | `plan.md`, `acceptance-criteria.md`, `test-matrix.md` (planned; required for medium/large or testable code changes) |
+| **Builder**      | Implements exactly the planned scope and records implementation evidence                                                                                    |             Yes             | `build-log.md`                                                                                                      |
+| **Tester**       | Maps ACs to Vitest tests and records coverage evidence                                                                                                      | Test files and harness only | `test-report.md`, `test-matrix.md` (actual)                                                                         |
+| **Validator**    | Fresh-context audit after Tester using [`docs/validation-checklist.md`](../../docs/validation-checklist.md) where applicable; verdict and remediations only |             No              | `validation-report.md`                                                                                              |
 
 **Test runners (WFD):** Vitest `server` (unit/INTG) and `client` (component/browser via Playwright provider). See [`docs/test-matrix-template.md`](../../docs/test-matrix-template.md). Standalone `@playwright/test` E2E is **not** adopted.
 
@@ -41,16 +41,16 @@ When ADRs apply, cite implications in `plan.md` → **ADR references**; the Vali
 
 Every run lives under `.cursor/orchestrations/{task-id}/`.
 
-| File                     | Owner                             | Purpose                                                                            |
-| ------------------------ | --------------------------------- | ---------------------------------------------------------------------------------- |
-| `task-manifest.json`     | Orchestrator                      | Source of truth for status, current agent, gates, loops, locks, sessions, approval. `pipeline` = stage handoffs only (`planner` … `validator`); Orchestrator bookends are not in the array. |
-| `plan.md`                | Planner                           | Design truth, scope boundary, file map, interfaces, ADR implications               |
-| `acceptance-criteria.md` | Planner                           | Stable `AC-01` style criteria for Tester and Validator                             |
-| `test-matrix.md`         | Planner (planned) / Tester (actual) | Layer and AC coverage; required for medium/large or testable code changes          |
-| `build-log.md`           | Builder                           | Files changed, command evidence, deviations, gaps                                  |
-| `test-report.md`         | Tester                            | AC-to-test map, uncovered criteria, stability notes, commands                      |
-| `validation-report.md`   | Validator                         | Verdict, evidence, ADR/checklist compliance, regressions, remediations             |
-| `human-approval.md`      | Orchestrator                      | Gate 6 evidence summary and approval/rework record                                 |
+| File                     | Owner                               | Purpose                                                                                                                                                                                     |
+| ------------------------ | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `task-manifest.json`     | Orchestrator                        | Source of truth for status, current agent, gates, loops, locks, sessions, approval. `pipeline` = stage handoffs only (`planner` … `validator`); Orchestrator bookends are not in the array. |
+| `plan.md`                | Planner                             | Design truth, scope boundary, file map, interfaces, ADR implications                                                                                                                        |
+| `acceptance-criteria.md` | Planner                             | Stable `AC-01` style criteria for Tester and Validator                                                                                                                                      |
+| `test-matrix.md`         | Planner (planned) / Tester (actual) | Layer and AC coverage; required for medium/large or testable code changes                                                                                                                   |
+| `build-log.md`           | Builder                             | Files changed, command evidence, deviations, gaps                                                                                                                                           |
+| `test-report.md`         | Tester                              | AC-to-test map, uncovered criteria, stability notes, commands                                                                                                                               |
+| `validation-report.md`   | Validator                           | Verdict, evidence, ADR/checklist compliance, regressions, remediations                                                                                                                      |
+| `human-approval.md`      | Orchestrator                        | Gate 6 evidence summary and approval/rework record                                                                                                                                          |
 
 ## Lifecycle Gates
 
@@ -66,10 +66,10 @@ Every run lives under `.cursor/orchestrations/{task-id}/`.
 
 ## Right-Sized Flows
 
-| Change size | Example                                                                            | Pipeline                                                                             |
-| ----------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| **Small**   | One-file copy fix, isolated doc tweak, low-risk UI polish                          | Orchestrator -> Builder -> Tester or Validator as justified -> Orchestrator Gate 6   |
-| **Medium**  | New component, route behavior, local store change                                  | Orchestrator -> Planner -> Builder -> Tester -> Validator -> Orchestrator Gate 6   |
+| Change size | Example                                                                            | Pipeline                                                                               |
+| ----------- | ---------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| **Small**   | One-file copy fix, isolated doc tweak, low-risk UI polish                          | Orchestrator -> Builder -> Tester or Validator as justified -> Orchestrator Gate 6     |
+| **Medium**  | New component, route behavior, local store change                                  | Orchestrator -> Planner -> Builder -> Tester -> Validator -> Orchestrator Gate 6       |
 | **Large**   | Multi-phase feature, sync/auth/AI/offline/security work, ADR-governed architecture | Orchestrator -> Planner -> (Builder -> Tester -> Validator) x N -> Orchestrator Gate 6 |
 
 Planner and Validator should not be skipped for durable architecture, Accepted ADR boundaries, local data ownership, offline behavior, auth/cloud sync, AI provider work, service worker changes, or security-sensitive changes.
@@ -78,11 +78,11 @@ Planner and Validator should not be skipped for durable architecture, Accepted A
 
 Record skips in `risk_tier.skipped_stages` and `gate_status`. Gate 6 is always required for code-changing runs.
 
-| Path | Stages run | Skips | Reaches `awaiting_human` when | Full orchestrated merge-ready? |
-| ---- | ---------- | ----- | ----------------------------- | ------------------------------ |
-| **A** | Builder → Tester | Planner, Validator | `test-report.md` complete; `gate_5_validation` = `skipped` | **No** — human + PR checklist substitutes MG-03 |
-| **B** | Builder → Validator | Planner, Tester | `validation-report.md` **PASS** / **PASS_WITH_NOTES** | **Yes** if MG-01–MG-05 green in report |
-| **C** | Builder only | Planner, Tester, Validator | `build-log.md` complete; all skips documented | **No** — human substitute audit required |
+| Path  | Stages run          | Skips                      | Reaches `awaiting_human` when                              | Full orchestrated merge-ready?                  |
+| ----- | ------------------- | -------------------------- | ---------------------------------------------------------- | ----------------------------------------------- |
+| **A** | Builder → Tester    | Planner, Validator         | `test-report.md` complete; `gate_5_validation` = `skipped` | **No** — human + PR checklist substitutes MG-03 |
+| **B** | Builder → Validator | Planner, Tester            | `validation-report.md` **PASS** / **PASS_WITH_NOTES**      | **Yes** if MG-01–MG-05 green in report          |
+| **C** | Builder only        | Planner, Tester, Validator | `build-log.md` complete; all skips documented              | **No** — human substitute audit required        |
 
 Details: [`.cursor/agents/orchestrator.md`](./orchestrator.md) rules 19–20; [`docs/validation-checklist.md`](../../docs/validation-checklist.md#small-run-skips-risk_tierlevel-small).
 

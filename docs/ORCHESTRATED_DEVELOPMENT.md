@@ -86,13 +86,13 @@ Lifecycle gates (0–6) track **pipeline stage** completion. **Merge-ready check
 
 Binding contract: [`.cursor/rules/workflow-gates.mdc`](../.cursor/rules/workflow-gates.mdc) (also [GOVERNANCE.md §10.5](../adrs/GOVERNANCE.md#105-merge-ready-gates-orchestrated-efforts), checklist **MG-01**–**MG-05** in [`validation-checklist.md`](./validation-checklist.md)).
 
-| Checklist ID | Topic | Typical lifecycle gate(s) | Requirement |
-| ------------ | ----- | ------------------------- | ----------- |
-| **MG-01** | Alignment gaps | 5 | Deviations from Accepted ADRs in [`readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md) when not fixed in scope |
-| **MG-02** | ADR before durable architecture | 2 (plan), 5 (re-check) | Create or update ADR before durable architecture change, or documented follow-up |
-| **MG-03** | Validation + domain rows | 5 | `validation-report.md` with **PASS** or **PASS_WITH_NOTES** and full checklist audit |
-| **MG-04** | Tests (**TST-05**) | 4 (primary), 5 (cross-check) | `test-report.md` (+ `test-matrix.md` actual when required) |
-| **MG-05** | Tooling | 3–5 | `pnpm run check` and `pnpm run lint` for touched paths |
+| Checklist ID | Topic                           | Typical lifecycle gate(s)    | Requirement                                                                                                               |
+| ------------ | ------------------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| **MG-01**    | Alignment gaps                  | 5                            | Deviations from Accepted ADRs in [`readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md) when not fixed in scope |
+| **MG-02**    | ADR before durable architecture | 2 (plan), 5 (re-check)       | Create or update ADR before durable architecture change, or documented follow-up                                          |
+| **MG-03**    | Validation + domain rows        | 5                            | `validation-report.md` with **PASS** or **PASS_WITH_NOTES** and full checklist audit                                      |
+| **MG-04**    | Tests (**TST-05**)              | 4 (primary), 5 (cross-check) | `test-report.md` (+ `test-matrix.md` actual when required)                                                                |
+| **MG-05**    | Tooling                         | 3–5                          | `pnpm run check` and `pnpm run lint` for touched paths                                                                    |
 
 **Who may claim merge-ready:** Validator issues verdict only; Orchestrator may set `awaiting_human` after a passing validation path that satisfies **MG-01**–**MG-05**; `complete` requires human approval (lifecycle Gate 6). Builder, Tester, and Planner must not assert merge-ready in chat or artifacts.
 
@@ -120,11 +120,11 @@ The Orchestrator must adopt the task folder first and decide the next stage from
 
 ## Right-Sizing
 
-| Tier     | Typical use                                                                                | Minimum path                                                                        |
-| -------- | ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
+| Tier     | Typical use                                                                                | Minimum path                                                                          |
+| -------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
 | `small`  | One or two files, low architectural risk, no durable data/security/offline boundary change | Orchestrator -> Builder -> Tester or Validator as justified -> Orchestrator -> Gate 6 |
-| `medium` | One feature area, several files, normal user-facing behavior                               | Full pipeline once                                                                  |
-| `large`  | Multi-phase, cross-cutting, ADR-governed, migration, sync/auth/AI/offline/security work    | Planner then repeated Builder -> Tester -> Validator phases                         |
+| `medium` | One feature area, several files, normal user-facing behavior                               | Full pipeline once                                                                    |
+| `large`  | Multi-phase, cross-cutting, ADR-governed, migration, sync/auth/AI/offline/security work    | Planner then repeated Builder -> Tester -> Validator phases                           |
 
 Accepted ADR-governed areas usually require at least `medium`. Offline-first, local data ownership, auth/cloud sync, AI provider boundaries, service worker behavior, and security-sensitive work should not skip Planner or Validator.
 
@@ -132,11 +132,11 @@ Accepted ADR-governed areas usually require at least `medium`. Offline-first, lo
 
 When `risk_tier.level` is `small`, the Orchestrator records skipped stages and picks a completion path (see [`.cursor/agents/orchestrator.md`](../.cursor/agents/orchestrator.md) rules 19–20):
 
-| Path | Flow | `awaiting_human` | Full merge-ready claim? |
-| ---- | ---- | ---------------- | ----------------------- |
-| **A** | Builder → Tester (Validator skipped) | After `test-report.md` | **No** — human + PR substitutes MG-03 |
-| **B** | Builder → Validator (Tester skipped, non-testable only) | After Validator **PASS** / **PASS_WITH_NOTES** | **Yes** when MG-01–MG-05 are green |
-| **C** | Builder only (trivial, no test surface) | After `build-log.md` | **No** — human substitute audit |
+| Path  | Flow                                                    | `awaiting_human`                               | Full merge-ready claim?               |
+| ----- | ------------------------------------------------------- | ---------------------------------------------- | ------------------------------------- |
+| **A** | Builder → Tester (Validator skipped)                    | After `test-report.md`                         | **No** — human + PR substitutes MG-03 |
+| **B** | Builder → Validator (Tester skipped, non-testable only) | After Validator **PASS** / **PASS_WITH_NOTES** | **Yes** when MG-01–MG-05 are green    |
+| **C** | Builder only (trivial, no test surface)                 | After `build-log.md`                           | **No** — human substitute audit       |
 
 Gate 6 is never skipped for code-changing work. Full policy: [`docs/validation-checklist.md`](./validation-checklist.md#small-run-skips-risk_tierlevel-small).
 
@@ -219,14 +219,14 @@ STOP CONDITIONS:
 
 Copy-paste prompts live in each role contract (Orchestrator **Next Agent Directive** template and activation sections). Typical starts:
 
-| Goal | Invoke | Contract |
-| ---- | ------ | -------- |
-| New run | Orchestrator | `orchestrator.md` — set `task_id`, tier, manifest, first directive |
-| Plan | Planner | `planner.md` — `plan.md` + `acceptance-criteria.md` (+ `test-matrix.md` when required) |
-| Implement | Builder | `builder.md` — plan scope + `build-log.md` |
-| Run tests | Tester | `tester.md` — Vitest + `test-report.md` |
-| Audit | Validator | `validator.md` — `validation-report.md` |
-| FAIL loop / Gate 6 | Orchestrator | `orchestrator.md` rules 10–14, 19–20 |
+| Goal               | Invoke       | Contract                                                                               |
+| ------------------ | ------------ | -------------------------------------------------------------------------------------- |
+| New run            | Orchestrator | `orchestrator.md` — set `task_id`, tier, manifest, first directive                     |
+| Plan               | Planner      | `planner.md` — `plan.md` + `acceptance-criteria.md` (+ `test-matrix.md` when required) |
+| Implement          | Builder      | `builder.md` — plan scope + `build-log.md`                                             |
+| Run tests          | Tester       | `tester.md` — Vitest + `test-report.md`                                                |
+| Audit              | Validator    | `validator.md` — `validation-report.md`                                                |
+| FAIL loop / Gate 6 | Orchestrator | `orchestrator.md` rules 10–14, 19–20                                                   |
 
 ## Human Approval
 

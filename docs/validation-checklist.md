@@ -6,11 +6,11 @@ Reusable audit checklist for **orchestrated Validator runs**, **human PR review*
 
 ## How to use
 
-| Context                    | Action                                                                                                                                                                                                                                                             |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Orchestrated Validator** | Read this file; mark each **applicable** item in `validation-report.md` → **Checklist audit** (✅ / ⚠️ / ❌ / N/A + evidence). Any ❌ on a required item blocks **PASS** and **PASS_WITH_NOTES**. **PASS_WITH_NOTES** is for ⚠️ residuals only; Gate 6 human accepts documented residual risk before `complete`.      |
-| **Planner**                | Pull relevant rows into `plan.md` → **Validation commands** and map to AC IDs; do not duplicate the entire checklist unless the task is broad.                                                                                                                     |
-| **Human PR review**        | Use [PR template](../.github/pull_request_template.md) and [`docs/pr-and-commit-guide.md`](./pr-and-commit-guide.md) (product / architecture / gaps + test evidence); copy applicable checklist sections into review comments; link alignment gaps when deviating. |
+| Context                    | Action                                                                                                                                                                                                                                                                                                           |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Orchestrated Validator** | Read this file; mark each **applicable** item in `validation-report.md` → **Checklist audit** (✅ / ⚠️ / ❌ / N/A + evidence). Any ❌ on a required item blocks **PASS** and **PASS_WITH_NOTES**. **PASS_WITH_NOTES** is for ⚠️ residuals only; Gate 6 human accepts documented residual risk before `complete`. |
+| **Planner**                | Pull relevant rows into `plan.md` → **Validation commands** and map to AC IDs; do not duplicate the entire checklist unless the task is broad.                                                                                                                                                                   |
+| **Human PR review**        | Use [PR template](../.github/pull_request_template.md) and [`docs/pr-and-commit-guide.md`](./pr-and-commit-guide.md) (product / architecture / gaps + test evidence); copy applicable checklist sections into review comments; link alignment gaps when deviating.                                               |
 
 **Evidence** means file:line, test name, command output, or a named manual step (e.g. “offline smoke: recipes list loads with DevTools offline”).
 
@@ -18,9 +18,9 @@ Reusable audit checklist for **orchestrated Validator runs**, **human PR review*
 
 WFD uses **two gate vocabularies**. Do not conflate them.
 
-| Vocabulary            | Range                                                                | Tracks                                                                                       | Recorded in                                                                                       |
-| --------------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| **Lifecycle gates**   | **0–6**                                                              | Pipeline stage completion (Planner → Builder → Tester → Validator → human approval)            | `task-manifest.json` → `gate_status` (`gate_0_intake` … `gate_6_human_approval`)                  |
+| Vocabulary             | Range                                                                            | Tracks                                                                                       | Recorded in                                                                                            |
+| ---------------------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| **Lifecycle gates**    | **0–6**                                                                          | Pipeline stage completion (Planner → Builder → Tester → Validator → human approval)          | `task-manifest.json` → `gate_status` (`gate_0_intake` … `gate_6_human_approval`)                       |
 | **Merge-ready checks** | **MG-01**–**MG-05** in [workflow-gates.mdc](../.cursor/rules/workflow-gates.mdc) | Whether work may be claimed **merge-ready** (ADR, gaps, validation artifact, tests, tooling) | Checklist rows **MG-01**–**MG-05**; orchestrated evidence in `validation-report.md` / `test-report.md` |
 
 Narrative and right-sizing: [`docs/ORCHESTRATED_DEVELOPMENT.md`](./ORCHESTRATED_DEVELOPMENT.md) (lifecycle table, merge-ready table, small/medium/large tiers). Orchestrator skip policy: [`.cursor/agents/orchestrator.md`](../.cursor/agents/orchestrator.md) rules 17–18.
@@ -43,13 +43,13 @@ Narrative and right-sizing: [`docs/ORCHESTRATED_DEVELOPMENT.md`](./ORCHESTRATED_
 
 Canonical IDs are **MG-01**–**MG-05** (ordered below). Do not use legacy “merge-ready Gate 1–5” numbering.
 
-| Checklist ID | Topic | Typical lifecycle gate | Evidence artifact |
-| ------------ | ----- | ---------------------- | ----------------- |
-| **MG-01** | Alignment gaps | 5 | `validation-report.md` → ADR compliance; [`readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md) |
-| **MG-02** | ADR before durable architecture | 2 (plan) / 5 (re-check) | ADR file + `plan.md` → ADR references |
-| **MG-03** | Validation evidence + domain rows | 5 | `validation-report.md` (verdict + checklist audit) |
-| **MG-04** | Test evidence (**TST-05**) | 4 (primary), 5 (cross-check) | `test-report.md`; `test-matrix.md` when required |
-| **MG-05** | Tooling | 3–5 | `build-log.md`, `test-report.md`, or validation command section |
+| Checklist ID | Topic                             | Typical lifecycle gate       | Evidence artifact                                                                                         |
+| ------------ | --------------------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------- |
+| **MG-01**    | Alignment gaps                    | 5                            | `validation-report.md` → ADR compliance; [`readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md) |
+| **MG-02**    | ADR before durable architecture   | 2 (plan) / 5 (re-check)      | ADR file + `plan.md` → ADR references                                                                     |
+| **MG-03**    | Validation evidence + domain rows | 5                            | `validation-report.md` (verdict + checklist audit)                                                        |
+| **MG-04**    | Test evidence (**TST-05**)        | 4 (primary), 5 (cross-check) | `test-report.md`; `test-matrix.md` when required                                                          |
+| **MG-05**    | Tooling                           | 3–5                          | `build-log.md`, `test-report.md`, or validation command section                                           |
 
 Domain sections (**OFF-\***, **NET-\***, **ANO-\***, **AUTH-\***, **CLD-\***, **AI-\***, **SH-\***, **SCH-\***, **A11Y-\***, annex **REC-\***/**SW-\***) are audited at **lifecycle Gate 5** when applicable—not separate lifecycle gates. **TST-\*** rows are owned at **lifecycle Gate 4**; Validator cross-checks them at Gate 5 per [`.cursor/agents/validator.md`](../.cursor/agents/validator.md).
 
@@ -60,7 +60,7 @@ Per Orchestrator rule 19, skipped Planner / Tester / Validator stages MUST be re
 | Skipped stage | Effect on `gate_status`                            | Checklist / merge-ready                                                                                                                                                                                                                                           |
 | ------------- | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Planner**   | `gate_1_*`, `gate_2_*` may stay `skipped` or `n/a` | **MG-01** / **MG-02** still apply if architecture touched—evidence from PR/ADR, not `plan.md`. Prefer `medium` when ADR-governed (Orchestrator rule 17).                                                                                                          |
-| **Tester**    | `gate_4_tests` → `skipped`                         | **MG-04**, **TST-\*** → **N/A** in any checklist audit with manifest/flag reference; merge-ready still needs test evidence in PR body (**MG-04** style) unless human accepts explicit residual risk.                                            |
+| **Tester**    | `gate_4_tests` → `skipped`                         | **MG-04**, **TST-\*** → **N/A** in any checklist audit with manifest/flag reference; merge-ready still needs test evidence in PR body (**MG-04** style) unless human accepts explicit residual risk.                                                              |
 | **Validator** | `gate_5_validation` → `skipped`                    | **MG-03** and domain rows cannot be satisfied via `validation-report.md`; do **not** claim full orchestrated merge-ready without a substitute audit (human review + PR checklist). Default: do not skip Validator on offline/auth/sync/AI/SW/Dexie/security work. |
 
 When a stage runs, Orchestrator sets the matching `gate_status` key to `passed` (or `failed` / `blocked` on escalation). Skipped keys use `skipped` with rationale in `risk_tier.skipped_stages`. Allowed values per key: `pending`, `passed`, `failed`, `blocked`, `skipped`, `n/a`.

@@ -36,13 +36,13 @@ The governance backlog item **“ADR + rules: Backend API and middleware pattern
 
 ### 1. Choose the integration layer by data source
 
-| Source | Default integration | Consumed in `.svelte` as |
-| --- | --- | --- |
-| **ADR-002 local data** (recipes, suggestions cache, preferences in Dexie, etc.) | `liveQuery` via `createLiveQueryStore` or existing stores in `src/lib/stores/` | `$derived($store)` → `{ data, loading, error }` |
-| **Remote HTTP** (AI, cloud APIs, same-origin `fetch` to `/api/**`) | `createQuery` in `*.queries.ts` (or service called from `queryFn`) per [`docs/tanstack-query.md`](../docs/tanstack-query.md) | `$derived($queryStore)` → TanStack fields (`data`, `isPending`, `isError`, `error`, `refetch`, …) |
-| **SSR / auth gate / server-only initial payload** | `+page.server.ts` / `+layout.server.ts` `load`; redirects via `redirect()` | `data` from `$props()`; optional `{#await}` only when returning a **promise** from `load` |
-| **Mutations** (forms, saves, deletes) | SvelteKit **form actions** with `fail()` / success payloads, or **domain/store helpers** that write Dexie | `enhance()` + action result; do not hide writes inside `queryFn` |
-| **Enhancement-only work** (sync, cloud download) | Gated by capability helpers; call services or queries with `enabled: false` when unavailable | Disabled control + honest reason (ADR-001, [`.cursor/rules/offline-connectivity-capability.mdc`](../.cursor/rules/offline-connectivity-capability.mdc)) |
+| Source                                                                          | Default integration                                                                                                          | Consumed in `.svelte` as                                                                                                                                |
+| ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **ADR-002 local data** (recipes, suggestions cache, preferences in Dexie, etc.) | `liveQuery` via `createLiveQueryStore` or existing stores in `src/lib/stores/`                                               | `$derived($store)` → `{ data, loading, error }`                                                                                                         |
+| **Remote HTTP** (AI, cloud APIs, same-origin `fetch` to `/api/**`)              | `createQuery` in `*.queries.ts` (or service called from `queryFn`) per [`docs/tanstack-query.md`](../docs/tanstack-query.md) | `$derived($queryStore)` → TanStack fields (`data`, `isPending`, `isError`, `error`, `refetch`, …)                                                       |
+| **SSR / auth gate / server-only initial payload**                               | `+page.server.ts` / `+layout.server.ts` `load`; redirects via `redirect()`                                                   | `data` from `$props()`; optional `{#await}` only when returning a **promise** from `load`                                                               |
+| **Mutations** (forms, saves, deletes)                                           | SvelteKit **form actions** with `fail()` / success payloads, or **domain/store helpers** that write Dexie                    | `enhance()` + action result; do not hide writes inside `queryFn`                                                                                        |
+| **Enhancement-only work** (sync, cloud download)                                | Gated by capability helpers; call services or queries with `enabled: false` when unavailable                                 | Disabled control + honest reason (ADR-001, [`.cursor/rules/offline-connectivity-capability.mdc`](../.cursor/rules/offline-connectivity-capability.mdc)) |
 
 **We will not** use a single global pattern (for example “everything in `{#await}`” or “everything in `$effect` + `fetch`”) across these layers.
 
@@ -63,14 +63,14 @@ The governance backlog item **“ADR + rules: Backend API and middleware pattern
 
 ### 4. Comparison of viable front-end patterns (recorded)
 
-| Pattern | Pros | Cons | WFD role |
-| --- | --- | --- | --- |
-| **`{#await}`** | Declarative branches; fits SSR load promises | Poor fit for live Dexie/TanStack updates; easy to omit `:catch` | Escape hatch for load promises |
-| **`+page` / `+layout` `load` only** | Single SSR payload; good redirects | Blocks UX if used for data that should be local-first | Auth gates, layout session, server-only bootstrap |
-| **TanStack `createQuery`** | Dedup, cache, `refetch`, status fields | Not SoT for Dexie; needs Zod in `queryFn` | **Default for remote HTTP** |
-| **Dexie LiveQuery store** | Offline-first, reactive local SoT | Not for secret/server-only APIs | **Default for ADR-002 reads** |
-| **`$effect` + `fetch`** | Quick to write | No shared cache; cancellation burden; duplicates query layer | **Escape hatch** |
-| **Legacy `ViewState` (`'idle' \| 'loading' \| 'error'`)** | Familiar in existing pages | Duplicates derived state if not careful | Allowed when derived from envelopes; avoid manual-only status toggles |
+| Pattern                                                   | Pros                                         | Cons                                                            | WFD role                                                              |
+| --------------------------------------------------------- | -------------------------------------------- | --------------------------------------------------------------- | --------------------------------------------------------------------- |
+| **`{#await}`**                                            | Declarative branches; fits SSR load promises | Poor fit for live Dexie/TanStack updates; easy to omit `:catch` | Escape hatch for load promises                                        |
+| **`+page` / `+layout` `load` only**                       | Single SSR payload; good redirects           | Blocks UX if used for data that should be local-first           | Auth gates, layout session, server-only bootstrap                     |
+| **TanStack `createQuery`**                                | Dedup, cache, `refetch`, status fields       | Not SoT for Dexie; needs Zod in `queryFn`                       | **Default for remote HTTP**                                           |
+| **Dexie LiveQuery store**                                 | Offline-first, reactive local SoT            | Not for secret/server-only APIs                                 | **Default for ADR-002 reads**                                         |
+| **`$effect` + `fetch`**                                   | Quick to write                               | No shared cache; cancellation burden; duplicates query layer    | **Escape hatch**                                                      |
+| **Legacy `ViewState` (`'idle' \| 'loading' \| 'error'`)** | Familiar in existing pages                   | Duplicates derived state if not careful                         | Allowed when derived from envelopes; avoid manual-only status toggles |
 
 ### Explicit exclusions (required)
 
@@ -94,11 +94,11 @@ The governance backlog item **“ADR + rules: Backend API and middleware pattern
 
 ### Risks and mitigations
 
-| Risk | Mitigation |
-| --- | --- |
+| Risk                                        | Mitigation                                                                                                                       |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | Drift: new pages use ad hoc `$effect` fetch | [`.cursor/rules/frontend-data-flow.mdc`](../.cursor/rules/frontend-data-flow.mdc); Validator checks; implementation backlog item |
-| Inconsistent API error JSON | Prefer documented `{ error }` field; extend Zod response schemas in `*.schemas.ts`; align over time (see GAP-024) |
-| `load` blocks offline recipe UX | Code review + ADR-001; Dexie reads in component, not blocking `load` for local book |
+| Inconsistent API error JSON                 | Prefer documented `{ error }` field; extend Zod response schemas in `*.schemas.ts`; align over time (see GAP-024)                |
+| `load` blocks offline recipe UX             | Code review + ADR-001; Dexie reads in component, not blocking `load` for local book                                              |
 
 ## Operational impact
 

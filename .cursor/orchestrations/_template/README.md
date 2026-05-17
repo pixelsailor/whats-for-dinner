@@ -2,16 +2,16 @@
 
 Copy these files into **`.cursor/orchestrations/{task-id}/`** when starting a new run. The directory name and manifest `task_id` **must match exactly** (replace `wfd-000` in templates with that slug).
 
-| File                     | Owner                | When                                                                                                                                                 |
-| ------------------------ | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `task-manifest.json`     | Orchestrator         | Bootstrap run (edit `task_id`, `objective`, `locked_artifacts`)                                                                                      |
-| `plan.md`                | Planner              | Before Builder; fill all sections, delete guidance comments                                                                                          |
-| `acceptance-criteria.md` | Planner              | With `plan.md`; every AC must map to validation commands                                                                                             |
+| File                     | Owner                | When                                                                                                                                                                                                                                          |
+| ------------------------ | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `task-manifest.json`     | Orchestrator         | Bootstrap run (edit `task_id`, `objective`, `locked_artifacts`)                                                                                                                                                                               |
+| `plan.md`                | Planner              | Before Builder; fill all sections, delete guidance comments                                                                                                                                                                                   |
+| `acceptance-criteria.md` | Planner              | With `plan.md`; every AC must map to validation commands                                                                                                                                                                                      |
 | `test-matrix.md`         | Planner → Tester     | **Required** for medium/large or testable code changes; optional for small doc-only / non-testable runs. Planner: **Planned coverage**; Tester: **Actual coverage** — [`docs/test-matrix-template.md`](../../../docs/test-matrix-template.md) |
-| `build-log.md`           | Builder              | After implementation (starts from template or empty sections)                                                                                        |
-| `test-report.md`         | Tester               | After automated tests; AC coverage map, commands, gaps                                                                                               |
-| `validation-report.md`   | Validator            | After audit; use template + [`docs/validation-checklist.md`](../../../docs/validation-checklist.md)                                                  |
-| `human-approval.md`      | Orchestrator / human | After Validator **PASS** or **PASS_WITH_NOTES**                                                                                                      |
+| `build-log.md`           | Builder              | After implementation (starts from template or empty sections)                                                                                                                                                                                 |
+| `test-report.md`         | Tester               | After automated tests; AC coverage map, commands, gaps                                                                                                                                                                                        |
+| `validation-report.md`   | Validator            | After audit; use template + [`docs/validation-checklist.md`](../../../docs/validation-checklist.md)                                                                                                                                           |
+| `human-approval.md`      | Orchestrator / human | After Validator **PASS** or **PASS_WITH_NOTES**                                                                                                                                                                                               |
 
 ### `gate_status` values
 

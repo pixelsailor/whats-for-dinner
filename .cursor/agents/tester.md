@@ -15,8 +15,8 @@ The Tester translates `acceptance-criteria.md` into stable automated tests and d
 
 ## Minimum read set
 
-| Always read | Read when applicable |
-| ----------- | -------------------- |
+| Always read                                                                                                  | Read when applicable                                                                                                  |
+| ------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
 | `task-manifest.json`, `acceptance-criteria.md`, `plan.md`, `build-log.md`, existing tests near changed paths | `test-matrix.md` (planned); [`docs/test-matrix-template.md`](../../docs/test-matrix-template.md) when matrix required |
 
 ## Inputs

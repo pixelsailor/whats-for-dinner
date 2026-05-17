@@ -6,12 +6,12 @@ Reusable **layer definitions** and **coverage conventions** for orchestrated Tes
 
 ## How artifacts fit together
 
-| Artifact                                       | Owner                             | Purpose                                                         |
-| ---------------------------------------------- | --------------------------------- | --------------------------------------------------------------- |
-| **`docs/test-matrix-template.md`** (this file) | Maintainers                       | Stable layer IDs, runners, applicability, commands              |
+| Artifact                                       | Owner                               | Purpose                                                         |
+| ---------------------------------------------- | ----------------------------------- | --------------------------------------------------------------- |
+| **`docs/test-matrix-template.md`** (this file) | Maintainers                         | Stable layer IDs, runners, applicability, commands              |
 | **`test-matrix.md`** (per `task-id`)           | Planner (planned) → Tester (actual) | Which **layers** each AC needs; planned vs executed coverage    |
-| **`test-report.md`** (per `task-id`)           | Tester                            | AC → test name map, uncovered criteria, stability, commands run |
-| **`acceptance-criteria.md`**                   | Planner                           | Verifiable AC IDs (`AC-01`, …) both artifacts reference         |
+| **`test-report.md`** (per `task-id`)           | Tester                              | AC → test name map, uncovered criteria, stability, commands run |
+| **`acceptance-criteria.md`**                   | Planner                             | Verifiable AC IDs (`AC-01`, …) both artifacts reference         |
 
 **When `test-matrix.md` is required:** Medium/large runs or any testable code change. **Optional** for small doc-only or explicitly non-testable runs (coverage may live in `test-report.md` only).
 

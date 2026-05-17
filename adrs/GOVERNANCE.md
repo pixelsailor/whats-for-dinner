@@ -227,12 +227,40 @@ When orchestration applies, the ADR must use the **subsection headings** from [T
 
 ### 10.5 Merge-ready gates (orchestrated efforts)
 
-Before claiming merge-ready for orchestrated work, confirm (same checklist as the template’s **Merge / workflow gates** and agent rule [`.cursor/rules/workflow-gates.mdc`](../.cursor/rules/workflow-gates.mdc)):
+WFD uses **two gate vocabularies**. Do not conflate them.
 
-- ADR created or updated **before** durable architecture change (or an explicit follow-up exists).
-- Known deviations are documented as alignment gaps when not fixed in scope.
-- Validation output exists for behavior the ADR cares about (orchestrated: `validation-report.md` with **Checklist audit** per [`docs/validation-checklist.md`](../docs/validation-checklist.md)).
-- Test evidence exists when orchestration applies (`test-report.md`; `test-matrix.md` when planned layers were scoped — per [`docs/test-matrix-template.md`](../docs/test-matrix-template.md)).
+| Vocabulary | Range | Tracks | Recorded in |
+| -------- | ----- | ------ | ----------- |
+| **Lifecycle gates** | **0–6** | Pipeline stage completion (Orchestrator → Planner → Builder → Test → Validator → human approval) | `task-manifest.json` → `gate_status` (`gate_0_intake` … `gate_6_human_approval`) |
+| **Merge-ready gates** | **1–5** | Whether work may be claimed **merge-ready** (ADR, gaps, validation artifact, tests, tooling) | Checklist **MG-01**–**MG-05**; orchestrated evidence in `validation-report.md` / `test-report.md` |
+
+**Lifecycle Gate 5** (validation green) is **not** merge-ready **Gate 5** (tooling / **MG-05**). **Lifecycle Gate 6** (human approval) follows a green merge-ready path; it does not replace MG-* checklist items.
+
+Canonical mapping (lifecycle ↔ merge-ready ↔ MG-* ↔ `gate_status`, small-run skips, non-orchestrated PRs): [`docs/validation-checklist.md` — Lifecycle gates, merge-ready gates, and `gate_status`](../docs/validation-checklist.md#lifecycle-gates-merge-ready-gates-and-gate_status). Narrative: [`docs/ORCHESTRATED_DEVELOPMENT.md`](../docs/ORCHESTRATED_DEVELOPMENT.md). Agent contract: [`.cursor/rules/workflow-gates.mdc`](../.cursor/rules/workflow-gates.mdc).
+
+#### Merge-ready ↔ lifecycle (summary)
+
+| Merge-ready gate | MG-* | Typical lifecycle gate(s) | Evidence |
+| ---------------- | ---- | ------------------------- | -------- |
+| 1 — ADR before durable architecture | **MG-02** | 2 (plan), 5 (re-check) | ADR file; `plan.md` → ADR references |
+| 2 — Alignment gaps | **MG-01** | 5 | `validation-report.md` → ADR compliance; [`readme-adr-alignment-gaps.md`](../docs/readme-adr-alignment-gaps.md) |
+| 3 — Validation evidence | **MG-03** + domain rows | 5 | `validation-report.md` (verdict + checklist audit) |
+| 4 — Test evidence | **MG-04**, **TST-05** | 4 (primary), 5 (cross-check) | `test-report.md`; `test-matrix.md` when planned |
+| 5 — Tooling | **MG-05** | 3–5 | `build-log.md`, `test-report.md`, or validation command section |
+
+Domain checklist rows (**OFF-***, **AUTH-***, etc.) are audited at **lifecycle Gate 5** when applicable, not as separate lifecycle gates.
+
+#### Merge-ready checklist (orchestrated efforts)
+
+Before claiming merge-ready for orchestrated work, confirm (same checklist as the template’s **Merge / workflow gates** and [`.cursor/rules/workflow-gates.mdc`](../.cursor/rules/workflow-gates.mdc)):
+
+- ADR created or updated **before** durable architecture change (merge-ready Gate 1 / **MG-02**), or an explicit follow-up exists.
+- Known deviations are documented as alignment gaps when not fixed in scope (merge-ready Gate 2 / **MG-01**).
+- Validation output exists for behavior the ADR cares about (merge-ready Gate 3 / **MG-03**; orchestrated: `validation-report.md` with **Checklist audit** per [`docs/validation-checklist.md`](../docs/validation-checklist.md)).
+- Test evidence exists when orchestration applies (merge-ready Gate 4 / **MG-04**; `test-report.md`; `test-matrix.md` when planned layers were scoped — per [`docs/test-matrix-template.md`](../docs/test-matrix-template.md)).
+- Tooling passes for touched paths (merge-ready Gate 5 / **MG-05**): `pnpm run check` and `pnpm run lint`, or documented pre-existing failures outside scope.
+
+**Who may claim merge-ready:** Validator issues verdict only; Orchestrator may set `awaiting_human` after merge-ready Gates 1–5 are satisfied; `complete` requires **lifecycle Gate 6** human approval. Builder, Test, and Planner must not assert merge-ready.
 
 ---
 

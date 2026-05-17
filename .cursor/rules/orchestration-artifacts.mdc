@@ -43,4 +43,6 @@ Default order: **Orchestrator → Planner → Builder → Test → Validator →
 
 ## Merge-ready (do not conflate with stage completion)
 
-**Merge-ready** claims are governed by [workflow-gates.mdc](./workflow-gates.mdc) (ADR + alignment gaps + `validation-report.md` + `test-report.md` + tooling). Stage artifacts alone are insufficient: Builder/Test must not assert merge-ready; Orchestrator uses `awaiting_human` only after Validator **PASS** / **PASS_WITH_NOTES** and applicable MG gates; `complete` requires human approval in the manifest.
+**Lifecycle gates 0–6** (`gate_status` in the manifest) track pipeline stages; **merge-ready gates 1–5** (**MG-01**–**MG-05**) are the merge bar — see [validation checklist — gate mapping](../docs/validation-checklist.md#lifecycle-gates-merge-ready-gates-and-gate_status).
+
+**Merge-ready** claims are governed by [workflow-gates.mdc](./workflow-gates.mdc) (ADR + alignment gaps + `validation-report.md` + `test-report.md` + tooling). Stage artifacts alone are insufficient: Builder/Test must not assert merge-ready; Orchestrator uses `awaiting_human` only after Validator **PASS** / **PASS_WITH_NOTES** and applicable MG gates; `complete` requires **lifecycle Gate 6** human approval in the manifest.

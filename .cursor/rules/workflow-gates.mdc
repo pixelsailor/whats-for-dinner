@@ -15,6 +15,17 @@ alwaysApply: false
 
 **Purpose:** Define when agents or humans may claim work is **merge-ready**. This rule is the agent-facing contract; policy is also in [GOVERNANCE.md §10.5](../../adrs/GOVERNANCE.md#105-merge-ready-gates-orchestrated-efforts) and checklist IDs **MG-01**–**MG-05** in [`docs/validation-checklist.md`](../docs/validation-checklist.md). ADR lifecycle and gap recording: [adr-compliance.mdc](./adr-compliance.mdc).
 
+## Two gate vocabularies (do not conflate)
+
+| Vocabulary | Range | Tracks |
+| -------- | ----- | ------ |
+| **Lifecycle gates** | **0–6** | Pipeline stage completion in an orchestration run (`task-manifest.json` → `gate_status`) |
+| **Merge-ready gates** (this rule) | **1–5** | Whether work may be claimed **merge-ready** (**MG-01**–**MG-05**) |
+
+**Lifecycle Gate 5** (Validator / validation green) ≠ **merge-ready Gate 5** (tooling / **MG-05**). **Lifecycle Gate 6** (human approval) runs after merge-ready Gates 1–5 are green; it is not a substitute for them.
+
+Full mapping (lifecycle ↔ merge-ready ↔ MG-* ↔ skips): [`docs/validation-checklist.md` — Lifecycle gates, merge-ready gates, and `gate_status`](../docs/validation-checklist.md#lifecycle-gates-merge-ready-gates-and-gate_status). Narrative: [`docs/ORCHESTRATED_DEVELOPMENT.md`](../docs/ORCHESTRATED_DEVELOPMENT.md).
+
 ## When this rule applies
 
 | Work | Gates |

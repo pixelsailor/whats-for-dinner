@@ -13,7 +13,7 @@
 ## Scope
 
 - **In scope:** Semantic HTML, landmarks, heading hierarchy, ARIA discipline, keyboard and pointer accessibility, focus management for dynamic UI, motion preferences, and the relationship between presentation and accessibility across **Svelte** UI: `src/routes/**/*.svelte` (including `+layout.svelte`), and `src/lib/ui/**`. Interaction built with **bits-ui** per [ADR-013](ADR-013-ui-component-library-bits-ui.md).
-- **Out of scope:** Visual design tokens, general Tailwind layout policy, Zod and API contracts ([ADR-008](ADR-008-schema-led-domain-contracts.md)), serverless and secrets ([ADR-006](ADR-006-serverless-and-secret-boundary.md)), **what** counts as “core” vs JavaScript-dependent capability (normative split lives in [ADR-015](ADR-015-progressive-enhancement-and-no-js-baseline.md) while Proposed).
+- **Out of scope:** Visual design tokens, general Tailwind layout policy, Zod and API contracts ([ADR-008](ADR-008-schema-led-domain-contracts.md)), serverless and secrets ([ADR-006](ADR-006-serverless-and-secret-boundary.md)), **what** counts as “core” vs JavaScript-dependent capability (normative split lives in [ADR-015](ADR-015-progressive-enhancement-and-no-js-baseline.md)).
 
 ## Context
 

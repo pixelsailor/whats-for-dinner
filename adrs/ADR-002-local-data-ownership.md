@@ -37,7 +37,7 @@ We will treat **Dexie-backed IndexedDB** (`src/lib/db.ts` and successors) as the
 
 We will use **Svelte stores** (including Dexie `liveQuery`-backed stores) as the **reactive read model** over that local data, not as a second system of record: the authoritative persisted state for the domains above remains **Dexie**, consistent with [`src/lib/stores/README.md`](../src/lib/stores/README.md) (local-first reads; cloud subservient when both exist).
 
-**Client runtime:** Accessing this Dexie/IndexedDB data **requires a JavaScript runtime** in the browser; see [ADR-015: JavaScript runtime, Dexie, and progressive enhancement](ADR-015-progressive-enhancement-and-no-js-baseline.md) (Proposed) for how that coexists with SSR, shell navigation, and progressive enhancement.
+**Client runtime:** Accessing this Dexie/IndexedDB data **requires a JavaScript runtime** in the browser; see [ADR-015: JavaScript runtime, Dexie, and progressive enhancement](ADR-015-progressive-enhancement-and-no-js-baseline.md) for how that coexists with SSR, shell navigation, and progressive enhancement.
 
 ### Classification summary
 

@@ -9,7 +9,7 @@ alwaysApply: false
 
 # AI integration boundary
 
-**Binding:** [ADR-007: AI provider contract](../adrs/ADR-007-ai-provider-contract.md) (Accepted), [ADR-006: Serverless and secret boundary](../adrs/ADR-006-serverless-and-secret-boundary.md) (Accepted). **Product context:** [ADR-001](../adrs/ADR-001-product-operating-model.md) (optional AI), [ADR-003](../adrs/ADR-003-ai-suggestion-lifecycle.md) (transient suggestions). **Schemas:** [ADR-008](../adrs/ADR-008-schema-led-domain-contracts.md). **Self-hosting direction (not binding until Accepted):** [ADR-011](../adrs/ADR-011-self-hosting-provider-model.md).
+**Binding:** [ADR-007: AI provider contract](../adrs/ADR-007-ai-provider-contract.md) (Accepted), [ADR-006: Serverless and secret boundary](../adrs/ADR-006-serverless-and-secret-boundary.md) (Accepted). **Product context:** [ADR-001](../adrs/ADR-001-product-operating-model.md) (optional AI), [ADR-003](../adrs/ADR-003-ai-suggestion-lifecycle.md) (transient suggestions). **Schemas:** [ADR-008](../adrs/ADR-008-schema-led-domain-contracts.md). **Self-hosting:** [ADR-011](../adrs/ADR-011-self-hosting-provider-model.md) (Accepted).
 
 ## Operating context
 

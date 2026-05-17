@@ -9,7 +9,7 @@ alwaysApply: false
 
 # Supabase enhancement boundary
 
-**Binding:** [ADR-004: Account and cloud enhancement model](../adrs/ADR-004-account-and-cloud-enhancement-model.md) (Accepted), [ADR-006: Serverless and secret boundary](../adrs/ADR-006-serverless-and-secret-boundary.md) (Accepted). **Local system of record:** [ADR-002](../adrs/ADR-002-local-data-ownership.md). **Product baseline:** [ADR-001](../adrs/ADR-001-product-operating-model.md). **Sync semantics (design intent for cloud work):** [ADR-005](../adrs/ADR-005-sync-and-conflict-resolution.md) (Proposed). **Schemas at boundaries:** [ADR-008](../adrs/ADR-008-schema-led-domain-contracts.md). **Self-hosting direction (not binding until Accepted):** [ADR-011](../adrs/ADR-011-self-hosting-provider-model.md). **Layering:** [`src/lib/api/cloud/README.md`](../src/lib/api/cloud/README.md), [`src/lib/api/README.md`](../src/lib/api/README.md).
+**Binding:** [ADR-004: Account and cloud enhancement model](../adrs/ADR-004-account-and-cloud-enhancement-model.md) (Accepted), [ADR-006: Serverless and secret boundary](../adrs/ADR-006-serverless-and-secret-boundary.md) (Accepted). **Local system of record:** [ADR-002](../adrs/ADR-002-local-data-ownership.md). **Product baseline:** [ADR-001](../adrs/ADR-001-product-operating-model.md). **Sync semantics:** [ADR-005](../adrs/ADR-005-sync-and-conflict-resolution.md) (Accepted). **Schemas at boundaries:** [ADR-008](../adrs/ADR-008-schema-led-domain-contracts.md). **Self-hosting:** [ADR-011](../adrs/ADR-011-self-hosting-provider-model.md) (Accepted). **Layering:** [`src/lib/api/cloud/README.md`](../src/lib/api/cloud/README.md), [`src/lib/api/README.md`](../src/lib/api/README.md).
 
 ## What Supabase is allowed to own
 

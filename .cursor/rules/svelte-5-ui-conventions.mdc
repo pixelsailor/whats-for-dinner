@@ -41,7 +41,7 @@ For **Svelte MCP** (`list-sections`, `get-documentation`, `svelte-autofixer`, `p
 
 ## Accessibility
 
-- Use semantic elements, appropriate `aria-*` attributes, and full keyboard support for interactive UI. See [ADR-014](adrs/ADR-014-semantic-html-and-accessibility.md) (Accepted) and [ADR-015](adrs/ADR-015-progressive-enhancement-and-no-js-baseline.md) (Proposed: Dexie requires JS; progressive enhancement for shell/forms/navigation where helpful); [ADR-004](adrs/ADR-004-account-and-cloud-enhancement-model.md) for graceful cloud degradation copy.
+- Use semantic elements, appropriate `aria-*` attributes, and full keyboard support for interactive UI. See [ADR-014](adrs/ADR-014-semantic-html-and-accessibility.md) (Accepted) and [ADR-015](adrs/ADR-015-progressive-enhancement-and-no-js-baseline.md) (Accepted: Dexie requires JS; progressive enhancement for shell/forms/navigation where helpful); [ADR-004](adrs/ADR-004-account-and-cloud-enhancement-model.md) for graceful cloud degradation copy.
 
 ## Dexie / TanStack in components
 

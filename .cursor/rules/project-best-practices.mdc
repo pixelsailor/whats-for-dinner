@@ -25,6 +25,7 @@ This is a Svelte 5.x web application with:
 | --- | --- |
 | ESLint / Prettier, TypeScript style in `.ts` and cross-file discipline | [`.cursor/rules/lint-and-code-quality.mdc`](./lint-and-code-quality.mdc) |
 | `.svelte` runes, UI, bits-ui / Tailwind, component patterns | [`.cursor/rules/svelte-5-ui-conventions.mdc`](./svelte-5-ui-conventions.mdc) |
+| Routes, API modules, stores — async data flow to `.svelte` (Dexie / TanStack / load) | [`.cursor/rules/frontend-data-flow.mdc`](./frontend-data-flow.mdc) and [ADR-016](../adrs/ADR-016-frontend-data-flow-and-svelte-dx.md) |
 | Svelte MCP (`list-sections`, `get-documentation`, `svelte-autofixer`), stack commands, adapter/runtime notes | [`.cursor/rules/svelte-mcp-workflow.mdc`](./svelte-mcp-workflow.mdc) |
 | ADR compliance and architecture | [`.cursor/rules/adr-compliance.mdc`](./adr-compliance.mdc) and [`adrs/INDEX.md`](adrs/INDEX.md) |
 

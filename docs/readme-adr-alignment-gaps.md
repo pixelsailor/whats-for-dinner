@@ -165,6 +165,16 @@ Suggested fields (adapt as needed):
 - **Notes:** ADR-015 (2026-05-11) now states **client-side Dexie writes are allowed** as the architecture; this gap tracks **deception / confusion** (form looks progressively enhanced but is not) and **Decision 5** messaging.
 - **Owner:** —
 
+### GAP-024
+
+- **Status:** Open
+- **Severity:** Minor
+- **Source:** [ADR-016](../adrs/ADR-016-frontend-data-flow-and-svelte-dx.md); [`docs/adr-and-rules-todo.md`](./adr-and-rules-todo.md) implementation backlog item
+- **Observed:** Several routes still use hand-managed **`ViewState`** (`app.status`), manual store **`$effect` subscriptions**, or **`$effect` + `fetch`** instead of deriving UI from Dexie/TanStack envelopes; no `{#await}` usage; mixed API error parsing (e.g. suggestions page vs `ai.queries.ts` `error()` throw).
+- **Expected:** Pages and queries align with ADR-016 layered defaults during the dedicated implementation pass; consistent error field handling for JSON APIs.
+- **Notes:** Examples: [`suggestions/+page.svelte`](../src/routes/suggestions/+page.svelte), [`recipes/[...id]/+page.svelte`](../src/routes/recipes/[...id]/+page.svelte), [`recipes/new/+page.svelte`](../src/routes/recipes/new/+page.svelte). ADR-016 documents current direction; this gap tracks **migration**, not missing policy.
+- **Owner:** —
+
 ---
 
 ## Deferred / investigated

@@ -1,0 +1,48 @@
+---
+description: ADR-016 — layered async data flow from server/Dexie/TanStack to .svelte loading and error UI
+globs: "src/routes/**,src/lib/api/**/*.ts,src/lib/stores/**"
+alwaysApply: false
+---
+
+# Frontend data flow and Svelte async UX
+
+**Binding:** [ADR-016: Frontend data flow and Svelte DX](../adrs/ADR-016-frontend-data-flow-and-svelte-dx.md) (Accepted). **Related:** [ADR-001](../adrs/ADR-001-product-operating-model.md), [ADR-002](../adrs/ADR-002-local-data-ownership.md), [ADR-006](../adrs/ADR-006-serverless-and-secret-boundary.md), [ADR-008](../adrs/ADR-008-schema-led-domain-contracts.md), [`docs/tanstack-query.md`](../docs/tanstack-query.md), [`.cursor/rules/svelte-5-ui-conventions.mdc`](./svelte-5-ui-conventions.mdc), [`.cursor/rules/local-data-dexie-ownership.mdc`](./local-data-dexie-ownership.mdc), [`.cursor/rules/offline-connectivity-capability.mdc`](./offline-connectivity-capability.mdc).
+
+## Pick the layer first
+
+| If the data is… | Use… | In `.svelte` read… |
+| --- | --- | --- |
+| Local ADR-002 domain (recipes, cached suggestions, etc.) | Dexie via `src/lib/stores/` (`createLiveQueryStore` / `liveQuery`) | `$derived($store)` → `{ data, loading, error }` |
+| Same-origin HTTP (AI, cloud APIs) | `createQuery` in `*.queries.ts` | `$derived($queryStore)` → `data`, `isPending`, `isError`, `error`, `refetch` |
+| Auth redirect or server-only bootstrap | `+page.server.ts` / `+layout.server.ts` `load` | `data` prop; `{#await}` only for a **load promise** |
+| User mutation | Form `actions` + `fail()` / success, or store/domain helper | `enhance()` result; **not** inside `queryFn` |
+
+Do **not** block Dexie-backed recipe pages on network `load` (ADR-001).
+
+## UI rules
+
+- Always surface **loading**, **error**, and **empty** for async work—no silent spinners.
+- Prefer **`$derived` / `$derived.by`** to combine envelopes (Dexie + TanStack + capability flags). Use **`$effect`** only for real side effects (persist to Dexie, navigation, subscriptions)—not to mirror status into a duplicate object.
+- **`{#await}`:** escape hatch for load-returned promises; include **`:catch`** when used ([`.cursor/rules/lint-and-code-quality.mdc`](./lint-and-code-quality.mdc)).
+- **`$effect` + `fetch`:** escape hatch only; short comment explaining why; cleanup on dependency change.
+- **Offline-first remote paths:** read Dexie first; TanStack for **new** fetches; write through store helpers after validated API success (see suggestions page).
+
+## Server / API
+
+- Validate JSON with **Zod** at the handler boundary (ADR-008).
+- Expected failures: `error()` / `fail()` in SvelteKit; JSON APIs return `{ error: string }` (or schema-documented field) + status.
+- Map client errors to the **actual** blocker (offline vs logged out vs permission vs provider)—not a generic “network error” for enhancement-only actions.
+
+## Escape hatches (require justification in PR)
+
+1. `{#await}` on a non-load promise.
+2. Imperative `fetch` in `$effect`.
+3. Hand-managed `ViewState` without deriving from store/query envelopes (legacy—migrate when touching the file; see **GAP-024**).
+
+## New work checklist
+
+- [ ] Data source identified (Dexie / TanStack / load / action).
+- [ ] No secrets or OpenAI client in `.svelte` or client `load` (ADR-006).
+- [ ] `queryFn` is fetch + parse only; mutations in helpers/actions.
+- [ ] Loading and error UI wired to the layer’s envelope.
+- [ ] Enhancement failures degrade without blocking local recipe book.

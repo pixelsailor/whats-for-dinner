@@ -1,6 +1,6 @@
 # TanStack Query in What's For Dinner
 
-This document describes how WFD uses **TanStack Query** (`@tanstack/svelte-query`) for **remote** data that should stay in sync with the UI. It complements the offline-first product model ([ADR-001: Product operating model](../adrs/ADR-001-product-operating-model.md)) and local ownership rules ([ADR-002: Local data ownership](../adrs/ADR-002-local-data-ownership.md)).
+This document describes how WFD uses **TanStack Query** (`@tanstack/svelte-query`) for **remote** data that should stay in sync with the UI. It complements the offline-first product model ([ADR-001: Product operating model](../adrs/ADR-001-product-operating-model.md)), local ownership rules ([ADR-002: Local data ownership](../adrs/ADR-002-local-data-ownership.md)), and the layered front-end data-flow decision ([ADR-016: Frontend data flow and Svelte async UX](../adrs/ADR-016-frontend-data-flow-and-svelte-dx.md)).
 
 ## Role in the stack
 
@@ -48,6 +48,8 @@ Per ADR-001 and ADR-002:
 ## Further reading
 
 - [TanStack Query — Svelte overview](https://tanstack.com/query/latest/docs/framework/svelte/overview)
+- [ADR-016: Frontend data flow and Svelte async UX](../adrs/ADR-016-frontend-data-flow-and-svelte-dx.md) — when to use TanStack vs Dexie stores vs load/actions
+- [`.cursor/rules/frontend-data-flow.mdc`](../.cursor/rules/frontend-data-flow.mdc) — agent checklist for routes and API modules
 - [ADR-001: Product operating model](../adrs/ADR-001-product-operating-model.md) — capability matrix and non-blocking degraded UI
 - [ADR-002: Local data ownership](../adrs/ADR-002-local-data-ownership.md) — Dexie as system of record
 - [`.cursor/rules/offline-first-development.mdc`](../.cursor/rules/offline-first-development.mdc) — offline vs online behavior expectations

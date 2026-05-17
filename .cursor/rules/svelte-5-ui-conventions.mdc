@@ -32,7 +32,7 @@ For **Svelte MCP** (`list-sections`, `get-documentation`, `svelte-autofixer`, `p
 - Use [snippets](https://svelte.dev/docs/svelte/snippet/llms.txt) for reusable markup chunks inside templates.
 - Prefer lifting state or using context over deep prop drilling when it clarifies ownership.
 - Animate transitions and lists with Svelte’s `animate:` directive or `motion` from `svelte-motion` where appropriate.
-- Handle async in `+page.svelte` with `{#await ...}` so pending, success, and error UI stay declarative. See [Await blocks](https://svelte.dev/docs/svelte/await/llms.txt).
+- **Async UI:** Follow [ADR-016](adrs/ADR-016-frontend-data-flow-and-svelte-dx.md) and [`.cursor/rules/frontend-data-flow.mdc`](./frontend-data-flow.mdc)—Dexie/TanStack envelopes by default; `{#await}` only for load-returned promises (include `:catch`). See [Await blocks](https://svelte.dev/docs/svelte/await/llms.txt).
 
 ## Styling and UI primitives
 

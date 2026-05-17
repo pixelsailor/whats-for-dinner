@@ -13,9 +13,15 @@ This service layer is organized into functional domains, each handling specific 
 - **Consistent Patterns**: Standardized service patterns across all modules. Both **remote** and **local** requests should conform to standard **Fetch API** models
 - **Monitoring Ready**: Built-in health checks and metrics collection for observability
 
-## Data fetching (TanStack Query)
+## Data fetching (layered async)
 
-For **remote** HTTP data synchronized with the UI, WFD uses **`@tanstack/svelte-query`** (`createQuery`, shared `queryClient` where needed). Queries must stay compatible with **offline-first** behavior and **Dexie as system of record**—validate responses with Zod, avoid treating query cache as authoritative for ADR-002 domains, and keep `queryFn` free of mutation side effects. See **[`docs/tanstack-query.md`](../../../docs/tanstack-query.md)** and [`.cursor/rules/local-data-dexie-ownership.mdc`](../../../.cursor/rules/local-data-dexie-ownership.mdc) (_Remote and cache layers_).
+WFD uses a **layered** model ([ADR-016](../../../adrs/ADR-016-frontend-data-flow-and-svelte-dx.md), [`.cursor/rules/frontend-data-flow.mdc`](../../../.cursor/rules/frontend-data-flow.mdc)):
+
+- **Dexie / LiveQuery stores** (`src/lib/stores/`) — system of record for ADR-002 domains; `{ data, loading, error }` in components.
+- **TanStack Query** (`createQuery` in `*.queries.ts`) — **remote** same-origin HTTP only; validate with Zod; no durable writes in `queryFn`.
+- **SvelteKit `load` / form actions** — auth gates, server-only bootstrap, and mutations.
+
+For TanStack specifics, see **[`docs/tanstack-query.md`](../../../docs/tanstack-query.md)** and [`.cursor/rules/local-data-dexie-ownership.mdc`](../../../.cursor/rules/local-data-dexie-ownership.mdc) (_Remote and cache layers_).
 
 ## File Structure and Organization Principles
 

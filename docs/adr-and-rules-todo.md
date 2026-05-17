@@ -63,10 +63,11 @@ This backlog turns the project principles in the top-level README into enforceab
   - Identify where each feature should own deeper design docs.
   - **Done:** [`adrs/ADR-012-feature-roadmap-boundaries.md`](../adrs/ADR-012-feature-roadmap-boundaries.md) (Proposed)
 
-- [ ] **ADR + rules: Backend API and middleware patterns for front-end `.svelte` DX**
+- [x] **ADR + rules: Backend API and middleware patterns for front-end `.svelte` DX**
   - Align Accepted ADRs and Cursor rules on a **consistent pattern** for how backend APIs, `+server` / remote handlers, and middleware or layout helpers expose data and errors to **front-end-facing** `.svelte` files (loading, error, and retry semantics in one place).
   - **Decision scope:** whether to favor Svelte’s built-in `{#await …}` (and how it composes with SSR, transitions, and keyed updates) versus more “traditional” approaches (for example imperative `fetch` in `$effect`, stores, TanStack Query, or `+page` / `+layout` `load` promises only).
   - **Process:** document pros and cons of each viable approach (readability, SSR/hydration, cancellation, offline-first and ADR-001/ADR-002 alignment, testability, duplication vs single source of truth) and record the **chosen default** plus explicit **escape hatches** in an ADR (or scoped ADR section) and a matching Cursor rule or extension to existing rules (for example Svelte UI conventions, `src/lib/api/README.md`, and [`docs/tanstack-query.md`](./tanstack-query.md) where queries overlap).
+  - **Done:** [ADR-016](../adrs/ADR-016-frontend-data-flow-and-svelte-dx.md) (Accepted); [`.cursor/rules/frontend-data-flow.mdc`](../.cursor/rules/frontend-data-flow.mdc); cross-links in [`docs/tanstack-query.md`](./tanstack-query.md), [`src/lib/api/README.md`](../src/lib/api/README.md), [`.cursor/rules/svelte-5-ui-conventions.mdc`](../.cursor/rules/svelte-5-ui-conventions.mdc). **GAP-024** tracks legacy page drift until the implementation backlog item below.
 
 - [ ] **Implement production code per “Backend API and middleware patterns for front-end `.svelte` DX”**
   - After the ADR + rules decision above is Accepted and authored, refactor or extend **production** routes, handlers, and `.svelte` surfaces so behavior matches the chosen pattern (consistent loading/error handling, no ad hoc one-off client patterns that contradict the rule set).

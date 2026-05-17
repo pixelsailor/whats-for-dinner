@@ -176,8 +176,9 @@ This backlog turns the project principles in the top-level README into enforceab
 
 Rebased `origin/main` orchestration docs onto local `9f5bb10` (webtech pipeline, Gates 0–6, manifest v2). Resolved conflicts in agent contracts, templates, and guides. Items below need human review or a focused pass — not blocking local work.
 
-- [ ] **Audit `docs/validation-checklist.md` against Gate 0–6 and `gate_status`**
+- [x] **Audit `docs/validation-checklist.md` against Gate 0–6 and `gate_status`**
   - Confirm MG-01–MG-05 and domain rows (OFF-*, AUTH-*, etc.) map clearly to lifecycle Gates 4–5 and merge-ready gates without contradicting small-run skip policy in [`.cursor/agents/orchestrator.md`](../.cursor/agents/orchestrator.md).
+  - **Done (2026-05-16):** [`docs/validation-checklist.md`](./validation-checklist.md) v1.1.0 — section [Lifecycle gates, merge-ready gates, and `gate_status`](./validation-checklist.md#lifecycle-gates-merge-ready-gates-and-gate_status) (dual vocabulary, `gate_status` keys, MG-*/TST-* ↔ lifecycle Gates 4–5, domain rows at lifecycle Gate 5, small-run skip table). MG-* bullets annotated with merge-ready gate numbers. No contradiction with Orchestrator rules 17–18 (ADR areas stay ≥ medium; skipped stages recorded; Gate 6 not skipped for code changes).
 
 - [ ] **Reconcile GOVERNANCE §10.5 with lifecycle Gates 0–6**
   - [GOVERNANCE.md §10.5](../adrs/GOVERNANCE.md#105-merge-ready-gates-orchestrated-efforts) and [workflow-gates.mdc](../.cursor/rules/workflow-gates.mdc) use merge-ready numbering; [`docs/ORCHESTRATED_DEVELOPMENT.md`](./ORCHESTRATED_DEVELOPMENT.md) uses pipeline Gates 0–6. Add a short cross-reference table if readers confuse the two.

@@ -8,7 +8,7 @@ alwaysApply: false
 
 # Validation checklist
 
-**Canonical checklist:** [`docs/validation-checklist.md`](../docs/validation-checklist.md)
+**Canonical checklist:** [`docs/validation-checklist.md`](../docs/validation-checklist.md) (lifecycle Gates 0–6 ↔ `gate_status`, merge-ready MG-01–MG-05, small-run skips: [gate mapping](../docs/validation-checklist.md#lifecycle-gates-merge-ready-gates-and-gate_status))
 
 ## When to use
 

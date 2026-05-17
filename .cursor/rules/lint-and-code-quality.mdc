@@ -16,7 +16,7 @@ alwaysApply: false
 
 **Commands:** `pnpm run lint` runs Prettier (`--check`) and ESLint. `pnpm run format` applies Prettier. Address failures before review.
 
-**Tooling configuration is the source of truth.** Do **not** restate Prettier or ESLint option values in this rule, in [`agents.md`](agents.md), or in code comments — read [`.prettierrc`](.prettierrc) and [`eslint.config.js`](eslint.config.js) directly when you need specifics. If you change a config option, update the config file and (if behavior changes) the relevant ADR or rule prose, not duplicate values across files.
+**Tooling configuration is the source of truth.** Do **not** restate Prettier or ESLint option values in this rule or in code comments — read [`.prettierrc`](.prettierrc) and [`eslint.config.js`](eslint.config.js) directly when you need specifics. If you change a config option, update the config file and (if behavior changes) the relevant ADR or rule prose, not duplicate values across files.
 
 **Architecture:** Follow **Accepted** ADRs in [`adrs/INDEX.md`](adrs/INDEX.md) and [`adrs/GOVERNANCE.md`](adrs/GOVERNANCE.md). Commonly relevant here: [ADR-002](adrs/ADR-002-local-data-ownership.md) (local data / Dexie), [ADR-006](adrs/ADR-006-serverless-and-secret-boundary.md) (serverless and secrets), [ADR-007](adrs/ADR-007-ai-provider-contract.md) (AI provider), [ADR-008](adrs/ADR-008-schema-led-domain-contracts.md) (Zod-led types), [ADR-014](adrs/ADR-014-semantic-html-and-accessibility.md) (semantic HTML and accessibility). [ADR-005](adrs/ADR-005-sync-and-conflict-resolution.md) covers sync semantics when you touch cloud replication (Proposed — design intent, not binding until Accepted).
 

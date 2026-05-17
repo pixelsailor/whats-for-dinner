@@ -124,9 +124,8 @@ For a human-readable walkthrough of the same model, see [docs/ORCHESTRATED_DEVEL
 
 Typical session context for implementers and agents:
 
-- [agents.md](../agents.md) at the repository root (development and stack conventions).
+- [.cursor/rules/index.md](../.cursor/rules/index.md) (agent rule catalog; including `adr-compliance` when present).
 - [.cursor/rules/project-best-practices.mdc](../.cursor/rules/project-best-practices.mdc) and [.cursor/rules/svelte-mcp-workflow.mdc](../.cursor/rules/svelte-mcp-workflow.mdc).
-- Rule catalog: [.cursor/rules/index.md](../.cursor/rules/index.md) (including `adr-compliance` when that rule is present).
 
 ### Lint / automated style
 
@@ -153,7 +152,7 @@ One bounded phase or PR-sized slice this ADR governs for the **current** change 
 
 ### Validator expectations
 
-What the **Validator** must verify against **this ADR**, [agents.md](../agents.md), [.cursor/rules/project-best-practices.mdc](../.cursor/rules/project-best-practices.mdc), and [docs/readme-adr-alignment-gaps.md](../docs/readme-adr-alignment-gaps.md) for recorded implementation drift.
+What the **Validator** must verify against **this ADR**, applicable `.cursor/rules/*` (see [.cursor/rules/index.md](../.cursor/rules/index.md)), [.cursor/rules/project-best-practices.mdc](../.cursor/rules/project-best-practices.mdc), and [docs/readme-adr-alignment-gaps.md](../docs/readme-adr-alignment-gaps.md) for recorded implementation drift.
 
 ### Test role and evidence
 

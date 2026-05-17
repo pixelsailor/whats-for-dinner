@@ -87,7 +87,7 @@ Detailed guidance should live near the code it governs. Use the top-level README
 
 ## Documentation Map
 
-- [`agents.md`](./agents.md): Agent-facing development rules and coding expectations (to be retired when distribution in [`docs/adr-and-rules-todo.md`](./docs/adr-and-rules-todo.md) finishes).
+- [`.cursor/rules/`](./.cursor/rules/) and [`.cursor/rules/index.md`](./.cursor/rules/index.md): Agent-enforced development rules (Svelte, offline-first, Dexie, Supabase, AI, schema, serverless). Distribution record: [`docs/agents-md-distribution-worksheet.md`](./docs/agents-md-distribution-worksheet.md).
 - [`adrs/INDEX.md`](./adrs/INDEX.md): ADR index; [`adrs/TEMPLATE.md`](./adrs/TEMPLATE.md) for authoring new ADRs.
 - [`docs/ORCHESTRATED_DEVELOPMENT.md`](./docs/ORCHESTRATED_DEVELOPMENT.md): WFD agentic orchestration workflow, task artifacts, gates, and handoff prompts.
 - [`src/lib/api/README.md`](./src/lib/api/README.md): API service layer organization.

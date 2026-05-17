@@ -23,24 +23,26 @@ Architecture and boundaries: **`adrs/INDEX.md`** (Accepted ADRs) and **`adrs/GOV
 
 ## Svelte MCP server
 
-When the task involves **Svelte or SvelteKit** (components, runes, routes, loads, SSR), use the **Svelte MCP** tools in this order:
+When the task involves **Svelte or SvelteKit** (components, runes, routes, loads, SSR), use the **Svelte MCP** tools in this order. For WFD-specific runes, UI, accessibility, and component patterns, follow [`.cursor/rules/svelte-5-ui-conventions.mdc`](./svelte-5-ui-conventions.mdc) after fetching upstream Svelte docs.
 
 ### 1. `list-sections`
 
-Call **first** to discover documentation sections (titles, `use_cases`, paths).
+Call **first** when the task touches Svelte or SvelteKit. Returns sections with titles, `use_cases`, and paths — use it to discover what to read before implementing.
 
 ### 2. `get-documentation`
 
-After choosing relevant sections from `list-sections`, fetch **all** sections needed for the task. Use `use_cases` to decide scope.
+After `list-sections`, **analyze** returned sections (especially `use_cases`) and fetch **all** documentation sections relevant to the task. Do not skip sections that apply to the change.
 
 ### 3. `svelte-autofixer`
 
-Run on **Svelte code you author or edit**. **Repeat** until it reports no issues or suggestions.
+**Must** run on **every** Svelte file you author or edit **before** finishing the task. **Repeat** until it reports no issues or suggestions.
 
 ### 4. `playground-link`
 
-Only after the user **confirms** they want a playground link. **Do not** call if code was written into this repository’s files (use local files instead).
+Only after the user **confirms** they want a playground link. **Never** call when code was written into this repository’s files (use local files instead).
 
 ---
 
-Human contributors: **`README.md`**, **`adrs/INDEX.md`**, and `.cursor/rules/`. Agent-oriented distribution of `agents.md`: [`docs/adr-and-rules-todo.md`](docs/adr-and-rules-todo.md).
+**Related:** [`.cursor/rules/svelte-5-ui-conventions.mdc`](./svelte-5-ui-conventions.mdc) (WFD `.svelte` patterns, testing pointers).
+
+Human contributors: [`README.md`](../README.md), [`adrs/INDEX.md`](../adrs/INDEX.md), [`.cursor/rules/`](../.cursor/rules/) ([`index.md`](./index.md)).

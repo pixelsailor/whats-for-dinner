@@ -219,7 +219,7 @@ Repo-specific orchestration lives under `.cursor/agents/` and `.cursor/orchestra
 
 ### 10.3 Conventions and tooling
 
-Same references as in [TEMPLATE.md](TEMPLATE.md) **Orchestrated development** (root [agents.md](../agents.md), `.cursor/rules/*`, [eslint.config.js](../eslint.config.js)). If a linked file is missing, file a backlog item—do not treat gaps as implicit policy.
+Same references as in [TEMPLATE.md](TEMPLATE.md) **Orchestrated development** ([`.cursor/rules/index.md`](../.cursor/rules/index.md), `.cursor/rules/*`, [eslint.config.js](../eslint.config.js)). If a linked file is missing, file a backlog item—do not treat gaps as implicit policy.
 
 ### 10.4 ADR template subsections for orchestrated work
 

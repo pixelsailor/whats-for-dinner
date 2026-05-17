@@ -86,7 +86,7 @@ We will **not** run **secret-bearing logic** in the service worker; it performs 
 
 ## Enforcement rules
 
-- **Cursor / agent rules:** The future **offline-first development** rule should require new features to state behavior when the SW cache is cold, warm, or stale, and to avoid mandatory network for core recipe flows ([ADR-001](ADR-001-product-operating-model.md)).
+- **Cursor / agent rules:** [`.cursor/rules/offline-first-development.mdc`](../.cursor/rules/offline-first-development.mdc) and [`.cursor/rules/offline-connectivity-capability.mdc`](../.cursor/rules/offline-connectivity-capability.mdc) require new features to state behavior when the SW cache is cold, warm, or stale, and to avoid mandatory network for core recipe flows ([ADR-001](ADR-001-product-operating-model.md)).
 - **Code / architecture:** Changes to `src/service-worker.js` must preserve: **versioned** cache names; **static vs document** split; **no cross-origin interception**; **no secrets** in the worker. Add **tests or manual checklist** evidence when changing fetch strategies.
 - **When to revisit:** Introduction of significant **GET** APIs, auth-sensitive **GET** responses, or a move to **Workbox** / another toolkit warrants updating this ADR rather than silent drift.
 

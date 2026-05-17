@@ -19,7 +19,7 @@ WFD is offline-first and anonymous-first; OpenAI and account-backed cloud featur
 
 ### Decision pressure (required)
 
-Deployment targets are serverless or edge-capable (see [agents.md](../agents.md): remote functions and handlers should remain compatible with constrained runtimes). Secrets must never be exposed to anonymous clients or shipped in static client JS. The project already routes AI through HTTP handlers; this ADR locks that pattern in as architecture, not accident.
+Deployment targets are serverless or edge-capable: SvelteKit server handlers and [remote functions](https://svelte.dev/docs/kit/remote-functions) must remain compatible with constrained runtimes (decision §5; [`.cursor/rules/serverless-compatibility.mdc`](../.cursor/rules/serverless-compatibility.mdc)). Secrets must never be exposed to anonymous clients or shipped in static client JS. The project already routes AI through HTTP handlers; this ADR locks that pattern in as architecture, not accident.
 
 ### Supporting context
 
@@ -88,7 +88,7 @@ Deployment targets are serverless or edge-capable (see [agents.md](../agents.md)
 
 ## Enforcement rules
 
-- **Cursor / agent rules:** [`.cursor/rules/serverless-compatibility.mdc`](../.cursor/rules/serverless-compatibility.mdc) cites this ADR (server graphs, public vs private env, portability). [`agents.md`](../agents.md) remains a transitional reference until the **Legacy `agents.md` Distribution** work in [`docs/adr-and-rules-todo.md`](../docs/adr-and-rules-todo.md) completes.
+- **Cursor / agent rules:** [`.cursor/rules/serverless-compatibility.mdc`](../.cursor/rules/serverless-compatibility.mdc) cites this ADR (server graphs, public vs private env, portability).
 - **Code / architecture:** Block PRs that add `$env/static/private` or OpenAI clients to `.svelte` files, `+page.ts`/`+layout.ts` (client), or shared modules imported from those. Flag Node-only APIs in code paths used by `+server.ts` unless the project explicitly documents a Node-only deployment slice.
 - **When to revisit:** New deployment adapter (edge vs Node), introduction of Supabase service role, or a first-class **user-provided AI endpoint** model (likely paired with a future provider/self-host ADR).
 

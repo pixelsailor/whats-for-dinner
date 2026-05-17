@@ -8,7 +8,7 @@ import { RecipeSchema } from './schema';
 
 /**
  * Requests a OpenAI create a recipe based on the provided _title_ and _description_.
- * 
+ *
  * @param title - The title of the recipe being requested
  * @param desc - The short description of the recipe being requested
  * @param userPreferences - Recipe requirements based on user restrictions/preferences
@@ -16,12 +16,8 @@ import { RecipeSchema } from './schema';
  * @deprecated
  * @see $lib/queries/recipes.ts
  */
-export async function getFullRecipe(
-	title: string,
-	desc: string,
-	userPreferences?: string
-): Promise<['detail', string | null]> {
-	const systemPrompt = `
+export async function getFullRecipe(title: string, desc: string, userPreferences?: string): Promise<['detail', string | null]> {
+  const systemPrompt = `
 You are an expert culinary assistant. You are thoughtful about flavor profiles, ingredients and 
 traditional preparation methods. When listing ingredients, group by role (e.g. "For the Sauce") and
 sort with dry ingredients first, then wet ingredients. Be mindful of elements that should be 
@@ -54,22 +50,22 @@ Examples of good tag combinations:
 ${userPreferences || '_none_'}
 `;
 
-	try {
-		const response = await openai.responses.parse({
-			model: 'gpt-5-nano',
-			input: [
-				{ role: 'system', content: systemPrompt },
-				{ role: 'user', content: `Give me the full recipe for "${title}", described as "${desc}".` }
-			],
-			// temperature,
-			text: {
-				format: zodTextFormat(RecipeSchema, 'recipe')
-			}
-		});
+  try {
+    const response = await openai.responses.parse({
+      model: 'gpt-5-nano',
+      input: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: `Give me the full recipe for "${title}", described as "${desc}".` }
+      ],
+      // temperature,
+      text: {
+        format: zodTextFormat(RecipeSchema, 'recipe')
+      }
+    });
 
-		return ['detail', response.output_text ?? null];
-	} catch (err) {
-		console.error('OpenAI API error:', err);
-		throw err;
-	}
+    return ['detail', response.output_text ?? null];
+  } catch (err) {
+    console.error('OpenAI API error:', err);
+    throw err;
+  }
 }

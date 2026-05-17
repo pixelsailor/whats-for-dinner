@@ -44,7 +44,7 @@ sequenceDiagram
     User->>Component: Enter prompt
     Component->>Store: getPromptRequestWithThrottle(prompt, 5000)
     Store->>Dexie: Query prompt_requests
-    
+
     alt Request found within 5 seconds
         Dexie-->>Store: Return existing request
         Store-->>Component: Return request with suggestion_ids
@@ -68,9 +68,7 @@ Suggestions are always displayed from Dexie via a LiveQuery subscription:
 
 ```typescript
 // LiveQuery store - automatically updates when Dexie changes
-let promptSuggestionsStore = $derived.by(() => 
-  suggestionsByPromptStore(sanitizedPrompt)
-);
+let promptSuggestionsStore = $derived.by(() => suggestionsByPromptStore(sanitizedPrompt));
 
 // Subscribe to get reactive updates
 let promptSuggestionsResult = $derived($promptSuggestionsStore);
@@ -88,6 +86,7 @@ After suggestions are loaded, the URL is updated to include the `request_id`:
 ```
 
 This enables:
+
 - Direct linking to suggestion results
 - Faster reload (skips Dexie throttle check)
 - Debugging and tracking
@@ -110,9 +109,9 @@ When no `prompt` parameter is in the URL, the suggestions page shows the full hi
 // History view uses the suggestionHistory store
 let filteredSuggestions = $derived.by(() => {
   if (!search || search.length <= 2) {
-    return $suggestionHistory;  // All suggestions, newest first
+    return $suggestionHistory; // All suggestions, newest first
   } else {
-    return filterSuggestions(search);  // Filtered by search term
+    return filterSuggestions(search); // Filtered by search term
   }
 });
 ```
@@ -159,7 +158,7 @@ sequenceDiagram
     User->>Component: Navigate to recipe page
     Component->>Store: suggestionStoreById(id)
     Store->>Dexie: Query suggestions by id
-    
+
     alt Full recipe exists in Dexie
         Dexie-->>Store: Return suggestion with ingredients/instructions
         Store-->>Component: Return full recipe
@@ -205,18 +204,18 @@ View full recipe → Click "Save recipe" → Recipe saved to /recipes
 ```mermaid
 flowchart TD
     Start[User clicks Save Recipe] --> CheckCloud{Has cloud access?}
-    
+
     CheckCloud -->|Yes| TryCloudSave[Attempt cloud save via Supabase]
     TryCloudSave --> CloudSuccess{Success?}
-    
+
     CloudSuccess -->|Yes| SaveLocal[Save to local Dexie recipes table]
     SaveLocal --> Toast[Show success toast]
     Toast --> Navigate[Navigate to /recipes/id]
-    
+
     CloudSuccess -->|No| FallbackLocal[Save locally with sync_error]
     FallbackLocal --> InfoToast[Show info toast: saved locally]
     InfoToast --> Navigate
-    
+
     CheckCloud -->|No| DirectLocal[Save to local Dexie only]
     DirectLocal --> Toast
 ```
@@ -237,7 +236,7 @@ function createSavedRecipe(recipe: FullRecipe): SavedRecipe {
     version: 1,
     is_current: true,
     is_favorite: false,
-    synced: false,
+    synced: false
     // ... other metadata
   };
 }
@@ -249,20 +248,20 @@ function createSavedRecipe(recipe: FullRecipe): SavedRecipe {
 
 ### What Works Offline
 
-| Feature | Offline Behavior |
-|---------|-----------------|
-| View suggestion history | Full access to all cached suggestions |
+| Feature                        | Offline Behavior                           |
+| ------------------------------ | ------------------------------------------ |
+| View suggestion history        | Full access to all cached suggestions      |
 | View previously loaded recipes | Full access if recipe was generated before |
-| Search history | Works on cached data |
-| Delete suggestions | Works, syncs later |
+| Search history                 | Works on cached data                       |
+| Delete suggestions             | Works, syncs later                         |
 
 ### What Requires Network
 
-| Feature | Offline Behavior |
-|---------|-----------------|
-| Request new suggestions | Shows restriction message |
+| Feature                   | Offline Behavior          |
+| ------------------------- | ------------------------- |
+| Request new suggestions   | Shows restriction message |
 | Generate new full recipes | Shows restriction message |
-| Cloud sync | Queued for later |
+| Cloud sync                | Queued for later          |
 
 ### Detection
 
@@ -275,7 +274,7 @@ let aiCapability = $derived(
     session: data.session,
     permissions: data.permissions,
     featureFlags: data.featureFlags,
-    online: network.online  // Key offline detection
+    online: network.online // Key offline detection
   })
 );
 ```
@@ -295,19 +294,19 @@ When offline, the appropriate restriction message is shown:
 ```mermaid
 stateDiagram-v2
     [*] --> CheckPrompt
-    
+
     CheckPrompt --> IdleHistory: No prompt
     CheckPrompt --> CheckDexie: Has prompt
-    
+
     CheckDexie --> Loading: Checking for existing request
-    
+
     Loading --> IdlePrompt: Suggestions found in Dexie
     Loading --> MakingRequest: No existing request
-    
+
     MakingRequest --> Loading: API call in progress
     MakingRequest --> Error: API error
     MakingRequest --> IdlePrompt: Success, saved to Dexie
-    
+
     IdlePrompt --> [*]: User clicks suggestion
     IdleHistory --> CheckPrompt: User enters prompt
     Error --> CheckPrompt: User retries
@@ -318,20 +317,20 @@ stateDiagram-v2
 ```mermaid
 stateDiagram-v2
     [*] --> LoadFromDexie
-    
+
     LoadFromDexie --> HasFullRecipe: Full recipe in Dexie
     LoadFromDexie --> NeedsGeneration: Only summary in Dexie
     LoadFromDexie --> Error: Suggestion not found
-    
+
     HasFullRecipe --> Idle: Display recipe
-    
+
     NeedsGeneration --> CheckAI
     CheckAI --> Loading: Can use AI
     CheckAI --> NoAI: Cannot use AI
-    
+
     Loading --> Idle: Recipe generated & saved
     Loading --> Error: API error
-    
+
     Idle --> [*]: User saves or navigates away
     NoAI --> [*]: User navigates away
     Error --> [*]: User navigates away
@@ -381,11 +380,6 @@ stateDiagram-v2
   "request_id": 1704369600000,
   "prompt": "quick pasta dishes",
   "created_at": "2024-01-04T12:00:00.000Z",
-  "suggestion_ids": [
-    "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-    "b2c3d4e5-f6a7-8901-bcde-f12345678901",
-    "c3d4e5f6-a7b8-9012-cdef-123456789012"
-  ]
+  "suggestion_ids": ["a1b2c3d4-e5f6-7890-abcd-ef1234567890", "b2c3d4e5-f6a7-8901-bcde-f12345678901", "c3d4e5f6-a7b8-9012-cdef-123456789012"]
 }
 ```
-

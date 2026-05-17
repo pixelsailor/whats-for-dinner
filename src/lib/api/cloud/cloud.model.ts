@@ -1,24 +1,19 @@
 import type { SavedRecipe } from '../recipe/recipe.types';
-import type {
-  ConflictResolution,
-  SyncConflict,
-  SyncPlan,
-  SyncScenario,
-} from './cloud.types';
+import type { ConflictResolution, SyncConflict, SyncPlan, SyncScenario } from './cloud.types';
 import toMillis from '$lib/utils/toMilliseconds';
 
 /**
  * Cloud Models
- * 
+ *
  * Pure helpers for cloud backup and synchronization of recipes.
  * Keep this module side-effect free (no Dexie/Supabase imports).
  */
 
 /**
  * Check if a recipe is active.
- * 
+ *
  * A recipe is active if it is not archived and not deleted.
- * 
+ *
  * @param recipe - The recipe to check.
  * @returns True if the recipe is active, false otherwise.
  */
@@ -90,17 +85,14 @@ export const categorizeConflict = (conflict: SyncConflict): ConflictResolution =
 
 /**
  * Build a sync plan for syncing recipes between local and remote.
- * 
+ *
  * The sync plan is a list of recipes that need to be uploaded, downloaded, or have conflicts.
- * 
+ *
  * @param localRecipes - The local recipes to sync.
  * @param remoteRecipes - The remote recipes to sync.
  * @returns The sync plan.
  */
-export const buildSyncPlan = (
-  localRecipes: SavedRecipe[],
-  remoteRecipes: SavedRecipe[],
-): SyncPlan => {
+export const buildSyncPlan = (localRecipes: SavedRecipe[], remoteRecipes: SavedRecipe[]): SyncPlan => {
   const remoteById = new Map(remoteRecipes.map((recipe) => [recipe.id, recipe]));
 
   const localOnly: SavedRecipe[] = [];
@@ -150,6 +142,6 @@ export const buildSyncPlan = (
     conflicts,
     matched,
     autoResolvable,
-    manualConflicts,
+    manualConflicts
   };
 };

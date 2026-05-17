@@ -6,32 +6,19 @@ const CACHE_NAME = `app-cache-${version}`;
 const DATA_CACHE = `data-cache-${version}`;
 
 // All static assets: compiled JS/CSS, app icons, etc.
-const staticAssets = [
-  ...build,
-  ...files
-];
+const staticAssets = [...build, ...files];
 const staticAssetSet = new Set(staticAssets);
 const dataRoutePrefixes = ['/recipes', '/recommendations', '/suggestions', '/preferences'];
 
 // Install: preload all static assets
 self.addEventListener('install', (event) => {
   self.skipWaiting();
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(staticAssets))
-  );
+  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(staticAssets)));
 });
 
 // Activate: clean up old caches
 self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
-        keys
-          .filter((key) => key !== CACHE_NAME && key !== DATA_CACHE)
-          .map((key) => caches.delete(key))
-      )
-    )
-  );
+  event.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME && key !== DATA_CACHE).map((key) => caches.delete(key)))));
 });
 
 // Fetch handler
@@ -76,9 +63,7 @@ self.addEventListener('fetch', (event) => {
 
 const shouldCacheData = (pathname) => {
   if (!pathname) return false;
-  return dataRoutePrefixes.some((prefix) =>
-    pathname === prefix || pathname.startsWith(`${prefix}/`)
-  );
+  return dataRoutePrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 };
 
 // Helper: network-first with cache fallback

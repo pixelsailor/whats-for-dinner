@@ -2,5 +2,5 @@ import { OPENAI_API_KEY } from '$env/static/private';
 import { OpenAI } from 'openai/client.js';
 
 export const openai = new OpenAI({
-	apiKey: OPENAI_API_KEY
+  apiKey: OPENAI_API_KEY
 });

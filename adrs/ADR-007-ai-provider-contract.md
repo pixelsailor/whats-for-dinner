@@ -39,12 +39,12 @@ The codebase has **two parallel integration styles** (deprecated Chat Completion
 
 ### Legacy Chat Completions inventory (refactor / removal targets)
 
-| Location | Role |
-| -------- | ---- |
-| [`src/lib/server/openai.ts`](../src/lib/server/openai.ts) | All `openai.chat.completions.create` usage; central legacy module to retire after call sites migrate. |
-| [`src/routes/api/recipes/+server.ts`](../src/routes/api/recipes/+server.ts) | Recipe AI HTTP handlers that call `$lib/server/openai`. |
-| [`src/routes/recipes/[...id]/+page.server.ts`](../src/routes/recipes/[...id]/+page.server.ts) | Server actions calling `$lib/server/openai` (revisions, Q&A, etc.). |
-| [`src/lib/api/ai/ai.model.ts`](../src/lib/api/ai/ai.model.ts) | Commented-out `chat.completions.create` snippets only — remove when cleaning dead code; **active** AI in this module uses `responses.create`. |
+| Location                                                                                      | Role                                                                                                                                          |
+| --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`src/lib/server/openai.ts`](../src/lib/server/openai.ts)                                     | All `openai.chat.completions.create` usage; central legacy module to retire after call sites migrate.                                         |
+| [`src/routes/api/recipes/+server.ts`](../src/routes/api/recipes/+server.ts)                   | Recipe AI HTTP handlers that call `$lib/server/openai`.                                                                                       |
+| [`src/routes/recipes/[...id]/+page.server.ts`](../src/routes/recipes/[...id]/+page.server.ts) | Server actions calling `$lib/server/openai` (revisions, Q&A, etc.).                                                                           |
+| [`src/lib/api/ai/ai.model.ts`](../src/lib/api/ai/ai.model.ts)                                 | Commented-out `chat.completions.create` snippets only — remove when cleaning dead code; **active** AI in this module uses `responses.create`. |
 
 3. **Structured response contract**
    - For Responses-based calls, the Zod schema passed to `zodTextFormat` is the **authoritative** shape for that response; the model output must be treated as invalid if the SDK/schema pipeline fails.
@@ -86,12 +86,12 @@ The codebase has **two parallel integration styles** (deprecated Chat Completion
 
 ### Risks and mitigations
 
-| Risk | Mitigation |
-| ---- | ---------- |
-| Schema drift between OpenAI output and UI | Co-locate Zod schemas with AI module; use strict parsing at the route boundary when returning JSON. |
-| Overly rich Zod on `zodTextFormat` | Keep structured-output schemas JSON-plain + `.describe()`; run transforms in a second parse (see **Structured response contract** § `zodTextFormat` schema shape). |
-| Accidental client import of server AI module | Follow ADR-006; avoid barrels that mix server implementations with client imports. |
-| Provider outage or rate limits | User-visible errors; optional future retry policy; dedup/throttle for suggestions per ADR-003. |
+| Risk                                         | Mitigation                                                                                                                                                         |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Schema drift between OpenAI output and UI    | Co-locate Zod schemas with AI module; use strict parsing at the route boundary when returning JSON.                                                                |
+| Overly rich Zod on `zodTextFormat`           | Keep structured-output schemas JSON-plain + `.describe()`; run transforms in a second parse (see **Structured response contract** § `zodTextFormat` schema shape). |
+| Accidental client import of server AI module | Follow ADR-006; avoid barrels that mix server implementations with client imports.                                                                                 |
+| Provider outage or rate limits               | User-visible errors; optional future retry policy; dedup/throttle for suggestions per ADR-003.                                                                     |
 
 ## Operational impact
 

@@ -1,8 +1,8 @@
 /**
  * Preferences Store
- * 
+ *
  * Handles the user's preferences for recipe suggestions and instructions.
- * 
+ *
  * @deprecated Use AccountService instead. @see src/lib/api/account/account.service.ts
  */
 
@@ -15,6 +15,6 @@ export const preferences = createLiveQueryStore(async () => {
 });
 
 export const updatePreferences = async (updates: Partial<UserPreferences>) => {
-	const current = await db.preferences.get('preferences');
-	await db.preferences.put({ ...current, ...updates, id: 'preferences' });
-}
+  const current = await db.preferences.get('preferences');
+  await db.preferences.put({ ...current, ...updates, id: 'preferences' });
+};

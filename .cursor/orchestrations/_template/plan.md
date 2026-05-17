@@ -26,8 +26,8 @@ Replace `wfd-000` with `task_id`. Delete HTML comments and placeholder bullets b
 
 | Phase | Goal | Done when |
 | ----- | ---- | --------- |
-| 1 | | |
-| 2 | | |
+| 1     |      |           |
+| 2     |      |           |
 
 ### Phase 1 — (title)
 
@@ -45,9 +45,9 @@ Replace `wfd-000` with `task_id`. Delete HTML comments and placeholder bullets b
 
 <!-- Every path to create or modify, with purpose. Align with phases above. -->
 
-| Path | Action | Purpose |
-| ---- | ------ | ------- |
-| `src/...` | create / modify | |
+| Path      | Action          | Purpose |
+| --------- | --------------- | ------- |
+| `src/...` | create / modify |         |
 
 ## Interface contracts
 
@@ -64,18 +64,18 @@ Replace `wfd-000` with `task_id`. Delete HTML comments and placeholder bullets b
 
 <!-- Exact pnpm commands from package.json. How Test and Validator confirm success. Tie to AC IDs where helpful. Pull applicable items from docs/validation-checklist.md (OFF-*, NET-*, AUTH-*, etc.). -->
 
-| Step | Owner | Command or check | Pass criteria |
-| ---- | ----- | ---------------- | ------------- |
-| Lint / types | Builder / Validator | `pnpm run lint`, `pnpm run check` | No new errors in touched paths |
-| Unit / component tests | Test | `pnpm run test` or scoped `--project server` / `client` (see `docs/test-matrix-template.md`) | AC-… covered in `test-report.md` |
-| Offline / anonymous smoke | Test / Validator | (describe: Dexie-only path, `navigator.onLine`, etc.) | AC-… |
-| Manual QA | Human | (only if automation cannot cover) | AC-… |
+| Step                      | Owner               | Command or check                                                                             | Pass criteria                    |
+| ------------------------- | ------------------- | -------------------------------------------------------------------------------------------- | -------------------------------- |
+| Lint / types              | Builder / Validator | `pnpm run lint`, `pnpm run check`                                                            | No new errors in touched paths   |
+| Unit / component tests    | Test                | `pnpm run test` or scoped `--project server` / `client` (see `docs/test-matrix-template.md`) | AC-… covered in `test-report.md` |
+| Offline / anonymous smoke | Test / Validator    | (describe: Dexie-only path, `navigator.onLine`, etc.)                                        | AC-…                             |
+| Manual QA                 | Human               | (only if automation cannot cover)                                                            | AC-…                             |
 
 ## Risks
 
-| Risk | Likelihood | Impact | Mitigation |
-| ---- | ---------- | ------ | ---------- |
-| | low / med / high | | |
+| Risk | Likelihood       | Impact | Mitigation |
+| ---- | ---------------- | ------ | ---------- |
+|      | low / med / high |        |            |
 
 ## Rollback
 

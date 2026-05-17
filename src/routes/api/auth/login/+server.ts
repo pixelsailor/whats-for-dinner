@@ -5,19 +5,19 @@ import type { RequestHandler } from './$types.js';
 // import { PUBLIC_SUPABASE_PUBLISHABLE_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public';
 
 export const POST: RequestHandler = async ({ locals, request }) => {
-	const { email, password } = await request.json();
+  const { email, password } = await request.json();
 
-	const { error } = await locals.supabase.auth.signInWithPassword({
-		email,
-		password
-	});
+  const { error } = await locals.supabase.auth.signInWithPassword({
+    email,
+    password
+  });
 
-	if (error) {
-		return new Response(error.message, { status: 401 });
-	}
+  if (error) {
+    return new Response(error.message, { status: 401 });
+  }
 
-	// Cookie is automatically set by auth-helpers
-	return new Response('OK', { status: 200 });
+  // Cookie is automatically set by auth-helpers
+  return new Response('OK', { status: 200 });
 };
 
 // export const POST: RequestHandler = async ({ request, cookies }) => {

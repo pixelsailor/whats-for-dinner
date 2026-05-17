@@ -1,21 +1,21 @@
 /**
  * OpenAI Server
- * 
+ *
  * Server-side functions for interacting with the OpenAI API.
- * 
+ *
  * @deprecated Use the functions from $lib/api/ai instead.
  * @see $lib/api/ai/ai.model.ts
  */
 import type {
-	FullRecipe,
-	PromptContext,
-	RecipeAddendum,
-	RecipeAddendumResponse,
-	RecipeAssistanceResponse,
-	RecipeDetailResponse,
-	RecipeRevisionResponse,
-	RecipeSuggestionsResponse,
-	RecipeSummary
+  FullRecipe,
+  PromptContext,
+  RecipeAddendum,
+  RecipeAddendumResponse,
+  RecipeAssistanceResponse,
+  RecipeDetailResponse,
+  RecipeRevisionResponse,
+  RecipeSuggestionsResponse,
+  RecipeSummary
 } from '$lib/types';
 import { PromptContextEnum } from '$lib/types';
 import type { ChatCompletionMessageParam } from 'openai/resources';
@@ -32,42 +32,42 @@ let client: OpenAI | null = null;
 
 /**
  * Get the OpenAI client.
- * 
+ *
  * @returns The OpenAI client.
  */
 function getOpenAI(): OpenAI {
-	if (!OPENAI_API_KEY) {
-		throw new Error(OPENAI_DISABLED_ERROR);
-	}
+  if (!OPENAI_API_KEY) {
+    throw new Error(OPENAI_DISABLED_ERROR);
+  }
 
-	if (!client) {
-		client = new OpenAI({
-			apiKey: OPENAI_API_KEY
-		});
-	}
+  if (!client) {
+    client = new OpenAI({
+      apiKey: OPENAI_API_KEY
+    });
+  }
 
-	return client;
+  return client;
 }
 
 type ChatContent = string | null | undefined;
 
 function ensureContent(raw: ChatContent, context: PromptContext): string {
-	if (!raw || !raw.trim()) {
-		throw new Error(`OpenAI returned an empty response for "${context}".`);
-	}
+  if (!raw || !raw.trim()) {
+    throw new Error(`OpenAI returned an empty response for "${context}".`);
+  }
 
-	return raw;
+  return raw;
 }
 
 function parseJsonPayload<TPayload>(raw: ChatContent, context: PromptContext): TPayload {
-	const content = ensureContent(raw, context);
+  const content = ensureContent(raw, context);
 
-	try {
-		return JSON.parse(content) as TPayload;
-	} catch (error) {
-		console.error(`Failed to parse OpenAI JSON for "${context}".`, { content, error });
-		throw new Error(`Failed to parse OpenAI JSON for "${context}".`);
-	}
+  try {
+    return JSON.parse(content) as TPayload;
+  } catch (error) {
+    console.error(`Failed to parse OpenAI JSON for "${context}".`, { content, error });
+    throw new Error(`Failed to parse OpenAI JSON for "${context}".`);
+  }
 }
 
 /**
@@ -76,14 +76,11 @@ function parseJsonPayload<TPayload>(raw: ChatContent, context: PromptContext): T
  * @returns Tuple where the first item is the prompt context and the second item is
  * a parsed array of `RecipeSummary` objects.
  */
-export async function getRecipeSuggestions(
-	input: string,
-	userPreferences: string
-): Promise<RecipeSuggestionsResponse> {
-	const messages: ChatCompletionMessageParam[] = [
-		{
-			role: 'system',
-			content: `You are a meal planner. Response with a JSON array of 4-8 recipe ideas based on the users's input.
+export async function getRecipeSuggestions(input: string, userPreferences: string): Promise<RecipeSuggestionsResponse> {
+  const messages: ChatCompletionMessageParam[] = [
+    {
+      role: 'system',
+      content: `You are a meal planner. Response with a JSON array of 4-8 recipe ideas based on the users's input.
 			Pay attention to the user's request. Meal ideas should be assumed unless otherwise specified.
 			${userPreferences}
 
@@ -94,36 +91,33 @@ export async function getRecipeSuggestions(
       - tags (e.g., ["vegetarian", "quick"])
       
       DO NOT include anything outside of the JSON response.`
-		},
-		{
-			role: 'user',
-			content: input
-		},
-	];
+    },
+    {
+      role: 'user',
+      content: input
+    }
+  ];
 
-	try {
-		const openai = getOpenAI();
-		// const response = await openai.responses.parse({
-		// 	model,
-		// 	input: messages,
-		// 	text: zodResponseFormat(SummaryResponse, 'summary')
-		// });
-		const response = await openai.chat.completions.create({
-			model,
-			messages,
-			temperature,
-		});
+  try {
+    const openai = getOpenAI();
+    // const response = await openai.responses.parse({
+    // 	model,
+    // 	input: messages,
+    // 	text: zodResponseFormat(SummaryResponse, 'summary')
+    // });
+    const response = await openai.chat.completions.create({
+      model,
+      messages,
+      temperature
+    });
 
-		const payload = parseJsonPayload<RecipeSummary[]>(
-			response.choices[0]?.message?.content,
-			PromptContextEnum.SUMMARIES
-		);
+    const payload = parseJsonPayload<RecipeSummary[]>(response.choices[0]?.message?.content, PromptContextEnum.SUMMARIES);
 
-		return [PromptContextEnum.SUMMARIES, payload];
-	} catch (error) {
-		console.error('OpenAI API error:', error);
-		throw error;
-	}
+    return [PromptContextEnum.SUMMARIES, payload];
+  } catch (error) {
+    console.error('OpenAI API error:', error);
+    throw error;
+  }
 }
 
 /**
@@ -131,15 +125,11 @@ export async function getRecipeSuggestions(
  *
  * @returns Tuple of `[PromptContextEnum.DETAIL, FullRecipe]`.
  */
-export async function getFullRecipe(
-	title: string,
-	desc: string,
-	userPreferences?: string
-): Promise<RecipeDetailResponse> {
-	const messages: ChatCompletionMessageParam[] = [
-		{
-			role: 'system',
-			content: `You are an expert culinary assistant. You are thoughtful about flavor profiles,
+export async function getFullRecipe(title: string, desc: string, userPreferences?: string): Promise<RecipeDetailResponse> {
+  const messages: ChatCompletionMessageParam[] = [
+    {
+      role: 'system',
+      content: `You are an expert culinary assistant. You are thoughtful about flavor profiles,
 ingredients and traditional preparation methods. Consider the steps necessary during preparation
 -- whether items that will be combined should be prepared/cooked separately, at the same time. Be
 considerate of the total time an item may spend cooking if additional items are added that must be
@@ -180,31 +170,28 @@ Formatting Guidelines:
 
 Keep your formatting consistent and minimal.
 `
-		},
-		{
-			role: 'user',
-			content: `Give me the full recipe for, "${title}", as described by, "${desc}"`
-		}
-	];
+    },
+    {
+      role: 'user',
+      content: `Give me the full recipe for, "${title}", as described by, "${desc}"`
+    }
+  ];
 
-	try {
-		const openai = getOpenAI();
-		const response = await openai.chat.completions.create({
-			model,
-			messages,
-			temperature
-		});
+  try {
+    const openai = getOpenAI();
+    const response = await openai.chat.completions.create({
+      model,
+      messages,
+      temperature
+    });
 
-		const payload = parseJsonPayload<FullRecipe>(
-			response.choices[0]?.message?.content,
-			PromptContextEnum.DETAIL
-		);
+    const payload = parseJsonPayload<FullRecipe>(response.choices[0]?.message?.content, PromptContextEnum.DETAIL);
 
-		return [PromptContextEnum.DETAIL, payload];
-	} catch (err) {
-		console.error('OpenAI API error:', err);
-		throw err;
-	}
+    return [PromptContextEnum.DETAIL, payload];
+  } catch (err) {
+    console.error('OpenAI API error:', err);
+    throw err;
+  }
 }
 
 /**
@@ -212,14 +199,11 @@ Keep your formatting consistent and minimal.
  *
  * @returns Tuple of `[PromptContextEnum.REVISION, FullRecipe]`.
  */
-export async function requestRecipeModifications(
-	input: string,
-	recipe: string
-): Promise<RecipeRevisionResponse> {
-	const messages: ChatCompletionMessageParam[] = [
-		{
-			role: 'system',
-			content: `You are an expert culinary assistant. A user will give you a recipe and a request to modify it.
+export async function requestRecipeModifications(input: string, recipe: string): Promise<RecipeRevisionResponse> {
+  const messages: ChatCompletionMessageParam[] = [
+    {
+      role: 'system',
+      content: `You are an expert culinary assistant. A user will give you a recipe and a request to modify it.
 You must respond ONLY with a full updated version of the recipe in JSON format that includes:
 
 {
@@ -240,36 +224,33 @@ If a field was not changed, preserve the original values.
 Use clean, readable markdown where applicable. Do not use emojis.
 Ensure the JSON is valid and parseable.
 `
-		},
-		{
-			role: 'user',
-			content: `Here is the recipe:
+    },
+    {
+      role: 'user',
+      content: `Here is the recipe:
 ${recipe}
 
 Here is the user's modification request:
 
 "${input}"
 `
-		}
-	];
-	try {
-		const openai = getOpenAI();
-		const response = await openai.chat.completions.create({
-			model,
-			messages,
-			temperature: 1.0
-		});
+    }
+  ];
+  try {
+    const openai = getOpenAI();
+    const response = await openai.chat.completions.create({
+      model,
+      messages,
+      temperature: 1.0
+    });
 
-		const payload = parseJsonPayload<FullRecipe>(
-			response.choices[0]?.message?.content,
-			PromptContextEnum.REVISION
-		);
+    const payload = parseJsonPayload<FullRecipe>(response.choices[0]?.message?.content, PromptContextEnum.REVISION);
 
-		return [PromptContextEnum.REVISION, payload];
-	} catch (err) {
-		console.error('OpenAI API error:', err);
-		throw err;
-	}
+    return [PromptContextEnum.REVISION, payload];
+  } catch (err) {
+    console.error('OpenAI API error:', err);
+    throw err;
+  }
 }
 
 /**
@@ -277,18 +258,15 @@ Here is the user's modification request:
  *
  * @returns Tuple of `[PromptContextEnum.ASSISTANCE, string]`.
  */
-export async function askCookingQuestion(
-	question: string,
-	recipeJson: string
-): Promise<RecipeAssistanceResponse> {
-	const recipe = JSON.parse(recipeJson) as FullRecipe;
-	const prompt = `
+export async function askCookingQuestion(question: string, recipeJson: string): Promise<RecipeAssistanceResponse> {
+  const recipe = JSON.parse(recipeJson) as FullRecipe;
+  const prompt = `
 You are an helpful, experienced culinary assistant helping a user working on a recipe.
 When they ask a question, consider the recipe they provide and answer with helpful, conversational cooking advice.
 Do not reformat or alter the recipe in any way or return code blocks or JSON.
 Keep responses concise, friendly, and informative.
 `;
-	const input = `
+  const input = `
 This is the recipe I'm working with:
 ## ${recipe.title}
 
@@ -303,19 +281,19 @@ ${recipe.instructions}
 Now, here is my question:
 ${question}
 `;
-	const openai = getOpenAI();
-	const response = await openai.chat.completions.create({
-		model,
-		messages: [
-			{ role: 'system', content: prompt },
-			{ role: 'user', content: input }
-		],
-		temperature
-	});
+  const openai = getOpenAI();
+  const response = await openai.chat.completions.create({
+    model,
+    messages: [
+      { role: 'system', content: prompt },
+      { role: 'user', content: input }
+    ],
+    temperature
+  });
 
-	const answer = ensureContent(response.choices[0]?.message?.content, PromptContextEnum.ASSISTANCE);
+  const answer = ensureContent(response.choices[0]?.message?.content, PromptContextEnum.ASSISTANCE);
 
-	return [PromptContextEnum.ASSISTANCE, answer];
+  return [PromptContextEnum.ASSISTANCE, answer];
 }
 
 /**
@@ -324,8 +302,8 @@ ${question}
  * @returns Tuple of `[PromptContextEnum.ADDENDUM, RecipeAddendum]`.
  */
 export async function appendRecipeDetails(recipe: string): Promise<RecipeAddendumResponse> {
-	const { title, time, short_description, ingredients, instructions, notes } = JSON.parse(recipe);
-	const prompt = `
+  const { title, time, short_description, ingredients, instructions, notes } = JSON.parse(recipe);
+  const prompt = `
 You are an helpful, experienced culinary assistant helping a user working on a recipe.
 Given the user provided recipe details, fill in any missing fields: description, yield, time.prep, time.cook, time.total, and tags.
 
@@ -346,7 +324,7 @@ The __description__ may be a long form of the user's **short_description** with 
 Do not alter the provided recipe in any way.
 `;
 
-	const input = `
+  const input = `
 The user has provided the following recipe details:
 
 title: ${title}
@@ -357,19 +335,16 @@ instructions: ${instructions}
 notes: ${notes}
 `;
 
-	const openai = getOpenAI();
-	const response = await openai.chat.completions.create({
-		model,
-		messages: [
-			{ role: 'system', content: prompt },
-			{ role: 'user', content: input }
-		]
-	});
+  const openai = getOpenAI();
+  const response = await openai.chat.completions.create({
+    model,
+    messages: [
+      { role: 'system', content: prompt },
+      { role: 'user', content: input }
+    ]
+  });
 
-	const payload = parseJsonPayload<RecipeAddendum>(
-		response.choices[0]?.message?.content,
-		PromptContextEnum.ADDENDUM
-	);
+  const payload = parseJsonPayload<RecipeAddendum>(response.choices[0]?.message?.content, PromptContextEnum.ADDENDUM);
 
-	return [PromptContextEnum.ADDENDUM, payload];
+  return [PromptContextEnum.ADDENDUM, payload];
 }

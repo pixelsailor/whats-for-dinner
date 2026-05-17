@@ -12,10 +12,10 @@ Per-run AC evidence (test names, uncovered list, commands executed): [`test-repo
 
 | Layer ID | AC IDs | Approach / notes |
 | -------- | ------ | ---------------- |
-| UNIT | | |
-| COMP | | |
-| INTG | | |
-| OFFL | | |
+| UNIT     |        |                  |
+| COMP     |        |                  |
+| INTG     |        |                  |
+| OFFL     |        |                  |
 
 ### AC → layers (summary)
 
@@ -23,7 +23,7 @@ Per-run AC evidence (test names, uncovered list, commands executed): [`test-repo
 
 | AC ID | Layers | Notes |
 | ----- | ------ | ----- |
-| AC-01 | | |
+| AC-01 |        |       |
 
 ## Actual coverage (Test)
 
@@ -31,10 +31,10 @@ Per-run AC evidence (test names, uncovered list, commands executed): [`test-repo
 
 | Layer ID | AC IDs | Test file(s) / evidence | Status |
 | -------- | ------ | ----------------------- | ------ |
-| UNIT | | | |
-| COMP | | | |
-| INTG | | | |
-| OFFL | | | |
+| UNIT     |        |                         |        |
+| COMP     |        |                         |        |
+| INTG     |        |                         |        |
+| OFFL     |        |                         |        |
 
 ### Gaps vs plan
 

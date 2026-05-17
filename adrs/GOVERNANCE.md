@@ -31,11 +31,11 @@ Write an ADR when a decision meets one or more of:
 
 Every ADR has exactly one status, aligned with [INDEX.md](INDEX.md) and [TEMPLATE.md](TEMPLATE.md):
 
-| Status | Meaning |
-| ------ | ------- |
-| **Proposed** | Under discussion or spike. **Not binding.** Do not implement as if finalized. |
-| **Accepted** | Approved and in force. **Binding** for new and changed work unless a documented deviation process applies. |
-| **Deprecated** | No longer recommended; history remains. May still describe legacy code not yet migrated. |
+| Status         | Meaning                                                                                                     |
+| -------------- | ----------------------------------------------------------------------------------------------------------- |
+| **Proposed**   | Under discussion or spike. **Not binding.** Do not implement as if finalized.                               |
+| **Accepted**   | Approved and in force. **Binding** for new and changed work unless a documented deviation process applies.  |
+| **Deprecated** | No longer recommended; history remains. May still describe legacy code not yet migrated.                    |
 | **Superseded** | Replaced by a newer ADR; must name the successor. **Not** valid guidance for new work—follow the successor. |
 
 ADRs are **not deleted** from the index or the folder; status changes preserve history.
@@ -229,26 +229,26 @@ When orchestration applies, the ADR must use the **subsection headings** from [T
 
 WFD uses **two gate vocabularies**. Do not conflate them.
 
-| Vocabulary | Range | Tracks | Recorded in |
-| -------- | ----- | ------ | ----------- |
-| **Lifecycle gates** | **0–6** | Pipeline stage completion (Orchestrator → Planner → Builder → Test → Validator → human approval) | `task-manifest.json` → `gate_status` (`gate_0_intake` … `gate_6_human_approval`) |
-| **Merge-ready gates** | **1–5** | Whether work may be claimed **merge-ready** (ADR, gaps, validation artifact, tests, tooling) | Checklist **MG-01**–**MG-05**; orchestrated evidence in `validation-report.md` / `test-report.md` |
+| Vocabulary            | Range   | Tracks                                                                                           | Recorded in                                                                                       |
+| --------------------- | ------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
+| **Lifecycle gates**   | **0–6** | Pipeline stage completion (Orchestrator → Planner → Builder → Test → Validator → human approval) | `task-manifest.json` → `gate_status` (`gate_0_intake` … `gate_6_human_approval`)                  |
+| **Merge-ready gates** | **1–5** | Whether work may be claimed **merge-ready** (ADR, gaps, validation artifact, tests, tooling)     | Checklist **MG-01**–**MG-05**; orchestrated evidence in `validation-report.md` / `test-report.md` |
 
-**Lifecycle Gate 5** (validation green) is **not** merge-ready **Gate 5** (tooling / **MG-05**). **Lifecycle Gate 6** (human approval) follows a green merge-ready path; it does not replace MG-* checklist items.
+**Lifecycle Gate 5** (validation green) is **not** merge-ready **Gate 5** (tooling / **MG-05**). **Lifecycle Gate 6** (human approval) follows a green merge-ready path; it does not replace MG-\* checklist items.
 
-Canonical mapping (lifecycle ↔ merge-ready ↔ MG-* ↔ `gate_status`, small-run skips, non-orchestrated PRs): [`docs/validation-checklist.md` — Lifecycle gates, merge-ready gates, and `gate_status`](../docs/validation-checklist.md#lifecycle-gates-merge-ready-gates-and-gate_status). Narrative: [`docs/ORCHESTRATED_DEVELOPMENT.md`](../docs/ORCHESTRATED_DEVELOPMENT.md). Agent contract: [`.cursor/rules/workflow-gates.mdc`](../.cursor/rules/workflow-gates.mdc).
+Canonical mapping (lifecycle ↔ merge-ready ↔ MG-\* ↔ `gate_status`, small-run skips, non-orchestrated PRs): [`docs/validation-checklist.md` — Lifecycle gates, merge-ready gates, and `gate_status`](../docs/validation-checklist.md#lifecycle-gates-merge-ready-gates-and-gate_status). Narrative: [`docs/ORCHESTRATED_DEVELOPMENT.md`](../docs/ORCHESTRATED_DEVELOPMENT.md). Agent contract: [`.cursor/rules/workflow-gates.mdc`](../.cursor/rules/workflow-gates.mdc).
 
 #### Merge-ready ↔ lifecycle (summary)
 
-| Merge-ready gate | MG-* | Typical lifecycle gate(s) | Evidence |
-| ---------------- | ---- | ------------------------- | -------- |
-| 1 — ADR before durable architecture | **MG-02** | 2 (plan), 5 (re-check) | ADR file; `plan.md` → ADR references |
-| 2 — Alignment gaps | **MG-01** | 5 | `validation-report.md` → ADR compliance; [`readme-adr-alignment-gaps.md`](../docs/readme-adr-alignment-gaps.md) |
-| 3 — Validation evidence | **MG-03** + domain rows | 5 | `validation-report.md` (verdict + checklist audit) |
-| 4 — Test evidence | **MG-04**, **TST-05** | 4 (primary), 5 (cross-check) | `test-report.md`; `test-matrix.md` when planned |
-| 5 — Tooling | **MG-05** | 3–5 | `build-log.md`, `test-report.md`, or validation command section |
+| Merge-ready gate                    | MG-\*                   | Typical lifecycle gate(s)    | Evidence                                                                                                        |
+| ----------------------------------- | ----------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| 1 — ADR before durable architecture | **MG-02**               | 2 (plan), 5 (re-check)       | ADR file; `plan.md` → ADR references                                                                            |
+| 2 — Alignment gaps                  | **MG-01**               | 5                            | `validation-report.md` → ADR compliance; [`readme-adr-alignment-gaps.md`](../docs/readme-adr-alignment-gaps.md) |
+| 3 — Validation evidence             | **MG-03** + domain rows | 5                            | `validation-report.md` (verdict + checklist audit)                                                              |
+| 4 — Test evidence                   | **MG-04**, **TST-05**   | 4 (primary), 5 (cross-check) | `test-report.md`; `test-matrix.md` when planned                                                                 |
+| 5 — Tooling                         | **MG-05**               | 3–5                          | `build-log.md`, `test-report.md`, or validation command section                                                 |
 
-Domain checklist rows (**OFF-***, **AUTH-***, etc.) are audited at **lifecycle Gate 5** when applicable, not as separate lifecycle gates.
+Domain checklist rows (**OFF-\***, **AUTH-\***, etc.) are audited at **lifecycle Gate 5** when applicable, not as separate lifecycle gates.
 
 #### Merge-ready checklist (orchestrated efforts)
 

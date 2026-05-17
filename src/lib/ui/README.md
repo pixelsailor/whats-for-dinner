@@ -9,10 +9,10 @@ for composing each component.
 ## General Guidelines
 
 - Prefer TailwindCSS classes to using component `<style>`. Doing so reduces the clutter associated
-with scoped styles.
+  with scoped styles.
 - Use global classes for typography i.e. `.helper-text` or `.heading-02`
 - Form and Navigation elements (buttons, input fields, checkboxes, radio buttons, etc) should have a
-hit area of 42px x 42px, including a 1px border.
+  hit area of 42px x 42px, including a 1px border.
 
 ## Components
 
@@ -27,18 +27,20 @@ _This should be relocated to `/lib/components/`_
 Displays **FullRecipes** in an editable format.
 
 ### IconButton
+
 _deprecated @see [PxlIconButton]_
 Buttons specifically designed for displaying a single icon without text.
 
 ### PxlIconButton
+
 Buttons specifically designed for displaying a single icon without text.
 _Reference: bits-ui [Button](https://bits-ui.com/docs/components/button/llms.txt)_
 
 ### Tooltip
+
 _Reference: bits-ui [Tooltip](https://bits-ui.com/docs/components/tooltip/llms.txt)_
 
 ### ViewedBadge
-
 
 ## Icons
 

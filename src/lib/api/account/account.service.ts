@@ -3,16 +3,16 @@ import type { UserPreferences, UserPreferencesResponse, UserProfile } from './ac
 
 /**
  * Account Service
- * 
+ *
  * Handles account management, permissions, and user preferences.
  * Account Service is available to all signed in users.
- * 
+ *
  * @example
  * ```typescript
  * // +page.server.ts
  * import type { PageServerLoad } from './$types';
  * import { AccountService } from '$lib/api/account/account.service';
- * 
+ *
  * export const load: PageServerLoad = async ({ locals: { supabase, safeGetSession } }) => {
  *   const { user } = await safeGetSession();
  *   if (!user) {
@@ -33,11 +33,7 @@ export class AccountService {
   }
 
   async getUserProfile() {
-    const { data, error } = await this.supabase
-      .from('user_profiles')
-      .select('*')
-      .eq('user_id', this.userId)
-      .single();
+    const { data, error } = await this.supabase.from('user_profiles').select('*').eq('user_id', this.userId).single();
 
     if (error) throw error;
 
@@ -45,11 +41,7 @@ export class AccountService {
   }
 
   async updateUser(updateData: Partial<UserProfile>) {
-    const { data, error } = await this.supabase
-      .from('user_profiles')
-      .update(updateData)
-      .eq('user_id', this.userId)
-      .select();
+    const { data, error } = await this.supabase.from('user_profiles').update(updateData).eq('user_id', this.userId).select();
 
     if (error) throw error;
 
@@ -58,7 +50,7 @@ export class AccountService {
 
   /**
    * Check if the user has a specific permission.
-   * 
+   *
    * @param permission - The permission to check.
    * @returns True if the user has the permission, false otherwise.
    */
@@ -76,7 +68,7 @@ export class AccountService {
 
   /**
    * Get the user's preferences.
-   * 
+   *
    * @returns The user's preferences.
    */
   async getUserPreferences(): Promise<UserPreferencesResponse | null> {
@@ -92,17 +84,13 @@ export class AccountService {
 
   /**
    * Update the user's preferences.
-   * 
+   *
    * @note The `onConflict` parameter is used to prevent duplicate entries for the same user.
    * @param preferences - The updates to apply to the user's preferences.
    * @returns The updated user preferences.
    */
   async updateUserPreferences(preferences: Partial<UserPreferences>) {
-    const { data, error } = await this.supabase
-      .from('user_preferences')
-      .upsert(preferences, { onConflict: 'user_id' })
-      .eq('user_id', this.userId)
-      .select();
+    const { data, error } = await this.supabase.from('user_preferences').upsert(preferences, { onConflict: 'user_id' }).eq('user_id', this.userId).select();
 
     if (error) throw error;
 

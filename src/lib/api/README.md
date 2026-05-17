@@ -15,7 +15,7 @@ This service layer is organized into functional domains, each handling specific 
 
 ## Data fetching (TanStack Query)
 
-For **remote** HTTP data synchronized with the UI, WFD uses **`@tanstack/svelte-query`** (`createQuery`, shared `queryClient` where needed). Queries must stay compatible with **offline-first** behavior and **Dexie as system of record**—validate responses with Zod, avoid treating query cache as authoritative for ADR-002 domains, and keep `queryFn` free of mutation side effects. See **[`docs/tanstack-query.md`](../../../docs/tanstack-query.md)** and [`.cursor/rules/local-data-dexie-ownership.mdc`](../../../.cursor/rules/local-data-dexie-ownership.mdc) (*Remote and cache layers*).
+For **remote** HTTP data synchronized with the UI, WFD uses **`@tanstack/svelte-query`** (`createQuery`, shared `queryClient` where needed). Queries must stay compatible with **offline-first** behavior and **Dexie as system of record**—validate responses with Zod, avoid treating query cache as authoritative for ADR-002 domains, and keep `queryFn` free of mutation side effects. See **[`docs/tanstack-query.md`](../../../docs/tanstack-query.md)** and [`.cursor/rules/local-data-dexie-ownership.mdc`](../../../.cursor/rules/local-data-dexie-ownership.mdc) (_Remote and cache layers_).
 
 ## File Structure and Organization Principles
 
@@ -85,12 +85,14 @@ Accessing API services and models requires authorized user permissions. Anonymou
 ## API Service Domains
 
 ### Authentication
+
 **Core authentication and user management workflows**
 
 Handles login, password reset, registration, and MFA. Provides secure session management with Supabase authentication.
 Refer to Supabase [JavaScript Client Library](https://supabase.com/docs/reference/javascript/introduction) documentation for **auth** guidance.
 
 **Key Services**
+
 - Login authentication
 - Password reset and recovery workflows
 - User registration and account setup
@@ -99,11 +101,13 @@ Refer to Supabase [JavaScript Client Library](https://supabase.com/docs/referenc
 ---
 
 ### [Account Management](./account/README.md)
+
 **User account administration**
 
 Comprehensive account management for application users including subscription options, recipe preferences, theme settings, notifications and SSO configuration.
 
 **Key Services**
+
 - Personal preferences for recipe restrictions
 - Subscription options for AI assisted recipes and suggestions
 - Security settings for changing email and password
@@ -111,35 +115,42 @@ Comprehensive account management for application users including subscription op
 ---
 
 ### Recipe Management
+
 End-to-end recipe management consists of three key areas: local, remote/cloud, AI assisted.
 
 #### Local Recipe Management
+
 **Local/Offline recipe workflow and storage with Dexie/IndexedDB**
 
 Primary recipe management including recipe CRUD workflows and recommendations using local IndexedDB data suitable for offline, unauthorized users without cloud or AI assisted recipe permissions.
 
 **Key Services**
+
 - **Dexie** integration for facilitating offline IndexedDB management and mutations
 - Recipe lifecycle management (create, update, delete)
 - Recipe search based on title, tags, and usage (recently added, most popular, haven't made in 2 months, etc)
 
 #### [Remote/Cloud Recipe Management](./cloud/README.md)
+
 **Recipe workflows for sharing and cloud storage with Supabase**
 
 Provides subscribed users with support for syncing local recipe data with the Supabase cloud for backup, retrieval and recipe sharing via public URLs. Refer to Supabase [JavaScript Client Library](https://supabase.com/docs/reference/javascript/introduction) documentation for **database** guidance.
 
 **Key Services**
+
 - Backup recipes with cloud storage and sync across devices/browsers
 - Share online recipes with public URLs
 - Free up local storage with archived recipes that can be stored in the cloud and downloaded later
 - Separation of concerns: `CloudService` (remote-only Supabase), sync model helpers (`cloud.model.ts`), and `SyncService` (orchestrates Dexie + CloudService).
 
 #### AI Assisted Recipes
+
 **AI generated recipes and recipe modifications**
 
 Allows subscribed users to ask AI for recipe suggestions and generate complete recipes based on summary data as well as ask questions or make changes to full recipes.
 
 **Key Services**
+
 - AI suggested recipe summaries based on user prompts
 - AI generated recipes based on AI recipe summaries
 - AI assistance for making recipe modifications or asking for general help

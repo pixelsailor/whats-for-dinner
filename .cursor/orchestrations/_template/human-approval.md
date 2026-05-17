@@ -4,40 +4,40 @@ Replace `wfd-000` with `task_id`. Complete Gate 6 after Validator verdict is **P
 
 ## Evidence Summary
 
-| Field | Value |
-| --- | --- |
-| Task ID |  |
-| Objective |  |
-| Risk tier |  |
-| Files changed |  |
-| Acceptance coverage |  |
-| Validation verdict |  |
-| Commands run |  |
-| Commands not run |  |
-| Rework count |  |
-| Known follow-ups |  |
+| Field               | Value |
+| ------------------- | ----- |
+| Task ID             |       |
+| Objective           |       |
+| Risk tier           |       |
+| Files changed       |       |
+| Acceptance coverage |       |
+| Validation verdict  |       |
+| Commands run        |       |
+| Commands not run    |       |
+| Rework count        |       |
+| Known follow-ups    |       |
 
 ## Approval Decision
 
-| Field | Value |
-| --- | --- |
-| Approver |  |
-| Outcome | pending / approved / approved_with_conditions / rejected / rejected_rework |
-| Approved at (ISO-8601) |  |
-| Conditions |  |
-| Notes |  |
+| Field                  | Value                                                                      |
+| ---------------------- | -------------------------------------------------------------------------- |
+| Approver               |                                                                            |
+| Outcome                | pending / approved / approved_with_conditions / rejected / rejected_rework |
+| Approved at (ISO-8601) |                                                                            |
+| Conditions             |                                                                            |
+| Notes                  |                                                                            |
 
 ## Rework Directive
 
 Complete only when the outcome is `rejected_rework`.
 
-| Field | Value |
-| --- | --- |
-| Rejected by |  |
-| Rejection timestamp (ISO-8601) |  |
-| Rejection reason |  |
-| Required rework |  |
-| Return stage | Builder / Planner |
+| Field                          | Value             |
+| ------------------------------ | ----------------- |
+| Rejected by                    |                   |
+| Rejection timestamp (ISO-8601) |                   |
+| Rejection reason               |                   |
+| Required rework                |                   |
+| Return stage                   | Builder / Planner |
 
 ## Confirmation
 

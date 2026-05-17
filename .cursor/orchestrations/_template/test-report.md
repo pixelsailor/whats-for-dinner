@@ -9,8 +9,8 @@ Layer-level plan vs actual: [`test-matrix.md`](./test-matrix.md). Layer definiti
 <!-- Every AC ID from acceptance-criteria.md: test file + test name(s), or "see Uncovered criteria" -->
 
 | AC ID | Test file | Test name(s) | Notes |
-| ----- | --------- | -------------- | ----- |
-| AC-01 | | | |
+| ----- | --------- | ------------ | ----- |
+| AC-01 |           |              |       |
 
 ## Uncovered criteria
 
@@ -18,7 +18,7 @@ Layer-level plan vs actual: [`test-matrix.md`](./test-matrix.md). Layer definiti
 
 | AC ID | Reason | Follow-up |
 | ----- | ------ | --------- |
-| | | |
+|       |        |           |
 
 ## Test stability notes
 

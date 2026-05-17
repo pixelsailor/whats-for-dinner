@@ -63,11 +63,11 @@ Deployment targets are serverless or edge-capable: SvelteKit server handlers and
 
 ### Risks and mitigations
 
-| Risk | Mitigation |
-| ---- | ---------- |
-| Accidental client import of a server module with private env | SvelteKit/Vite should fail the build; code review; avoid barrel exports that mix server implementations with client-imported values. |
-| Node-only API in shared code | ESLint / review; [`.cursor/rules/serverless-compatibility.mdc`](../.cursor/rules/serverless-compatibility.mdc) in [.cursor/rules](../.cursor/rules/index.md). |
-| `VITE_`-prefixed names for server-only secrets | Vite exposes `VITE_*` vars to client `import.meta.env`; keep privileged keys on non-`VITE_` names and load them only via `$env/static/private` (this repo uses `OPENAI_API_KEY` for OpenAI). |
+| Risk                                                         | Mitigation                                                                                                                                                                                   |
+| ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Accidental client import of a server module with private env | SvelteKit/Vite should fail the build; code review; avoid barrel exports that mix server implementations with client-imported values.                                                         |
+| Node-only API in shared code                                 | ESLint / review; [`.cursor/rules/serverless-compatibility.mdc`](../.cursor/rules/serverless-compatibility.mdc) in [.cursor/rules](../.cursor/rules/index.md).                                |
+| `VITE_`-prefixed names for server-only secrets               | Vite exposes `VITE_*` vars to client `import.meta.env`; keep privileged keys on non-`VITE_` names and load them only via `$env/static/private` (this repo uses `OPENAI_API_KEY` for OpenAI). |
 
 ## Operational impact
 

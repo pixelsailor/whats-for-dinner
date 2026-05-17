@@ -97,12 +97,12 @@ Sync plans will compare local and cloud rows with the same `id`:
 
 ### Risks and mitigations
 
-| Risk | Mitigation |
-| --- | --- |
-| Device clock skew causes wrong winner | Use manual conflict fallback for close/equal/missing timestamps; prefer provider/server timestamps after successful sync |
-| Soft-deleted recipes reappear | Keep tombstones until successful sync plus retention expiry; include tombstones in sync plans |
-| `checkout_history` overwrites across devices | Treat it as durable metadata; allow only non-lossy union merges for checkout-only concurrent changes |
-| Existing implementation filters deleted records out of sync | Record an alignment gap until sync planning includes tombstones |
+| Risk                                                        | Mitigation                                                                                                               |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Device clock skew causes wrong winner                       | Use manual conflict fallback for close/equal/missing timestamps; prefer provider/server timestamps after successful sync |
+| Soft-deleted recipes reappear                               | Keep tombstones until successful sync plus retention expiry; include tombstones in sync plans                            |
+| `checkout_history` overwrites across devices                | Treat it as durable metadata; allow only non-lossy union merges for checkout-only concurrent changes                     |
+| Existing implementation filters deleted records out of sync | Record an alignment gap until sync planning includes tombstones                                                          |
 
 ## Operational impact
 

@@ -12,23 +12,23 @@ Replace `wfd-000` with `task_id`. Delete guidance comments before handoff.
 
 | AC ID | Status | Evidence |
 | ----- | ------ | -------- |
-| AC-01 | | |
+| AC-01 |        |          |
 
 ## ADR compliance
 
 <!-- Per ADR cited in plan.md -->
 
-| ADR | Status | Evidence |
-| --- | ------ | -------- |
-| ADR-001 | | |
+| ADR     | Status | Evidence |
+| ------- | ------ | -------- |
+| ADR-001 |        |          |
 
 ## Checklist audit
 
 <!-- Per [docs/validation-checklist.md](../../../docs/validation-checklist.md): mark each applicable item ✅ | ⚠️ | ❌ | N/A + evidence. Summarize blocking IDs in Required remediations when FAIL. -->
 
-| ID | Status | Evidence / N/A reason |
-| -- | ------ | --------------------- |
-| MG-01 | | |
+| ID    | Status | Evidence / N/A reason |
+| ----- | ------ | --------------------- |
+| MG-01 |        |                       |
 
 ## Test and command evidence
 

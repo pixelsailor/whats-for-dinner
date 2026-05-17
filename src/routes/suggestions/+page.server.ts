@@ -1,11 +1,11 @@
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ parent }) => {
-	const { session, permissions, featureFlags } = await parent();
+  const { session, permissions, featureFlags } = await parent();
 
-	return {
-		session,
-		permissions,
-		featureFlags
-	};
+  return {
+    session,
+    permissions,
+    featureFlags
+  };
 };

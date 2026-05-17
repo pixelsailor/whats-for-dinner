@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte';
+  import type { Snippet } from 'svelte';
   import { Dialog, Separator, type WithoutChild } from 'bits-ui';
 
   type Props = Dialog.RootProps & {
@@ -8,18 +8,9 @@
     description: Snippet;
     actions?: Snippet;
     contentProps?: WithoutChild<Dialog.ContentProps>;
-  }
+  };
 
-  let {
-    open = $bindable(false),
-    children,
-    buttonText,
-    contentProps,
-    title,
-    description,
-    actions,
-    ...restProps
-  }: Props = $props();
+  let { open = $bindable(false), children, buttonText, contentProps, title, description, actions, ...restProps }: Props = $props();
 </script>
 
 <!--
@@ -49,13 +40,13 @@ See [ui-bits Dialog](https://ui-bits.dev/docs/components/dialog/llms.txt) for mo
       class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80"
     />
     <Dialog.Content
-      class="rounded bg-gray-50 dark:bg-gray-900 shadow-popover data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 outline-hidden fixed left-[50%] top-[50%] z-50 w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] border p-5 sm:max-w-[490px] md:w-full"
+      class="shadow-popover data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] rounded border bg-gray-50 p-5 outline-hidden sm:max-w-[490px] md:w-full dark:bg-gray-900"
       {...contentProps}
     >
       <Dialog.Title class="flex w-full items-center justify-center text-lg font-semibold tracking-tight">
         {@render title()}
       </Dialog.Title>
-      <Separator.Root class="bg-muted -mx-5 mb-6 mt-5 block h-px" />
+      <Separator.Root class="bg-muted -mx-5 mt-5 mb-6 block h-px" />
       <Dialog.Description class="text-foreground-alt text-sm">
         {@render description()}
       </Dialog.Description>
@@ -65,7 +56,10 @@ See [ui-bits Dialog](https://ui-bits.dev/docs/components/dialog/llms.txt) for mo
       {#if actions}
         {@render actions()}
       {:else}
-        <Dialog.Close class="h-input rounded-input bg-dark text-background shadow-mini hover:bg-dark/95 focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center px-[50px] text-[15px] font-semibold focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98]">Close</Dialog.Close>
+        <Dialog.Close
+          class="h-input rounded-input bg-dark text-background shadow-mini hover:bg-dark/95 focus-visible:ring-dark focus-visible:ring-offset-background inline-flex items-center justify-center px-[50px] text-[15px] font-semibold focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden active:scale-[0.98]"
+          >Close</Dialog.Close
+        >
       {/if}
     </Dialog.Content>
   </Dialog.Portal>

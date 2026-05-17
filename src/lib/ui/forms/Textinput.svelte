@@ -1,15 +1,18 @@
 <script lang="ts">
-  import type { HTMLInputAttributes } from "svelte/elements";
+  import type { HTMLInputAttributes } from 'svelte/elements';
   import type { WithElementRef } from 'bits-ui';
-  
-  type InputProps = WithElementRef<{
-    id?: string;
-    value: string;
-    label?: string;
-    helperText?: string;
-    required?: boolean;
-    error?: string;
-  } & Omit<HTMLInputAttributes, 'value' | 'required' | 'class' | 'id'>, HTMLInputElement>;
+
+  type InputProps = WithElementRef<
+    {
+      id?: string;
+      value: string;
+      label?: string;
+      helperText?: string;
+      required?: boolean;
+      error?: string;
+    } & Omit<HTMLInputAttributes, 'value' | 'required' | 'class' | 'id'>,
+    HTMLInputElement
+  >;
 
   let { id, label, required = false, helperText, error, value = $bindable(), ref = $bindable(null), ...inputProps }: InputProps = $props();
 
@@ -24,9 +27,13 @@ A text input component.
 -->
 <div class="flex flex-col gap-1">
   {#if label}
-    <label for={uid} class="label-medium">{label} {#if required} <span class="label-large text-destructive">*</span>{/if}</label>
+    <label for={uid} class="label-medium"
+      >{label}
+      {#if required}
+        <span class="label-large text-destructive">*</span>{/if}</label
+    >
   {/if}
-  <input id={uid} bind:this={ref} bind:value={value} class={['textinput body-medium border-border-input', error ? 'border-destructive' : '']} {...inputProps} />
+  <input id={uid} bind:this={ref} bind:value class={['textinput body-medium border-border-input', error ? 'border-destructive' : '']} {...inputProps} />
   {#if helperText && !error}
     <p class="label-small">{helperText}</p>
   {/if}

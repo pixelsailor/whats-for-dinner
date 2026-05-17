@@ -75,11 +75,11 @@ Supabase is an **optional enhancement provider** with the following scope:
 
 ### Risks and mitigations
 
-| Risk | Mitigation |
-| --- | --- |
-| Feature teams accidentally block local flows behind auth checks | Enforce ADR-001 + ADR-004 in reviews and future rule set |
-| Provider lock-in through Supabase-only assumptions | Require provider-neutral boundaries in new cloud features |
-| User confusion in degraded cloud states | Standardize capability messages and disabled-state UX |
+| Risk                                                            | Mitigation                                                |
+| --------------------------------------------------------------- | --------------------------------------------------------- |
+| Feature teams accidentally block local flows behind auth checks | Enforce ADR-001 + ADR-004 in reviews and future rule set  |
+| Provider lock-in through Supabase-only assumptions              | Require provider-neutral boundaries in new cloud features |
+| User confusion in degraded cloud states                         | Standardize capability messages and disabled-state UX     |
 
 ## Operational impact
 

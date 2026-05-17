@@ -29,13 +29,13 @@ The pipeline can be right-sized for small work, but the Orchestrator must record
 
 ## Agent Responsibilities
 
-| Agent | Owns | Must not do |
-| --- | --- | --- |
-| `Orchestrator` | Lifecycle, routing, manifest state, gate policy, human approval, rework routing | Write application code, plan implementation details, test, or validate its own work |
-| `Planner` | `plan.md`, `acceptance-criteria.md`, `test-matrix.md` (planned), scope, commands, ADR implications | Implement, test, edit manifest, or guess through open questions |
-| `Builder` | Code/config changes in plan scope, `build-log.md`, command evidence | Redesign, expand scope silently, edit plan/manifest/tests |
-| `Test` | Vitest specs, `test-matrix.md` (actual), `test-report.md` AC coverage map | Redesign feature code or weaken acceptance criteria |
-| `Validator` | Independent audit and `validation-report.md` verdict | Fix code, rewrite tests, edit manifest, or approve missing ACs |
+| Agent          | Owns                                                                                               | Must not do                                                                         |
+| -------------- | -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `Orchestrator` | Lifecycle, routing, manifest state, gate policy, human approval, rework routing                    | Write application code, plan implementation details, test, or validate its own work |
+| `Planner`      | `plan.md`, `acceptance-criteria.md`, `test-matrix.md` (planned), scope, commands, ADR implications | Implement, test, edit manifest, or guess through open questions                     |
+| `Builder`      | Code/config changes in plan scope, `build-log.md`, command evidence                                | Redesign, expand scope silently, edit plan/manifest/tests                           |
+| `Test`         | Vitest specs, `test-matrix.md` (actual), `test-report.md` AC coverage map                          | Redesign feature code or weaken acceptance criteria                                 |
+| `Validator`    | Independent audit and `validation-report.md` verdict                                               | Fix code, rewrite tests, edit manifest, or approve missing ACs                      |
 
 ## Artifact Contract
 
@@ -68,35 +68,35 @@ See [`_template/README.md`](../.cursor/orchestrations/_template/README.md) for t
 
 WFD uses explicit **lifecycle gates (0–6)** within the task-folder model. They track pipeline stage completion in `task-manifest.json` → `gate_status`. They are **not** the same as **merge-ready gates (1–5)** below.
 
-| Gate | `gate_status` key | Name | Owner | Pass condition |
-| --- | --- | --- | --- | --- |
-| 0 | `gate_0_intake` | Intake and risk tier | Orchestrator | Objective is actionable; tier is recorded as `small`, `medium`, or `large`; skipped stages are justified. |
-| 1 | `gate_1_requirements` | Requirements freeze | Planner | `acceptance-criteria.md` covers user-visible behavior, states, edge cases, out-of-scope items, and open questions. |
-| 2 | `gate_2_plan` | Executable plan | Planner | `plan.md` names files, interfaces, ADR implications, commands, and scope boundaries clearly enough for Builder. |
-| 3 | `gate_3_build` | Build complete | Builder | Planned changes are implemented or deviations are documented; `build-log.md` records command evidence and gaps. |
-| 4 | `gate_4_tests` | Tests mapped | Test | `test-report.md` maps every AC to tests or an explicit uncovered reason, with exact commands. |
-| 5 | `gate_5_validation` | Validation green | Validator | `validation-report.md` has `PASS` or `PASS_WITH_NOTES`, or a `FAIL` with executable remediations. |
-| 6 | `gate_6_human_approval` | Human approval | Orchestrator | Evidence summary is presented; approval outcome is recorded before `complete`. |
+| Gate | `gate_status` key       | Name                 | Owner        | Pass condition                                                                                                     |
+| ---- | ----------------------- | -------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------ |
+| 0    | `gate_0_intake`         | Intake and risk tier | Orchestrator | Objective is actionable; tier is recorded as `small`, `medium`, or `large`; skipped stages are justified.          |
+| 1    | `gate_1_requirements`   | Requirements freeze  | Planner      | `acceptance-criteria.md` covers user-visible behavior, states, edge cases, out-of-scope items, and open questions. |
+| 2    | `gate_2_plan`           | Executable plan      | Planner      | `plan.md` names files, interfaces, ADR implications, commands, and scope boundaries clearly enough for Builder.    |
+| 3    | `gate_3_build`          | Build complete       | Builder      | Planned changes are implemented or deviations are documented; `build-log.md` records command evidence and gaps.    |
+| 4    | `gate_4_tests`          | Tests mapped         | Test         | `test-report.md` maps every AC to tests or an explicit uncovered reason, with exact commands.                      |
+| 5    | `gate_5_validation`     | Validation green     | Validator    | `validation-report.md` has `PASS` or `PASS_WITH_NOTES`, or a `FAIL` with executable remediations.                  |
+| 6    | `gate_6_human_approval` | Human approval       | Orchestrator | Evidence summary is presented; approval outcome is recorded before `complete`.                                     |
 
 Validator `FAIL` routes back to Builder within `max_loops`, then continues `Builder -> Test -> Validator`. Rejected human approval with rework follows the same loop under the same task id and increments rework tracking.
 
-Canonical dual-vocabulary reference (MG-* mapping, small-run skips, non-orchestrated PRs): [`validation-checklist.md` — Lifecycle gates, merge-ready gates, and `gate_status`](./validation-checklist.md#lifecycle-gates-merge-ready-gates-and-gate_status).
+Canonical dual-vocabulary reference (MG-\* mapping, small-run skips, non-orchestrated PRs): [`validation-checklist.md` — Lifecycle gates, merge-ready gates, and `gate_status`](./validation-checklist.md#lifecycle-gates-merge-ready-gates-and-gate_status).
 
 ## Merge-ready gates
 
 Lifecycle gates (0–6) track **pipeline stage** completion. **Merge-ready gates (1–5)** are a separate bar: do not treat lifecycle Gate 3 (build complete), a green `build-log.md`, or lifecycle Gate 5 (validation green) alone as merge-ready.
 
-**Lifecycle Gate 5** (validation green) ≠ **merge-ready Gate 5** (tooling / **MG-05**). **Lifecycle Gate 6** (human approval) follows a green merge-ready path; it does not replace MG-* items.
+**Lifecycle Gate 5** (validation green) ≠ **merge-ready Gate 5** (tooling / **MG-05**). **Lifecycle Gate 6** (human approval) follows a green merge-ready path; it does not replace MG-\* items.
 
 Binding contract: [`.cursor/rules/workflow-gates.mdc`](../.cursor/rules/workflow-gates.mdc) (also [GOVERNANCE.md §10.5](../adrs/GOVERNANCE.md#105-merge-ready-gates-orchestrated-efforts), checklist **MG-01**–**MG-05** in [`validation-checklist.md`](./validation-checklist.md)).
 
-| Merge-ready gate | MG-* | Typical lifecycle gate(s) | Requirement |
-| --- | --- | --- | --- |
-| 1 — ADR | **MG-02** | 2 (plan), 5 (re-check) | Create or update ADR before durable architecture change, or documented follow-up |
-| 2 — Alignment gaps | **MG-01** | 5 | Deviations from Accepted ADRs in [`readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md) when not fixed in scope |
-| 3 — Validation | **MG-03** + domain rows | 5 | `validation-report.md` with **PASS** or **PASS_WITH_NOTES** and full checklist audit |
-| 4 — Tests | **MG-04**, **TST-05** | 4 (primary), 5 (cross-check) | `test-report.md` (+ `test-matrix.md` actual when planned) |
-| 5 — Tooling | **MG-05** | 3–5 | `pnpm run check` and `pnpm run lint` for touched paths |
+| Merge-ready gate   | MG-\*                   | Typical lifecycle gate(s)    | Requirement                                                                                                               |
+| ------------------ | ----------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| 1 — ADR            | **MG-02**               | 2 (plan), 5 (re-check)       | Create or update ADR before durable architecture change, or documented follow-up                                          |
+| 2 — Alignment gaps | **MG-01**               | 5                            | Deviations from Accepted ADRs in [`readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md) when not fixed in scope |
+| 3 — Validation     | **MG-03** + domain rows | 5                            | `validation-report.md` with **PASS** or **PASS_WITH_NOTES** and full checklist audit                                      |
+| 4 — Tests          | **MG-04**, **TST-05**   | 4 (primary), 5 (cross-check) | `test-report.md` (+ `test-matrix.md` actual when planned)                                                                 |
+| 5 — Tooling        | **MG-05**               | 3–5                          | `pnpm run check` and `pnpm run lint` for touched paths                                                                    |
 
 **Who may claim merge-ready:** Validator issues verdict only; Orchestrator may set `awaiting_human` after a passing validation path that satisfies merge-ready gates; `complete` requires human approval (Gate 6). Builder, Test, and Planner must not assert merge-ready in chat or artifacts.
 
@@ -124,11 +124,11 @@ The Orchestrator must adopt the task folder first and decide the next stage from
 
 ## Right-Sizing
 
-| Tier | Typical use | Minimum path |
-| --- | --- | --- |
-| `small` | One or two files, low architectural risk, no durable data/security/offline boundary change | Orchestrator -> Builder -> Test or Validator as justified -> Orchestrator -> Gate 6 |
-| `medium` | One feature area, several files, normal user-facing behavior | Full pipeline once |
-| `large` | Multi-phase, cross-cutting, ADR-governed, migration, sync/auth/AI/offline/security work | Planner then repeated Builder -> Test -> Validator phases |
+| Tier     | Typical use                                                                                | Minimum path                                                                        |
+| -------- | ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
+| `small`  | One or two files, low architectural risk, no durable data/security/offline boundary change | Orchestrator -> Builder -> Test or Validator as justified -> Orchestrator -> Gate 6 |
+| `medium` | One feature area, several files, normal user-facing behavior                               | Full pipeline once                                                                  |
+| `large`  | Multi-phase, cross-cutting, ADR-governed, migration, sync/auth/AI/offline/security work    | Planner then repeated Builder -> Test -> Validator phases                           |
 
 Accepted ADR-governed areas usually require at least `medium`. Offline-first, local data ownership, auth/cloud sync, AI provider boundaries, service worker behavior, and security-sensitive work should not skip Planner or Validator.
 

@@ -3,8 +3,8 @@
   import SettingsIcon from '$lib/ui/icons/SettingsIcon.svelte';
 </script>
 
-<div class="flex gap-8 mx-auto max-w-5xl px-4 lg:px-8 py-8">
-  <aside class="w-48 flex-none sticky top-6">
+<div class="mx-auto flex max-w-5xl gap-8 px-4 py-8 lg:px-8">
+  <aside class="sticky top-6 w-48 flex-none">
     <nav>
       <ul>
         <li><a href="#basic">Basic</a></li>
@@ -17,7 +17,7 @@
     <h1 class="fluid-heading-06">Buttons</h1>
     <section class="my-8 flex flex-col gap-4">
       <h2 class="fluid-heading-05">Basic</h2>
-      <div class="flex flex-row gap-4 flex-wrap">
+      <div class="flex flex-row flex-wrap gap-4">
         <Button.Root class="button">Default</Button.Root>
         <Button.Root class="button primary">Primary</Button.Root>
         <Button.Root class="button warn">Warn</Button.Root>
@@ -26,10 +26,10 @@
         <Button.Root class="button danger" disabled>Disabled</Button.Root>
       </div>
     </section>
-  
+
     <section class="my-8 flex flex-col gap-4">
       <h2 class="fluid-heading-05">Outlined</h2>
-      <div class="flex flex-row gap-4 flex-wrap">
+      <div class="flex flex-row flex-wrap gap-4">
         <Button.Root class="button outlined">Default</Button.Root>
         <Button.Root class="button outlined primary">Primary</Button.Root>
         <Button.Root class="button outlined warn">Warn</Button.Root>
@@ -38,10 +38,10 @@
         <Button.Root class="button outlined primary" disabled>Disabled</Button.Root>
       </div>
     </section>
-  
+
     <section class="my-8 flex flex-col gap-4">
       <h2 class="fluid-heading-05">Text</h2>
-      <div class="flex flex-row gap-4 flex-wrap">
+      <div class="flex flex-row flex-wrap gap-4">
         <Button.Root class="button text">Default</Button.Root>
         <Button.Root class="button text primary">Primary</Button.Root>
         <Button.Root class="button text warn">Warn</Button.Root>
@@ -50,16 +50,15 @@
         <Button.Root class="button text primary" disabled>Disabled</Button.Root>
       </div>
     </section>
-   
+
     <section class="my-8 flex flex-col gap-4">
       <h2 class="fluid-heading-05">Icon</h2>
       <p class="body">
-        Icon buttons are designed to be used with svg icons only, without any text. To visually
-        balance their circular shape, they have a slightly larger height than regular buttons,
-        along with a width equal to their height. SVG icons are absolutely centered within the button.
-        They inherit the properties of any other button modifier class, e.g. primary, outlined, text, etc.
+        Icon buttons are designed to be used with svg icons only, without any text. To visually balance their circular shape, they have a slightly larger height
+        than regular buttons, along with a width equal to their height. SVG icons are absolutely centered within the button. They inherit the properties of any
+        other button modifier class, e.g. primary, outlined, text, etc.
       </p>
-      <div class="flex flex-row gap-4 flex-wrap">
+      <div class="flex flex-row flex-wrap gap-4">
         <Button.Root class="button icon">
           <SettingsIcon size="sm" />
         </Button.Root>
@@ -85,7 +84,7 @@
           <SettingsIcon size="xs" />
         </Button.Root>
       </div>
-      <div class="flex flex-row gap-4 flex-wrap">
+      <div class="flex flex-row flex-wrap gap-4">
         <Button.Root class="button icon outlined">
           <SettingsIcon size="sm" />
         </Button.Root>
@@ -111,7 +110,7 @@
           <SettingsIcon size="xs" />
         </Button.Root>
       </div>
-      <div class="flex flex-row gap-4 flex-wrap">
+      <div class="flex flex-row flex-wrap gap-4">
         <Button.Root class="button icon text">
           <SettingsIcon size="sm" />
         </Button.Root>
@@ -142,15 +141,12 @@
     <section class="my-8 flex flex-col gap-4">
       <h2 class="fluid-heading-05">Narrow</h2>
       <p class="body">
-        Narrow buttons have a smaller padding on the left and right sides; specifically
-        designed for buttons featuring both text and icons where the visibility of the text is
-        dependent on the available space. When text is hidden, the button will be reduced to
-        a square with the icon centered, without the need to adjust alignment.
+        Narrow buttons have a smaller padding on the left and right sides; specifically designed for buttons featuring both text and icons where the visibility
+        of the text is dependent on the available space. When text is hidden, the button will be reduced to a square with the icon centered, without the need to
+        adjust alignment.
       </p>
-      <div class="flex flex-row gap-4 flex-wrap">
-        <Button.Root class="button narrow">
-          Default
-        </Button.Root>
+      <div class="flex flex-row flex-wrap gap-4">
+        <Button.Root class="button narrow">Default</Button.Root>
         <Button.Root class="button narrow">
           <SettingsIcon size="sm" />
           <span>Default</span>

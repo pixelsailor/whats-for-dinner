@@ -1,12 +1,10 @@
 /* Button styles */
 
 .button {
-  @apply rounded-input inline-flex flex-row gap-3 bg-dark-10 text-black text-label dark:bg-muted border border-transparent hover:bg-dark-10/80
-  h-input cursor-pointer items-center justify-center px-6 font-semibold active:scale-[0.98] active:transition-all;
+  @apply rounded-input bg-dark-10 text-label dark:bg-muted hover:bg-dark-10/80 h-input inline-flex cursor-pointer flex-row items-center justify-center gap-3 border border-transparent px-6 font-semibold text-black active:scale-[0.98] active:transition-all;
 
   &.primary {
-    @apply bg-dark text-dark-foreground hover:bg-dark/80
-    dark:bg-dark dark:text-dark-foreground dark:hover:bg-dark/80;
+    @apply bg-dark text-dark-foreground hover:bg-dark/80 dark:bg-dark dark:text-dark-foreground dark:hover:bg-dark/80;
   }
 
   &.warn {
@@ -23,10 +21,10 @@
 }
 
 .button.outlined {
-  @apply bg-transparent border-1 border-dark-40 text-dark hover:bg-muted dark:border-contrast;
+  @apply border-dark-40 text-dark hover:bg-muted dark:border-contrast border-1 bg-transparent;
 
   &.primary {
-    @apply border-dark text-current hover:bg-muted;
+    @apply border-dark hover:bg-muted text-current;
   }
 
   &.warn {
@@ -39,7 +37,7 @@
 }
 
 .button.text {
-  @apply bg-transparent text-current hover:bg-muted dark:hover:bg-dark-04;
+  @apply hover:bg-muted dark:hover:bg-dark-04 bg-transparent text-current;
 
   &.primary {
     @apply text-dark hover:bg-muted;
@@ -55,7 +53,7 @@
 }
 
 .button.icon {
-  @apply rounded-full p-0 w-11 h-11 relative;
+  @apply relative h-11 w-11 rounded-full p-0;
 
   .svg {
     color: currentColor;
@@ -84,13 +82,13 @@
 }
 
 .button:disabled {
-  @apply bg-dark-10 text-dark-40 opacity-50 cursor-not-allowed pointer-events-none;
+  @apply bg-dark-10 text-dark-40 pointer-events-none cursor-not-allowed opacity-50;
 
   &.outlined {
-    @apply border-dark-10 bg-transparent text-dark-40;
+    @apply border-dark-10 text-dark-40 bg-transparent;
   }
 
   &.text {
-    @apply bg-transparent text-dark-40 hover:bg-muted;
+    @apply text-dark-40 hover:bg-muted bg-transparent;
   }
 }

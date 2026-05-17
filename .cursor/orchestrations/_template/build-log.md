@@ -6,13 +6,13 @@ Replace `wfd-000` with `task_id`. Builder-owned. On remediation loops, append da
 
 | Path | Purpose | Key decisions |
 | ---- | ------- | ------------- |
-| | | |
+|      |         |               |
 
 ## Files modified
 
 | Path | What changed | Why |
 | ---- | ------------ | --- |
-| | | |
+|      |              |     |
 
 ## Deviations from plan
 
@@ -26,7 +26,7 @@ _None._
 
 | Plan question | Outcome |
 | ------------- | ------- |
-| | |
+|               |         |
 
 ## Known gaps
 

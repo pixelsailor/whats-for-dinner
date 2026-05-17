@@ -38,7 +38,7 @@ Without this record, “no-JS” guidance can be read as **mandating removal or 
    - **Performance** (avoid unnecessary main-thread work, huge bundles without cause, pathological re-render patterns),
    - **Accessibility** ([ADR-014](ADR-014-semantic-html-and-accessibility.md)),
    - **Offline and local-first capability** ([ADR-001](ADR-001-product-operating-model.md), [ADR-010](ADR-010-offline-cache-and-service-worker.md)).  
-   There is **no** principle of minimizing JS for its own sake in a **JS-reliant** app.
+     There is **no** principle of minimizing JS for its own sake in a **JS-reliant** app.
 3. **Progressive enhancement (without denying Dexie):** Prefer **real `href` navigation**, **native `form` / SvelteKit actions**, and **semantic controls** for flows where they improve **resilience, accessibility, and clarity**—especially **auth**, **primary shell navigation**, and any surface that can degrade gracefully when hydration is delayed. This **does not** require that **Dexie-backed lists or editors** function without JS; it **does** require not replacing links with **click-only non-semantic** patterns **where** a normal anchor or button would serve the same **navigation or submit** role.
 4. **Dexie and alternatives:** Staying on **Dexie** is the **planned** approach. A future **non-Dexie** IndexedDB or storage layer remains possible but needs its **own ADR** if it changes the system-of-record story; it is **out of scope** here except to note that **no-JS-only local persistence** is not the current direction.
 5. **Honest degradation:** When scripts are disabled, fail to load, or error before stores initialize, the UI **should** communicate that **local features need JavaScript** (and, where relevant, IndexedDB)—not infinite spinners or silent empty states that imply SSR will populate recipe data (see [docs/readme-adr-alignment-gaps.md](../docs/readme-adr-alignment-gaps.md) **GAP-020** and related items).
@@ -72,10 +72,10 @@ Without this record, “no-JS” guidance can be read as **mandating removal or 
 
 ### Risks and mitigations
 
-| Risk | Mitigation |
-| ---- | ---------- |
+| Risk                                            | Mitigation                                                                           |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------ |
 | Teams read only the title and assume “no rules” | Point to **Decision 2–3** and [ADR-014](ADR-014-semantic-html-and-accessibility.md). |
-| Spinners with no copy when JS is off | Track and fix under **readme-adr-alignment-gaps** (e.g. GAP-020). |
+| Spinners with no copy when JS is off            | Track and fix under **readme-adr-alignment-gaps** (e.g. GAP-020).                    |
 
 ## Operational impact
 

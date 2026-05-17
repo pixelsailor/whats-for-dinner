@@ -2,28 +2,27 @@ import { browser } from '$app/environment';
 import { readable } from 'svelte/store';
 
 type NetworkStatus = {
-	online: boolean;
+  online: boolean;
 };
 
 const initial: NetworkStatus = {
-	online: browser ? navigator.onLine : true
+  online: browser ? navigator.onLine : true
 };
 
 export const networkStore = readable<NetworkStatus>(initial, (set) => {
-	if (!browser) {
-		return undefined;
-	}
+  if (!browser) {
+    return undefined;
+  }
 
-	const update = () => {
-		set({ online: navigator.onLine });
-	};
+  const update = () => {
+    set({ online: navigator.onLine });
+  };
 
-	window.addEventListener('online', update);
-	window.addEventListener('offline', update);
+  window.addEventListener('online', update);
+  window.addEventListener('offline', update);
 
-	return () => {
-		window.removeEventListener('online', update);
-		window.removeEventListener('offline', update);
-	};
+  return () => {
+    window.removeEventListener('online', update);
+    window.removeEventListener('offline', update);
+  };
 });
-

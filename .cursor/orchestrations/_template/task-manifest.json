@@ -1,44 +1,44 @@
 {
-	"manifest_version": "2.0.0",
-	"task_id": "wfd-000",
-	"objective": "",
-	"status": "in_progress",
-	"current_agent": "planner",
-	"pipeline": ["orchestrator", "planner", "builder", "test", "validator"],
-	"risk_tier": {
-		"level": "medium",
-		"rationale": "",
-		"skipped_stages": []
-	},
-	"gate_status": {
-		"gate_0_intake": "pending",
-		"gate_1_requirements": "pending",
-		"gate_2_plan": "pending",
-		"gate_3_build": "pending",
-		"gate_4_tests": "pending",
-		"gate_5_validation": "pending",
-		"gate_6_human_approval": "pending"
-	},
-	"completed_stages": [],
-	"loop_count": 0,
-	"max_loops": 2,
-	"rework_count": 0,
-	"rework_history": [],
-	"session_counts": {
-		"orchestrator": 1,
-		"planner": 0,
-		"builder": 0,
-		"test": 0,
-		"validator": 0
-	},
-	"command_evidence": [],
-	"locked_artifacts": [],
-	"flags": [],
-	"human_approval": {
-		"status": "pending",
-		"approved_at": null,
-		"approver": null,
-		"conditions": null,
-		"notes": null
-	}
+  "manifest_version": "2.0.0",
+  "task_id": "wfd-000",
+  "objective": "",
+  "status": "in_progress",
+  "current_agent": "planner",
+  "pipeline": ["orchestrator", "planner", "builder", "test", "validator"],
+  "risk_tier": {
+    "level": "medium",
+    "rationale": "",
+    "skipped_stages": []
+  },
+  "gate_status": {
+    "gate_0_intake": "pending",
+    "gate_1_requirements": "pending",
+    "gate_2_plan": "pending",
+    "gate_3_build": "pending",
+    "gate_4_tests": "pending",
+    "gate_5_validation": "pending",
+    "gate_6_human_approval": "pending"
+  },
+  "completed_stages": [],
+  "loop_count": 0,
+  "max_loops": 2,
+  "rework_count": 0,
+  "rework_history": [],
+  "session_counts": {
+    "orchestrator": 1,
+    "planner": 0,
+    "builder": 0,
+    "test": 0,
+    "validator": 0
+  },
+  "command_evidence": [],
+  "locked_artifacts": [],
+  "flags": [],
+  "human_approval": {
+    "status": "pending",
+    "approved_at": null,
+    "approver": null,
+    "conditions": null,
+    "notes": null
+  }
 }

@@ -74,10 +74,10 @@ Implement every interactive control from scratch in `$lib/ui/`.
 
 ### Risks and mitigations
 
-| Risk | Mitigation |
-| ---- | ---------- |
-| Primitive does not fit a new requirement | Propose a focused ADR (additional library or pattern) rather than silent one-off exceptions. |
-| Doc drift vs installed bits-ui version | Prefer version-pinned package and release notes when upgrading; smoke-test composed components. |
+| Risk                                     | Mitigation                                                                                      |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Primitive does not fit a new requirement | Propose a focused ADR (additional library or pattern) rather than silent one-off exceptions.    |
+| Doc drift vs installed bits-ui version   | Prefer version-pinned package and release notes when upgrading; smoke-test composed components. |
 
 ## Operational impact
 

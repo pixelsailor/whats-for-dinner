@@ -1,6 +1,6 @@
 /**
  * Account API Module
- * 
+ *
  * Export types and schemas for account management.
  */
 export * from './account.types';

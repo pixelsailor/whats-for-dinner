@@ -1,15 +1,15 @@
 <script lang="ts">
-	import { getContext } from 'svelte';
+  import { getContext } from 'svelte';
 
-	const vp: any = getContext('viewport');
+  const vp: any = getContext('viewport');
 
-	let { children } = $props();
+  let { children } = $props();
 
-	let left = $derived.by(() => {
-		if (vp.device === 'mobile') return '0';
-		// return vp.nav === 'expanded' ? 'calc(18rem + 1px)' : 'calc(3.75rem + 1px)';
-		return 'auto';
-	});
+  let left = $derived.by(() => {
+    if (vp.device === 'mobile') return '0';
+    // return vp.nav === 'expanded' ? 'calc(18rem + 1px)' : 'calc(3.75rem + 1px)';
+    return 'auto';
+  });
 </script>
 
 <!--
@@ -17,6 +17,6 @@
 
 Structural component for placing items at the top of the page.
 -->
-<div class="backdrop-blur-sm sticky top-0 right-0 px-4 lg:px-8 z-100" style:left>
-	{@render children()}
+<div class="sticky top-0 right-0 z-100 px-4 backdrop-blur-sm lg:px-8" style:left>
+  {@render children()}
 </div>

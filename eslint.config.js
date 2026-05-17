@@ -10,40 +10,40 @@ import svelteConfig from './svelte.config.js';
 const gitignorePath = fileURLToPath(new URL('./.gitignore', import.meta.url));
 
 export default [
-	includeIgnoreFile(gitignorePath),
-	js.configs.recommended,
-	...ts.configs.recommended,
-	...svelte.configs.recommended,
-	prettier,
-	...svelte.configs.prettier,
-	{
-		files: ['**/*.svelte', '**/*.svelte.ts', '**/*.svelte.js'],
-		languageOptions: {
-			parserOptions: {
-				projectService: true,
-				extraFileExtensions: ['.svelte'],
-				parser: ts.parser,
-				svelteConfig
-			}
-		}
-	},
-	{
-		languageOptions: {
-			globals: { ...globals.browser, ...globals.node }
-		},
-		rules: {
-			'no-undef': 'off',
-			'sort-imports': ['error', {
-				'ignoreCase': false,
-				'ignoreDeclarationSort': true,
-				'ignoreMemberSort': false,
-				'memberSyntaxSortOrder': ['none', 'all', 'multiple', 'single'],
-				'allowSeparatedGroups': false
-			}],
-			'@typescript-eslint/no-unused-vars': [
-        'warn',
-        { argsIgnorePattern: '^_', destructuredArrayIgnorePattern: '^_' },
+  includeIgnoreFile(gitignorePath),
+  js.configs.recommended,
+  ...ts.configs.recommended,
+  ...svelte.configs.recommended,
+  prettier,
+  ...svelte.configs.prettier,
+  {
+    files: ['**/*.svelte', '**/*.svelte.ts', '**/*.svelte.js'],
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        extraFileExtensions: ['.svelte'],
+        parser: ts.parser,
+        svelteConfig
+      }
+    }
+  },
+  {
+    languageOptions: {
+      globals: { ...globals.browser, ...globals.node }
+    },
+    rules: {
+      'no-undef': 'off',
+      'sort-imports': [
+        'error',
+        {
+          ignoreCase: false,
+          ignoreDeclarationSort: true,
+          ignoreMemberSort: false,
+          memberSyntaxSortOrder: ['none', 'all', 'multiple', 'single'],
+          allowSeparatedGroups: false
+        }
       ],
-		}
-	}
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', destructuredArrayIgnorePattern: '^_' }]
+    }
+  }
 ];

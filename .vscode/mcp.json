@@ -1,13 +1,10 @@
 {
-	"servers": {
-		"my-mcp-server-c092dbea": {
-			"type": "stdio",
-			"command": "npx",
-			"args": [
-				"-y",
-				"@sveltejs/mcp"
-			]
-		}
-	},
-	"inputs": []
+  "servers": {
+    "my-mcp-server-c092dbea": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@sveltejs/mcp"]
+    }
+  },
+  "inputs": []
 }

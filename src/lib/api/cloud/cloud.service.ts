@@ -9,15 +9,15 @@ type AugmentedSavedRecipe = SavedRecipe & {
 
 /**
  * Cloud Service
- * 
+ *
  * Handles cloud backup and synchronization of recipes and shared recipes.
  * Cloud Services are only available to authorized users with the `cloud_storage` permission.
- * 
+ *
  * Any time a recipe is uploaded or downloaded, the `last_synced_at` timestamp must be updated.
- * 
+ *
  * Responsibility: remote-only Supabase interactions (recipes, archives, shared links).
  * Dexie/local persistence must be orchestrated by a higher-level sync layer.
- * 
+ *
  * @example
  * ```typescript
  * // +page.server.ts
@@ -32,7 +32,7 @@ type AugmentedSavedRecipe = SavedRecipe & {
  *   return { cloudService };
  * };
  * ```
- * 
+ *
  * **A note about deleted recipes:**
  * Because deleted recipes are put into a recoverable state after they're "deleted", they must be
  * included in the sync process to ensure they are available locally for recovery. They should not
@@ -50,7 +50,7 @@ export class CloudService {
 
   /**
    * Get all the user's recipes in a summary format for comparison during sync.
-   * 
+   *
    * @returns The recipe summaries.
    */
   async getAllRecipeSummaries(): Promise<AugmentedSavedRecipe[]> {
@@ -62,12 +62,12 @@ export class CloudService {
 
     if (error) throw error;
 
-    return data as AugmentedSavedRecipe[] ?? [];
+    return (data as AugmentedSavedRecipe[]) ?? [];
   }
 
   /**
    * Create a shared recipe link for a recipe.
-   * 
+   *
    * @param recipe - The recipe to create a shared link for.
    * @returns The shared link.
    */
@@ -79,7 +79,7 @@ export class CloudService {
     // Generate a short token (Base58, 10 chars)
     const alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     const token = Array.from(randomBytes(8))
-      .map(b => alphabet[b % alphabet.length])
+      .map((b) => alphabet[b % alphabet.length])
       .join('');
 
     const { error } = await this.supabase
@@ -99,23 +99,20 @@ export class CloudService {
 
   /**
    * Delete a shared recipe link for a recipe.
-   * 
+   *
    * Setting the `shared_id` to `null` will delete the `shared_links` record.
-   * 
+   *
    * @param token - The token of the shared recipe link to delete.
    */
   async deleteSharedRecipeUrl(token: string): Promise<void> {
-    const { error } = await this.supabase
-      .from('recipes')
-      .update({ shared_id: null })
-      .eq('shared_id', token);
+    const { error } = await this.supabase.from('recipes').update({ shared_id: null }).eq('shared_id', token);
 
     if (error) throw error;
   }
 
   /**
    * Get all archived recipes for the user.
-   * 
+   *
    * @returns The archived recipes.
    */
   async getArchivedRecipes(): Promise<SavedRecipe[] | null> {
@@ -123,7 +120,7 @@ export class CloudService {
       .from('recipes')
       .select('*')
       .eq('owner_id', this._userId)
-      .not('archived','is', null);
+      .not('archived', 'is', null);
 
     if (error) throw error;
 
@@ -132,7 +129,7 @@ export class CloudService {
 
   /**
    * Download an archived recipe from the cloud.
-   * 
+   *
    * @param recipeId - The id of the recipe to download.
    * @returns The recipe.
    */
@@ -151,17 +148,13 @@ export class CloudService {
 
   /**
    * Upload a local recipe to the cloud.
-   * 
+   *
    * Supabase will automatically update the `last_synced_at` timestamp.
-   * 
+   *
    * @param recipe - The recipe to sync.
    */
   async uploadLocalRecipe(recipe: Recipe | SavedRecipe): Promise<SavedRecipe> {
-    const { data, error } = await this.supabase
-      .from('recipes')
-      .upsert(recipe)
-      .select()
-      .single();
+    const { data, error } = await this.supabase.from('recipes').upsert(recipe).select().single();
 
     if (error) throw error;
 
@@ -170,14 +163,11 @@ export class CloudService {
 
   /**
    * Upload all local recipes to the cloud.
-   * 
+   *
    * @param recipes - The recipes to sync.
    */
   async uploadAllLocalRecipes(recipes: SavedRecipe[]): Promise<SavedRecipe[] | null> {
-    const { data, error } = await this.supabase
-      .from('recipes')
-      .upsert(recipes)
-      .select();
+    const { data, error } = await this.supabase.from('recipes').upsert(recipes).select();
 
     if (error) throw error;
 
@@ -186,18 +176,12 @@ export class CloudService {
 
   /**
    * Update a recipe in the cloud.
-   * 
+   *
    * @param recipeData - The recipe data to update.
    * @returns The updated recipe.
    */
   async updateRecipe(recipeData: Partial<SavedRecipe> & { id: string }): Promise<SavedRecipe> {
-    const { data, error } = await this.supabase
-      .from('recipes')
-      .update(recipeData)
-      .eq('id', recipeData.id)
-      .eq('owner_id', this._userId)
-      .select()
-      .maybeSingle();
+    const { data, error } = await this.supabase.from('recipes').update(recipeData).eq('id', recipeData.id).eq('owner_id', this._userId).select().maybeSingle();
 
     if (error) throw error;
 
@@ -206,7 +190,7 @@ export class CloudService {
 
   /**
    * Download all cloud recipes to local storage.
-   * 
+   *
    * @returns The synced recipes or null if there was an error.
    */
   async downloadAllRemoteRecipes(): Promise<SavedRecipe[] | null> {
@@ -261,11 +245,11 @@ export class CloudService {
 
   /**
    * Get all deleted recipes for the user.
-   * 
-   * A deleted recipe is a recipe that has been deleted from the local database. When a recipe is 
+   *
+   * A deleted recipe is a recipe that has been deleted from the local database. When a recipe is
    * deleted, it gets flagged with a `deleted_at` timestamp and is no longer considered active.
    * Deleted recipes can be recovered before their expiry date.
-   * 
+   *
    * @returns The deleted recipes.
    */
   async getDeletedRecipes(): Promise<SavedRecipe[] | null> {
@@ -282,40 +266,30 @@ export class CloudService {
 
   /**
    * Permanently delete a deleted recipe from the cloud.
-   * 
+   *
    * This action is irreversible and will permanently delete the recipe from the cloud. It should
    * only be called after the recipe has exceeded its expiry date.
    * The recipe must have a `deleted_at` timestamp to be deleted.
-   * 
+   *
    * @param recipeId - The id of the recipe to delete.
    */
   async deleteRecipe(recipeId: string): Promise<void> {
-    const { error } = await this.supabase
-      .from('recipes')
-      .delete()
-      .eq('id', recipeId)
-      .eq('owner_id', this._userId)
-      .not('deleted_at', 'is', null);
+    const { error } = await this.supabase.from('recipes').delete().eq('id', recipeId).eq('owner_id', this._userId).not('deleted_at', 'is', null);
 
     if (error) throw error;
   }
 
   /**
    * Permanently delete deleted recipes from the cloud.
-   * 
+   *
    * This action is irreversible and will permanently delete the recipes from the cloud. It should
    * only be called after the recipes have exceeded their expiry date.
    * The recipes must have a `deleted_at` timestamp to be deleted.
-   * 
+   *
    * @param recipeIds - The ids of the recipes to delete.
    */
   async deleteDeletedRecipes(recipeIds: string[]): Promise<void> {
-    const { error } = await this.supabase
-      .from('recipes')
-      .delete()
-      .in('id', recipeIds)
-      .eq('owner_id', this._userId)
-      .not('deleted_at', 'is', null);
+    const { error } = await this.supabase.from('recipes').delete().in('id', recipeIds).eq('owner_id', this._userId).not('deleted_at', 'is', null);
 
     if (error) throw error;
   }

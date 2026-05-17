@@ -1,19 +1,13 @@
 <script lang="ts">
-	import { Tooltip } from 'bits-ui';
-	import type { Snippet } from 'svelte';
+  import { Tooltip } from 'bits-ui';
+  import type { Snippet } from 'svelte';
 
   type Props = Tooltip.RootProps & {
     trigger: Snippet;
     triggerProps?: Tooltip.TriggerProps;
-  }
+  };
 
-	let {
-    open = $bindable(false),
-    children,
-    trigger,
-    triggerProps = {},
-    ...restProps
-  }: Props = $props();
+  let { open = $bindable(false), children, trigger, triggerProps = {}, ...restProps }: Props = $props();
 </script>
 
 <!--
@@ -38,7 +32,9 @@ Reusable ui-bits tooltip component.
       {@render trigger()}
     </Tooltip.Trigger>
     <Tooltip.Portal>
-      <Tooltip.Content class="helper-text text-gray-50 bg-gray-600/80 dark:text-gray-900 dark:bg-gray-300/80 border border-gray-600 dark:border-gray-300 rounded-sm py-1 px-2 shadow-sm">
+      <Tooltip.Content
+        class="helper-text rounded-sm border border-gray-600 bg-gray-600/80 px-2 py-1 text-gray-50 shadow-sm dark:border-gray-300 dark:bg-gray-300/80 dark:text-gray-900"
+      >
         <Tooltip.Arrow class="text-gray-600 dark:text-gray-300" />
         {@render children?.()}
       </Tooltip.Content>

@@ -35,15 +35,15 @@ We will **not** require an account, live network, Supabase, or OpenAI for any ca
 
 ### Capability matrix (binding)
 
-| Capability area | Without auth | Without network (after initial load/cache) | Without Supabase | Without OpenAI |
-| --- | --- | --- | --- | --- |
-| **Recipe book** — save, edit, search, organize, soft-delete, restore locally owned recipes | Required | Required | Required | Required |
-| **Preferences and recommendation inputs** stored for local use (dietary, constraints, etc.) | Required | Required | Required | Required |
-| **Recommendations** from saved recipes and local usage history (deterministic / local engine) | Required | Required | Required | Required |
-| **Viewing locally cached AI suggestions** already retrieved | Required | Required | Required | N/A (content already local) |
-| **Generating new AI suggestions or running recipe assistance / Q&A** | Allowed to require user action in UI, but must not require sign-in for anonymous product path | Requires connectivity to reach WFD or user-configured AI endpoint when that path is used | N/A | **Requires** OpenAI or an allowed substitute provider when the user invokes AI |
-| **Cloud backup, multi-device sync, sharing** | N/A (by definition) | Requires connectivity when syncing | **Requires** Supabase or a future user-hosted equivalent | N/A |
-| **Sign-in and account management** | N/A | Degrades gracefully; no hard lockout of local recipe book | Optional provider | N/A |
+| Capability area                                                                               | Without auth                                                                                  | Without network (after initial load/cache)                                               | Without Supabase                                         | Without OpenAI                                                                 |
+| --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| **Recipe book** — save, edit, search, organize, soft-delete, restore locally owned recipes    | Required                                                                                      | Required                                                                                 | Required                                                 | Required                                                                       |
+| **Preferences and recommendation inputs** stored for local use (dietary, constraints, etc.)   | Required                                                                                      | Required                                                                                 | Required                                                 | Required                                                                       |
+| **Recommendations** from saved recipes and local usage history (deterministic / local engine) | Required                                                                                      | Required                                                                                 | Required                                                 | Required                                                                       |
+| **Viewing locally cached AI suggestions** already retrieved                                   | Required                                                                                      | Required                                                                                 | Required                                                 | N/A (content already local)                                                    |
+| **Generating new AI suggestions or running recipe assistance / Q&A**                          | Allowed to require user action in UI, but must not require sign-in for anonymous product path | Requires connectivity to reach WFD or user-configured AI endpoint when that path is used | N/A                                                      | **Requires** OpenAI or an allowed substitute provider when the user invokes AI |
+| **Cloud backup, multi-device sync, sharing**                                                  | N/A (by definition)                                                                           | Requires connectivity when syncing                                                       | **Requires** Supabase or a future user-hosted equivalent | N/A                                                                            |
+| **Sign-in and account management**                                                            | N/A                                                                                           | Degrades gracefully; no hard lockout of local recipe book                                | Optional provider                                        | N/A                                                                            |
 
 **Must work without auth, network, Supabase, and OpenAI** (simultaneously, after the app and local data are present in the browser):
 
@@ -76,9 +76,9 @@ We will **not** require an account, live network, Supabase, or OpenAI for any ca
 
 ### Risks and mitigations
 
-| Risk | Mitigation |
-| --- | --- |
-| Creeping mandatory auth/network | Treat violations as architecture gaps; document in alignment-gap doc until fixed |
+| Risk                                          | Mitigation                                                                                 |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Creeping mandatory auth/network               | Treat violations as architecture gaps; document in alignment-gap doc until fixed           |
 | Ambiguity for “hybrid” features (e.g. import) | Each feature gets scoped ADR or design doc before implementation (see roadmap ADR backlog) |
 
 ## Operational impact

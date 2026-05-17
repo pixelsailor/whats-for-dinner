@@ -35,13 +35,13 @@ We define the **recommendations engine** as **client-side logic** that ranks, gr
 
 The engine **may** use any of the following when present on **`SavedRecipe`** (or future documented extensions validated by Zod):
 
-| Input | Role |
-| --- | --- |
-| **`checkout_history`** | Usage signal: recency and frequency of “made” / checkouts; supports “popular lately,” rotation, and rediscovery. |
-| **`tags`** | Course/meal alignment (e.g. breakfast vs dinner) and user organization; may be combined with **time-of-day meal context** for contextual filtering. |
-| **`is_favorite`** | Explicit positive signal for surfacing preferred recipes. |
-| **`created_at` / `updated_at`** | Recency of addition or change for “new to you” style buckets. |
-| **`last_opened`** | Engagement signal distinct from checkout (e.g. viewed but not necessarily cooked); optional for heuristics that intentionally differ from `checkout_history`. |
+| Input                           | Role                                                                                                                                                          |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`checkout_history`**          | Usage signal: recency and frequency of “made” / checkouts; supports “popular lately,” rotation, and rediscovery.                                              |
+| **`tags`**                      | Course/meal alignment (e.g. breakfast vs dinner) and user organization; may be combined with **time-of-day meal context** for contextual filtering.           |
+| **`is_favorite`**               | Explicit positive signal for surfacing preferred recipes.                                                                                                     |
+| **`created_at` / `updated_at`** | Recency of addition or change for “new to you” style buckets.                                                                                                 |
+| **`last_opened`**               | Engagement signal distinct from checkout (e.g. viewed but not necessarily cooked); optional for heuristics that intentionally differ from `checkout_history`. |
 
 ### User preferences are **not** recommendation inputs
 
@@ -51,10 +51,10 @@ The recommendations engine **must not** read **user preference** documents (diet
 
 **Terminology (normative):**
 
-| Term | Meaning |
-| --- | --- |
+| Term                | Meaning                                                                                                                             |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | **Recommendations** | Deterministic (plus tie-breaking shuffle) surfacing of **`SavedRecipe`** rows using **recipe-local** fields and usage history only. |
-| **Suggestions** | AI-generated recipe ideas; preferences and dietary constraints belong **here**, not in recommendation ranking. |
+| **Suggestions**     | AI-generated recipe ideas; preferences and dietary constraints belong **here**, not in recommendation ranking.                      |
 
 **Meal context** derived from the client clock (e.g. hour → breakfast/lunch/dinner) is an **optional overlay** matched against **recipe `tags`**. It is **not** the same as the **UserPreferences** object used for AI.
 
@@ -91,10 +91,10 @@ The recommendations engine **must not** read **user preference** documents (diet
 
 ### Risks and mitigations
 
-| Risk | Mitigation |
-| --- | --- |
-| Duplicate or divergent logic in multiple files | Prefer shared helpers under `src/lib/` (e.g. a small `recommendations` module) as the surface grows; document entry points in store/page READMEs. |
-| Tags or `checkout_history` missing or inconsistent | Defensive defaults (treat missing history as “never made” only when explicitly intended); validate persisted shapes at boundaries per ADR-008. |
+| Risk                                               | Mitigation                                                                                                                                        |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Duplicate or divergent logic in multiple files     | Prefer shared helpers under `src/lib/` (e.g. a small `recommendations` module) as the surface grows; document entry points in store/page READMEs. |
+| Tags or `checkout_history` missing or inconsistent | Defensive defaults (treat missing history as “never made” only when explicitly intended); validate persisted shapes at boundaries per ADR-008.    |
 
 ## Operational impact
 
@@ -147,13 +147,13 @@ orchestration not required for documenting this decision; follow Plan–Build–
 
 Historical comparison (pre-fix):
 
-| Topic | ADR expectation | Was observed (fixed) |
-| --- | --- | --- |
-| **Single source of recommendation logic** | Prefer shared, testable helpers; avoid incompatible duplicates. | Unused `recommendedRecipes` store diverged from the route; **now** one module + tests. |
-| **Consistent recipe sets** | Use the same filters as other recipe surfaces (`is_current`, soft delete) when reading the collection. | Refresh used unfiltered `db.recipes.toArray()`; **now** only `unsortedRecipesStore` / `filterRecommendableRecipes`. |
-| **Schema-aligned types** | Date math should match `SavedRecipe` field types (ISO datetimes). | Numeric subtract on ISO strings in removed store; **now** `toMillis` throughout. |
-| **Bucket semantics** | Based on **last** checkout, mutually exclusive stale tiers where applicable. | **Any** old checkout matched multiple stale buckets; **now** `getLastCheckoutMs` + 2–6 month band vs 6+ month. |
-| **Non-mutation of shared arrays** | Avoid in-place sort on live lists. | In-place `recipes.sort` on derived data; **now** `[...base].sort` for popularity. |
+| Topic                                     | ADR expectation                                                                                        | Was observed (fixed)                                                                                                |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| **Single source of recommendation logic** | Prefer shared, testable helpers; avoid incompatible duplicates.                                        | Unused `recommendedRecipes` store diverged from the route; **now** one module + tests.                              |
+| **Consistent recipe sets**                | Use the same filters as other recipe surfaces (`is_current`, soft delete) when reading the collection. | Refresh used unfiltered `db.recipes.toArray()`; **now** only `unsortedRecipesStore` / `filterRecommendableRecipes`. |
+| **Schema-aligned types**                  | Date math should match `SavedRecipe` field types (ISO datetimes).                                      | Numeric subtract on ISO strings in removed store; **now** `toMillis` throughout.                                    |
+| **Bucket semantics**                      | Based on **last** checkout, mutually exclusive stale tiers where applicable.                           | **Any** old checkout matched multiple stale buckets; **now** `getLastCheckoutMs` + 2–6 month band vs 6+ month.      |
+| **Non-mutation of shared arrays**         | Avoid in-place sort on live lists.                                                                     | In-place `recipes.sort` on derived data; **now** `[...base].sort` for popularity.                                   |
 
 ### Planning artifact
 

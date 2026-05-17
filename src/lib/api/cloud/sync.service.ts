@@ -1,10 +1,10 @@
 /**
  * Sync Service
- * 
+ *
  * Orchestrates synchronization between local Dexie storage and remote Supabase.
  * Uses pure sync logic from `cloud.model.ts` (buildSyncPlan) and keeps Dexie
  * concerns out of `CloudService`.
- * 
+ *
  * Note: This service does not include support for uploading and syncing new recipes. Use the
  * `CloudService` and sync manually for new recipes to avoid extraneous sync operations.
  */
@@ -12,27 +12,23 @@ import { db } from '$lib/db';
 import type { SavedRecipe } from '$lib/api/recipe';
 import { CloudService } from './cloud.service';
 import { buildSyncPlan, isActive } from './cloud.model';
-import type {
-  ConflictResolution,
-  SyncConflict,
-  SyncPlan,
-} from './cloud.types';
+import type { ConflictResolution, SyncConflict, SyncPlan } from './cloud.types';
 import type { ApiResponse } from '../ai';
 
 /**
  * Sync service for syncing recipes between local and remote.
- * 
+ *
  * @param cloudService - The cloud service to use for syncing.
- * 
+ *
  * @example
  * ```typescript
  * const syncService = new SyncService(cloudService);
  * const plan = await syncService.buildPlan();
- * 
+ *
  * await syncService.uploadRecipes(plan.localOnly);
  * await syncService.downloadRecipes(plan.cloudOnly);
  * await syncService.resolveConflicts(plan.conflicts);
- * 
+ *
  * // Or, if you want to resolve conflicts one at a time:
  * for (const conflict of plan.conflicts) {
  *   await syncService.resolveConflict(conflict, 'upload');
@@ -49,16 +45,13 @@ export class SyncService {
 
   /**
    * Build a sync plan for syncing recipes between local and remote.
-   * 
+   *
    * The sync plan is a list of recipes that need to be uploaded, downloaded, or have conflicts.
-   * 
+   *
    * @returns The sync plan.
    */
   async buildPlan(): Promise<SyncPlan> {
-    const [localRecipes, remoteRecipes] = await Promise.all([
-      this.getLocalActiveRecipes(),
-      this.getRemoteActiveRecipes(),
-    ]);
+    const [localRecipes, remoteRecipes] = await Promise.all([this.getLocalActiveRecipes(), this.getRemoteActiveRecipes()]);
 
     return buildSyncPlan(localRecipes, remoteRecipes);
   }
@@ -66,7 +59,7 @@ export class SyncService {
   /**
    * Upload a single recipe to the cloud.
    * This method has limited functionality as it only update the local database if the upload fails.
-   * 
+   *
    * @param recipe - The recipe to upload.
    * @returns The id of the uploaded recipe.
    */
@@ -74,7 +67,7 @@ export class SyncService {
     const payload: SavedRecipe = {
       ...recipe,
       synced: true,
-      sync_error: null,
+      sync_error: null
     };
 
     try {
@@ -86,7 +79,7 @@ export class SyncService {
         ...recipe,
         updated_at: new Date().toISOString(),
         synced: false,
-        sync_error: err instanceof Error ? err.message : 'Unknown sync error',
+        sync_error: err instanceof Error ? err.message : 'Unknown sync error'
       };
       await db.recipes.put(failed);
       return failed.id;
@@ -97,9 +90,9 @@ export class SyncService {
    * Upload a single recipe to the cloud.
    * Automatically updates/syncs the local database with the uploaded response. Uploads that fail
    * are automatically saved locally with the current timestamp.
-   * 
+   *
    * Supabase will automatically update the `last_synced_at` and `updated_at` timestamps.
-   * 
+   *
    * @param recipe - The recipe to upload.
    * @returns The id of the uploaded recipe.
    */
@@ -107,7 +100,7 @@ export class SyncService {
     const payload: SavedRecipe = {
       ...recipe,
       synced: true,
-      sync_error: null,
+      sync_error: null
     };
     try {
       const uploaded = await this.cloud.uploadLocalRecipe(payload);
@@ -121,7 +114,7 @@ export class SyncService {
         ...recipe,
         updated_at: new Date().toISOString(),
         synced: false,
-        sync_error: err instanceof Error ? err.message : 'Unknown sync error',
+        sync_error: err instanceof Error ? err.message : 'Unknown sync error'
       };
       await db.recipes.put(failed);
       return failed.id;
@@ -130,7 +123,7 @@ export class SyncService {
 
   /**
    * Upload recipes to the cloud and silently sync the local database.
-   * 
+   *
    * @param recipes - The recipes to upload.
    */
   async uploadRecipes(recipes: SavedRecipe[]): Promise<void> {
@@ -138,7 +131,7 @@ export class SyncService {
     const payload: SavedRecipe[] = recipes.map((recipe) => ({
       ...recipe,
       synced: true,
-      sync_error: null,
+      sync_error: null
     }));
     try {
       const uploaded = await this.cloud.uploadAllLocalRecipes(payload);
@@ -151,7 +144,7 @@ export class SyncService {
         ...recipe,
         updated_at: now,
         synced: false,
-        sync_error: err instanceof Error ? err.message : 'Unknown sync error',
+        sync_error: err instanceof Error ? err.message : 'Unknown sync error'
       }));
       await db.recipes.bulkPut(failed);
     }
@@ -159,10 +152,10 @@ export class SyncService {
 
   /**
    * Update a recipe in the cloud and silently sync the local database.
-   * 
-   * Failed updates should continue to update the local database regardless. A sync error will be 
+   *
+   * Failed updates should continue to update the local database regardless. A sync error will be
    * recorded in the recipe and the error propagated to the caller.
-   * 
+   *
    * @param recipeData - The recipe data to update.
    * @returns The updated recipe.
    */
@@ -177,7 +170,7 @@ export class SyncService {
         ...recipeData,
         updated_at: new Date().toISOString(),
         synced: false,
-        sync_error: err instanceof Error ? err.message : 'Unknown sync error',
+        sync_error: err instanceof Error ? err.message : 'Unknown sync error'
       };
       await db.recipes.update(recipeData.id, failed);
       return { success: false, data: recipeData.id, error: { message: err instanceof Error ? err.message : 'Unknown sync error' } };
@@ -186,7 +179,7 @@ export class SyncService {
 
   /**
    * Delete a recipe from the cloud and silently sync the local database.
-   * 
+   *
    * @param id - The id of the recipe to delete.
    */
   async deleteRecipeAndSyncLocal(id: string) {
@@ -197,7 +190,7 @@ export class SyncService {
       return { success: true, data: void 0 };
     } catch (err) {
       // Note that if the delete fails the local database will not be updated in this case.
-      // Deleting the recipe locally would make the cloud unaware of the recipe state and cause 
+      // Deleting the recipe locally would make the cloud unaware of the recipe state and cause
       // the recipe to be restored during the next sync. The local record should be updated
       // with a sync error.
       return { success: false, error: { message: err instanceof Error ? err.message : 'Unknown sync error' } };
@@ -206,11 +199,11 @@ export class SyncService {
 
   /**
    * Permanently delete deleted recipes from the cloud and silently sync the local database.
-   * 
+   *
    * This action is irreversible and will permanently delete the recipes from the cloud. It should
    * only be called after the recipes have exceeded their expiry date.
    * The recipes must have a `deleted_at` timestamp to be deleted.
-   * 
+   *
    * @param recipeIds - The ids of the recipes to delete.
    */
   async deleteDeletedRecipesAndSyncLocal(recipeIds: string[]) {
@@ -221,7 +214,7 @@ export class SyncService {
       return { success: true, data: void 0 };
     } catch (err) {
       // Note that if the delete fails the local database will not be updated in this case.
-      // Deleting the recipe locally would make the cloud unaware of the recipe state and cause 
+      // Deleting the recipe locally would make the cloud unaware of the recipe state and cause
       // the recipe to be restored during the next sync. The local record should be updated
       // with a sync error.
       return { success: false, error: { message: err instanceof Error ? err.message : 'Unknown sync error' } };
@@ -230,7 +223,7 @@ export class SyncService {
 
   /**
    * Download recipes from the cloud.
-   * 
+   *
    * @param recipes - The recipes to download.
    */
   async downloadRecipes(recipes: SavedRecipe[]): Promise<void> {
@@ -239,7 +232,7 @@ export class SyncService {
     const normalized = recipes.map((recipe) => ({
       ...recipe,
       synced: true,
-      sync_error: null,
+      sync_error: null
     }));
 
     await db.recipes.bulkPut(normalized);
@@ -273,7 +266,7 @@ export class SyncService {
 
   /**
    * Resolve a conflict between a local and a cloud recipe.
-   * 
+   *
    * @param conflict - The conflict to resolve.
    * @param action - The action to take.
    */
@@ -290,12 +283,8 @@ export class SyncService {
    */
   async resolveConflictsAutomatically(conflicts: ConflictResolution[]): Promise<void> {
     if (!conflicts.length) return;
-    const uploads = conflicts
-      .filter((item) => item.action === 'upload')
-      .map((item) => item.conflict.local);
-    const downloads = conflicts
-      .filter((item) => item.action === 'download')
-      .map((item) => item.conflict.cloud);
+    const uploads = conflicts.filter((item) => item.action === 'upload').map((item) => item.conflict.local);
+    const downloads = conflicts.filter((item) => item.action === 'download').map((item) => item.conflict.cloud);
 
     if (uploads.length) {
       await this.uploadRecipes(uploads);
@@ -307,7 +296,7 @@ export class SyncService {
 
   /**
    * Get all active local recipes.
-   * 
+   *
    * @returns The active local recipes from the local database.
    */
   private async getLocalActiveRecipes(): Promise<SavedRecipe[]> {
@@ -317,7 +306,7 @@ export class SyncService {
 
   /**
    * Get all active remote recipes from the cloud.
-   * 
+   *
    * @returns The active remote recipes from the cloud.
    */
   private async getRemoteActiveRecipes(): Promise<SavedRecipe[]> {
@@ -326,4 +315,3 @@ export class SyncService {
     return remote.filter(isActive);
   }
 }
-

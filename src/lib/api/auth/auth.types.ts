@@ -1,8 +1,8 @@
 /**
  * Auth Types
- * 
+ *
  * Types for authentication and authorization.
- * 
+ *
  * These are backup types for the Supabase auth types. Avoid using these if Supabase types are available.
  */
 

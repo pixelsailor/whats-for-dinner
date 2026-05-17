@@ -1,16 +1,15 @@
 <script lang="ts">
-	import { setContext } from 'svelte';
-	import Page from '../+page.svelte';
+  import { setContext } from 'svelte';
+  import Page from '../+page.svelte';
 
-	let { data } = $props();
+  let { data } = $props();
 
-	const viewport = {
-		device: 'desktop' as const,
-		nav: 'collapsed' as 'collapsed' | 'expanded'
-	};
+  const viewport = {
+    device: 'desktop' as const,
+    nav: 'collapsed' as 'collapsed' | 'expanded'
+  };
 
-	setContext('viewport', viewport);
+  setContext('viewport', viewport);
 </script>
 
 <Page {data} />
-

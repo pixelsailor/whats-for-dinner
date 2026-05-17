@@ -1,9 +1,9 @@
 /**
  * Generate secure random bytes.
- * 
+ *
  * @param size - The size of the random bytes to generate.
  * @returns The random bytes.
- * 
+ *
  * @example
  * ```typescript
  * const randomBytes = randomBytes(8);
@@ -13,12 +13,9 @@
 
 export type RandomBytesCallback = (err: Error | null, buf?: Uint8Array) => void;
 
-const scheduleCallback =
-  typeof queueMicrotask === 'function' ? queueMicrotask : (fn: () => void) => setTimeout(fn, 0);
+const scheduleCallback = typeof queueMicrotask === 'function' ? queueMicrotask : (fn: () => void) => setTimeout(fn, 0);
 
-const hasSecureRandom =
-  typeof globalThis.crypto !== 'undefined' &&
-  typeof globalThis.crypto.getRandomValues === 'function';
+const hasSecureRandom = typeof globalThis.crypto !== 'undefined' && typeof globalThis.crypto.getRandomValues === 'function';
 
 const validateSize = (size: number): void => {
   if (!Number.isInteger(size) || size < 0) {
@@ -40,10 +37,7 @@ const generateRandomBytes = (size: number): Uint8Array => {
 
 export default function randomBytes(size: number): Uint8Array;
 export default function randomBytes(size: number, callback: RandomBytesCallback): void;
-export default function randomBytes(
-  size: number,
-  callback?: RandomBytesCallback
-): Uint8Array | void {
+export default function randomBytes(size: number, callback?: RandomBytesCallback): Uint8Array | void {
   if (typeof callback === 'function') {
     try {
       const buffer = generateRandomBytes(size);

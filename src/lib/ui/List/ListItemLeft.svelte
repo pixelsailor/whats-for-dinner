@@ -1,12 +1,11 @@
 <script lang="ts">
-	import { getContext } from 'svelte';
+  import { getContext } from 'svelte';
 
-	let { children } = $props();
+  let { children } = $props();
 
-	let size = getContext('pxl-list');
+  let size = getContext('pxl-list');
 </script>
 
 <div class="">
-	{@render children()}
+  {@render children()}
 </div>
-

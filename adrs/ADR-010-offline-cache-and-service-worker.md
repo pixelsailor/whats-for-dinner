@@ -63,11 +63,11 @@ We will **not** run **secret-bearing logic** in the service worker; it performs 
 
 ### Risks and mitigations
 
-| Risk | Mitigation |
-| --- | --- |
-| Stale navigations or GET APIs after releases | Versioned cache names + network-first; add **explicit no-store routes** when a feature needs freshness. |
-| Confusion between HTTP cache and Dexie | This ADR + [ADR-002](ADR-002-local-data-ownership.md); code review flags that persist user recipes only via Dexie stores. |
-| Storage growth | Activation deletes prior `app-cache-*` / `data-cache-*` generations; keep static payloads small; monitor if Cache Storage grows unexpectedly in QA. |
+| Risk                                         | Mitigation                                                                                                                                          |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Stale navigations or GET APIs after releases | Versioned cache names + network-first; add **explicit no-store routes** when a feature needs freshness.                                             |
+| Confusion between HTTP cache and Dexie       | This ADR + [ADR-002](ADR-002-local-data-ownership.md); code review flags that persist user recipes only via Dexie stores.                           |
+| Storage growth                               | Activation deletes prior `app-cache-*` / `data-cache-*` generations; keep static payloads small; monitor if Cache Storage grows unexpectedly in QA. |
 
 ## Operational impact
 
@@ -129,10 +129,10 @@ orchestration not required for documenting this decision; use Plan–Build–Val
 
 The following gaps were identified when comparing this ADR to `src/service-worker.js`; they are also recorded in [docs/readme-adr-alignment-gaps.md](../docs/readme-adr-alignment-gaps.md) as **GAP-009**.
 
-| Topic | ADR expectation | Observed |
-| --- | --- | --- |
+| Topic                              | ADR expectation                                                                                                                    | Observed                                                                                                                                                                                                                                                                      |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Selective caching for GET APIs** | Sensitive or highly dynamic same-origin **GET** responses should be **opted out** or use stricter freshness rules once they exist. | Any same-origin **GET** not in the static asset set uses **network-first** and **persists successful responses** to `data-cache-${version}` with **no TTL** and **no `/api/*` exclusion**; today only **`/api/share/[token]`** exposes GET, but the pattern applies globally. |
-| **Immediate client control** | Optional hardening. | **No `clients.claim()`** in `activate`; first load behavior depends on browser registration timing (usually acceptable). |
+| **Immediate client control**       | Optional hardening.                                                                                                                | **No `clients.claim()`** in `activate`; first load behavior depends on browser registration timing (usually acceptable).                                                                                                                                                      |
 
 ### Merge / workflow gates
 

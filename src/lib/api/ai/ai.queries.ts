@@ -8,9 +8,9 @@ import { sanitizePromptInput } from '$lib/utils';
 import type { PromptContext, RecipeDetailResponse, RecipeSuggestionsResponse } from './ai.types';
 
 const endpoints = {
-	recipe: '/api/suggestions/recipe',
-	recipes: '/api/recipes',
-	suggestions: '/api/suggestions'
+  recipe: '/api/suggestions/recipe',
+  recipes: '/api/recipes',
+  suggestions: '/api/suggestions'
 };
 
 type Endpoint = keyof typeof endpoints;
@@ -19,17 +19,17 @@ type Endpoint = keyof typeof endpoints;
  * Options for the query.
  */
 type QueryOptions = {
-	staleTime?: number;
-	enabled?: boolean;
+  staleTime?: number;
+  enabled?: boolean;
 };
 
 type QueryArgs = {
-	prompt: string;
-	action?: PromptContext;
-	recipe?: string;
-	preferences?: string;
-	endpoint: Endpoint;
-	options?: QueryOptions;
+  prompt: string;
+  action?: PromptContext;
+  recipe?: string;
+  preferences?: string;
+  endpoint: Endpoint;
+  options?: QueryOptions;
 };
 
 /**
@@ -46,21 +46,21 @@ type QueryArgs = {
  * @returns The Tanstack Query response as a Fetch API response.
  */
 async function query<TPayload>({ prompt, recipe, preferences, endpoint }: QueryArgs) {
-	const body: Record<string, string> = { prompt };
-	if (recipe !== undefined) body.recipe = recipe;
-	if (preferences !== undefined) body.preferences = preferences;
+  const body: Record<string, string> = { prompt };
+  if (recipe !== undefined) body.recipe = recipe;
+  if (preferences !== undefined) body.preferences = preferences;
 
-	const response = await fetch(endpoints[endpoint], {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json'
-		},
-		body: JSON.stringify(body)
-	});
+  const response = await fetch(endpoints[endpoint], {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(body)
+  });
 
-	if (!response.ok) error(response.status || 500, response.statusText || 'An unknown error occurred');
+  if (!response.ok) error(response.status || 500, response.statusText || 'An unknown error occurred');
 
-	return response.json() as Promise<TPayload>;
+  return response.json() as Promise<TPayload>;
 }
 
 /**
@@ -72,19 +72,19 @@ async function query<TPayload>({ prompt, recipe, preferences, endpoint }: QueryA
  * @returns A query for recipe suggestions.
  */
 export function createSuggestionsQuery({ prompt, preferences, options, endpoint = 'suggestions' }: Partial<QueryArgs>) {
-	if (!prompt) {
-		throw new Error('A prompt is required to create a suggestions query');
-	}
+  if (!prompt) {
+    throw new Error('A prompt is required to create a suggestions query');
+  }
 
-	const sanitizedPrompt = sanitizePromptInput(decodeURIComponent(prompt));
-	const prefs = preferences ? sanitizePromptInput(preferences) : 'No preferences or dietary restrictions provided.';
+  const sanitizedPrompt = sanitizePromptInput(decodeURIComponent(prompt));
+  const prefs = preferences ? sanitizePromptInput(preferences) : 'No preferences or dietary restrictions provided.';
 
-	return createQuery({
-		queryKey: ['suggestions', sanitizedPrompt],
-		queryFn: () => query<RecipeSuggestionsResponse>({ endpoint, prompt: sanitizedPrompt, preferences: prefs, action: 'summaries' }),
-		enabled: Boolean(sanitizedPrompt.length) && (options?.enabled ?? true),
-		staleTime: Infinity
-	});
+  return createQuery({
+    queryKey: ['suggestions', sanitizedPrompt],
+    queryFn: () => query<RecipeSuggestionsResponse>({ endpoint, prompt: sanitizedPrompt, preferences: prefs, action: 'summaries' }),
+    enabled: Boolean(sanitizedPrompt.length) && (options?.enabled ?? true),
+    staleTime: Infinity
+  });
 }
 
 /**
@@ -99,31 +99,31 @@ export function createSuggestionsQuery({ prompt, preferences, options, endpoint 
  * @returns A query for a full recipe.
  */
 export function createFullRecipeQuery({
-	title,
-	description,
-	preferences,
-	options,
-	endpoint = 'recipe'
+  title,
+  description,
+  preferences,
+  options,
+  endpoint = 'recipe'
 }: {
-	title: string;
-	description: string;
-	preferences?: string;
-	options?: QueryOptions;
-	endpoint?: Endpoint;
+  title: string;
+  description: string;
+  preferences?: string;
+  options?: QueryOptions;
+  endpoint?: Endpoint;
 }) {
-	if (!title || !description) {
-		throw new Error('A title and description are required to create a full recipe query');
-	}
+  if (!title || !description) {
+    throw new Error('A title and description are required to create a full recipe query');
+  }
 
-	const sanitizedTitle = sanitizePromptInput(decodeURIComponent(title));
-	const sanitizedDescription = sanitizePromptInput(decodeURIComponent(description));
-	const prompt = JSON.stringify({ title: sanitizedTitle, description: sanitizedDescription });
-	const prefs = preferences ? sanitizePromptInput(preferences) : 'No preferences or dietary restrictions provided.';
+  const sanitizedTitle = sanitizePromptInput(decodeURIComponent(title));
+  const sanitizedDescription = sanitizePromptInput(decodeURIComponent(description));
+  const prompt = JSON.stringify({ title: sanitizedTitle, description: sanitizedDescription });
+  const prefs = preferences ? sanitizePromptInput(preferences) : 'No preferences or dietary restrictions provided.';
 
-	return createQuery({
-		queryKey: ['suggestedrecipe', sanitizedTitle],
-		queryFn: () => query<RecipeDetailResponse>({ endpoint, prompt, preferences: prefs }),
-		enabled: Boolean(sanitizedTitle.length) && (options?.enabled ?? true),
-		staleTime: Infinity
-	});
+  return createQuery({
+    queryKey: ['suggestedrecipe', sanitizedTitle],
+    queryFn: () => query<RecipeDetailResponse>({ endpoint, prompt, preferences: prefs }),
+    enabled: Boolean(sanitizedTitle.length) && (options?.enabled ?? true),
+    staleTime: Infinity
+  });
 }

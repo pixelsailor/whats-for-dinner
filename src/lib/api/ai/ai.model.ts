@@ -1,9 +1,9 @@
 /**
  * AI Model
- * 
+ *
  * Legacy model for the AI using OpenAI's Chat Completion API. This is a work in progress. Continue
  * to use the deprecated function from $lib/openai until this is complete.
- * 
+ *
  * @todo Replace with new Open AI Response API.
  * @todo Use structured JSON responses with zod schemas.
  * @todo Refactor responses without context tuples.
@@ -15,15 +15,15 @@ import { zodTextFormat } from 'openai/helpers/zod';
 import { OPENAI_API_KEY } from '$env/static/private';
 
 import {
-	type PromptContext,
-	type RecipeAddendum,
-	type RecipeAddendumResponse,
-	type RecipeAssistanceResponse,
-	type RecipeDetailResponse,
-	RecipeDetailResponseSchema,
-	type RecipeRevisionResponse,
-	type RecipeSuggestionsResponse,
-	RecipeSuggestionsResponseSchema,
+  type PromptContext,
+  type RecipeAddendum,
+  type RecipeAddendumResponse,
+  type RecipeAssistanceResponse,
+  type RecipeDetailResponse,
+  RecipeDetailResponseSchema,
+  type RecipeRevisionResponse,
+  type RecipeSuggestionsResponse,
+  RecipeSuggestionsResponseSchema
 } from '$lib/api/ai';
 import { PromptContextEnum } from '$lib/types';
 import { type Recipe, RecipeSchema, type RecipeSummary, RecipeSummarySchema } from '$lib/api/recipe';
@@ -34,87 +34,81 @@ let client: OpenAI | null = null;
 
 /**
  * Get the OpenAI client.
- * 
+ *
  * @returns The OpenAI client.
  */
 function getOpenAI(): OpenAI {
-	if (!OPENAI_API_KEY) {
-		throw new Error(OPENAI_DISABLED_ERROR);
-	}
+  if (!OPENAI_API_KEY) {
+    throw new Error(OPENAI_DISABLED_ERROR);
+  }
 
-	if (!client) {
-		client = new OpenAI({
-			apiKey: OPENAI_API_KEY
-		});
-	}
+  if (!client) {
+    client = new OpenAI({
+      apiKey: OPENAI_API_KEY
+    });
+  }
 
-	return client;
+  return client;
 }
 
 type ChatContent = string | null | undefined;
 
 function ensureContent(raw: ChatContent, context: PromptContext): string {
-	if (!raw || !raw.trim()) {
-		throw new Error(`OpenAI returned an empty response for "${context}".`);
-	}
+  if (!raw || !raw.trim()) {
+    throw new Error(`OpenAI returned an empty response for "${context}".`);
+  }
 
-	return raw;
+  return raw;
 }
 
 function parseJsonPayload<TPayload>(raw: ChatContent, context: PromptContext): TPayload {
-	const content = ensureContent(raw, context);
+  const content = ensureContent(raw, context);
 
-	try {
-		return JSON.parse(content) as TPayload;
-	} catch (error) {
-		console.error(`Failed to parse OpenAI JSON for "${context}".`, { content, error });
-		throw new Error(`Failed to parse OpenAI JSON for "${context}".`);
-	}
+  try {
+    return JSON.parse(content) as TPayload;
+  } catch (error) {
+    console.error(`Failed to parse OpenAI JSON for "${context}".`, { content, error });
+    throw new Error(`Failed to parse OpenAI JSON for "${context}".`);
+  }
 }
 
 /**
  * Request 4-8 high-level recipe suggestions for a given prompt.
  */
-export async function generateRecipeSuggestions(
-	input: string,
-	userPreferences: string
-): Promise<string | Error> {
-	const instructions = `
+export async function generateRecipeSuggestions(input: string, userPreferences: string): Promise<string | Error> {
+  const instructions = `
 		You are an expert meal planner. Respond with a JSON array of 4 to 10 recipe ideas based on the users's input. DO NOT include anything outside of the JSON response.
 		The recipes should take into consideration the user's preferences and dietary restrictions as follows: ${userPreferences}
 	`;
 
-	try {
-		const openai = getOpenAI();
-		const response = await openai.responses.create({
-			model: 'gpt-5-nano',
-			instructions,
-			input,
-			text: {
-				format: zodTextFormat(RecipeSuggestionsResponseSchema, 'suggestions')
-			}
-		});
+  try {
+    const openai = getOpenAI();
+    const response = await openai.responses.create({
+      model: 'gpt-5-nano',
+      instructions,
+      input,
+      text: {
+        format: zodTextFormat(RecipeSuggestionsResponseSchema, 'suggestions')
+      }
+    });
 
-		// return JSON.parse(response.output_text) as RecipeSuggestionsResponse;
-		return response.output_text;
-		// const payload = response.output_text;
-		// return [PromptContextEnum.SUMMARIES, payload];
-	} catch (error) {
-		console.error('OpenAI API error:', error);
-		throw error;
-	}
+    // return JSON.parse(response.output_text) as RecipeSuggestionsResponse;
+    return response.output_text;
+    // const payload = response.output_text;
+    // return [PromptContextEnum.SUMMARIES, payload];
+  } catch (error) {
+    console.error('OpenAI API error:', error);
+    throw error;
+  }
 }
 
 /**
  * Request a complete `Recipe` based on the provided title and description.
  */
-export async function generateRecipe(
-	prompt: string,
-	userPreferences?: string
-): Promise<string | Error> {
-	const { title, description } = JSON.parse(prompt) as { title: string, description: string };
+export async function generateRecipe(prompt: string, userPreferences?: string): Promise<string | Error> {
+  const { title, description } = JSON.parse(prompt) as { title: string; description: string };
 
-	const instructions = `You are an expert culinary assistant. You are thoughtful about flavor profiles,
+  const instructions = `You are an expert culinary assistant. You are thoughtful about flavor profiles,
 ingredients and traditional preparation methods. Consider the steps necessary during preparation
 -- whether items that will be combined should be prepared/cooked separately, at the same time. Be
 considerate of the total time an item may spend cooking if additional items are added that must be
@@ -140,27 +134,27 @@ Formatting Guidelines:
 
 Keep your formatting consistent and minimal.
 `;
-	const input = `Provide a complete recipe for, "${title}", as described by, "${description}"`;
+  const input = `Provide a complete recipe for, "${title}", as described by, "${description}"`;
 
-	try {
-		const openai = getOpenAI();
-		const response = await openai.responses.create({
-			model: 'gpt-5-mini',
-			instructions,
-			input,
-			text: {
-				format: zodTextFormat(RecipeSchema, 'recipedetail')
-			}
-		});
+  try {
+    const openai = getOpenAI();
+    const response = await openai.responses.create({
+      model: 'gpt-5-mini',
+      instructions,
+      input,
+      text: {
+        format: zodTextFormat(RecipeSchema, 'recipedetail')
+      }
+    });
 
-		// return JSON.parse(response.output_text) as RecipeSuggestionsResponse;
-		return response.output_text;
-		// const payload = response.output_text;
-		// return [PromptContextEnum.SUMMARIES, payload];
-	} catch (error) {
-		console.error('OpenAI API error:', error);
-		throw error;
-	}
+    // return JSON.parse(response.output_text) as RecipeSuggestionsResponse;
+    return response.output_text;
+    // const payload = response.output_text;
+    // return [PromptContextEnum.SUMMARIES, payload];
+  } catch (error) {
+    console.error('OpenAI API error:', error);
+    throw error;
+  }
 }
 
 // /**
@@ -278,8 +272,8 @@ Keep your formatting consistent and minimal.
  * Ask OpenAI to backfill missing metadata (description, tags, timing, etc.) for a recipe draft.
  */
 export async function appendRecipeDetails(recipe: string): Promise<string | Error> {
-	const { title, short_description, description, yields, prep_time, cook_time, ingredients, instructions, notes, tags } = JSON.parse(recipe);
-	const prompt = `You are an experienced culinary assistant helping a user working on a recipe.
+  const { title, short_description, description, yields, prep_time, cook_time, ingredients, instructions, notes, tags } = JSON.parse(recipe);
+  const prompt = `You are an experienced culinary assistant helping a user working on a recipe.
 They have provided the following recipe but some of the fields are missing. Using the provided recipe as a guide, fill in any missing fields using your best estimation.
 
 DO NOT alter the recipe.
@@ -289,7 +283,7 @@ DO NOT include any emojis or non-ASCII characters.
 YOU MAY add additional tags to the recipe if you think they are appropriate.
 `;
 
-	const input = `The user has provided the following recipe details:
+  const input = `The user has provided the following recipe details:
 
 title: ${title}
 short_description: ${short_description}
@@ -303,20 +297,20 @@ instructions: ${instructions}
 notes: ${notes}
 `;
 
-	try {
-		const openai = getOpenAI();
-		const response = await openai.responses.create({
-			model: 'gpt-5-nano',
-			instructions: prompt,
-			input,
-			text: {
-				format: zodTextFormat(RecipeSchema, 'recipedetail')
-			}
-		});
+  try {
+    const openai = getOpenAI();
+    const response = await openai.responses.create({
+      model: 'gpt-5-nano',
+      instructions: prompt,
+      input,
+      text: {
+        format: zodTextFormat(RecipeSchema, 'recipedetail')
+      }
+    });
 
-		return response.output_text;
-	} catch (err) {
-		console.error('OpenAI API error:', err);
-		throw err;
-	}
+    return response.output_text;
+  } catch (err) {
+    console.error('OpenAI API error:', err);
+    throw err;
+  }
 }

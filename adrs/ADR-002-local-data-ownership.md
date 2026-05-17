@@ -41,12 +41,12 @@ We will use **Svelte stores** (including Dexie `liveQuery`-backed stores) as the
 
 ### Classification summary
 
-| Category | Examples (non-exhaustive) | Durable user data | Transient / cache / operational |
-| --- | --- | --- | --- |
-| Recipe book | `SavedRecipe` in `db.recipes`, including `checkout_history` on the recipe | Yes | — |
-| Preferences | User preferences object keyed for local use; consumed by **AI / suggestions**, not by deterministic recommendation ranking over `SavedRecipe` ([ADR-009](ADR-009-recommendations-engine-inputs.md)) | Yes | — |
-| AI suggestions | `db.suggestions` rows; session or TanStack Query caches of fetched detail used for “viewed” UX | No (not a saved recipe) | Yes — local artifact; eligible for caps, pruning, and lifecycle rules in a future ADR |
-| Prompt deduplication | `db.prompt_requests` linking prompts to suggestion ids | No | Yes — operational throttle/dedup aid |
+| Category             | Examples (non-exhaustive)                                                                                                                                                                           | Durable user data       | Transient / cache / operational                                                       |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- | ------------------------------------------------------------------------------------- |
+| Recipe book          | `SavedRecipe` in `db.recipes`, including `checkout_history` on the recipe                                                                                                                           | Yes                     | —                                                                                     |
+| Preferences          | User preferences object keyed for local use; consumed by **AI / suggestions**, not by deterministic recommendation ranking over `SavedRecipe` ([ADR-009](ADR-009-recommendations-engine-inputs.md)) | Yes                     | —                                                                                     |
+| AI suggestions       | `db.suggestions` rows; session or TanStack Query caches of fetched detail used for “viewed” UX                                                                                                      | No (not a saved recipe) | Yes — local artifact; eligible for caps, pruning, and lifecycle rules in a future ADR |
+| Prompt deduplication | `db.prompt_requests` linking prompts to suggestion ids                                                                                                                                              | No                      | Yes — operational throttle/dedup aid                                                  |
 
 ### Explicit exclusions (required)
 
@@ -70,10 +70,10 @@ We will use **Svelte stores** (including Dexie `liveQuery`-backed stores) as the
 
 ### Risks and mitigations
 
-| Risk | Mitigation |
-| --- | --- |
+| Risk                                                 | Mitigation                                                                                                                             |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | Drift: new domain persisted only in memory or remote | Code review checks against this ADR; [`.cursor/rules/local-data-dexie-ownership.mdc`](../.cursor/rules/local-data-dexie-ownership.mdc) |
-| Over-deletion of suggestions hurts UX | Future lifecycle ADR sets caps and user-visible expectations; current code patterns (e.g. suggestion count caps) remain implementation |
+| Over-deletion of suggestions hurts UX                | Future lifecycle ADR sets caps and user-visible expectations; current code patterns (e.g. suggestion count caps) remain implementation |
 
 ## Operational impact
 

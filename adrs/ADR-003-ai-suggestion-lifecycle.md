@@ -73,11 +73,11 @@ AI suggestions follow a **transient-local lifecycle** with explicit promotion:
 
 ### Risks and mitigations
 
-| Risk | Mitigation |
-| --- | --- |
-| Duplicate requests from rapid navigation | Keep prompt dedup + request_id URL mapping behavior and tests |
-| Misclassification of suggestions as cloud recipe data | Enforce ADR-002 + this ADR in code review and rule backlog |
-| Unbounded local growth | Maintain bounded history and pruning policy |
+| Risk                                                  | Mitigation                                                    |
+| ----------------------------------------------------- | ------------------------------------------------------------- |
+| Duplicate requests from rapid navigation              | Keep prompt dedup + request_id URL mapping behavior and tests |
+| Misclassification of suggestions as cloud recipe data | Enforce ADR-002 + this ADR in code review and rule backlog    |
+| Unbounded local growth                                | Maintain bounded history and pruning policy                   |
 
 ## Operational impact
 

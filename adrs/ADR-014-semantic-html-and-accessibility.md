@@ -77,9 +77,9 @@ Animations and transitions MUST respect **`prefers-reduced-motion`**. Non-animat
 ```css
 /* Example pattern */
 @media (prefers-reduced-motion: no-preference) {
-	.animated-element {
-		transition: opacity 200ms ease;
-	}
+  .animated-element {
+    transition: opacity 200ms ease;
+  }
 }
 ```
 
@@ -113,10 +113,10 @@ Animations and transitions MUST respect **`prefers-reduced-motion`**. Non-animat
 
 ### Risks and mitigations
 
-| Risk | Mitigation |
-| ---- | ---------- |
-| Drift between ADR and actual layout | Update this ADR when changing primary landmarks; record stubborn gaps in [docs/readme-adr-alignment-gaps.md](../docs/readme-adr-alignment-gaps.md). |
-| Spurious JS-only navigation where `href` suffices | [ADR-015](ADR-015-progressive-enhancement-and-no-js-baseline.md) names Dexie+JS vs shell PE; align new features with both ADRs. |
+| Risk                                              | Mitigation                                                                                                                                          |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Drift between ADR and actual layout               | Update this ADR when changing primary landmarks; record stubborn gaps in [docs/readme-adr-alignment-gaps.md](../docs/readme-adr-alignment-gaps.md). |
+| Spurious JS-only navigation where `href` suffices | [ADR-015](ADR-015-progressive-enhancement-and-no-js-baseline.md) names Dexie+JS vs shell PE; align new features with both ADRs.                     |
 
 ## Operational impact
 

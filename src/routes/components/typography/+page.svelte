@@ -1,4 +1,4 @@
-<article class="mx-auto max-w-5xl px-4 py-8 lg:px-8 flex flex-col gap-4">
+<article class="mx-auto flex max-w-5xl flex-col gap-4 px-4 py-8 lg:px-8">
   <div>
     <h1 class="display-large">Display Large</h1>
     <p class="label-medium text-accent"><code>.display-large</code></p>

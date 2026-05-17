@@ -1,9 +1,9 @@
 /**
  * Auth Service
- * 
+ *
  * Handles authentication and authorization for the application.
- * 
- * **Auth Service** is a wrapper for the Supabase auth client. It is highly redundant and should be 
+ *
+ * **Auth Service** is a wrapper for the Supabase auth client. It is highly redundant and should be
  * avoided if possible. Prefer using the Supabase auth client directly.
  */
 

@@ -1,43 +1,34 @@
 <script lang="ts">
-	import { Button, Select, type WithoutChildren } from 'bits-ui';
-	import type { MouseEventHandler } from 'svelte/elements';
-	// import Button from './Button/Button.svelte';
-	import CaretDownIcon from './icons/CaretDownIcon.svelte';
-	import CaretUpIcon from './icons/CaretUpIcon.svelte';
-	import CheckmarkIcon from './icons/CheckmarkIcon.svelte';
-	import CloseOutlineIcon from './icons/CloseOutlineIcon.svelte';
-	import type { SelectOption } from './types';
+  import { Button, Select, type WithoutChildren } from 'bits-ui';
+  import type { MouseEventHandler } from 'svelte/elements';
+  // import Button from './Button/Button.svelte';
+  import CaretDownIcon from './icons/CaretDownIcon.svelte';
+  import CaretUpIcon from './icons/CaretUpIcon.svelte';
+  import CheckmarkIcon from './icons/CheckmarkIcon.svelte';
+  import CloseOutlineIcon from './icons/CloseOutlineIcon.svelte';
+  import type { SelectOption } from './types';
 
-	type Props = WithoutChildren<Select.RootProps> & {
-		placeholder?: string;
-		items?: SelectOption[];
-		contentProps?: WithoutChildren<Select.ContentProps>;
-		// any other specific component props if needed
-		onReset?: MouseEventHandler<HTMLButtonElement>;
-		error?: string;
-	};
+  type Props = WithoutChildren<Select.RootProps> & {
+    placeholder?: string;
+    items?: SelectOption[];
+    contentProps?: WithoutChildren<Select.ContentProps>;
+    // any other specific component props if needed
+    onReset?: MouseEventHandler<HTMLButtonElement>;
+    error?: string;
+  };
 
-	let {
-		value = $bindable(),
-		items,
-		contentProps,
-		placeholder,
-		onReset,
-		error,
-		onValueChange,
-		...restProps
-	}: Props = $props();
+  let { value = $bindable(), items, contentProps, placeholder, onReset, error, onValueChange, ...restProps }: Props = $props();
 
-	let containerRef = $state<HTMLElement>();
+  let containerRef = $state<HTMLElement>();
 
-	let selected = $derived(items?.find((item) => item.value === value)?.label ?? null);
+  let selected = $derived(items?.find((item) => item.value === value)?.label ?? null);
 
-	/** Remove a tag from the selected values. Only available for multiple select. */
-	function removeTag(label: string) {
-		const next = (value as string[])?.filter((v) => v !== label) ?? [];
-		value = next;
-		onValueChange?.(next as never);
-	}
+  /** Remove a tag from the selected values. Only available for multiple select. */
+  function removeTag(label: string) {
+    const next = (value as string[])?.filter((v) => v !== label) ?? [];
+    value = next;
+    onValueChange?.(next as never);
+  }
 </script>
 
 <!--
@@ -60,23 +51,23 @@ _Reference: bits-ui [Select](https://bits-ui.com/docs/components/select/llms.txt
 {/snippet}
 
 <Select.Root
-	bind:value={value as never}
-	{...restProps}
-	onValueChange={(v: string | string[]) => {
-		onValueChange?.(v as never);
-	}}
+  bind:value={value as never}
+  {...restProps}
+  onValueChange={(v: string | string[]) => {
+    onValueChange?.(v as never);
+  }}
 >
-	<div
-		class={[
-			'body-medium flex h-input flex-row flex-nowrap items-stretch rounded-sm border border-border-input hover:border-border-input-hover dark:border-gray-700 bg-background dark:bg-gray-900',
-			error ? 'border-destructive' : ''
-		]}
-		bind:this={containerRef}
-	>
-		<Select.Trigger
-			class="h-input flex-auto border-none data-placeholder:text-foreground-alt/50 inline-flex w-[296px] touch-none select-none items-center border px-input text-sm transition-colors cursor-pointer"
-		>
-			<div class="flex flex-row flex-wrap gap-1">
+  <div
+    class={[
+      'body-medium h-input border-border-input hover:border-border-input-hover bg-background flex flex-row flex-nowrap items-stretch rounded-sm border dark:border-gray-700 dark:bg-gray-900',
+      error ? 'border-destructive' : ''
+    ]}
+    bind:this={containerRef}
+  >
+    <Select.Trigger
+      class="h-input data-placeholder:text-foreground-alt/50 px-input inline-flex w-[296px] flex-auto cursor-pointer touch-none items-center border border-none text-sm transition-colors select-none"
+    >
+      <div class="flex flex-row flex-wrap gap-1">
         {#if restProps.type === 'multiple'}
           {#each value as v (v)}
             {@render tag(v)}
@@ -84,84 +75,84 @@ _Reference: bits-ui [Select](https://bits-ui.com/docs/components/select/llms.txt
         {:else}
           {selected}
         {/if}
-				{#if !value || value.length === 0}
-					<span class="body-medium text-foreground-alt/50">{placeholder}</span>
-				{/if}
+        {#if !value || value.length === 0}
+          <span class="body-medium text-foreground-alt/50">{placeholder}</span>
+        {/if}
       </div>
-		</Select.Trigger>
-		{#if value && value.length > 0}
-			<div class="flex-none">
-				<Button.Root
-					onclick={() => {
-						value = [];
-						if (restProps.type === 'multiple') {
-							onValueChange?.([] as never);
-						}
-					}}
-					class="button narrow text inset"
-					title="Clear values"
-				>
-					<CloseOutlineIcon size="xs" />
-				</Button.Root>
-			</div>
-		{/if}
-	</div>
-	<Select.Portal>
-		<Select.Content
-			{...contentProps}
-			customAnchor={containerRef}
-			class="focus-override border-muted bg-background shadow-popover data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 outline-hidden z-500 h-96 max-h-[var(--bits-select-content-available-height)] w-[var(--bits-select-anchor-width)] min-w-[var(--bits-select-anchor-width)] select-none rounded-xl border px-1 py-3 data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1"
-		>
-			<Select.ScrollUpButton class="flex justify-center">
-				<CaretUpIcon size="xs" />
-			</Select.ScrollUpButton>
-			<Select.Viewport class="p-1">
-				{#each items as item (item.value)}
-					{#if item.items}
-						<Select.Group>
-							<Select.GroupHeading class="label-medium uppercase mx-2 my-2 text-gray-500">
-								{item.label}
-							</Select.GroupHeading>
-							{#each item.items as subItem (subItem.value)}
-								<Select.Item
-									value={subItem.value}
-									label={subItem.label}
-									disabled={subItem.disabled}
-									class="rounded-button data-highlighted:bg-muted outline-hidden data-disabled:opacity-50 flex h-10 w-full select-none items-center py-3 pl-3 pr-1.5 text-sm cursor-pointer"
-								>
-									{#snippet children({ selected })}
-										<span class="w-min grow truncate">{subItem.label}</span>
-										{#if selected}
-											<span class="flex-none text-green-500">
-												<CheckmarkIcon size="xs" />
-											</span>
-										{/if}
-									{/snippet}
-								</Select.Item>
-							{/each}
-						</Select.Group>
-					{:else}
-						<Select.Item
-							value={item.value}
-							label={item.label}
-							disabled={item.disabled}
-							class="rounded-button data-highlighted:bg-muted outline-hidden data-disabled:opacity-50 flex h-10 w-full select-none items-center py-3 pl-3 pr-1.5 text-sm cursor-pointer"
-						>
-							{#snippet children({ selected })}
-								<span class="w-min grow truncate">{item.label}</span>
-								{#if selected}
-									<span class="flex-none text-green-500">
-										<CheckmarkIcon size="xs" />
-									</span>
-								{/if}
-							{/snippet}
-						</Select.Item>
-					{/if}
-				{/each}
-			</Select.Viewport>
-			<Select.ScrollDownButton class="flex justify-center">
-				<CaretDownIcon size="xs" />
-			</Select.ScrollDownButton>
-		</Select.Content>
-	</Select.Portal>
+    </Select.Trigger>
+    {#if value && value.length > 0}
+      <div class="flex-none">
+        <Button.Root
+          onclick={() => {
+            value = [];
+            if (restProps.type === 'multiple') {
+              onValueChange?.([] as never);
+            }
+          }}
+          class="button narrow text inset"
+          title="Clear values"
+        >
+          <CloseOutlineIcon size="xs" />
+        </Button.Root>
+      </div>
+    {/if}
+  </div>
+  <Select.Portal>
+    <Select.Content
+      {...contentProps}
+      customAnchor={containerRef}
+      class="focus-override border-muted bg-background shadow-popover data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-500 h-96 max-h-[var(--bits-select-content-available-height)] w-[var(--bits-select-anchor-width)] min-w-[var(--bits-select-anchor-width)] rounded-xl border px-1 py-3 outline-hidden select-none data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1"
+    >
+      <Select.ScrollUpButton class="flex justify-center">
+        <CaretUpIcon size="xs" />
+      </Select.ScrollUpButton>
+      <Select.Viewport class="p-1">
+        {#each items as item (item.value)}
+          {#if item.items}
+            <Select.Group>
+              <Select.GroupHeading class="label-medium mx-2 my-2 text-gray-500 uppercase">
+                {item.label}
+              </Select.GroupHeading>
+              {#each item.items as subItem (subItem.value)}
+                <Select.Item
+                  value={subItem.value}
+                  label={subItem.label}
+                  disabled={subItem.disabled}
+                  class="rounded-button data-highlighted:bg-muted flex h-10 w-full cursor-pointer items-center py-3 pr-1.5 pl-3 text-sm outline-hidden select-none data-disabled:opacity-50"
+                >
+                  {#snippet children({ selected })}
+                    <span class="w-min grow truncate">{subItem.label}</span>
+                    {#if selected}
+                      <span class="flex-none text-green-500">
+                        <CheckmarkIcon size="xs" />
+                      </span>
+                    {/if}
+                  {/snippet}
+                </Select.Item>
+              {/each}
+            </Select.Group>
+          {:else}
+            <Select.Item
+              value={item.value}
+              label={item.label}
+              disabled={item.disabled}
+              class="rounded-button data-highlighted:bg-muted flex h-10 w-full cursor-pointer items-center py-3 pr-1.5 pl-3 text-sm outline-hidden select-none data-disabled:opacity-50"
+            >
+              {#snippet children({ selected })}
+                <span class="w-min grow truncate">{item.label}</span>
+                {#if selected}
+                  <span class="flex-none text-green-500">
+                    <CheckmarkIcon size="xs" />
+                  </span>
+                {/if}
+              {/snippet}
+            </Select.Item>
+          {/if}
+        {/each}
+      </Select.Viewport>
+      <Select.ScrollDownButton class="flex justify-center">
+        <CaretDownIcon size="xs" />
+      </Select.ScrollDownButton>
+    </Select.Content>
+  </Select.Portal>
 </Select.Root>

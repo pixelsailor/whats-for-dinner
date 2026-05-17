@@ -1,180 +1,171 @@
 <script lang="ts">
-	import { createEventDispatcher, onMount } from 'svelte';
-	// import { marked } from 'marked';
-	import type { Recipe } from '$lib/api/recipe';
-	import SvelteMarkdown from '@humanspeak/svelte-markdown';
-	import Button from '$lib/ui/Button/Button.svelte';
-	import EditIcon from '$lib/ui/icons/EditIcon.svelte';
+  import { createEventDispatcher, onMount } from 'svelte';
+  // import { marked } from 'marked';
+  import type { Recipe } from '$lib/api/recipe';
+  import SvelteMarkdown from '@humanspeak/svelte-markdown';
+  import Button from '$lib/ui/Button/Button.svelte';
+  import EditIcon from '$lib/ui/icons/EditIcon.svelte';
 
-	interface EditState {
-		field: keyof Recipe | null;
-		originalValue: Recipe[keyof Recipe] | null;
-	}
+  interface EditState {
+    field: keyof Recipe | null;
+    originalValue: Recipe[keyof Recipe] | null;
+  }
 
-	let { recipe, locked = false }: { recipe: Recipe; locked?: boolean } = $props();
+  let { recipe, locked = false }: { recipe: Recipe; locked?: boolean } = $props();
 
-	// State
-	let editState = $state<EditState>({ field: null, originalValue: null });
-	let textareaRef: HTMLTextAreaElement | null = $state(null);
+  // State
+  let editState = $state<EditState>({ field: null, originalValue: null });
+  let textareaRef: HTMLTextAreaElement | null = $state(null);
 
-	// Inferred total time
-	let totalTime = $derived.by<string>(() => {
-		const minDuration = parseInt(recipe.prep_time?.[0] ?? '0') + parseInt(recipe.cook_time?.[0] ?? '0');
-		const maxDuration = parseInt(recipe.prep_time?.[1] ?? '0') + parseInt(recipe.cook_time?.[1] ?? '0');
+  // Inferred total time
+  let totalTime = $derived.by<string>(() => {
+    const minDuration = parseInt(recipe.prep_time?.[0] ?? '0') + parseInt(recipe.cook_time?.[0] ?? '0');
+    const maxDuration = parseInt(recipe.prep_time?.[1] ?? '0') + parseInt(recipe.cook_time?.[1] ?? '0');
 
-		if (maxDuration > 0) {
+    if (maxDuration > 0) {
       return humanizeTime([minDuration.toString(), maxDuration.toString()]);
-		} else {
-			return humanizeTime([minDuration.toString()]);
-		}
-	});
+    } else {
+      return humanizeTime([minDuration.toString()]);
+    }
+  });
 
-	const dispatch = createEventDispatcher<{
-		commit: {
-			field: keyof Recipe;
-			oldValue: Recipe[keyof Recipe] | null;
-			newValue: Recipe[keyof Recipe];
-		};
-		cancel: { field: keyof Recipe; value: Recipe[keyof Recipe] | null };
-	}>();
+  const dispatch = createEventDispatcher<{
+    commit: {
+      field: keyof Recipe;
+      oldValue: Recipe[keyof Recipe] | null;
+      newValue: Recipe[keyof Recipe];
+    };
+    cancel: { field: keyof Recipe; value: Recipe[keyof Recipe] | null };
+  }>();
 
-	$effect(() => {
-		if (locked && editState.field) {
-			cancelEdit();
-		}
-	});
-	
-	// Helper functions
-	function startEdit(field: keyof Recipe) {
-		if (locked) return;
+  $effect(() => {
+    if (locked && editState.field) {
+      cancelEdit();
+    }
+  });
 
-		if (editState.field) return; // Already editing something
+  // Helper functions
+  function startEdit(field: keyof Recipe) {
+    if (locked) return;
 
-		editState.field = field;
-		editState.originalValue = recipe[field];
+    if (editState.field) return; // Already editing something
 
-		// Focus textarea after DOM update for markdown fields
-		if (field === 'ingredients' || field === 'instructions') {
-			setTimeout(() => {
-				if (textareaRef) {
-					textareaRef.focus();
-					// Auto-resize textarea
-					adjustTextareaHeight(textareaRef);
-				}
-			}, 0);
-		}
-	}
+    editState.field = field;
+    editState.originalValue = recipe[field];
 
-	function commitEdit() {
-		if (!editState.field) return;
+    // Focus textarea after DOM update for markdown fields
+    if (field === 'ingredients' || field === 'instructions') {
+      setTimeout(() => {
+        if (textareaRef) {
+          textareaRef.focus();
+          // Auto-resize textarea
+          adjustTextareaHeight(textareaRef);
+        }
+      }, 0);
+    }
+  }
 
-		const field = editState.field;
-		const oldValue = editState.originalValue;
-		const newValue = recipe[field];
+  function commitEdit() {
+    if (!editState.field) return;
 
-		editState.field = null;
-		editState.originalValue = null;
+    const field = editState.field;
+    const oldValue = editState.originalValue;
+    const newValue = recipe[field];
 
-		dispatch('commit', { field, oldValue, newValue });
-	}
+    editState.field = null;
+    editState.originalValue = null;
 
-	function cancelEdit() {
-		if (!editState.field) return;
+    dispatch('commit', { field, oldValue, newValue });
+  }
 
-		const field = editState.field;
-		const mutableRecipe = recipe as Record<keyof Recipe, Recipe[keyof Recipe] | null>;
-		mutableRecipe[field] = editState.originalValue;
+  function cancelEdit() {
+    if (!editState.field) return;
 
-		dispatch('cancel', { field, value: editState.originalValue });
+    const field = editState.field;
+    const mutableRecipe = recipe as Record<keyof Recipe, Recipe[keyof Recipe] | null>;
+    mutableRecipe[field] = editState.originalValue;
 
-		editState.field = null;
-		editState.originalValue = null;
-	}
+    dispatch('cancel', { field, value: editState.originalValue });
 
-	function handleKeydown(event: KeyboardEvent, field: keyof Recipe) {
-	if (locked) return;
+    editState.field = null;
+    editState.originalValue = null;
+  }
 
-		if (
-			event.key === 'Enter' &&
-			!event.shiftKey &&
-			field !== 'ingredients' &&
-			field !== 'instructions'
-		) {
-			event.preventDefault();
-			commitEdit();
-		} else if (event.key === 'Escape') {
-			event.preventDefault();
-			cancelEdit();
-		}
-	}
+  function handleKeydown(event: KeyboardEvent, field: keyof Recipe) {
+    if (locked) return;
 
-	function handleTextareaKeydown(event: KeyboardEvent) {
-	if (locked) return;
+    if (event.key === 'Enter' && !event.shiftKey && field !== 'ingredients' && field !== 'instructions') {
+      event.preventDefault();
+      commitEdit();
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      cancelEdit();
+    }
+  }
 
-		if (event.key === 'Escape') {
-			event.preventDefault();
-			cancelEdit();
-		}
-		// For textareas, allow Enter but use Ctrl+Enter or buttons to commit
-		if (event.key === 'Enter' && event.ctrlKey) {
-			event.preventDefault();
-			commitEdit();
-		}
-	}
+  function handleTextareaKeydown(event: KeyboardEvent) {
+    if (locked) return;
 
-	function handleBlur(event: FocusEvent) {
-	if (locked) return;
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      cancelEdit();
+    }
+    // For textareas, allow Enter but use Ctrl+Enter or buttons to commit
+    if (event.key === 'Enter' && event.ctrlKey) {
+      event.preventDefault();
+      commitEdit();
+    }
+  }
 
-		// Check if focus moved to commit/cancel buttons
-		const relatedTarget = event.relatedTarget as HTMLElement;
-		if (
-			relatedTarget &&
-			(relatedTarget.classList.contains('commit-btn') ||
-				relatedTarget.classList.contains('cancel-btn'))
-		) {
-			return; // Don't commit yet, let button handle it
-		}
-		commitEdit();
-	}
+  function handleBlur(event: FocusEvent) {
+    if (locked) return;
 
-	function adjustTextareaHeight(textarea: HTMLTextAreaElement) {
-		textarea.style.height = 'auto';
-		textarea.style.height = textarea.scrollHeight + 'px';
-	}
+    // Check if focus moved to commit/cancel buttons
+    const relatedTarget = event.relatedTarget as HTMLElement;
+    if (relatedTarget && (relatedTarget.classList.contains('commit-btn') || relatedTarget.classList.contains('cancel-btn'))) {
+      return; // Don't commit yet, let button handle it
+    }
+    commitEdit();
+  }
 
-	function handleTextareaInput(event: Event) {
-	if (locked) return;
+  function adjustTextareaHeight(textarea: HTMLTextAreaElement) {
+    textarea.style.height = 'auto';
+    textarea.style.height = textarea.scrollHeight + 'px';
+  }
 
-		const textarea = event.target as HTMLTextAreaElement;
-		adjustTextareaHeight(textarea);
-	}
+  function handleTextareaInput(event: Event) {
+    if (locked) return;
 
-	/** Replace underscores with spaces and capitalize the first letter */
-	// function humanizeColumn(column: string): string {
-	// 	return column.charAt(0).toUpperCase() + column.slice(1).replace('_', ' ');
-	// }
+    const textarea = event.target as HTMLTextAreaElement;
+    adjustTextareaHeight(textarea);
+  }
 
-	// function renderMarkdown(content: string): string {
-	//   return marked(content, { breaks: true });
-	// }
+  /** Replace underscores with spaces and capitalize the first letter */
+  // function humanizeColumn(column: string): string {
+  // 	return column.charAt(0).toUpperCase() + column.slice(1).replace('_', ' ');
+  // }
 
-	// function parseTagsForDisplay(tags: string): string[] {
-	// 	return tags
-	// 		.split(',')
-	// 		.map((tag) => tag.trim())
-	// 		.filter((tag) => tag.length > 0);
-	// }
+  // function renderMarkdown(content: string): string {
+  //   return marked(content, { breaks: true });
+  // }
 
-	function selectAll(event: Event) {
-		const input = event.target as HTMLInputElement;
-		input.select();
-	}
+  // function parseTagsForDisplay(tags: string): string[] {
+  // 	return tags
+  // 		.split(',')
+  // 		.map((tag) => tag.trim())
+  // 		.filter((tag) => tag.length > 0);
+  // }
 
-	/**
+  function selectAll(event: Event) {
+    const input = event.target as HTMLInputElement;
+    input.select();
+  }
+
+  /**
    * Determines how to interpret a time range returning either a hyphen or 'to' separator
    * @param time - The time range to interpret
    */
-	 function humanizeTime(time: string[] | null): string {
+  function humanizeTime(time: string[] | null): string {
     if (!time || time.length === 0) return '';
     if (time.length === 1) {
       return humanizeDuration(parseInt(time[0]));
@@ -187,297 +178,253 @@
     }
   }
 
-	/** Renders a duration in the format of "X hours Y minutes" or "Y minutes" */
-	function humanizeDuration(duration: number, showUnits = true): string {
-		const hours = Math.floor(duration / 60);
-		const minutes = duration % 60;
-		if (hours > 0) {
-			return `${hours} ${hours === 1 ? 'hours' : 'hour'} ${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
-		} else {
+  /** Renders a duration in the format of "X hours Y minutes" or "Y minutes" */
+  function humanizeDuration(duration: number, showUnits = true): string {
+    const hours = Math.floor(duration / 60);
+    const minutes = duration % 60;
+    if (hours > 0) {
+      return `${hours} ${hours === 1 ? 'hours' : 'hour'} ${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
+    } else {
       if (showUnits) {
         return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
       } else {
         return minutes.toString();
       }
-		}
-	}
+    }
+  }
 </script>
 
 <div class="recipe-container">
-	<div class="flex flex-col gap-2">
-		<!-- Title -->
-		<header class="recipe-header">
-			{#if editState.field === 'title'}
-				<div class="edit-container">
-					<input
-						type="text"
-						class="display-small title-input"
-						bind:value={recipe.title}
-						onkeydown={(e) => handleKeydown(e, 'title')}
-						onblur={handleBlur}
-					/>
-					<div class="button-group">
-						<Button cue="filled" primary size="sm" class="commit-btn" onClick={commitEdit}>Save</Button>
-						<Button cue="outlined" size="sm" class="cancel-btn" onClick={cancelEdit}>Cancel</Button>
-					</div>
-				</div>
-			{:else}
-				<div class="editable-field-shell">
-					{#if !locked}
-						<Button
-							icon
-							size="xs"
-							cue="text"
-							label="Edit title"
-							title="Edit title"
-							class="edit-btn"
-							onClick={() => startEdit('title')}
-						>
-							<EditIcon size="xs" />
-						</Button>
-					{/if}
-					<h1 class="recipe-title display-small editable-wrapper">
-						{recipe.title || 'Click to add title'}
-					</h1>
-				</div>
-			{/if}
-		</header>
-		{#if !locked}
-			<section class="recipe-short-description-section">
-				<h2 class="fluid-heading-02 px-2">Short description</h2>
-				{#if editState.field === 'short_description'}
-					<div class="edit-container">
-						<textarea class="short-description-textarea" bind:value={recipe.short_description} onblur={handleBlur} oninput={handleTextareaInput} placeholder="Enter short description..."></textarea>
-						<div class="button-group">
-							<Button cue="filled" primary size="sm" class="commit-btn" onClick={commitEdit}>Save</Button>
-							<Button cue="outlined" size="sm" class="cancel-btn" onClick={cancelEdit}>Cancel</Button>
-						</div>
-					</div>
-				{:else}
-					<div class="editable-field-shell">
-						<Button
-							icon
-							size="xs"
-							cue="text"
-							label="Edit short description"
-							title="Edit short description"
-							class="edit-btn"
-							onClick={() => startEdit('short_description')}
-						>
-							<EditIcon size="xs" />
-						</Button>
-						<div class="recipe-short-description editable">
-							{recipe.short_description || 'Click to add short description'}
-						</div>
-					</div>
-				{/if}
-			</section>
-		{/if}
-		<!-- Description -->
-		<section class="recipe-description-section">
-			{#if editState.field === 'description'}
-				<div class="edit-container">
-					<textarea
-						class="description-textarea italic"
-						bind:value={recipe.description}
-						bind:this={textareaRef}
-						onkeydown={handleTextareaKeydown}
-						onblur={handleBlur}
-						oninput={handleTextareaInput}
-						placeholder="Enter recipe description..."
-					></textarea>
-					<div class="button-group">
-						<Button cue="filled" primary size="sm" class="commit-btn" onClick={commitEdit}>Save</Button>
-						<Button cue="outlined" size="sm" class="cancel-btn" onClick={cancelEdit}>Cancel</Button>
-					</div>
-				</div>
-			{:else}
-				<div class="editable-field-shell">
-					{#if !locked}
-						<Button
-							icon
-							size="xs"
-							cue="text"
-							label="Edit description"
-							title="Edit description"
-							class="edit-btn"
-							onClick={() => startEdit('description')}
-						>
-							<EditIcon size="xs" />
-						</Button>
-					{/if}
-					<div class="recipe-description editable italic">
-						{recipe.description}
-					</div>
-				</div>
-			{/if}
-		</section>
-		<p class="px-2 py-4 body-large">{recipe.yield}</p>
-		<div class="grid grid-cols-[5rem_minmax(0,1fr)] gap-1 align-baseline mx-2">
-			<span class="label-large">Prep time:</span>
-			<span class="body-medium">{humanizeTime(recipe.prep_time)}</span>
-			<span class="label-large">Cook time:</span>
-			<span class="body-medium">{humanizeTime(recipe.cook_time)}</span>
-			<span class="label-large">Total time:</span><span class="body-medium">{totalTime}</span>
-		</div>
-	</div>
+  <div class="flex flex-col gap-2">
+    <!-- Title -->
+    <header class="recipe-header">
+      {#if editState.field === 'title'}
+        <div class="edit-container">
+          <input type="text" class="display-small title-input" bind:value={recipe.title} onkeydown={(e) => handleKeydown(e, 'title')} onblur={handleBlur} />
+          <div class="button-group">
+            <Button cue="filled" primary size="sm" class="commit-btn" onClick={commitEdit}>Save</Button>
+            <Button cue="outlined" size="sm" class="cancel-btn" onClick={cancelEdit}>Cancel</Button>
+          </div>
+        </div>
+      {:else}
+        <div class="editable-field-shell">
+          {#if !locked}
+            <Button icon size="xs" cue="text" label="Edit title" title="Edit title" class="edit-btn" onClick={() => startEdit('title')}>
+              <EditIcon size="xs" />
+            </Button>
+          {/if}
+          <h1 class="recipe-title display-small editable-wrapper">
+            {recipe.title || 'Click to add title'}
+          </h1>
+        </div>
+      {/if}
+    </header>
+    {#if !locked}
+      <section class="recipe-short-description-section">
+        <h2 class="fluid-heading-02 px-2">Short description</h2>
+        {#if editState.field === 'short_description'}
+          <div class="edit-container">
+            <textarea
+              class="short-description-textarea"
+              bind:value={recipe.short_description}
+              onblur={handleBlur}
+              oninput={handleTextareaInput}
+              placeholder="Enter short description..."
+            ></textarea>
+            <div class="button-group">
+              <Button cue="filled" primary size="sm" class="commit-btn" onClick={commitEdit}>Save</Button>
+              <Button cue="outlined" size="sm" class="cancel-btn" onClick={cancelEdit}>Cancel</Button>
+            </div>
+          </div>
+        {:else}
+          <div class="editable-field-shell">
+            <Button
+              icon
+              size="xs"
+              cue="text"
+              label="Edit short description"
+              title="Edit short description"
+              class="edit-btn"
+              onClick={() => startEdit('short_description')}
+            >
+              <EditIcon size="xs" />
+            </Button>
+            <div class="recipe-short-description editable">
+              {recipe.short_description || 'Click to add short description'}
+            </div>
+          </div>
+        {/if}
+      </section>
+    {/if}
+    <!-- Description -->
+    <section class="recipe-description-section">
+      {#if editState.field === 'description'}
+        <div class="edit-container">
+          <textarea
+            class="description-textarea italic"
+            bind:value={recipe.description}
+            bind:this={textareaRef}
+            onkeydown={handleTextareaKeydown}
+            onblur={handleBlur}
+            oninput={handleTextareaInput}
+            placeholder="Enter recipe description..."
+          ></textarea>
+          <div class="button-group">
+            <Button cue="filled" primary size="sm" class="commit-btn" onClick={commitEdit}>Save</Button>
+            <Button cue="outlined" size="sm" class="cancel-btn" onClick={cancelEdit}>Cancel</Button>
+          </div>
+        </div>
+      {:else}
+        <div class="editable-field-shell">
+          {#if !locked}
+            <Button icon size="xs" cue="text" label="Edit description" title="Edit description" class="edit-btn" onClick={() => startEdit('description')}>
+              <EditIcon size="xs" />
+            </Button>
+          {/if}
+          <div class="recipe-description editable italic">
+            {recipe.description}
+          </div>
+        </div>
+      {/if}
+    </section>
+    <p class="body-large px-2 py-4">{recipe.yield}</p>
+    <div class="mx-2 grid grid-cols-[5rem_minmax(0,1fr)] gap-1 align-baseline">
+      <span class="label-large">Prep time:</span>
+      <span class="body-medium">{humanizeTime(recipe.prep_time)}</span>
+      <span class="label-large">Cook time:</span>
+      <span class="body-medium">{humanizeTime(recipe.cook_time)}</span>
+      <span class="label-large">Total time:</span><span class="body-medium">{totalTime}</span>
+    </div>
+  </div>
 
-	<!-- Ingredients -->
-	<section class="recipe-ingredients-section">
-		<h2 class="title-large px-2">Ingredients</h2>
-		{#if editState.field === 'ingredients'}
-			<div class="edit-container">
-				<textarea
-					class="ingredients-textarea"
-					bind:value={recipe.ingredients}
-					bind:this={textareaRef}
-					onkeydown={handleTextareaKeydown}
-					onblur={handleBlur}
-					oninput={handleTextareaInput}
-					placeholder="Enter ingredients in markdown format..."
-				></textarea>
-				<div class="button-group">
-					<Button cue="filled" primary size="sm" class="commit-btn" onClick={commitEdit}>Save</Button>
-					<Button cue="outlined" size="sm" class="cancel-btn" onClick={cancelEdit}>Cancel</Button>
-				</div>
-				<small class="hint">
-					Tip: Use markdown format (e.g., - 2 cups flour). Ctrl+Enter to save.
-				</small>
-			</div>
-		{:else}
-			<div class="editable-field-shell">
-				{#if !locked}
-					<Button
-						icon
-						size="xs"
-						cue="text"
-						label="Edit ingredients"
-						title="Edit ingredients"
-						class="edit-btn"
-						onClick={() => startEdit('ingredients')}
-					>
-						<EditIcon size="xs" />
-					</Button>
-				{/if}
-				<div class="recipe-ingredients editable">
-					{#if recipe.ingredients}
-						<div class="ingredients__content markdown">
-							<SvelteMarkdown source={recipe.ingredients} />
-						</div>
-					{:else}
-						<p class="placeholder">Click to add ingredients</p>
-					{/if}
-				</div>
-			</div>
-		{/if}
-	</section>
+  <!-- Ingredients -->
+  <section class="recipe-ingredients-section">
+    <h2 class="title-large px-2">Ingredients</h2>
+    {#if editState.field === 'ingredients'}
+      <div class="edit-container">
+        <textarea
+          class="ingredients-textarea"
+          bind:value={recipe.ingredients}
+          bind:this={textareaRef}
+          onkeydown={handleTextareaKeydown}
+          onblur={handleBlur}
+          oninput={handleTextareaInput}
+          placeholder="Enter ingredients in markdown format..."
+        ></textarea>
+        <div class="button-group">
+          <Button cue="filled" primary size="sm" class="commit-btn" onClick={commitEdit}>Save</Button>
+          <Button cue="outlined" size="sm" class="cancel-btn" onClick={cancelEdit}>Cancel</Button>
+        </div>
+        <small class="hint"> Tip: Use markdown format (e.g., - 2 cups flour). Ctrl+Enter to save. </small>
+      </div>
+    {:else}
+      <div class="editable-field-shell">
+        {#if !locked}
+          <Button icon size="xs" cue="text" label="Edit ingredients" title="Edit ingredients" class="edit-btn" onClick={() => startEdit('ingredients')}>
+            <EditIcon size="xs" />
+          </Button>
+        {/if}
+        <div class="recipe-ingredients editable">
+          {#if recipe.ingredients}
+            <div class="ingredients__content markdown">
+              <SvelteMarkdown source={recipe.ingredients} />
+            </div>
+          {:else}
+            <p class="placeholder">Click to add ingredients</p>
+          {/if}
+        </div>
+      </div>
+    {/if}
+  </section>
 
-	<!-- Instructions -->
-	<section class="recipe-instructions-section">
-		<h2 class="title-large px-2">Instructions</h2>
-		{#if editState.field === 'instructions'}
-			<div class="edit-container">
-				<textarea
-					class="instructions-textarea"
-					bind:value={recipe.instructions}
-					bind:this={textareaRef}
-					onkeydown={handleTextareaKeydown}
-					onblur={handleBlur}
-					oninput={handleTextareaInput}
-					placeholder="Enter step-by-step instructions in markdown format..."
-				></textarea>
-				<div class="button-group">
-					<Button cue="filled" primary size="sm" class="commit-btn" onClick={commitEdit}>Save</Button>
-					<Button cue="outlined" size="sm" class="cancel-btn" onClick={cancelEdit}>Cancel</Button>
-				</div>
-				<small class="hint"
-					>Tip: Use numbered lists (1., 2., 3.) or bullets (-). Ctrl+Enter to save.</small
-				>
-			</div>
-		{:else}
-			<div class="editable-field-shell">
-				{#if !locked}
-					<Button
-						icon
-						size="xs"
-						cue="text"
-						label="Edit instructions"
-						title="Edit instructions"
-						class="edit-btn"
-						onClick={() => startEdit('instructions')}
-					>
-						<EditIcon size="xs" />
-					</Button>
-				{/if}
-				<div class="recipe-instructions editable">
-					{#if recipe.instructions}
-						<div class="instructions__content markdown">
-							<SvelteMarkdown source={recipe.instructions} />
-						</div>
-					{:else}
-						<p class="placeholder">Click to add instructions</p>
-					{/if}
-				</div>
-			</div>
-		{/if}
-	</section>
+  <!-- Instructions -->
+  <section class="recipe-instructions-section">
+    <h2 class="title-large px-2">Instructions</h2>
+    {#if editState.field === 'instructions'}
+      <div class="edit-container">
+        <textarea
+          class="instructions-textarea"
+          bind:value={recipe.instructions}
+          bind:this={textareaRef}
+          onkeydown={handleTextareaKeydown}
+          onblur={handleBlur}
+          oninput={handleTextareaInput}
+          placeholder="Enter step-by-step instructions in markdown format..."
+        ></textarea>
+        <div class="button-group">
+          <Button cue="filled" primary size="sm" class="commit-btn" onClick={commitEdit}>Save</Button>
+          <Button cue="outlined" size="sm" class="cancel-btn" onClick={cancelEdit}>Cancel</Button>
+        </div>
+        <small class="hint">Tip: Use numbered lists (1., 2., 3.) or bullets (-). Ctrl+Enter to save.</small>
+      </div>
+    {:else}
+      <div class="editable-field-shell">
+        {#if !locked}
+          <Button icon size="xs" cue="text" label="Edit instructions" title="Edit instructions" class="edit-btn" onClick={() => startEdit('instructions')}>
+            <EditIcon size="xs" />
+          </Button>
+        {/if}
+        <div class="recipe-instructions editable">
+          {#if recipe.instructions}
+            <div class="instructions__content markdown">
+              <SvelteMarkdown source={recipe.instructions} />
+            </div>
+          {:else}
+            <p class="placeholder">Click to add instructions</p>
+          {/if}
+        </div>
+      </div>
+    {/if}
+  </section>
 
-	<section class="recipe-notes-section">
-		<h2 class="title-large px-2">Notes:</h2>
-		{#if editState.field === 'notes'}
-			<div class="edit-container">
-				<textarea
-					class="notes-textarea"
-					bind:value={recipe.notes}
-					bind:this={textareaRef}
-					onkeydown={handleTextareaKeydown}
-					onblur={handleBlur}
-					oninput={handleTextareaInput}
-					placeholder="Enter notes in markdown format..."
-				></textarea>
-				<div class="button-group">
-					<Button cue="filled" primary size="sm" class="commit-btn" onClick={commitEdit}>Save</Button>
-					<Button cue="outlined" size="sm" class="cancel-btn" onClick={cancelEdit}>Cancel</Button>
-				</div>
-			</div>
-		{:else}
-			<div class="editable-field-shell">
-				{#if !locked}
-					<Button
-						icon
-						size="xs"
-						cue="text"
-						label="Edit notes"
-						title="Edit notes"
-						class="edit-btn"
-						onClick={() => startEdit('notes')}
-					>
-						<EditIcon size="xs" />
-					</Button>
-				{/if}
-				<div class="recipe-notes editable">
-					{#if recipe.notes}
-						<div class="notes__content markdown">
-							<SvelteMarkdown source={recipe.notes} />
-						</div>
-					{:else}
-						<p class="placeholder">Click to add notes</p>
-					{/if}
-				</div>
-			</div>
-		{/if}
-	</section>
+  <section class="recipe-notes-section">
+    <h2 class="title-large px-2">Notes:</h2>
+    {#if editState.field === 'notes'}
+      <div class="edit-container">
+        <textarea
+          class="notes-textarea"
+          bind:value={recipe.notes}
+          bind:this={textareaRef}
+          onkeydown={handleTextareaKeydown}
+          onblur={handleBlur}
+          oninput={handleTextareaInput}
+          placeholder="Enter notes in markdown format..."
+        ></textarea>
+        <div class="button-group">
+          <Button cue="filled" primary size="sm" class="commit-btn" onClick={commitEdit}>Save</Button>
+          <Button cue="outlined" size="sm" class="cancel-btn" onClick={cancelEdit}>Cancel</Button>
+        </div>
+      </div>
+    {:else}
+      <div class="editable-field-shell">
+        {#if !locked}
+          <Button icon size="xs" cue="text" label="Edit notes" title="Edit notes" class="edit-btn" onClick={() => startEdit('notes')}>
+            <EditIcon size="xs" />
+          </Button>
+        {/if}
+        <div class="recipe-notes editable">
+          {#if recipe.notes}
+            <div class="notes__content markdown">
+              <SvelteMarkdown source={recipe.notes} />
+            </div>
+          {:else}
+            <p class="placeholder">Click to add notes</p>
+          {/if}
+        </div>
+      </div>
+    {/if}
+  </section>
 
-	<ul class="inline-flex flex-wrap gap-2 px-2 mb-4 h-12 items-center">
-		{#each recipe.tags as tag, index (tag + index)}
-			<li>
-				<span class="tag label-medium lowercase">{tag}</span>
-			</li>
-		{/each}
-	</ul>
+  <ul class="mb-4 inline-flex h-12 flex-wrap items-center gap-2 px-2">
+    {#each recipe.tags as tag, index (tag + index)}
+      <li>
+        <span class="tag label-medium lowercase">{tag}</span>
+      </li>
+    {/each}
+  </ul>
 
-	<!-- Tags -->
-	<!-- <section class="recipe-tags-section">
+  <!-- Tags -->
+  <!-- <section class="recipe-tags-section">
     <h3>Tags</h3>
     {#if editState.field === 'tags'}
       <div class="edit-container">
@@ -513,95 +460,94 @@
 </div>
 
 <style>
-	.recipe-container {
-		display: flex;
-		flex-direction: column;
-		gap: 2rem;
-	}
+  .recipe-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
 
-	.editable,
-	.editable-wrapper {
-		cursor: default;
-		padding: 0 0.5rem;
-		border-radius: 4px;
-		transition: background-color 0.2s ease;
-		min-height: 1.5em;
-		border: 2px solid transparent;
-	}
+  .editable,
+  .editable-wrapper {
+    cursor: default;
+    padding: 0 0.5rem;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+    min-height: 1.5em;
+    border: 2px solid transparent;
+  }
 
-	.editable-field-shell {
-		position: relative;
-		/* Expand hover/focus hit area into a left gutter for the edit button. */
-		padding-left: 2.75rem;
-		margin-left: -2.75rem;
-	}
+  .editable-field-shell {
+    position: relative;
+    /* Expand hover/focus hit area into a left gutter for the edit button. */
+    padding-left: 2.75rem;
+    margin-left: -2.75rem;
+  }
 
-	.editable-field-shell :global(.edit-btn) {
-		position: absolute;
-		top: 0;
-		left: 0.25rem;
-		opacity: 0;
-		pointer-events: none;
-		transition: opacity 0.2s ease;
-	}
+  .editable-field-shell :global(.edit-btn) {
+    position: absolute;
+    top: 0;
+    left: 0.25rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
 
-	.editable-field-shell:hover :global(.edit-btn),
-	.editable-field-shell:focus-within :global(.edit-btn) {
-		opacity: 1;
-		pointer-events: auto;
-	}
+  .editable-field-shell:hover :global(.edit-btn),
+  .editable-field-shell:focus-within :global(.edit-btn) {
+    opacity: 1;
+    pointer-events: auto;
+  }
 
+  .placeholder {
+    /* color: #6c757d; */
+    font-style: italic;
+    margin: 0;
+  }
 
-	.placeholder {
-		/* color: #6c757d; */
-		font-style: italic;
-		margin: 0;
-	}
+  .edit-container {
+    position: relative;
+  }
 
-	.edit-container {
-		position: relative;
-	}
-
-	.title-input {
-		width: 100%;
-		/* font-size: inherit;
+  .title-input {
+    width: 100%;
+    /* font-size: inherit;
     font-weight: inherit;
     font-family: inherit; */
-		padding: 0.5rem;
-		border: 2px solid #007bff;
-		border-radius: 4px;
-		outline: none;
-	}
+    padding: 0.5rem;
+    border: 2px solid #007bff;
+    border-radius: 4px;
+    outline: none;
+  }
 
-	.description-textarea,
-	.short-description-textarea,
-	.ingredients-textarea,
-	.instructions-textarea,
-	.notes-textarea {
-		width: 100%;
-		min-height: 100px;
-		padding: 0.5rem;
-		/* font-family: inherit;
+  .description-textarea,
+  .short-description-textarea,
+  .ingredients-textarea,
+  .instructions-textarea,
+  .notes-textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 0.5rem;
+    /* font-family: inherit;
     font-size: 1rem;
     line-height: 1.5; */
-		border: 2px solid #007bff;
-		border-radius: 4px;
-		outline: none;
-		resize: none;
-		overflow: hidden;
-	}
+    border: 2px solid #007bff;
+    border-radius: 4px;
+    outline: none;
+    resize: none;
+    overflow: hidden;
+  }
 
-	.short-description-textarea {
-		min-height: 2rem;
-	}
+  .short-description-textarea {
+    min-height: 2rem;
+  }
 
-	/* .tags-list {
+  /* .tags-list {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.5rem;
 	} */
 
-	/* .tag {
+  /* .tag {
 		background-color: #e3f2fd;
 		color: #1976d2;
 		padding: 0.25rem 0.75rem;
@@ -610,21 +556,21 @@
 		font-weight: 500;
 	} */
 
-	.button-group {
-		display: flex;
-		gap: 0.5rem;
-		margin-top: 0.5rem;
-	}
+  .button-group {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
 
-	.hint {
-		display: block;
-		color: #6c757d;
-		font-size: 0.875rem;
-		margin-top: 0.25rem;
-	}
+  .hint {
+    display: block;
+    color: #6c757d;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+  }
 
-	/* Markdown content styling */
-	/* .recipe-ingredients :global(ul),
+  /* Markdown content styling */
+  /* .recipe-ingredients :global(ul),
 	.recipe-instructions :global(ol),
 	.recipe-instructions :global(ul) {
 		margin: 0.5rem 0;
@@ -645,8 +591,8 @@
 		line-height: 1.6;
 	} */
 
-	/* Responsive design */
-	/* @media (max-width: 768px) {
+  /* Responsive design */
+  /* @media (max-width: 768px) {
 		.recipe-container {
 			padding: 1rem;
 		}

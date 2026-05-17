@@ -10,7 +10,7 @@ import type { UserProfile } from './account.types';
 
 /**
  * Check if the user has a specific permission.
- * 
+ *
  * @param user - The user profile.
  * @param permission - The permission to check.
  * @returns True if the user has the permission, false otherwise.

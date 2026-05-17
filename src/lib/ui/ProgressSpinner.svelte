@@ -1,7 +1,7 @@
 <script lang="ts">
   type SpinnerProps = {
     size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-  }
+  };
   let { size = 'sm' }: SpinnerProps = $props();
 
   let pixelSize = $derived.by(() => {
@@ -10,10 +10,10 @@
       sm: 24,
       md: 24,
       lg: 32,
-      xl: 40,
-    }
+      xl: 40
+    };
     return `${sizes[size]}px`;
-  })
+  });
 </script>
 
 <span class="pxl--progress-spinner">
@@ -33,7 +33,9 @@
     stroke-width: 8px;
     stroke-dasharray: 288;
     transform-origin: 50% 50%;
-    animation: line 5s linear infinite, spin 3s linear infinite;
+    animation:
+      line 5s linear infinite,
+      spin 3s linear infinite;
   }
 
   @keyframes line {

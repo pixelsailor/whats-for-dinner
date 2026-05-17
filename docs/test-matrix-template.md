@@ -6,12 +6,12 @@ Reusable **layer definitions** and **coverage conventions** for orchestrated Tes
 
 ## How artifacts fit together
 
-| Artifact | Owner | Purpose |
-| -------- | ----- | ------- |
-| **`docs/test-matrix-template.md`** (this file) | Maintainers | Stable layer IDs, runners, applicability, commands |
-| **`test-matrix.md`** (per `task-id`) | Planner (planned) → Test (actual) | Which **layers** each AC needs; planned vs executed coverage |
-| **`test-report.md`** (per `task-id`) | Test | AC → test name map, uncovered criteria, stability, commands run |
-| **`acceptance-criteria.md`** | Planner | Verifiable AC IDs (`AC-01`, …) both artifacts reference |
+| Artifact                                       | Owner                             | Purpose                                                         |
+| ---------------------------------------------- | --------------------------------- | --------------------------------------------------------------- |
+| **`docs/test-matrix-template.md`** (this file) | Maintainers                       | Stable layer IDs, runners, applicability, commands              |
+| **`test-matrix.md`** (per `task-id`)           | Planner (planned) → Test (actual) | Which **layers** each AC needs; planned vs executed coverage    |
+| **`test-report.md`** (per `task-id`)           | Test                              | AC → test name map, uncovered criteria, stability, commands run |
+| **`acceptance-criteria.md`**                   | Planner                           | Verifiable AC IDs (`AC-01`, …) both artifacts reference         |
 
 **Rule:** Every AC must appear in `test-report.md` (**Coverage map** or **Uncovered criteria**). When `test-matrix.md` exists, every AC must also appear in at least one layer row (planned or actual) or be marked **N/A** with reason.
 
@@ -19,13 +19,13 @@ Reusable **layer definitions** and **coverage conventions** for orchestrated Tes
 
 Use **layer IDs** in matrices and plans. A single AC may span multiple layers (for example unit logic + offline smoke).
 
-| Layer ID | Name | Runner / environment | Typical scope | When to include |
-| -------- | ---- | -------------------- | ------------- | --------------- |
-| **UNIT** | Unit (Node) | Vitest **`server`** project (`environment: 'node'`) | Pure functions, Zod helpers, recommendation math, store/db helpers without UI | New or changed logic in `src/**/*.ts` (excluding `*.svelte.test.ts`) |
-| **COMP** | Component (browser) | Vitest **`client`** project (`environment: 'browser'`, Playwright **provider** via `@vitest/browser`) | Svelte components/harnesses: `src/**/*.svelte.{test,spec}.{js,ts}` | New or changed `.svelte` UI, forms, dialogs, client-only branches |
-| **INTG** | Integration-style | Vitest **server** or **client** with mocks, or focused multi-module tests | `+server` handlers, API adapters, Dexie + service orchestration with test doubles | Boundaries between modules, validated request/response paths |
-| **OFFL** | Offline / capability | **Manual** named step, or future automation (not required today) | ADR-001 core flows without cloud/AI; ADR-010 shell/cache; distinct degraded copy (ADR-004, connectivity rule) | Touches routes, SW, Dexie-first reads, sync/cloud/AI gates, or capability messaging |
-| **E2E** | Standalone browser E2E | **`@playwright/test` CLI** | Full app journeys in a real browser | **Not adopted** — see [Playwright vs Vitest browser](#playwright-vs-vitest-browser) |
+| Layer ID | Name                   | Runner / environment                                                                                  | Typical scope                                                                                                 | When to include                                                                     |
+| -------- | ---------------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| **UNIT** | Unit (Node)            | Vitest **`server`** project (`environment: 'node'`)                                                   | Pure functions, Zod helpers, recommendation math, store/db helpers without UI                                 | New or changed logic in `src/**/*.ts` (excluding `*.svelte.test.ts`)                |
+| **COMP** | Component (browser)    | Vitest **`client`** project (`environment: 'browser'`, Playwright **provider** via `@vitest/browser`) | Svelte components/harnesses: `src/**/*.svelte.{test,spec}.{js,ts}`                                            | New or changed `.svelte` UI, forms, dialogs, client-only branches                   |
+| **INTG** | Integration-style      | Vitest **server** or **client** with mocks, or focused multi-module tests                             | `+server` handlers, API adapters, Dexie + service orchestration with test doubles                             | Boundaries between modules, validated request/response paths                        |
+| **OFFL** | Offline / capability   | **Manual** named step, or future automation (not required today)                                      | ADR-001 core flows without cloud/AI; ADR-010 shell/cache; distinct degraded copy (ADR-004, connectivity rule) | Touches routes, SW, Dexie-first reads, sync/cloud/AI gates, or capability messaging |
+| **E2E**  | Standalone browser E2E | **`@playwright/test` CLI**                                                                            | Full app journeys in a real browser                                                                           | **Not adopted** — see [Playwright vs Vitest browser](#playwright-vs-vitest-browser) |
 
 ### Playwright vs Vitest browser
 
@@ -34,10 +34,10 @@ Use **layer IDs** in matrices and plans. A single AC may span multiple layers (f
 
 ### File patterns (Vitest)
 
-| Project | `include` | `exclude` (high level) |
-| ------- | --------- | ---------------------- |
-| **client** | `src/**/*.svelte.{test,spec}.{js,ts}` | `src/lib/server/**` |
-| **server** | `src/**/*.{test,spec}.{js,ts}` | `src/**/*.svelte.{test,spec}.{js,ts}` |
+| Project    | `include`                             | `exclude` (high level)                |
+| ---------- | ------------------------------------- | ------------------------------------- |
+| **client** | `src/**/*.svelte.{test,spec}.{js,ts}` | `src/lib/server/**`                   |
+| **server** | `src/**/*.{test,spec}.{js,ts}`        | `src/**/*.svelte.{test,spec}.{js,ts}` |
 
 Prefer co-located tests next to the module under test. Reuse existing harness patterns (for example `__tests__/PageHarness.svelte`) for route-level UI.
 
@@ -45,29 +45,29 @@ Prefer co-located tests next to the module under test. Reuse existing harness pa
 
 Copy-paste commands for reports (**Commands to run** in `test-report.md`). Adjust file paths when scoping.
 
-| Goal | Command |
-| ---- | ------- |
-| Full suite (CI-style, once) | `pnpm run test` |
-| Watch mode | `pnpm run test:unit` |
-| Server (unit) project only | `pnpm run test:unit -- --run --project server` |
-| Client (component/browser) project only | `pnpm run test:unit -- --run --project client` |
-| Single file | `pnpm run test:unit -- --run path/to/file.test.ts` |
-| Typecheck / lint (Validator, not Test-owned) | `pnpm run check`, `pnpm run lint` |
+| Goal                                         | Command                                            |
+| -------------------------------------------- | -------------------------------------------------- |
+| Full suite (CI-style, once)                  | `pnpm run test`                                    |
+| Watch mode                                   | `pnpm run test:unit`                               |
+| Server (unit) project only                   | `pnpm run test:unit -- --run --project server`     |
+| Client (component/browser) project only      | `pnpm run test:unit -- --run --project client`     |
+| Single file                                  | `pnpm run test:unit -- --run path/to/file.test.ts` |
+| Typecheck / lint (Validator, not Test-owned) | `pnpm run check`, `pnpm run lint`                  |
 
 Record the exact command (including `--project` and path) in `test-report.md` when reporting what was executed.
 
 ## Applicability by change type
 
-| Change involves… | Layers to plan (minimum) |
-| ---------------- | ------------------------ |
-| Pure TS helper / algorithm | **UNIT** |
-| Svelte UI / client interaction | **COMP** (+ **UNIT** for extracted pure helpers) |
-| API route / server handler | **INTG** or **UNIT** with mocked `Request` |
-| Dexie reads, recipe book flows, SW, offline UX | **UNIT** / **COMP** as practical + **OFFL** (named smoke) |
-| Cloud / Supabase / sync (enhancement only) | **INTG** or manual; must not block local **OFFL** recipe-book proof |
-| AI generation / suggestions | **INTG** for server contract; **OFFL** or manual for degraded UI |
+| Change involves…                               | Layers to plan (minimum)                                            |
+| ---------------------------------------------- | ------------------------------------------------------------------- |
+| Pure TS helper / algorithm                     | **UNIT**                                                            |
+| Svelte UI / client interaction                 | **COMP** (+ **UNIT** for extracted pure helpers)                    |
+| API route / server handler                     | **INTG** or **UNIT** with mocked `Request`                          |
+| Dexie reads, recipe book flows, SW, offline UX | **UNIT** / **COMP** as practical + **OFFL** (named smoke)           |
+| Cloud / Supabase / sync (enhancement only)     | **INTG** or manual; must not block local **OFFL** recipe-book proof |
+| AI generation / suggestions                    | **INTG** for server contract; **OFFL** or manual for degraded UI    |
 
-Pull **OFFL** and **SW-*** items from [`validation-checklist.md`](./validation-checklist.md) when the task touches offline or service worker behavior.
+Pull **OFFL** and **SW-\*** items from [`validation-checklist.md`](./validation-checklist.md) when the task touches offline or service worker behavior.
 
 ## Orchestrated workflow
 
@@ -81,8 +81,8 @@ For PRs without a task folder, copy the **Layer × AC** table from the template 
 
 ## Matrix versioning
 
-| Version | Date | Notes |
-| ------- | ---- | ----- |
-| 1.0.0 | 2026-05-16 | Initial layers: UNIT, COMP, INTG, OFFL; E2E reserved; Vitest dual-project; Playwright as Vitest provider only |
+| Version | Date       | Notes                                                                                                         |
+| ------- | ---------- | ------------------------------------------------------------------------------------------------------------- |
+| 1.0.0   | 2026-05-16 | Initial layers: UNIT, COMP, INTG, OFFL; E2E reserved; Vitest dual-project; Playwright as Vitest provider only |
 
 When layers or runners change, bump this table and sync [`.cursor/agents/test.md`](../.cursor/agents/test.md) if the output contract changes.

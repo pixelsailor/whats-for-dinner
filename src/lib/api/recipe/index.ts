@@ -1,6 +1,6 @@
 /**
  * Recipe API Module
- * 
+ *
  * Export types and schemas for recipes and recipe management.
  */
 

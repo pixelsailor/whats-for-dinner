@@ -1,21 +1,21 @@
 import { z } from 'zod';
 import type {
-	AiSuggestionSchema,
-	RecipeAddendumResponseSchema,
-	RecipeDetailResponseSchema,
-	RecipeRevisionResponseSchema,
-	RecipeSuggestionsResponseSchema,
+  AiSuggestionSchema,
+  RecipeAddendumResponseSchema,
+  RecipeDetailResponseSchema,
+  RecipeRevisionResponseSchema,
+  RecipeSuggestionsResponseSchema
 } from './ai.schemas';
 
 /**
  * Exported as both a runtime enum-like object and a type-safe union.
  */
 export const PromptContextEnum = {
-	ADDENDUM: 'addendum',
-	ASSISTANCE: 'assistance',
-	DETAIL: 'detail',
-	REVISION: 'revision',
-	SUMMARIES: 'summaries'
+  ADDENDUM: 'addendum',
+  ASSISTANCE: 'assistance',
+  DETAIL: 'detail',
+  REVISION: 'revision',
+  SUMMARIES: 'summaries'
 } as const;
 
 export type PromptContext = (typeof PromptContextEnum)[keyof typeof PromptContextEnum];
@@ -25,17 +25,17 @@ export type PromptContext = (typeof PromptContextEnum)[keyof typeof PromptContex
  * @template T - payload type
  */
 export type ApiResponse<T> = {
-	/** Whether the request succeeded. */
-	success: boolean;
-	/** Payload returned by the API when successful. */
-	data: T;
-	/** Optional human readable message (errors or success info). */
-	message?: string;
-	/** Optional structured error object for failures. */
-	error?: {
-		message: string;
-		code?: string;
-	};
+  /** Whether the request succeeded. */
+  success: boolean;
+  /** Payload returned by the API when successful. */
+  data: T;
+  /** Optional human readable message (errors or success info). */
+  message?: string;
+  /** Optional structured error object for failures. */
+  error?: {
+    message: string;
+    code?: string;
+  };
 };
 
 /**
@@ -52,12 +52,12 @@ export type OpenAiApiResponse<TPayload> = ApiResponse<OpenAiResponse<TPayload>>;
  * Partial enrichment returned by OpenAI when we ask it to append missing recipe metadata.
  */
 export type RecipeAddendum = {
-	short_description?: string;
-	description?: string;
-	tags?: string[];
-	yield?: string;
-	prep_time?: string;
-	cook_time?: string;
+  short_description?: string;
+  description?: string;
+  tags?: string[];
+  yield?: string;
+  prep_time?: string;
+  cook_time?: string;
 };
 
 export type RecipeSuggestion = z.infer<typeof AiSuggestionSchema>;

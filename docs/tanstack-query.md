@@ -6,7 +6,7 @@ This document describes how WFD uses **TanStack Query** (`@tanstack/svelte-query
 
 - **Dexie / IndexedDB** remains the **system of record** for the recipe book and other ADR-002 domains. TanStack Query caches **network** responses; it does not replace Dexie for durable user data.
 - Prefer **Dexie-backed** reads (LiveQuery stores) for offline-first surfaces; use `createQuery` when the UI needs **server-backed** or **HTTP** data with caching, deduplication, and background refresh.
-- Operational boundary with Dexie: [`.cursor/rules/local-data-dexie-ownership.mdc`](../.cursor/rules/local-data-dexie-ownership.mdc) (*Remote and cache layers*).
+- Operational boundary with Dexie: [`.cursor/rules/local-data-dexie-ownership.mdc`](../.cursor/rules/local-data-dexie-ownership.mdc) (_Remote and cache layers_).
 
 ## `createQuery` usage
 
@@ -22,11 +22,11 @@ Keep the query store **outside** template logic and derive consumable state with
 import { createQuery } from '@tanstack/svelte-query';
 
 const recipesQueryStore = $derived(
-	createQuery({
-		queryKey: ['recipes', filters],
-		queryFn: fetchRecipes,
-		placeholderData: []
-	})
+  createQuery({
+    queryKey: ['recipes', filters],
+    queryFn: fetchRecipes,
+    placeholderData: []
+  })
 );
 
 const recipesQueryResults = $derived($recipesQueryStore);

@@ -45,7 +45,7 @@ The repo already documents an intended layout in [`src/lib/api/README.md`](../sr
 
 4. **Dexie (`src/lib/db.ts`)** uses entity types imported from the **recipe/API barrels** (`SavedRecipe`, `Suggestion`, etc.), not parallel definitions. **New tables** get a Zod schema in the owning domain before widening `Table<>` generics.
 
-5. **Stores (`src/lib/stores/**`)** operate on **inferred domain types** and mutation helpers; they should not invent alternate entity shapes.
+5. **Stores (`src/lib/stores/**`)** operate on **inferred domain types\*\* and mutation helpers; they should not invent alternate entity shapes.
 
 6. **Strict object contracts:** New and materially revised **object** schemas in `src/lib/api/**` should use **`.strict()`** (or equivalent rejection of unknown keys), so unexpected fields surface at validation time rather than silently flowing through. **Operational detail** (boundary use of `.safeParse()`, `.transform()`, composite schemas, and file layout examples) is maintained in [`.cursor/rules/schema-and-type-safety.mdc`](../.cursor/rules/schema-and-type-safety.mdc)—not in ad hoc per-agent summaries.
 
@@ -72,11 +72,11 @@ The repo already documents an intended layout in [`src/lib/api/README.md`](../sr
 
 ### Risks and mitigations
 
-| Risk | Mitigation |
-| ---- | ---------- |
-| Schema drift vs Dexie on-disk rows | Versioned Dexie upgrades; validate on read when loading ambiguous legacy rows if needed. |
-| Over-validation inside hot loops | Validate at boundaries; keep inner functions typed. |
-| Circular imports between schemas | Recipe schemas already avoid imports into `recipe.schemas.ts`; follow that pattern or extract shared bases under `api/common`. |
+| Risk                               | Mitigation                                                                                                                     |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Schema drift vs Dexie on-disk rows | Versioned Dexie upgrades; validate on read when loading ambiguous legacy rows if needed.                                       |
+| Over-validation inside hot loops   | Validate at boundaries; keep inner functions typed.                                                                            |
+| Circular imports between schemas   | Recipe schemas already avoid imports into `recipe.schemas.ts`; follow that pattern or extract shared bases under `api/common`. |
 
 ## Operational impact
 
@@ -96,12 +96,12 @@ The repo already documents an intended layout in [`src/lib/api/README.md`](../sr
 
 The following **known gaps** exist relative to this ADR as of authoring; they are also tracked in [`docs/readme-adr-alignment-gaps.md`](../docs/readme-adr-alignment-gaps.md):
 
-| Area | Issue |
-| ---- | ----- |
-| **Legacy `$lib/types.ts`** | Deprecated hand-written `RecipeSummary`, `Suggestion`, `FullRecipe`, `SavedRecipe`, `UserPreferences`, `RecipeAddendum`, and related API envelope types still exist and are imported from some routes, `src/lib/server/openai.ts`, and `src/lib/stores/preferences.ts`, duplicating `$lib/api` contracts. |
-| **`PromptRequest` (Dexie)** | Defined only as a TypeScript type in [`src/lib/db.ts`](../src/lib/db.ts); no Zod schema or read-time validation. |
-| **`.strict()` on schemas** | ADR-008 requires `.strict()` on new/materially revised object schemas, but current `src/lib/api/**/*.schemas.ts` files do not consistently apply it—tightening should happen as schemas are touched or in a focused pass. |
-| **AI JSON without `safeParse`** | Partially overlaps [GAP-006](../docs/readme-adr-alignment-gaps.md): some deprecated Chat Completions paths parse JSON without Zod at the boundary. |
+| Area                            | Issue                                                                                                                                                                                                                                                                                                     |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Legacy `$lib/types.ts`**      | Deprecated hand-written `RecipeSummary`, `Suggestion`, `FullRecipe`, `SavedRecipe`, `UserPreferences`, `RecipeAddendum`, and related API envelope types still exist and are imported from some routes, `src/lib/server/openai.ts`, and `src/lib/stores/preferences.ts`, duplicating `$lib/api` contracts. |
+| **`PromptRequest` (Dexie)**     | Defined only as a TypeScript type in [`src/lib/db.ts`](../src/lib/db.ts); no Zod schema or read-time validation.                                                                                                                                                                                          |
+| **`.strict()` on schemas**      | ADR-008 requires `.strict()` on new/materially revised object schemas, but current `src/lib/api/**/*.schemas.ts` files do not consistently apply it—tightening should happen as schemas are touched or in a focused pass.                                                                                 |
+| **AI JSON without `safeParse`** | Partially overlaps [GAP-006](../docs/readme-adr-alignment-gaps.md): some deprecated Chat Completions paths parse JSON without Zod at the boundary.                                                                                                                                                        |
 
 ## Enforcement rules
 

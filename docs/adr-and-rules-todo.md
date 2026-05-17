@@ -146,15 +146,15 @@ This backlog turns the project principles in the top-level README into enforceab
 
 - [x] **Create a test matrix template**
   - Track expected coverage for unit, component, browser, offline, and integration-like flows.
-  - **Done (2026-05-16):** [`docs/test-matrix-template.md`](./test-matrix-template.md) (canonical layer IDs: UNIT, COMP, INTG, OFFL; Vitest `server`/`client` projects; Playwright as Vitest browser provider only — standalone E2E not adopted). Per-run [`.cursor/orchestrations/_template/test-matrix.md`](../.cursor/orchestrations/_template/test-matrix.md) (planned → actual) and [`.cursor/orchestrations/_template/test-report.md`](../.cursor/orchestrations/_template/test-report.md). [`.cursor/rules/test-matrix.mdc`](../.cursor/rules/test-matrix.mdc); Planner/Test/orchestration-artifacts contracts updated; [ADR `TEMPLATE.md`](../adrs/TEMPLATE.md) and [`.cursor/agents/INDEX.md`](../.cursor/agents/INDEX.md) reconciled to WFD artifact names (legacy `_TEST_MATRIX.md` retired).
+  - **Done (2026-05-16):** [`docs/test-matrix-template.md`](./test-matrix-template.md) (canonical layer IDs: UNIT, COMP, INTG, OFFL; Vitest `server`/`client` projects; Playwright as Vitest browser provider only — standalone E2E not adopted). Per-run [`.cursor/orchestrations/_template/test-matrix.md`](../.cursor/orchestrations/_template/test-matrix.md) (planned → actual) and [`.cursor/orchestrations/_template/test-report.md`](../.cursor/orchestrations/_template/test-report.md). [`.cursor/rules/test-matrix.mdc`](../.cursor/rules/test-matrix.mdc); Planner/Tester/orchestration-artifacts contracts updated; [ADR `TEMPLATE.md`](../adrs/TEMPLATE.md) and [`.cursor/agents/INDEX.md`](../.cursor/agents/INDEX.md) reconciled to WFD artifact names (legacy `_TEST_MATRIX.md` retired).
 
 - [ ] **Adopt standalone Playwright Test (E2E) and update test matrix**
   - Add `@playwright/test` as a first-class runner (config, `e2e/` or equivalent layout, `package.json` scripts such as `test:e2e`, CI wiring) so full-app flows (offline smoke, auth-gated routes, multi-page journeys) can be automated beyond Vitest component/browser projects.
   - Update [`docs/test-matrix-template.md`](./test-matrix-template.md): promote **E2E** from reserved to required where applicable; document when **COMP** (Vitest browser) vs **E2E** (Playwright Test) applies; add commands and file patterns.
-  - Sync [`.cursor/orchestrations/_template/test-matrix.md`](../.cursor/orchestrations/_template/test-matrix.md), [`.cursor/agents/test.md`](../.cursor/agents/test.md), [`.cursor/agents/INDEX.md`](../.cursor/agents/INDEX.md), [`.cursor/rules/test-matrix.mdc`](../.cursor/rules/test-matrix.mdc), and [`docs/validation-checklist.md`](./validation-checklist.md) (`TST-*`) so orchestrated runs expect E2E evidence when planned.
+  - Sync [`.cursor/orchestrations/_template/test-matrix.md`](../.cursor/orchestrations/_template/test-matrix.md), [`.cursor/agents/tester.md`](../.cursor/agents/tester.md), [`.cursor/agents/INDEX.md`](../.cursor/agents/INDEX.md), [`.cursor/rules/test-matrix.mdc`](../.cursor/rules/test-matrix.mdc), and [`docs/validation-checklist.md`](./validation-checklist.md) (`TST-*`) so orchestrated runs expect E2E evidence when planned.
   - **Note:** Playwright is already a **Vitest browser provider** (`vite.config.ts` → `client` project); this item is for **standalone** `@playwright/test`, not replacing component tests.
 
-- [x] **Define Plan-Build-Validate-Test roles**
+- [x] **Define Plan-Build-Test-Validate roles**
   - Planner produces an executable plan and identifies relevant ADRs.
   - Builder implements one bounded phase.
   - Validator reviews against ADRs, rules, and [`readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md).
@@ -185,7 +185,7 @@ Rebased `origin/main` orchestration docs onto local `9f5bb10` (webtech pipeline,
   - **Done (2026-05-16):** Dual-vocabulary tables and lifecycle ↔ merge-ready ↔ MG-* mapping in [GOVERNANCE.md §10.5](../adrs/GOVERNANCE.md#105-merge-ready-gates-orchestrated-efforts); [workflow-gates.mdc](../.cursor/rules/workflow-gates.mdc) *Two gate vocabularies*; [`ORCHESTRATED_DEVELOPMENT.md`](./ORCHESTRATED_DEVELOPMENT.md) lifecycle table (`gate_status` keys) and expanded merge-ready table. Canonical detail remains [`validation-checklist.md`](./validation-checklist.md#lifecycle-gates-merge-ready-gates-and-gate_status) v1.1.0; [TEMPLATE.md](../adrs/TEMPLATE.md) *Merge / workflow gates\* cross-link added.
 
 - [x] **End-to-end dry run**
-  - Bootstrap a throwaway `.cursor/orchestrations/wfd-dry-run/` from `_template/` and walk Orchestrator → Planner → Builder → Test → Validator prompts once to catch stale terminology (`validation steps`, legacy artifact names).
+  - Bootstrap a throwaway `.cursor/orchestrations/wfd-dry-run/` from `_template/` and walk Orchestrator → Planner → Builder → Tester → Validator prompts once to catch stale terminology (`validation steps`, legacy artifact names).
   - **Done (2026-05-16):** [`.cursor/orchestrations/wfd-dry-run/`](../.cursor/orchestrations/wfd-dry-run/) — full artifact set + [`DRY-RUN-SUMMARY.md`](../.cursor/orchestrations/wfd-dry-run/DRY-RUN-SUMMARY.md). Reconciled **Validation steps** → **Validation commands** in `_template/acceptance-criteria.md`, `validation-checklist.mdc`, `test-matrix.mdc`, `docs/validation-checklist.md`, `docs/test-matrix-template.md`. Removed `.cursor/agents/orchestrator.md.backup` (legacy `_ORCH_PLAN.md` / `_TEST_MATRIX.md` references).
 
 - [ ] **Force-push rebased `main`**

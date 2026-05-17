@@ -1,17 +1,19 @@
 # WFD test matrix template
 
-Reusable **layer definitions** and **coverage conventions** for orchestrated Test runs, **Planner** scoping (`test-matrix.md` → Planned coverage), and **human PR review**. Per-run **AC evidence** lives in [`test-report.md`](../.cursor/orchestrations/_template/test-report.md); this document is the canonical layer catalog.
+Reusable **layer definitions** and **coverage conventions** for orchestrated Tester runs, **Planner** scoping (`test-matrix.md` → Planned coverage), and **human PR review**. Per-run **AC evidence** lives in [`test-report.md`](../.cursor/orchestrations/_template/test-report.md); this document is the canonical layer catalog.
 
-**Related:** [`.cursor/agents/test.md`](../.cursor/agents/test.md), [`.cursor/orchestrations/_template/test-matrix.md`](../.cursor/orchestrations/_template/test-matrix.md), [`docs/validation-checklist.md`](./validation-checklist.md) (**Tests and evidence**, `TST-*`), [`vite.config.ts`](../vite.config.ts) (Vitest projects).
+**Related:** [`.cursor/agents/tester.md`](../.cursor/agents/tester.md), [`.cursor/orchestrations/_template/test-matrix.md`](../.cursor/orchestrations/_template/test-matrix.md), [`docs/validation-checklist.md`](./validation-checklist.md) (**Tests and evidence**, `TST-*`), [`vite.config.ts`](../vite.config.ts) (Vitest projects).
 
 ## How artifacts fit together
 
 | Artifact                                       | Owner                             | Purpose                                                         |
 | ---------------------------------------------- | --------------------------------- | --------------------------------------------------------------- |
 | **`docs/test-matrix-template.md`** (this file) | Maintainers                       | Stable layer IDs, runners, applicability, commands              |
-| **`test-matrix.md`** (per `task-id`)           | Planner (planned) → Test (actual) | Which **layers** each AC needs; planned vs executed coverage    |
-| **`test-report.md`** (per `task-id`)           | Test                              | AC → test name map, uncovered criteria, stability, commands run |
+| **`test-matrix.md`** (per `task-id`)           | Planner (planned) → Tester (actual) | Which **layers** each AC needs; planned vs executed coverage    |
+| **`test-report.md`** (per `task-id`)           | Tester                            | AC → test name map, uncovered criteria, stability, commands run |
 | **`acceptance-criteria.md`**                   | Planner                           | Verifiable AC IDs (`AC-01`, …) both artifacts reference         |
+
+**When `test-matrix.md` is required:** Medium/large runs or any testable code change. **Optional** for small doc-only or explicitly non-testable runs (coverage may live in `test-report.md` only).
 
 **Rule:** Every AC must appear in `test-report.md` (**Coverage map** or **Uncovered criteria**). When `test-matrix.md` exists, every AC must also appear in at least one layer row (planned or actual) or be marked **N/A** with reason.
 
@@ -71,8 +73,8 @@ Pull **OFFL** and **SW-\*** items from [`validation-checklist.md`](./validation-
 
 ## Orchestrated workflow
 
-1. **Planner** (recommended for medium+ tasks): copy [`.cursor/orchestrations/_template/test-matrix.md`](../.cursor/orchestrations/_template/test-matrix.md) into `{task-id}/` and fill **Planned coverage** (layer × AC, approach notes). Mirror layers in `plan.md` → **Validation commands**.
-2. **Test:** implement Vitest specs; fill **Actual coverage** in `test-matrix.md`; produce `test-report.md` per [`.cursor/agents/test.md`](../.cursor/agents/test.md).
+1. **Planner** (required for medium/large or testable code changes): copy [`.cursor/orchestrations/_template/test-matrix.md`](../.cursor/orchestrations/_template/test-matrix.md) into `{task-id}/` and fill **Planned coverage** (layer × AC, approach notes). Mirror layers in `plan.md` → **Validation commands**. Skip only for small doc-only or explicitly non-testable runs.
+2. **Tester:** implement Vitest specs; fill **Actual coverage** in `test-matrix.md`; produce `test-report.md` per [`.cursor/agents/tester.md`](../.cursor/agents/tester.md).
 3. **Validator:** cross-check `test-report.md` against ACs and `test-matrix.md` for gaps (`TST-*` in validation checklist).
 
 ## PR / non-orchestrated use
@@ -85,4 +87,4 @@ For PRs without a task folder, copy the **Layer × AC** table from the template 
 | ------- | ---------- | ------------------------------------------------------------------------------------------------------------- |
 | 1.0.0   | 2026-05-16 | Initial layers: UNIT, COMP, INTG, OFFL; E2E reserved; Vitest dual-project; Playwright as Vitest provider only |
 
-When layers or runners change, bump this table and sync [`.cursor/agents/test.md`](../.cursor/agents/test.md) if the output contract changes.
+When layers or runners change, bump this table and sync [`.cursor/agents/tester.md`](../.cursor/agents/tester.md) if the output contract changes.

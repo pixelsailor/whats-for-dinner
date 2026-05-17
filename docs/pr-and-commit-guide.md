@@ -49,7 +49,9 @@ None.
 
 ## Test evidence (required every PR)
 
-Every PR must include **either** evidence that behavior was exercised **or** an explicit **untested risk** statement. Orchestrated runs satisfy this by linking `test-report.md` (and `test-matrix.md` when planned).
+Every PR must include **either** evidence that behavior was exercised **or** an explicit **untested risk** statement.
+
+**Orchestrated runs (default git policy):** Task folders stay **local** during the run. The PR must carry test/validation evidence (paste or summarize from `test-report.md` / `validation-report.md`, and `test-matrix.md` when required). After **Gate 6** human approval, the Orchestrator **asks** whether to create a git commit (application changes; optionally `.cursor/orchestrations/{task-id}/`). Agents commit only when the human explicitly confirms in the same thread.
 
 | Field              | Content                                                                                      |
 | ------------------ | -------------------------------------------------------------------------------------------- |
@@ -90,7 +92,7 @@ Test: manual — offline + logged-in sync disabled; pnpm run lint.
 | **Body**    | Optional; use the three buckets + test line when the commit is review-worthy without a PR               |
 | **Scope**   | Conventional prefixes (`feat:`, `fix:`, `docs:`) are optional; match recent repo style                  |
 
-Agents must **not** create git commits unless the user explicitly asks ([user commit rule](../.cursor/rules/pr-commit-expectations.mdc) defers to that).
+Agents must **not** create git commits unless the user explicitly asks. Orchestrated runs: after Gate 6 approval, the Orchestrator prompts for a commit ([orchestrator.md](../.cursor/agents/orchestrator.md) rule 14) rather than committing silently.
 
 ## Related
 

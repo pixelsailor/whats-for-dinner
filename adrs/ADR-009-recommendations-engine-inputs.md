@@ -131,7 +131,7 @@ The recommendations engine **must not** read **user preference** documents (diet
 
 ## Orchestrated development
 
-orchestration not required for documenting this decision; follow Plan–Build–Validate–Test when implementing **major** changes to recommendation inputs or moving logic across layers.
+orchestration not required for documenting this decision; follow Plan–Build–Test–Validate when implementing **major** changes to recommendation inputs or moving logic across layers.
 
 ### Relevant ADRs for implementation
 

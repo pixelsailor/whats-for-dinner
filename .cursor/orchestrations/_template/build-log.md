@@ -14,9 +14,21 @@ Replace `wfd-000` with `task_id`. Builder-owned. On remediation loops, append da
 | ---- | ------------ | --- |
 |      |              |     |
 
+## Command evidence
+
+<!-- Exact commands run (e.g. pnpm run check), result, and notable output; or reason not run. -->
+
+_None._
+
 ## Deviations from plan
 
 <!-- Empty if none. Any departure from plan.md with reason. -->
+
+_None._
+
+## Scope pressure
+
+<!-- Needed but unapproved scope expansion; empty if none. -->
 
 _None._
 

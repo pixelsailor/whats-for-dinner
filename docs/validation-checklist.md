@@ -8,7 +8,7 @@ Reusable audit checklist for **orchestrated Validator runs**, **human PR review*
 
 | Context                    | Action                                                                                                                                                                                                                                                             |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Orchestrated Validator** | Read this file; mark each **applicable** item in `validation-report.md` → **Checklist audit** (✅ / ⚠️ / ❌ / N/A + evidence). Any ❌ on a required item blocks **PASS** unless escalated as **PASS_WITH_NOTES** with explicit human/Orchestrator acceptance.      |
+| **Orchestrated Validator** | Read this file; mark each **applicable** item in `validation-report.md` → **Checklist audit** (✅ / ⚠️ / ❌ / N/A + evidence). Any ❌ on a required item blocks **PASS** and **PASS_WITH_NOTES**. **PASS_WITH_NOTES** is for ⚠️ residuals only; Gate 6 human accepts documented residual risk before `complete`.      |
 | **Planner**                | Pull relevant rows into `plan.md` → **Validation commands** and map to AC IDs; do not duplicate the entire checklist unless the task is broad.                                                                                                                     |
 | **Human PR review**        | Use [PR template](../.github/pull_request_template.md) and [`docs/pr-and-commit-guide.md`](./pr-and-commit-guide.md) (product / architecture / gaps + test evidence); copy applicable checklist sections into review comments; link alignment gaps when deviating. |
 
@@ -20,8 +20,8 @@ WFD uses **two gate vocabularies**. Do not conflate them.
 
 | Vocabulary            | Range                                                                | Tracks                                                                                       | Recorded in                                                                                       |
 | --------------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| **Lifecycle gates**   | **0–6**                                                              | Pipeline stage completion (Planner → Builder → Test → Validator → human approval)            | `task-manifest.json` → `gate_status` (`gate_0_intake` … `gate_6_human_approval`)                  |
-| **Merge-ready gates** | **1–5** in [workflow-gates.mdc](../.cursor/rules/workflow-gates.mdc) | Whether work may be claimed **merge-ready** (ADR, gaps, validation artifact, tests, tooling) | Checklist **MG-01**–**MG-05**; orchestrated evidence in `validation-report.md` / `test-report.md` |
+| **Lifecycle gates**   | **0–6**                                                              | Pipeline stage completion (Planner → Builder → Tester → Validator → human approval)            | `task-manifest.json` → `gate_status` (`gate_0_intake` … `gate_6_human_approval`)                  |
+| **Merge-ready checks** | **MG-01**–**MG-05** in [workflow-gates.mdc](../.cursor/rules/workflow-gates.mdc) | Whether work may be claimed **merge-ready** (ADR, gaps, validation artifact, tests, tooling) | Checklist rows **MG-01**–**MG-05**; orchestrated evidence in `validation-report.md` / `test-report.md` |
 
 Narrative and right-sizing: [`docs/ORCHESTRATED_DEVELOPMENT.md`](./ORCHESTRATED_DEVELOPMENT.md) (lifecycle table, merge-ready table, small/medium/large tiers). Orchestrator skip policy: [`.cursor/agents/orchestrator.md`](../.cursor/agents/orchestrator.md) rules 17–18.
 
@@ -33,39 +33,41 @@ Narrative and right-sizing: [`docs/ORCHESTRATED_DEVELOPMENT.md`](./ORCHESTRATED_
 | **1** Requirements freeze  | `gate_1_requirements`   | Planner       | `acceptance-criteria.md`; AC IDs feed **TST-01** later.                                                                     |
 | **2** Executable plan      | `gate_2_plan`           | Planner       | `plan.md` ADR list feeds **MG-01** / **MG-02** evidence at validation.                                                      |
 | **3** Build complete       | `gate_3_build`          | Builder       | `build-log.md`; command evidence supports **MG-05**.                                                                        |
-| **4** Tests mapped         | `gate_4_tests`          | Test          | **MG-04**, **TST-01**–**TST-05** (`test-report.md`, `test-matrix.md` when planned).                                         |
+| **4** Tests mapped         | `gate_4_tests`          | Tester        | **MG-04**, **TST-01**–**TST-05** (`test-report.md`, `test-matrix.md` when planned).                                         |
 | **5** Validation green     | `gate_5_validation`     | Validator     | **MG-03** + full **Checklist audit** (all applicable **MG-\*** and domain rows: **OFF-\***, **NET-\***, **AUTH-\***, etc.). |
 | **6** Human approval       | `gate_6_human_approval` | Orchestrator  | Not checklist IDs; `human-approval.md` / manifest `human_approval` after merge-ready path is green.                         |
 
-**Lifecycle Gate 5** (validation green) is **not** the same as **merge-ready Gate 5** (tooling / **MG-05**). Validator owns lifecycle Gate 5 and audits **MG-05** there along with other checklist items.
+**Lifecycle Gate 5** (validation green) is **not** the same as **MG-05** (tooling). Validator owns lifecycle Gate 5 and audits **MG-05** there along with other checklist items.
 
-### Merge-ready gate ↔ MG-\* (orchestrated)
+### Merge-ready checks (orchestrated)
 
-| Merge-ready gate ([workflow-gates.mdc](../.cursor/rules/workflow-gates.mdc)) | Checklist ID            | Typical lifecycle gate       | Evidence artifact                                                                                         |
-| ---------------------------------------------------------------------------- | ----------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------- |
-| Gate 1 — ADR before durable architecture                                     | **MG-02**               | 2 (plan) / 5 (re-check)      | ADR file + `plan.md` → ADR references                                                                     |
-| Gate 2 — Alignment gaps                                                      | **MG-01**               | 5                            | `validation-report.md` → ADR compliance; [`readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md) |
-| Gate 3 — Validation evidence                                                 | **MG-03** + domain rows | 5                            | `validation-report.md` (verdict + checklist audit)                                                        |
-| Gate 4 — Test evidence                                                       | **MG-04**, **TST-05**   | 4 (primary), 5 (cross-check) | `test-report.md`; `test-matrix.md` when planned                                                           |
-| Gate 5 — Tooling                                                             | **MG-05**               | 3–5                          | `build-log.md`, `test-report.md`, or validation command section                                           |
+Canonical IDs are **MG-01**–**MG-05** (ordered below). Do not use legacy “merge-ready Gate 1–5” numbering.
+
+| Checklist ID | Topic | Typical lifecycle gate | Evidence artifact |
+| ------------ | ----- | ---------------------- | ----------------- |
+| **MG-01** | Alignment gaps | 5 | `validation-report.md` → ADR compliance; [`readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md) |
+| **MG-02** | ADR before durable architecture | 2 (plan) / 5 (re-check) | ADR file + `plan.md` → ADR references |
+| **MG-03** | Validation evidence + domain rows | 5 | `validation-report.md` (verdict + checklist audit) |
+| **MG-04** | Test evidence (**TST-05**) | 4 (primary), 5 (cross-check) | `test-report.md`; `test-matrix.md` when required |
+| **MG-05** | Tooling | 3–5 | `build-log.md`, `test-report.md`, or validation command section |
 
 Domain sections (**OFF-\***, **NET-\***, **ANO-\***, **AUTH-\***, **CLD-\***, **AI-\***, **SH-\***, **SCH-\***, **A11Y-\***, annex **REC-\***/**SW-\***) are audited at **lifecycle Gate 5** when applicable—not separate lifecycle gates. **TST-\*** rows are owned at **lifecycle Gate 4**; Validator cross-checks them at Gate 5 per [`.cursor/agents/validator.md`](../.cursor/agents/validator.md).
 
 ### Small-run skips (`risk_tier.level: small`)
 
-Per Orchestrator rule 18, skipped Planner / Test / Validator stages MUST be recorded in `risk_tier.skipped_stages`, `gate_status`, and `flags` with rationale. **Gate 6 is not skipped** for code-changing runs.
+Per Orchestrator rule 19, skipped Planner / Tester / Validator stages MUST be recorded in `risk_tier.skipped_stages`, `gate_status`, and `flags` with rationale. **Gate 6 is not skipped** for code-changing runs.
 
 | Skipped stage | Effect on `gate_status`                            | Checklist / merge-ready                                                                                                                                                                                                                                           |
 | ------------- | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Planner**   | `gate_1_*`, `gate_2_*` may stay `skipped` or `n/a` | **MG-01** / **MG-02** still apply if architecture touched—evidence from PR/ADR, not `plan.md`. Prefer `medium` when ADR-governed (Orchestrator rule 17).                                                                                                          |
-| **Test**      | `gate_4_tests` → `skipped`                         | **MG-04**, **TST-\*** → **N/A** in any checklist audit with manifest/flag reference; merge-ready still needs test evidence in PR body (workflow merge-ready Gate 4 style) unless human accepts explicit residual risk.                                            |
+| **Tester**    | `gate_4_tests` → `skipped`                         | **MG-04**, **TST-\*** → **N/A** in any checklist audit with manifest/flag reference; merge-ready still needs test evidence in PR body (**MG-04** style) unless human accepts explicit residual risk.                                            |
 | **Validator** | `gate_5_validation` → `skipped`                    | **MG-03** and domain rows cannot be satisfied via `validation-report.md`; do **not** claim full orchestrated merge-ready without a substitute audit (human review + PR checklist). Default: do not skip Validator on offline/auth/sync/AI/SW/Dexie/security work. |
 
-When a stage runs, Orchestrator sets the matching `gate_status` key to `passed` (or `failed` / `blocked` on escalation). Skipped keys use `skipped` with rationale in `risk_tier.skipped_stages`.
+When a stage runs, Orchestrator sets the matching `gate_status` key to `passed` (or `failed` / `blocked` on escalation). Skipped keys use `skipped` with rationale in `risk_tier.skipped_stages`. Allowed values per key: `pending`, `passed`, `failed`, `blocked`, `skipped`, `n/a`.
 
 ### Non-orchestrated PRs
 
-No `gate_status` in manifest. Use **MG-01**, **MG-02**, **MG-05** plus PR test evidence (merge-ready Gates 1, 2, 5; Gate 4 style for tests). **MG-03** / **MG-04** apply only when `validation-report.md` / `test-report.md` exist for that change.
+No `gate_status` in manifest. Use **MG-01**, **MG-02**, **MG-05** plus PR test evidence (**MG-04** style for tests). **MG-03** / **MG-04** apply only when `validation-report.md` / `test-report.md` exist for that change.
 
 ## Applicability
 
@@ -90,13 +92,13 @@ Run a section when the change **touches** that domain. When unsure, include the 
 
 ## Merge-ready gates
 
-Binding for orchestrated work per [GOVERNANCE.md §10.5](../adrs/GOVERNANCE.md#105-merge-ready-gates-orchestrated-efforts), [`.cursor/rules/workflow-gates.mdc`](../.cursor/rules/workflow-gates.mdc) (merge-ready Gates 1–5), and [ADR template — Merge / workflow gates](../adrs/TEMPLATE.md). Mapped to lifecycle **`gate_status`** and skips: [Lifecycle gates, merge-ready gates, and `gate_status`](#lifecycle-gates-merge-ready-gates-and-gate_status).
+Binding for orchestrated work per [GOVERNANCE.md §10.5](../adrs/GOVERNANCE.md#105-merge-ready-gates-orchestrated-efforts), [`.cursor/rules/workflow-gates.mdc`](../.cursor/rules/workflow-gates.mdc) (**MG-01**–**MG-05**), and [ADR template — Merge / workflow gates](../adrs/TEMPLATE.md). Mapped to lifecycle **`gate_status`** and skips: [Lifecycle gates, merge-ready gates, and `gate_status`](#lifecycle-gates-merge-ready-gates-and-gate_status).
 
-- [ ] **MG-01:** Accepted ADRs cited in `plan.md` (or PR/ADR list when Planner skipped) were read; implementation matches or deviation is documented in [`readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md). _(Merge-ready Gate 2; lifecycle Gate 5.)_
-- [ ] **MG-02:** Durable architecture change has an ADR create/update **before** merge, or an explicit follow-up with timeline (not comment-only). _(Merge-ready Gate 1.)_
-- [ ] **MG-03:** `validation-report.md` exists with verdict, AC audit, ADR compliance, and checklist audit (orchestrated runs; **N/A** only when Validator stage skipped with documented substitute audit). _(Merge-ready Gate 3; lifecycle Gate 5.)_
-- [ ] **MG-04:** `test-report.md` exists with AC coverage map and commands run (orchestrated runs; **N/A** when Test skipped—PR must still carry Gate 4–style test evidence). _(Merge-ready Gate 4; lifecycle Gate 4.)_
-- [ ] **MG-05:** `pnpm run check` and `pnpm run lint` pass for touched paths (or documented pre-existing failure outside scope). _(Merge-ready Gate 5; evidence in build/test/validation artifacts.)_
+- [ ] **MG-01:** Accepted ADRs cited in `plan.md` (or PR/ADR list when Planner skipped) were read; implementation matches or deviation is documented in [`readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md). _(Lifecycle Gate 5 audit.)_
+- [ ] **MG-02:** Durable architecture change has an ADR create/update **before** merge, or an explicit follow-up with timeline (not comment-only).
+- [ ] **MG-03:** `validation-report.md` exists with verdict, AC audit, ADR compliance, and checklist audit (orchestrated runs; **N/A** only when Validator stage skipped with documented substitute audit). _(Lifecycle Gate 5.)_
+- [ ] **MG-04:** `test-report.md` exists with AC coverage map and commands run (orchestrated runs; **N/A** when Tester skipped—PR must still carry **MG-04**-style test evidence). _(Lifecycle Gate 4.)_
+- [ ] **MG-05:** `pnpm run check` and `pnpm run lint` pass for touched paths (or documented pre-existing failure outside scope). _(Evidence in build/test/validation artifacts.)_
 
 ---
 
@@ -202,7 +204,7 @@ Binding for orchestrated work per [GOVERNANCE.md §10.5](../adrs/GOVERNANCE.md#1
 
 ## Tests and evidence
 
-**Refs:** [`.cursor/agents/test.md`](../.cursor/agents/test.md), [`docs/test-matrix-template.md`](./test-matrix-template.md), `package.json` scripts. Primary lifecycle owner: **Gate 4** (`gate_4_tests`); Validator cross-check at **Gate 5**.
+**Refs:** [`.cursor/agents/tester.md`](../.cursor/agents/tester.md), [`docs/test-matrix-template.md`](./test-matrix-template.md), `package.json` scripts. Primary lifecycle owner: **Gate 4** (`gate_4_tests`); Validator cross-check at **Gate 5**.
 
 - [ ] **TST-01:** Every AC in `acceptance-criteria.md` is mapped in `test-report.md` to a test, command, or explicit “untested” reason.
 - [ ] **TST-02:** New logic has focused unit/component tests where Vitest is practical; flaky or browser gaps recorded as residual risk in `test-report.md` / `test-matrix.md`.

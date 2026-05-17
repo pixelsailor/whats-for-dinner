@@ -184,7 +184,7 @@ For each of the four roadmap features below, the **envelope** in this section is
 
 ## Orchestrated development
 
-Orchestration **not required** for authoring this ADR. Plan–Build–Validate–Test orchestration applies when each individual roadmap feature begins implementation, because each spans Dexie schema, new routes, and (for URL/OCR) the AI provider boundary.
+Orchestration **not required** for authoring this ADR. Plan–Build–Test–Validate orchestration applies when each individual roadmap feature begins implementation, because each spans Dexie schema, new routes, and (for URL/OCR) the AI provider boundary.
 
 ### Relevant ADRs for implementation
 

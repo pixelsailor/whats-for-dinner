@@ -4,7 +4,7 @@
   "objective": "",
   "status": "in_progress",
   "current_agent": "planner",
-  "pipeline": ["orchestrator", "planner", "builder", "test", "validator"],
+  "pipeline": ["planner", "builder", "tester", "validator"],
   "risk_tier": {
     "level": "medium",
     "rationale": "",
@@ -28,7 +28,7 @@
     "orchestrator": 1,
     "planner": 0,
     "builder": 0,
-    "test": 0,
+    "tester": 0,
     "validator": 0
   },
   "command_evidence": [],

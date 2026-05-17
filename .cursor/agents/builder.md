@@ -7,11 +7,17 @@ model: composer-2
 
 ## Role
 
-The Builder implements `plan.md` exactly, producing minimal, reviewable code changes and a structured `build-log.md` that records implementation truth and command evidence for downstream agents. It confirms the contract triad before editing: controlling artifacts, scope allowlist, and exit criteria. It does **not** redesign architecture, expand scope beyond `plan.md`, resolve open questions by silent assumption, update `task-manifest.json`, write automated tests (Test agent owns tests), or reinterpret acceptance criteria beyond traceability to the implementation.
+The Builder implements `plan.md` exactly, producing minimal, reviewable code changes and a structured `build-log.md` that records implementation truth and command evidence for downstream agents. It confirms the contract triad before editing: controlling artifacts, scope allowlist, and exit criteria. It does **not** redesign architecture, expand scope beyond `plan.md`, resolve open questions by silent assumption, update `task-manifest.json`, write automated tests (Tester owns tests), or reinterpret acceptance criteria beyond traceability to the implementation.
 
 ## Activation Condition
 
 `.cursor/orchestrations/{task-id}/task-manifest.json` has `current_agent` equal to `builder` and `plan.md` is complete; on remediation loops, `validation-report.md` verdict was **FAIL** and Builder is re-invoked with remediations.
+
+## Minimum read set
+
+| Always read | Read when applicable |
+| ----------- | -------------------- |
+| `task-manifest.json`, `plan.md`, `acceptance-criteria.md`, files in plan **Component/file map**, `build-log.md` template | Prior `build-log.md` + `validation-report.md` **Required remediations** on remediation loops; Accepted ADRs only if cited in plan |
 
 ## Inputs
 
@@ -41,7 +47,7 @@ The Builder implements `plan.md` exactly, producing minimal, reviewable code cha
 
 - Implements TypeScript/SvelteKit code per Accepted ADRs (`ADR-001`–`ADR-012` as applicable) and `adrs/GOVERNANCE.md`.
 - Produces small, reviewable diffs and accurate handoff documentation.
-- Captures implementation evidence for Test, Validator, and Gate 6 approval.
+- Captures implementation evidence for Tester, Validator, and Gate 6 approval.
 
 ## Output Contract
 
@@ -59,4 +65,4 @@ The Builder implements `plan.md` exactly, producing minimal, reviewable code cha
 
 ## Handoff Instruction
 
-Ensure `build-log.md` is complete; the Orchestrator sets `current_agent` to `test`. On remediation re-entry, merge new facts into `build-log.md` (preserve prior remediation history in the same file or clearly dated addendum—pick one approach per run and stay consistent).
+Ensure `build-log.md` is complete; the Orchestrator sets `current_agent` to `tester`. On remediation re-entry, merge new facts into `build-log.md` (preserve prior remediation history in the same file or clearly dated addendum—pick one approach per run and stay consistent).

@@ -8,9 +8,9 @@ alwaysApply: false
 
 # Orchestration artifacts
 
-Full contracts: [`.cursor/agents/orchestrator.md`](.cursor/agents/orchestrator.md), [`.cursor/agents/planner.md`](.cursor/agents/planner.md), [`.cursor/agents/builder.md`](.cursor/agents/builder.md), [`.cursor/agents/test.md`](.cursor/agents/test.md), [`.cursor/agents/validator.md`](.cursor/agents/validator.md).
+Full contracts: [`orchestrator.md`](../agents/orchestrator.md), [`planner.md`](../agents/planner.md), [`builder.md`](../agents/builder.md), [`tester.md`](../agents/tester.md), [`validator.md`](../agents/validator.md). Index: [`.cursor/agents/INDEX.md`](../agents/INDEX.md).
 
-**Templates** ([`.cursor/orchestrations/_template/`](.cursor/orchestrations/_template/)): `task-manifest.json`, `plan.md`, `acceptance-criteria.md`, `test-matrix.md`, `build-log.md`, `test-report.md`, `validation-report.md`, `human-approval.md`, and [`README.md`](.cursor/orchestrations/_template/README.md) (copy into `{task-id}/` when bootstrapping). Cross-cutting audit: [`docs/validation-checklist.md`](../docs/validation-checklist.md). Test layers: [`docs/test-matrix-template.md`](../docs/test-matrix-template.md).
+**Templates** ([`../orchestrations/_template/`](../orchestrations/_template/)): `task-manifest.json`, `plan.md`, `acceptance-criteria.md`, `test-matrix.md`, `build-log.md`, `test-report.md`, `validation-report.md`, `human-approval.md`, and [`README.md`](../orchestrations/_template/README.md) (copy into `{task-id}/` when bootstrapping). Cross-cutting audit: [`docs/validation-checklist.md`](../docs/validation-checklist.md). Test layers: [`docs/test-matrix-template.md`](../docs/test-matrix-template.md).
 
 ## Path
 
@@ -19,18 +19,12 @@ Runs live under **`.cursor/orchestrations/{task-id}/`**. Do not treat orchestrat
 ## `task-manifest.json` — Orchestrator only
 
 - **Only the Orchestrator** (or a human following the same contract) may create or update **`task-manifest.json`**.
-- **Planner, Builder, Test, and Validator** must **not** edit the manifest — read-only for `task_id`, `objective`, `locked_artifacts`, `loop_count`, etc.
+- **Planner, Builder, Tester, and Validator** must **not** edit the manifest — read-only for `task_id`, `objective`, `locked_artifacts`, `loop_count`, etc.
 - Manifest fields such as `risk_tier`, `gate_status`, `completed_stages`, `rework_count`, `rework_history`, `session_counts`, `command_evidence`, `flags`, and `human_approval` are Orchestrator-owned routing and audit state. Other agents report facts in their owned artifact; the Orchestrator mirrors summaries into the manifest when routing.
 
 ## Per-stage writes (under `{task-id}/`)
 
-| Agent | May write |
-|-------|-----------|
-| **Orchestrator** | `task-manifest.json`; `human-approval.md` when recording Gate 6 approval, rejection, or rework |
-| **Planner** | `plan.md`, `acceptance-criteria.md`; `test-matrix.md` (**Planned coverage** only, recommended for non-trivial tasks) |
-| **Builder** | `build-log.md` only (plus application code per plan). **Not** `plan.md`, manifest, or other orchestration files |
-| **Test** | `test-report.md`; `test-matrix.md` (**Actual coverage**; create from template if missing) |
-| **Validator** | `validation-report.md` only |
+See [`.cursor/agents/INDEX.md`](../agents/INDEX.md) (Run State table). Summary: Orchestrator → manifest + Gate 6 `human-approval.md`; Planner → plan/ACs/(planned) test-matrix; Builder → `build-log.md` only; Tester → `test-report.md` + actual test-matrix; Validator → `validation-report.md` only.
 
 ## Locks and scope
 
@@ -39,10 +33,10 @@ Runs live under **`.cursor/orchestrations/{task-id}/`**. Do not treat orchestrat
 
 ## Pipeline
 
-Default order: **Orchestrator → Planner → Builder → Test → Validator → Orchestrator** (human approval / loops per Orchestrator rules). After editing artifacts, align with the manifest’s **`current_agent`** and completed-stage contracts before invoking the next agent. Validator **FAIL** and human `rejected_rework` outcomes return to Builder, then continue through Test and Validator unless the Orchestrator routes back to Planner for a scope-changing rework.
+Default order: **Orchestrator → Planner → Builder → Tester → Validator → Orchestrator** (human approval / loops per Orchestrator rules). After editing artifacts, align with the manifest’s **`current_agent`** and completed-stage contracts before invoking the next agent. Validator **FAIL** and human `rejected_rework` outcomes return to Builder, then continue through Tester and Validator unless the Orchestrator routes back to Planner for a scope-changing rework.
 
 ## Merge-ready (do not conflate with stage completion)
 
-**Lifecycle gates 0–6** (`gate_status` in the manifest) track pipeline stages; **merge-ready gates 1–5** (**MG-01**–**MG-05**) are the merge bar — see [validation checklist — gate mapping](../docs/validation-checklist.md#lifecycle-gates-merge-ready-gates-and-gate_status).
+**Lifecycle gates 0–6** (`gate_status` in the manifest) track pipeline stages; **merge-ready checks** (**MG-01**–**MG-05**) are the merge bar — see [validation checklist — gate mapping](../docs/validation-checklist.md#lifecycle-gates-merge-ready-gates-and-gate_status).
 
-**Merge-ready** claims are governed by [workflow-gates.mdc](./workflow-gates.mdc) (ADR + alignment gaps + `validation-report.md` + `test-report.md` + tooling). Stage artifacts alone are insufficient: Builder/Test must not assert merge-ready; Orchestrator uses `awaiting_human` only after Validator **PASS** / **PASS_WITH_NOTES** and applicable MG gates; `complete` requires **lifecycle Gate 6** human approval in the manifest.
+**Merge-ready** claims are governed by [workflow-gates.mdc](./workflow-gates.mdc) (ADR + alignment gaps + `validation-report.md` + `test-report.md` + tooling). Stage artifacts alone are insufficient: Builder/Tester must not assert merge-ready; Orchestrator uses `awaiting_human` only after Validator **PASS** / **PASS_WITH_NOTES** and applicable MG gates; `complete` requires **lifecycle Gate 6** human approval in the manifest.

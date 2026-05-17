@@ -99,7 +99,7 @@ We will **not** run **secret-bearing logic** in the service worker; it performs 
 
 ## Orchestrated development
 
-orchestration not required for documenting this decision; use Plan–Build–Validate–Test when implementing **large** changes to caching tiers or adding many new GET surfaces.
+orchestration not required for documenting this decision; use Plan–Build–Test–Validate when implementing **large** changes to caching tiers or adding many new GET surfaces.
 
 ### Relevant ADRs for implementation
 

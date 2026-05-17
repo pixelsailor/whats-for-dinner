@@ -1,6 +1,6 @@
 # Acceptance Criteria — wfd-000
 
-Replace `wfd-000` with `task_id`. Each criterion must be independently verifiable by Test or Validator. Map to **Validation commands** in `plan.md`.
+Replace `wfd-000` with `task_id`. Each criterion must be independently verifiable by Tester or Validator. Map to **Validation commands** in `plan.md`.
 
 ## Functional
 

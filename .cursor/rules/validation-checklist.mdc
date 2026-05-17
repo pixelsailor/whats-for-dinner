@@ -18,7 +18,7 @@ alwaysApply: false
 
 ## Verdict interaction
 
-- Any applicable **❌** on merge-ready gates (**MG-***) or on a checklist item explicitly required by `plan.md` / an Accepted ADR → default **FAIL** (or **PASS_WITH_NOTES** only with documented human/Orchestrator acceptance).
+- Any applicable **❌** on **MG-\*** or on a checklist item required by `plan.md` / an Accepted ADR → **FAIL** (blocks **PASS_WITH_NOTES**). **PASS_WITH_NOTES** is for ⚠️ residuals only; Gate 6 human documents accepted risk.
 - Mark sections **N/A** with a one-line reason when the change does not touch that domain.
 
 ## Related

@@ -5,7 +5,7 @@ globs:
   - .cursor/agents/orchestrator.md
   - .cursor/agents/planner.md
   - .cursor/agents/builder.md
-  - .cursor/agents/test.md
+  - .cursor/agents/tester.md
   - .cursor/agents/validator.md
   - docs/ORCHESTRATED_DEVELOPMENT.md
 alwaysApply: false
@@ -20,9 +20,11 @@ alwaysApply: false
 | Vocabulary | Range | Tracks |
 | -------- | ----- | ------ |
 | **Lifecycle gates** | **0–6** | Pipeline stage completion in an orchestration run (`task-manifest.json` → `gate_status`) |
-| **Merge-ready gates** (this rule) | **1–5** | Whether work may be claimed **merge-ready** (**MG-01**–**MG-05**) |
+| **Merge-ready checks** (this rule) | **MG-01**–**MG-05** | Whether work may be claimed **merge-ready** (checklist IDs are canonical) |
 
-**Lifecycle Gate 5** (Validator / validation green) ≠ **merge-ready Gate 5** (tooling / **MG-05**). **Lifecycle Gate 6** (human approval) runs after merge-ready Gates 1–5 are green; it is not a substitute for them.
+**Lifecycle Gate 5** (Validator / validation green) ≠ **MG-05** (tooling). **Lifecycle Gate 6** (human approval) runs after merge-ready checks **MG-01**–**MG-05** are green; it is not a substitute for them.
+
+> **Naming:** Use **MG-01**–**MG-05** in PRs and agent text. Legacy “merge-ready Gate 1–5” numbering (which did not match MG order) is retired.
 
 Full mapping (lifecycle ↔ merge-ready ↔ MG-* ↔ skips): [`docs/validation-checklist.md` — Lifecycle gates, merge-ready gates, and `gate_status`](../docs/validation-checklist.md#lifecycle-gates-merge-ready-gates-and-gate_status). Narrative: [`docs/ORCHESTRATED_DEVELOPMENT.md`](../docs/ORCHESTRATED_DEVELOPMENT.md).
 
@@ -30,13 +32,13 @@ Full mapping (lifecycle ↔ merge-ready ↔ MG-* ↔ skips): [`docs/validation-c
 
 | Work | Gates |
 | ---- | ----- |
-| **Orchestrated** run under `.cursor/orchestrations/{task-id}/` | Full set below (Gates 1–5) |
-| **Non-orchestrated** change touching architecture, auth, sync, AI, offline/SW, Dexie ownership, or secrets | Gates 1, 2, and 5; test/validation evidence in PR text (Gate 4 style) |
+| **Orchestrated** run under `.cursor/orchestrations/{task-id}/` | Full set below (**MG-01**–**MG-05**) |
+| **Non-orchestrated** change touching architecture, auth, sync, AI, offline/SW, Dexie ownership, or secrets | **MG-01**, **MG-02**, **MG-05**; test/validation evidence in PR text (**MG-04** style) |
 | **Trivial** (typo, comment-only, isolated non-architectural fix) | [adr-compliance.mdc](./adr-compliance.mdc) only; note **Orchestration not required** in PR or ADR when relevant |
 
 “Durable architecture” matches [adr-compliance.mdc](./adr-compliance.mdc) high-impact areas: architecture, data flow, authentication, sync, AI, offline behavior (including service worker policy when behavior changes).
 
-## Gate 1 — ADR before durable architecture (**MG-02**)
+## MG-02 — ADR before durable architecture
 
 - **Before** merge or any **merge-ready** claim, an ADR must be **created or updated** in the same effort when the change alters durable architecture (or a successor ADR explicitly governs the area).
 - If the ADR cannot ship in scope: file a **Proposed** ADR or document an explicit follow-up with timeline in `plan.md`, the PR body, or the ADR **Merge / workflow gates** section — not code comments alone.
@@ -44,22 +46,22 @@ Full mapping (lifecycle ↔ merge-ready ↔ MG-* ↔ skips): [`docs/validation-c
 
 **Planner:** List cited Accepted ADRs in `plan.md` → **ADR references** before Builder starts. **Builder:** Do not implement durable architecture outside those ADRs without Orchestrator/human replan.
 
-## Gate 2 — Alignment gaps (**MG-01**)
+## MG-01 — Alignment gaps
 
 - Implementation must match **Accepted** ADRs cited in `plan.md`, or deviation must be recorded in [`docs/readme-adr-alignment-gaps.md`](../docs/readme-adr-alignment-gaps.md) (owner, severity, affected areas, remediation, blocking flag).
 - Do **not** hide drift in implementation comments only. See [adr-compliance.mdc](./adr-compliance.mdc) and [GOVERNANCE.md §5.6](../../adrs/GOVERNANCE.md).
 
-## Gate 3 — Validation evidence, orchestrated (**MG-03**)
+## MG-03 — Validation evidence, orchestrated
 
 For orchestrated runs, do **not** claim merge-ready until:
 
 1. [`.cursor/orchestrations/{task-id}/validation-report.md`](../orchestrations/_template/validation-report.md) exists with sections: **Verdict**, **AC audit**, **ADR compliance**, **Checklist audit**, **Regressions**, **Required remediations**, **Recommended remediations**.
-2. **Verdict** is **PASS** or **PASS_WITH_NOTES** (not **FAIL**).
-3. **Checklist audit** covers every applicable **MG-*** and domain row from [`docs/validation-checklist.md`](../docs/validation-checklist.md); any applicable ❌ on **MG-*** or on items required by `plan.md` / Accepted ADRs blocks merge-ready unless **PASS_WITH_NOTES** is explicitly justified per [validation-checklist.mdc](./validation-checklist.mdc).
+2. **Verdict** is **PASS** or **PASS_WITH_NOTES** (not **FAIL**). **PASS_WITH_NOTES** requires no ❌ ACs; residual ⚠️ items must be listed with justification. Merge-ready may proceed to `awaiting_human` only when **MG-01**–**MG-05** are satisfied; Gate 6 human records acceptance of residual risk (`conditions` / notes).
+3. **Checklist audit** covers every applicable **MG-*** and domain row from [`docs/validation-checklist.md`](../docs/validation-checklist.md); any applicable ❌ on **MG-*** or on items required by `plan.md` / Accepted ADRs blocks **PASS** and **PASS_WITH_NOTES** unless replanned.
 
-**Builder, Test, and Planner** must **not** state merge-ready, “done”, “ready to merge”, or “ready to ship” for the task.
+**Builder, Tester, and Planner** must **not** state merge-ready, “done”, “ready to merge”, or “ready to ship” for the task.
 
-## Gate 4 — Test evidence, orchestrated (**MG-04**, test matrix)
+## MG-04 — Test evidence, orchestrated
 
 For orchestrated runs, do **not** claim merge-ready until:
 
@@ -68,16 +70,26 @@ For orchestrated runs, do **not** claim merge-ready until:
 
 Validator cross-checks test evidence per [`.cursor/agents/validator.md`](../agents/validator.md); Orchestrator must not route to `awaiting_human` without `test-report.md` (Validator activation requires it).
 
-## Gate 5 — Tooling (**MG-05**)
+## MG-05 — Tooling
 
 - `pnpm run check` and `pnpm run lint` pass for touched paths, or pre-existing failures outside scope are documented in `build-log.md`, `test-report.md`, or the PR.
 
+## Small orchestrated runs
+
+When `risk_tier.level` is `small` and stages are skipped per [`.cursor/agents/orchestrator.md`](../agents/orchestrator.md) rules 19–20:
+
+- **Validator skipped (Path A):** Do **not** claim full orchestrated merge-ready. Satisfy **MG-01**, **MG-02**, **MG-04**, **MG-05** via PR + human review; **MG-03** via documented human substitute audit (not `validation-report.md`). Orchestrator may still set `awaiting_human` after Tester.
+- **Validator runs (Path B):** **MG-03**–**MG-05** apply when `validation-report.md` is **PASS** / **PASS_WITH_NOTES**.
+- **Tester skipped:** **MG-04** via PR test evidence (commands, spec paths, or explicit untested risk).
+
+See [`docs/validation-checklist.md` — Small-run skips](../docs/validation-checklist.md#small-run-skips-risk_tierlevel-small).
+
 ## Orchestrator and human completion
 
-Merge-ready for an **orchestrated run** is a **two-step** gate after Builder/Test:
+Merge-ready for an **orchestrated run** is a **two-step** gate after Builder/Tester:
 
-1. **Validator path:** Gates 3–5 satisfied → Orchestrator may set `status` to `awaiting_human` (not `complete`).
-2. **Human path:** `human_approval.status` is `approved` in `task-manifest.json` (optional `human-approval.md`) → Orchestrator may set `status` to `complete`.
+1. **Validator path:** **MG-03**–**MG-05** satisfied → Orchestrator may set `status` to `awaiting_human` (not `complete`).
+2. **Human path:** `human_approval.status` is `approved` in `task-manifest.json` and Gate 6 is recorded in `human-approval.md` (mirrors manifest fields) → Orchestrator may set `status` to `complete`.
 
 If `validation-report.md` verdict is **FAIL**, Orchestrator routes remediation per [orchestrator.md](../agents/orchestrator.md); do not claim merge-ready until a subsequent Validator **PASS** / **PASS_WITH_NOTES**.
 
@@ -85,8 +97,12 @@ If `validation-report.md` verdict is **FAIL**, Orchestrator routes remediation p
 
 When work is **not** under `.cursor/orchestrations/`, a merge-ready claim (in PR description or agent summary) must still:
 
-- Satisfy Gates 1, 2, and 5.
-- Link test commands run, spec paths, or explicit **untested risk** per AC or behavior touched (Gate 4 style without requiring `test-report.md` unless the team adopted an orchestration folder for that change).
+- Satisfy **MG-01**, **MG-02**, and **MG-05**.
+- Link test commands run, spec paths, or explicit **untested risk** per AC or behavior touched (**MG-04** style without requiring `test-report.md` unless the team adopted an orchestration folder for that change).
+
+## Orchestration artifacts in git
+
+**Default:** `.cursor/orchestrations/{task-id}/` stays local during the run; merge-ready claims in PRs use pasted summaries from `test-report.md` / `validation-report.md`. After **Gate 6** approval, the Orchestrator **asks** whether to commit (application code; optionally the task folder). Agents run `git commit` only when the human explicitly confirms — see [`.cursor/orchestrations/_template/README.md`](../orchestrations/_template/README.md) and [orchestrator.md](../agents/orchestrator.md) rule 14.
 
 ## Related artifacts and rules
 

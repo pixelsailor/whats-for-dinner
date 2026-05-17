@@ -28,7 +28,7 @@ When the user asks for a commit:
 - **Subject:** imperative, concise (~72 chars); optional `Fix GAP-NNN:` when primarily remediating a gap row.
 - **Body (optional):** same three buckets + one line of test evidence when the commit needs context without a PR.
 
-Do **not** create commits unless the user explicitly requests them.
+Do **not** create commits unless the user explicitly requests them. During orchestration, evidence may stay local until Gate 6; after human approval, the Orchestrator **asks** whether to commit (see [orchestrator.md](../agents/orchestrator.md) rule 14). Do not run `git commit` until the human confirms in the same thread.
 
 ## Agents creating PRs
 

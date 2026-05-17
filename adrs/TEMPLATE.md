@@ -108,10 +108,10 @@ Repository **policy** for when orchestration applies and how it relates to ADRs 
 
 ### When orchestration is required
 
-Treat Plan–Build–Validate–Test orchestration as **required** when any of the following hold; otherwise keep this ADR but **omit detailed fills** under the subsections (still keep the heading and **Orchestration not required** if nothing applies):
+Treat Plan–Build–Test–Validate orchestration as **required** when any of the following hold; otherwise keep this ADR but **omit detailed fills** under the subsections (still keep the heading and **Orchestration not required** if nothing applies):
 
 - The change spans multiple PRs or phases, or has significant rollback risk.
-- The change touches ADR-governed boundaries (see enforcement bullets in [docs/adr-and-rules-todo.md](../docs/adr-and-rules-todo.md): “Orchestrated Agent Workflow Backlog” and “Define Plan-Build-Validate-Test roles” where still current).
+- The change touches ADR-governed boundaries (see enforcement bullets in [docs/adr-and-rules-todo.md](../docs/adr-and-rules-todo.md): “Orchestrated Agent Workflow Backlog” and “Define Plan-Build-Test-Validate roles” where still current).
 - You would otherwise need a written plan, validation report, and test evidence before calling the work merge-ready.
 
 ### Authoritative workflow artifacts and gates
@@ -154,9 +154,9 @@ One bounded phase or PR-sized slice this ADR governs for the **current** change 
 
 What the **Validator** must verify against **this ADR**, applicable `.cursor/rules/*` (see [.cursor/rules/index.md](../.cursor/rules/index.md)), [.cursor/rules/project-best-practices.mdc](../.cursor/rules/project-best-practices.mdc), and [docs/readme-adr-alignment-gaps.md](../docs/readme-adr-alignment-gaps.md) for recorded implementation drift.
 
-### Test role and evidence
+### Tester role and evidence
 
-What the **Test** role should add or update (unit, component, browser, offline, integration-style). Prefer Vitest commands from [package.json](../package.json) `scripts` and layer IDs from [`docs/test-matrix-template.md`](../docs/test-matrix-template.md). Record residual risk if something is intentionally untested. When orchestration applies, update `test-matrix.md` (actual coverage) and `test-report.md` per [.cursor/agents/test.md](../.cursor/agents/test.md).
+What the **Tester** role should add or update (unit, component, browser, offline, integration-style). Prefer Vitest commands from [package.json](../package.json) `scripts` and layer IDs from [`docs/test-matrix-template.md`](../docs/test-matrix-template.md). Record residual risk if something is intentionally untested. When orchestration applies, update `test-matrix.md` (actual coverage) and `test-report.md` per [.cursor/agents/tester.md](../.cursor/agents/tester.md).
 
 ### Alignment gaps
 

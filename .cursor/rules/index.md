@@ -1,8 +1,8 @@
-> _This is a work in progress and should not be used as a reference at this time_
+# Rules index
 
-# Rules Index
+Catalog of **Cursor rules** (`.cursor/rules/*.mdc`). **Agent contracts** for orchestration live separately in [`.cursor/agents/INDEX.md`](../agents/INDEX.md) — do not treat the agent rows below as `.mdc` rules.
 
-## Lookup by Category
+## Lookup by category (Cursor rules)
 
 | Category                   | Rule                            | One-liner                                                                                                                    | Activation                                                                                                                                           |
 | -------------------------- | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -25,20 +25,27 @@
 | **Governance**             | adr-compliance                  | ADR index + governance; alignment gaps in `docs/readme-adr-alignment-gaps.md`                                                | alwaysApply                                                                                                                                          |
 |                            | readme-governance               | Root README scope; deep docs → ADRs, scoped READMEs, `docs/`                                                                 | globs `README.md`                                                                                                                                    |
 | **Agent Workflow**         | orchestration-artifacts         | Who may edit `.cursor/orchestrations/**` manifests and stage files                                                           | globs `.cursor/orchestrations/**`                                                                                                                    |
-|                            | workflow-gates                  | Merge-ready gates: ADR, alignment gaps, validation-report, test-report, MG-\* checklist                                      | globs `.cursor/orchestrations/**`, orchestration agent defs, `docs/ORCHESTRATED_DEVELOPMENT.md`                                                      |
+|                            | workflow-gates                  | Merge-ready checks **MG-01**–**MG-05**: ADR, gaps, validation-report, test-report                                            | globs `.cursor/orchestrations/**`, orchestration agent defs, `docs/ORCHESTRATED_DEVELOPMENT.md`                                                      |
 |                            | pr-commit-expectations          | PR/commit buckets (product, architecture, gaps); test evidence or untested risk                                              | alwaysApply                                                                                                                                          |
 |                            | validation-checklist            | Cross-cutting Validator/PR audit: offline, auth, cloud, AI, schema, a11y, tests                                              | globs `.cursor/orchestrations/**`, `docs/validation-checklist.md`                                                                                    |
 |                            | test-matrix                     | Test layers (UNIT/COMP/INTG/OFFL), Vitest projects, test-matrix.md + test-report.md                                          | globs `.cursor/orchestrations/**`, `docs/test-matrix-template.md`                                                                                    |
-|                            | orchestrator                    | Orchestration controller for Plan-Build-Validate-Test loops                                                                  | manual                                                                                                                                               |
-|                            | planner                         | Creates executable phased plans and artifacts                                                                                | manual                                                                                                                                               |
-|                            | builder                         | Implements a single plan phase within strict scope                                                                           | manual                                                                                                                                               |
-|                            | validator                       | Fresh-context code review; produces punch list, no fixes                                                                     | manual                                                                                                                                               |
-|                            | test                            | Writes/updates Vitest specs, `test-matrix.md`, and `test-report.md`                                                          | manual                                                                                                                                               |
 
-## Activation Modes
+## Agent contracts (not Cursor rules)
+
+Invoke via Cursor **Agents** UI or `@` references. Full index: [`.cursor/agents/INDEX.md`](../agents/INDEX.md).
+
+| Agent        | Contract file              | Role summary                                      |
+| ------------ | -------------------------- | ------------------------------------------------- |
+| Orchestrator | `agents/orchestrator.md`   | Lifecycle, manifest, routing, Gate 6              |
+| Planner      | `agents/planner.md`        | Plan, ACs, planned test matrix                    |
+| Builder      | `agents/builder.md`        | Implementation + build log                        |
+| Tester       | `agents/tester.md`         | Vitest specs + test report                        |
+| Validator    | `agents/validator.md`      | Independent audit + validation report             |
+
+## Activation modes
 
 | Mode            | Behavior                                                             | Rules                                                                                                                                                                                                                                                                                         |
 | --------------- | -------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **alwaysApply** | Loaded into every agent session automatically. No user action needed | project-best-practices, documentation-conventions, adr-compliance                                                                                                                                                                                                                             |
-| **globs**       | Loaded when the agent touches files matching the glob pattern.       | svelte-5-ui-conventions, lint-and-code-quality, bits-ui-documentation, local-data-dexie-ownership, ai-integration-boundary, serverless-compatibility, schema-and-type-safety, ui-conventions, orchestration-artifacts, error-handling-conventions, security-sanitization, storage-conventions |
-| **manual**      | Loaded only when the user explicitly invokes the rule.               | orchestrator, planner, builder, validator                                                                                                                                                                                                                                                     |
+| **alwaysApply** | Loaded into every agent session automatically. No user action needed | project-best-practices, documentation-conventions, adr-compliance, pr-commit-expectations, offline-first-development, offline-connectivity-capability                                                                                                                                       |
+| **globs**       | Loaded when the agent touches files matching the glob pattern.       | svelte-5-ui-conventions, lint-and-code-quality, bits-ui-documentation, local-data-dexie-ownership, ai-integration-boundary, serverless-compatibility, schema-and-type-safety, ui-conventions, orchestration-artifacts, error-handling-conventions, security-sanitization, storage-conventions, workflow-gates, validation-checklist, test-matrix |
+| **manual**      | Loaded only when the user explicitly invokes the rule.               | _(none — use agent contracts above)_                                                                                                                                                                                                                                                          |

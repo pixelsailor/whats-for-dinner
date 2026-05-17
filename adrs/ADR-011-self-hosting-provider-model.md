@@ -185,7 +185,7 @@ The client must treat **absent** capabilities as feature-off (hide or disable), 
 
 ## Orchestrated development
 
-Orchestration **not required** for authoring this ADR. Plan–Build–Validate–Test orchestration **is** required when implementing the first personal-provider flow because it spans the secret boundary, AI route handlers, and the cloud capability surface.
+Orchestration **not required** for authoring this ADR. Plan–Build–Test–Validate orchestration **is** required when implementing the first personal-provider flow because it spans the secret boundary, AI route handlers, and the cloud capability surface.
 
 ### Relevant ADRs for implementation
 

@@ -207,7 +207,7 @@ Use the ADR template’s **Orchestrated development** block when work is **non-t
 
 ### 10.1 When orchestration is expected
 
-Treat Plan–Build–Validate–Test style orchestration as **required** when any of the following hold; otherwise the ADR may omit detailed orchestration subsection **content** but should still follow the template’s guidance for the heading and “not required” wording:
+Treat Plan–Build–Test–Validate style orchestration as **required** when any of the following hold; otherwise the ADR may omit detailed orchestration subsection **content** but should still follow the template’s guidance for the heading and “not required” wording:
 
 - The change spans multiple PRs or phases, or carries significant rollback risk.
 - The change touches ADR-governed boundaries (see enforcement pointers in [docs/adr-and-rules-todo.md](../docs/adr-and-rules-todo.md) where still current).
@@ -217,6 +217,8 @@ Treat Plan–Build–Validate–Test style orchestration as **required** when an
 
 Repo-specific orchestration lives under `.cursor/agents/` and `.cursor/orchestrations/`. See [.cursor/agents/orchestrator.md](../.cursor/agents/orchestrator.md) for stage order, manifest fields, and artifact names. For a narrative guide, [docs/ORCHESTRATED_DEVELOPMENT.md](../docs/ORCHESTRATED_DEVELOPMENT.md) mirrors the same contracts in prose.
 
+**Precedence when documents conflict:** Accepted ADRs and this governance doc (policy) → [`.cursor/rules/workflow-gates.mdc`](../.cursor/rules/workflow-gates.mdc) (merge-ready **MG-01**–**MG-05**) → [`.cursor/agents/*.md`](../.cursor/agents/INDEX.md) (role mechanics) → [`.cursor/orchestrations/_template/`](../.cursor/orchestrations/_template/) (artifact shapes) → orchestration narrative guide.
+
 ### 10.3 Conventions and tooling
 
 Same references as in [TEMPLATE.md](TEMPLATE.md) **Orchestrated development** ([`.cursor/rules/index.md`](../.cursor/rules/index.md), `.cursor/rules/*`, [eslint.config.js](../eslint.config.js)). If a linked file is missing, file a backlog item—do not treat gaps as implicit policy.
@@ -225,28 +227,28 @@ Same references as in [TEMPLATE.md](TEMPLATE.md) **Orchestrated development** ([
 
 When orchestration applies, the ADR must use the **subsection headings** from [TEMPLATE.md](TEMPLATE.md) (**Relevant ADRs for implementation** through **Merge / workflow gates**) so existing and new ADRs stay structurally consistent. Bodies may use bullets, tables, or “N/A” / “Omit until …” as today’s **Accepted** ADRs do.
 
-### 10.5 Merge-ready gates (orchestrated efforts)
+### 10.5 Merge-ready checks (orchestrated efforts)
 
 WFD uses **two gate vocabularies**. Do not conflate them.
 
 | Vocabulary            | Range   | Tracks                                                                                           | Recorded in                                                                                       |
 | --------------------- | ------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
-| **Lifecycle gates**   | **0–6** | Pipeline stage completion (Orchestrator → Planner → Builder → Test → Validator → human approval) | `task-manifest.json` → `gate_status` (`gate_0_intake` … `gate_6_human_approval`)                  |
-| **Merge-ready gates** | **1–5** | Whether work may be claimed **merge-ready** (ADR, gaps, validation artifact, tests, tooling)     | Checklist **MG-01**–**MG-05**; orchestrated evidence in `validation-report.md` / `test-report.md` |
+| **Lifecycle gates**   | **0–6** | Pipeline stage completion (Orchestrator → Planner → Builder → Tester → Validator → human approval) | `task-manifest.json` → `gate_status` (`gate_0_intake` … `gate_6_human_approval`)                  |
+| **Merge-ready checks** | **MG-01**–**MG-05** | Whether work may be claimed **merge-ready** (ADR, gaps, validation artifact, tests, tooling)     | Checklist rows **MG-01**–**MG-05**; orchestrated evidence in `validation-report.md` / `test-report.md` |
 
-**Lifecycle Gate 5** (validation green) is **not** merge-ready **Gate 5** (tooling / **MG-05**). **Lifecycle Gate 6** (human approval) follows a green merge-ready path; it does not replace MG-\* checklist items.
+**Lifecycle Gate 5** (validation green) is **not** **MG-05** (tooling). **Lifecycle Gate 6** (human approval) follows a green merge-ready path; it does not replace MG-\* checklist items. Use **MG-\*** IDs in PRs and agent text (legacy “merge-ready Gate 1–5” numbering is retired).
 
 Canonical mapping (lifecycle ↔ merge-ready ↔ MG-\* ↔ `gate_status`, small-run skips, non-orchestrated PRs): [`docs/validation-checklist.md` — Lifecycle gates, merge-ready gates, and `gate_status`](../docs/validation-checklist.md#lifecycle-gates-merge-ready-gates-and-gate_status). Narrative: [`docs/ORCHESTRATED_DEVELOPMENT.md`](../docs/ORCHESTRATED_DEVELOPMENT.md). Agent contract: [`.cursor/rules/workflow-gates.mdc`](../.cursor/rules/workflow-gates.mdc).
 
-#### Merge-ready ↔ lifecycle (summary)
+#### Merge-ready checks ↔ lifecycle (summary)
 
-| Merge-ready gate                    | MG-\*                   | Typical lifecycle gate(s)    | Evidence                                                                                                        |
-| ----------------------------------- | ----------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| 1 — ADR before durable architecture | **MG-02**               | 2 (plan), 5 (re-check)       | ADR file; `plan.md` → ADR references                                                                            |
-| 2 — Alignment gaps                  | **MG-01**               | 5                            | `validation-report.md` → ADR compliance; [`readme-adr-alignment-gaps.md`](../docs/readme-adr-alignment-gaps.md) |
-| 3 — Validation evidence             | **MG-03** + domain rows | 5                            | `validation-report.md` (verdict + checklist audit)                                                              |
-| 4 — Test evidence                   | **MG-04**, **TST-05**   | 4 (primary), 5 (cross-check) | `test-report.md`; `test-matrix.md` when planned                                                                 |
-| 5 — Tooling                         | **MG-05**               | 3–5                          | `build-log.md`, `test-report.md`, or validation command section                                                 |
+| Checklist ID | Topic | Typical lifecycle gate(s) | Evidence |
+| ------------ | ----- | --------------------------- | -------- |
+| **MG-01** | Alignment gaps | 5 | `validation-report.md` → ADR compliance; [`readme-adr-alignment-gaps.md`](../docs/readme-adr-alignment-gaps.md) |
+| **MG-02** | ADR before durable architecture | 2 (plan), 5 (re-check) | ADR file; `plan.md` → ADR references |
+| **MG-03** | Validation evidence + domain rows | 5 | `validation-report.md` (verdict + checklist audit) |
+| **MG-04** | Test evidence (**TST-05**) | 4 (primary), 5 (cross-check) | `test-report.md`; `test-matrix.md` when required |
+| **MG-05** | Tooling | 3–5 | `build-log.md`, `test-report.md`, or validation command section |
 
 Domain checklist rows (**OFF-\***, **AUTH-\***, etc.) are audited at **lifecycle Gate 5** when applicable, not as separate lifecycle gates.
 
@@ -254,13 +256,13 @@ Domain checklist rows (**OFF-\***, **AUTH-\***, etc.) are audited at **lifecycle
 
 Before claiming merge-ready for orchestrated work, confirm (same checklist as the template’s **Merge / workflow gates** and [`.cursor/rules/workflow-gates.mdc`](../.cursor/rules/workflow-gates.mdc)):
 
-- ADR created or updated **before** durable architecture change (merge-ready Gate 1 / **MG-02**), or an explicit follow-up exists.
-- Known deviations are documented as alignment gaps when not fixed in scope (merge-ready Gate 2 / **MG-01**).
-- Validation output exists for behavior the ADR cares about (merge-ready Gate 3 / **MG-03**; orchestrated: `validation-report.md` with **Checklist audit** per [`docs/validation-checklist.md`](../docs/validation-checklist.md)).
-- Test evidence exists when orchestration applies (merge-ready Gate 4 / **MG-04**; `test-report.md`; `test-matrix.md` when planned layers were scoped — per [`docs/test-matrix-template.md`](../docs/test-matrix-template.md)).
-- Tooling passes for touched paths (merge-ready Gate 5 / **MG-05**): `pnpm run check` and `pnpm run lint`, or documented pre-existing failures outside scope.
+- **MG-02:** ADR created or updated **before** durable architecture change, or an explicit follow-up exists.
+- **MG-01:** Known deviations are documented as alignment gaps when not fixed in scope.
+- **MG-03:** Validation output exists for behavior the ADR cares about (orchestrated: `validation-report.md` with **Checklist audit** per [`docs/validation-checklist.md`](../docs/validation-checklist.md)).
+- **MG-04:** Test evidence exists when orchestration applies (`test-report.md`; `test-matrix.md` when required — per [`docs/test-matrix-template.md`](../docs/test-matrix-template.md)).
+- **MG-05:** Tooling passes for touched paths: `pnpm run check` and `pnpm run lint`, or documented pre-existing failures outside scope.
 
-**Who may claim merge-ready:** Validator issues verdict only; Orchestrator may set `awaiting_human` after merge-ready Gates 1–5 are satisfied; `complete` requires **lifecycle Gate 6** human approval. Builder, Test, and Planner must not assert merge-ready.
+**Who may claim merge-ready:** Validator issues verdict only; Orchestrator may set `awaiting_human` after **MG-01**–**MG-05** are satisfied; `complete` requires **lifecycle Gate 6** human approval. Builder, Tester, and Planner must not assert merge-ready.
 
 ---
 

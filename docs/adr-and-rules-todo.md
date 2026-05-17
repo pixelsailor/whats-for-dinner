@@ -184,8 +184,9 @@ Rebased `origin/main` orchestration docs onto local `9f5bb10` (webtech pipeline,
   - [GOVERNANCE.md §10.5](../adrs/GOVERNANCE.md#105-merge-ready-gates-orchestrated-efforts) and [workflow-gates.mdc](../.cursor/rules/workflow-gates.mdc) use merge-ready numbering; [`docs/ORCHESTRATED_DEVELOPMENT.md`](./ORCHESTRATED_DEVELOPMENT.md) uses pipeline Gates 0–6. Add a short cross-reference table if readers confuse the two.
   - **Done (2026-05-16):** Dual-vocabulary tables and lifecycle ↔ merge-ready ↔ MG-* mapping in [GOVERNANCE.md §10.5](../adrs/GOVERNANCE.md#105-merge-ready-gates-orchestrated-efforts); [workflow-gates.mdc](../.cursor/rules/workflow-gates.mdc) *Two gate vocabularies*; [`ORCHESTRATED_DEVELOPMENT.md`](./ORCHESTRATED_DEVELOPMENT.md) lifecycle table (`gate_status` keys) and expanded merge-ready table. Canonical detail remains [`validation-checklist.md`](./validation-checklist.md#lifecycle-gates-merge-ready-gates-and-gate_status) v1.1.0; [TEMPLATE.md](../adrs/TEMPLATE.md) *Merge / workflow gates* cross-link added.
 
-- [ ] **End-to-end dry run**
+- [x] **End-to-end dry run**
   - Bootstrap a throwaway `.cursor/orchestrations/wfd-dry-run/` from `_template/` and walk Orchestrator → Planner → Builder → Test → Validator prompts once to catch stale terminology (`validation steps`, legacy artifact names).
+  - **Done (2026-05-16):** [`.cursor/orchestrations/wfd-dry-run/`](../.cursor/orchestrations/wfd-dry-run/) — full artifact set + [`DRY-RUN-SUMMARY.md`](../.cursor/orchestrations/wfd-dry-run/DRY-RUN-SUMMARY.md). Reconciled **Validation steps** → **Validation commands** in `_template/acceptance-criteria.md`, `validation-checklist.mdc`, `test-matrix.mdc`, `docs/validation-checklist.md`, `docs/test-matrix-template.md`. Removed `.cursor/agents/orchestrator.md.backup` (legacy `_ORCH_PLAN.md` / `_TEST_MATRIX.md` references).
 
 - [ ] **Force-push rebased `main`**
   - Local `main` replaces remote history (`9f5bb10` + 7 rebased commits). Coordinate with anyone who based work on pre-rebase `origin/main` before `git push --force-with-lease`.

@@ -13,7 +13,7 @@ alwaysApply: false
 ## When to use
 
 - **Validator agent:** Audit every **applicable** checklist section before issuing `validation-report.md`. Record results in the report’s **Checklist audit** section (item ID, status, evidence).
-- **Planner:** Pull relevant checklist rows into `plan.md` → **Validation steps**; map to AC IDs.
+- **Planner:** Pull relevant checklist rows into `plan.md` → **Validation commands**; map to AC IDs.
 - **Human PR review:** Use the same IDs when reviewing changes that touch offline, auth, cloud, AI, schema, or a11y boundaries.
 
 ## Verdict interaction

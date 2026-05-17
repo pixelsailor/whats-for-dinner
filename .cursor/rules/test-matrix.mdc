@@ -12,7 +12,7 @@ alwaysApply: false
 
 ## When to use
 
-- **Planner:** Fill **Planned coverage** in `test-matrix.md` for non-trivial tasks; align layers with `plan.md` → **Validation steps** and AC IDs.
+- **Planner:** Fill **Planned coverage** in `test-matrix.md` for non-trivial tasks; align layers with `plan.md` → **Validation commands** and AC IDs.
 - **Test agent:** Implement Vitest specs; complete **Actual coverage** in `test-matrix.md` and `test-report.md` per [`.cursor/agents/test.md`](../agents/test.md).
 - **Validator:** Cross-check `test-report.md` and `test-matrix.md` against `acceptance-criteria.md` (`TST-*` in [`docs/validation-checklist.md`](../docs/validation-checklist.md)).
 

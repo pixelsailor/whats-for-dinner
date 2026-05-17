@@ -71,7 +71,7 @@ Pull **OFFL** and **SW-*** items from [`validation-checklist.md`](./validation-c
 
 ## Orchestrated workflow
 
-1. **Planner** (recommended for medium+ tasks): copy [`.cursor/orchestrations/_template/test-matrix.md`](../.cursor/orchestrations/_template/test-matrix.md) into `{task-id}/` and fill **Planned coverage** (layer × AC, approach notes). Mirror layers in `plan.md` → **Validation steps**.
+1. **Planner** (recommended for medium+ tasks): copy [`.cursor/orchestrations/_template/test-matrix.md`](../.cursor/orchestrations/_template/test-matrix.md) into `{task-id}/` and fill **Planned coverage** (layer × AC, approach notes). Mirror layers in `plan.md` → **Validation commands**.
 2. **Test:** implement Vitest specs; fill **Actual coverage** in `test-matrix.md`; produce `test-report.md` per [`.cursor/agents/test.md`](../.cursor/agents/test.md).
 3. **Validator:** cross-check `test-report.md` against ACs and `test-matrix.md` for gaps (`TST-*` in validation checklist).
 

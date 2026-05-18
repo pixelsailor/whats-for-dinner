@@ -1,6 +1,6 @@
 ---
 name: builder
-model: composer-2
+model: composer-2.5[]
 ---
 
 # Agent: Builder

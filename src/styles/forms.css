@@ -73,13 +73,13 @@
 }
 
 .textinput {
-  @apply h-input border-border-input hover:border-border-input-hover bg-background border dark:border-gray-700 dark:bg-gray-900;
+  @apply h-input border-border-input hover:border-border-input-hover bg-background border dark:border-gray-800 dark:bg-gray-900;
   border-radius: var(--radius-input);
   padding: var(--padding-input-y) var(--padding-input-x);
 }
 
 .textarea {
-  @apply border-border-input hover:border-border-input-hover bg-background max-h-64 min-h-16 resize-none border dark:border-gray-700 dark:bg-gray-900;
+  @apply border-border-input hover:border-border-input-hover bg-background max-h-64 min-h-16 resize-none border dark:border-gray-800 dark:bg-gray-900;
   border-radius: var(--radius-input);
   padding: var(--padding-input-y) var(--padding-input-x);
 

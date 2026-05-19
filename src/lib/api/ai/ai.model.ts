@@ -51,26 +51,26 @@ function getOpenAI(): OpenAI {
   return client;
 }
 
-type ChatContent = string | null | undefined;
+// type ChatContent = string | null | undefined;
 
-function ensureContent(raw: ChatContent, context: PromptContext): string {
-  if (!raw || !raw.trim()) {
-    throw new Error(`OpenAI returned an empty response for "${context}".`);
-  }
+// function ensureContent(raw: ChatContent, context: PromptContext): string {
+//   if (!raw || !raw.trim()) {
+//     throw new Error(`OpenAI returned an empty response for "${context}".`);
+//   }
 
-  return raw;
-}
+//   return raw;
+// }
 
-function parseJsonPayload<TPayload>(raw: ChatContent, context: PromptContext): TPayload {
-  const content = ensureContent(raw, context);
+// function parseJsonPayload<TPayload>(raw: ChatContent, context: PromptContext): TPayload {
+//   const content = ensureContent(raw, context);
 
-  try {
-    return JSON.parse(content) as TPayload;
-  } catch (error) {
-    console.error(`Failed to parse OpenAI JSON for "${context}".`, { content, error });
-    throw new Error(`Failed to parse OpenAI JSON for "${context}".`);
-  }
-}
+//   try {
+//     return JSON.parse(content) as TPayload;
+//   } catch (error) {
+//     console.error(`Failed to parse OpenAI JSON for "${context}".`, { content, error });
+//     throw new Error(`Failed to parse OpenAI JSON for "${context}".`);
+//   }
+// }
 
 /**
  * Request 4-8 high-level recipe suggestions for a given prompt.

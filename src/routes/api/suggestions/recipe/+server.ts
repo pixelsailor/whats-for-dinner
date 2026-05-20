@@ -1,8 +1,9 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
-import { generateRecipe } from '$lib/api/ai';
-import type { Recipe } from '$lib/api/recipe';
+import { AiParseError, parseRecipeDetail } from '$lib/api/ai/ai.model';
+import { generateRecipe } from '$lib/api/ai/ai.server.service';
+import { SuggestedRecipePostBodySchema } from '$lib/api/ai/ai.schemas';
 
 /**
  * Handles requests to generate a recipe based on a prompt.
@@ -12,11 +13,13 @@ import type { Recipe } from '$lib/api/recipe';
 export const POST: RequestHandler = async ({ request, locals }): Promise<Response> => {
   const { permissions } = locals;
 
-  const { prompt, preferences }: { prompt: string; preferences: string } = await request.json();
+  const bodyResult = SuggestedRecipePostBodySchema.safeParse(await request.json());
 
-  if (!prompt) {
+  if (!bodyResult.success) {
     return error(400, { message: 'Prompt is required' });
   }
+
+  const { prompt, preferences } = bodyResult.data;
 
   const aiAllowed = Boolean(permissions?.ai_assistance);
 
@@ -25,12 +28,15 @@ export const POST: RequestHandler = async ({ request, locals }): Promise<Respons
   }
 
   try {
-    const response = await generateRecipe(prompt, preferences || '');
-    const data = JSON.parse(response as string) as Recipe;
-    // Don't return an API envelope, just the data. e.g. Don't do json({ success: true, data });
+    const raw = await generateRecipe(prompt, preferences || '');
+    const data = parseRecipeDetail(raw);
     return json(data);
-  } catch (error) {
-    console.error('Failed to get recipe suggestions', error);
-    return json({ error: (error as Error)?.message || 'Failed to get recipe suggestions' }, { status: 500 });
+  } catch (err) {
+    if (err instanceof AiParseError) {
+      return json({ error: err.message }, { status: 502 });
+    }
+
+    console.error('Failed to get recipe suggestions', err);
+    return json({ error: (err as Error)?.message || 'Failed to get recipe suggestions' }, { status: 500 });
   }
 };

@@ -11,6 +11,7 @@
  */
 
 import { z } from 'zod';
+
 import { RecipeSchema } from '../recipe';
 
 /**
@@ -22,6 +23,11 @@ export const AiSuggestionSchema = z.object({
   short_description: z.string().describe('A short, single sentence description of the recipe.')
 });
 
+/** Model output for suggestion lists (no API-layer `request_id`). */
+export const AiSuggestionsOutputSchema = z.object({
+  suggestions: z.array(AiSuggestionSchema)
+});
+
 export const RecipeAddendumSchema = AiSuggestionSchema.extend({
   description: z.string(),
   tags: z.array(z.string()),
@@ -30,17 +36,54 @@ export const RecipeAddendumSchema = AiSuggestionSchema.extend({
   cook_time: z.string()
 });
 
+/** Structured output for conversational cooking help. */
+export const RecipeAssistanceOutputSchema = z.object({
+  answer: z.string().describe('Helpful, conversational cooking advice without altering the recipe.')
+});
+
+/** Full recipe JSON from OpenAI (detail, revision, addendum). */
+export const RecipeDetailResponseSchema = RecipeSchema;
+export const RecipeRevisionResponseSchema = RecipeSchema;
+export const RecipeAddendumResponseSchema = RecipeAddendumSchema;
+
 /**
- * OpenAI response schemas. Responses must have an "object" root.
- *
- * Note: request_id is added by the API layer, not OpenAI. It's used to track
- * prompt requests and prevent duplicate API calls.
+ * API response for `/api/suggestions` after the handler adds `request_id`.
  */
 export const RecipeSuggestionsResponseSchema = z.object({
-  request_id: z.number().describe('Unique timestamp ID for this request, added by API layer'),
+  request_id: z.number(),
   suggestions: z.array(AiSuggestionSchema)
 });
-export const RecipeDetailResponseSchema = z.object(RecipeSchema);
-export const RecipeRevisionResponseSchema = z.object(RecipeSchema);
-export const RecipeAssistanceResponseSchema = z.string();
-export const RecipeAddendumResponseSchema = z.object(RecipeAddendumSchema);
+
+export const SuggestionsPostBodySchema = z
+  .object({
+    prompt: z.string().min(1),
+    preferences: z.string().optional()
+  })
+  .strict();
+
+export const SuggestedRecipePostBodySchema = z
+  .object({
+    prompt: z.string().min(1),
+    preferences: z.string().optional()
+  })
+  .strict();
+
+export const RecipesApiPostBodySchema = z
+  .object({
+    action: z.enum(['addendum', 'assistance', 'detail', 'revision', 'summaries']),
+    prompt: z.string().min(1),
+    recipe: z.string().optional(),
+    preferences: z.string().optional()
+  })
+  .strict();
+
+export const RecipeNewPostBodySchema = z
+  .object({
+    recipe: z.unknown(),
+    preferences: z
+      .object({
+        use_ai_assistance: z.boolean().optional()
+      })
+      .optional()
+  })
+  .strict();

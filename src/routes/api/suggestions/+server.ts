@@ -1,20 +1,20 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { type RecipeSuggestionsResponse, generateRecipeSuggestions } from '$lib/api/ai';
 
-type SuggestionsRequest = Request & {
-  prompt: string;
-  preferences?: string;
-};
+import { AiParseError, buildSuggestionsResponse, parseSuggestionsOutput } from '$lib/api/ai/ai.model';
+import { generateRecipeSuggestions } from '$lib/api/ai/ai.server.service';
+import { SuggestionsPostBodySchema } from '$lib/api/ai/ai.schemas';
 
 export const POST: RequestHandler = async ({ request, locals }): Promise<Response> => {
   const { permissions } = locals;
 
-  const { prompt, preferences }: SuggestionsRequest = await request.json();
+  const bodyResult = SuggestionsPostBodySchema.safeParse(await request.json());
 
-  if (!prompt) {
+  if (!bodyResult.success) {
     return error(400, { message: 'Prompt is required' });
   }
+
+  const { prompt, preferences } = bodyResult.data;
 
   const aiAllowed = Boolean(permissions?.ai_assistance);
 
@@ -23,21 +23,17 @@ export const POST: RequestHandler = async ({ request, locals }): Promise<Respons
   }
 
   try {
-    // Generate unique request_id for tracking and deduplication
     const request_id = Date.now();
+    const raw = await generateRecipeSuggestions(prompt, preferences || '');
+    const output = parseSuggestionsOutput(raw);
+    const data = buildSuggestionsResponse(output, request_id);
 
-    const response = await generateRecipeSuggestions(prompt, preferences || '');
-    const parsedData = JSON.parse(response as string);
-
-    // Add request_id to the response for client-side tracking
-    const data: RecipeSuggestionsResponse = {
-      request_id,
-      ...parsedData
-    };
-
-    // Don't return an API envelope, just the data. e.g. Don't do json({ success: true, data });
     return json(data);
   } catch (err) {
+    if (err instanceof AiParseError) {
+      return json({ error: err.message }, { status: 502 });
+    }
+
     console.error('Failed to get recipe suggestions', err);
     return json({ error: (err as Error)?.message || 'Failed to get recipe suggestions' }, { status: 500 });
   }

@@ -3,8 +3,7 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
 
-  import { createSuggestionsQuery } from '$lib/api/ai/ai.queries';
-  import type { RecipeSuggestionsResponse } from '$lib/api/ai';
+  import { createSuggestionsQuery, type RecipeSuggestionsResponse } from '$lib/api/ai';
   import type { RecipeSummary, Suggestion } from '$lib/api/recipe';
 
   import { networkStore } from '$lib/stores/network';
@@ -158,8 +157,8 @@
     }
   });
 
-  /** Subscribe to query results */
-  let suggestionsResult = $derived($suggestionsQueryStore);
+  /** TanStack Query v6 returns a reactive result object (not a `$store`). */
+  let suggestionsResult = $derived(suggestionsQueryStore);
 
   // =============================================================================
   // LiveQuery Store for Suggestions from Dexie

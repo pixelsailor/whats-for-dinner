@@ -1,23 +1,30 @@
-import { error, json, type RequestHandler } from '@sveltejs/kit';
-import {
-  appendRecipeDetails,
-  askCookingQuestion,
-  getRecipeSuggestions,
-  requestRecipeModifications,
-  getFullRecipe,
-  OPENAI_DISABLED_ERROR
-} from '$lib/server/openai';
-import type {
-  PromptContext,
-  RecipeAddendumResponse,
-  RecipeAssistanceResponse,
-  RecipeDetailResponse,
-  RecipeRevisionResponse,
-  RecipeSuggestionsResponse
-} from '$lib/types';
-// import { getRecipeSuggestions } from '$lib/openai/suggestions';
+import { type RequestHandler, error, json } from '@sveltejs/kit';
 
-type AiResponse = RecipeAddendumResponse | RecipeAssistanceResponse | RecipeDetailResponse | RecipeRevisionResponse | RecipeSuggestionsResponse;
+import { AiParseError } from '$lib/api/ai/ai.model';
+import { RecipesApiPostBodySchema } from '$lib/api/ai/ai.schemas';
+import {
+  OPENAI_DISABLED_ERROR,
+  appendRecipeDetailsWithContext,
+  askCookingQuestionWithContext,
+  getFullRecipe,
+  getRecipeSuggestions,
+  requestRecipeModificationsWithContext
+} from '$lib/api/ai/ai.server.service';
+import { PromptContextEnum } from '$lib/api/ai/ai.types';
+import type {
+  LegacyRecipeAddendumResponse,
+  LegacyRecipeAssistanceResponse,
+  LegacyRecipeDetailResponse,
+  LegacyRecipeRevisionResponse,
+  LegacyRecipeSuggestionsResponse
+} from '$lib/api/ai/ai.types';
+
+type AiResponse =
+  | LegacyRecipeAddendumResponse
+  | LegacyRecipeAssistanceResponse
+  | LegacyRecipeDetailResponse
+  | LegacyRecipeRevisionResponse
+  | LegacyRecipeSuggestionsResponse;
 
 export const POST: RequestHandler = async ({ request, locals }) => {
   try {
@@ -33,57 +40,62 @@ export const POST: RequestHandler = async ({ request, locals }) => {
       throw error(403, { message: 'AI access denied' });
     }
 
-    const { action, prompt, recipe, preferences }: { action: PromptContext; prompt: string; recipe?: string; preferences?: string } = await request.json();
+    const bodyResult = RecipesApiPostBodySchema.safeParse(await request.json());
 
-    if (!prompt || typeof prompt !== 'string') {
-      return error(400, { message: 'A valid prompt is required' });
+    if (!bodyResult.success) {
+      return error(400, { message: 'A valid prompt and action are required' });
     }
+
+    const { action, prompt, recipe, preferences } = bodyResult.data;
 
     let response: AiResponse;
 
     switch (action) {
-      case 'addendum':
-        response = await appendRecipeDetails(prompt);
+      case PromptContextEnum.ADDENDUM:
+        response = await appendRecipeDetailsWithContext(prompt, preferences);
         break;
-      case 'assistance': {
-        if (!recipe || typeof recipe !== 'string') {
+      case PromptContextEnum.ASSISTANCE: {
+        if (!recipe) {
           return error(400, { message: 'The request is missing a valid recipe string.' });
         }
-        response = await askCookingQuestion(prompt, recipe);
+        response = await askCookingQuestionWithContext(prompt, recipe);
         break;
       }
-      case 'detail': {
-        if (!recipe || typeof recipe !== 'string') {
+      case PromptContextEnum.DETAIL: {
+        if (!recipe) {
           return error(400, { message: 'The request is missing a short description.' });
         }
         response = await getFullRecipe(prompt, recipe, preferences);
         break;
       }
-      case 'revision': {
-        if (!recipe || typeof recipe !== 'string') {
+      case PromptContextEnum.REVISION: {
+        if (!recipe) {
           return error(400, { message: 'The request is missing a valid recipe string.' });
         }
-        response = await requestRecipeModifications(prompt, recipe);
+        response = await requestRecipeModificationsWithContext(prompt, recipe, preferences);
         break;
       }
-      case 'summaries': {
+      case PromptContextEnum.SUMMARIES:
         response = await getRecipeSuggestions(prompt, preferences || '');
         break;
-      }
       default:
         return json({ error: 'Unknown action' }, { status: 400 });
     }
 
     return json({ success: true, data: response });
-  } catch (error) {
-    if (error instanceof Error && error.message === OPENAI_DISABLED_ERROR) {
+  } catch (err) {
+    if (err instanceof AiParseError) {
+      return json({ error: err.message, code: 'AI_PARSE_ERROR' }, { status: 502 });
+    }
+
+    if (err instanceof Error && err.message === OPENAI_DISABLED_ERROR) {
       return json({ error: 'AI service is unavailable right now', code: 'AI_UNAVAILABLE' }, { status: 503 });
     }
 
-    console.error('API Error:', error);
+    console.error('API Error:', err);
     return json(
       {
-        error: error instanceof Error ? error.message : 'Internal server error'
+        error: err instanceof Error ? err.message : 'Internal server error'
       },
       { status: 500 }
     );

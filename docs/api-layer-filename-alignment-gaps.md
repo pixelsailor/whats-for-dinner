@@ -23,46 +23,6 @@ Audit of `src/lib/api/**` against the layer conventions in [`src/lib/api/README.
 
 ## Gaps by file
 
-### `ai/ai.service.ts`
-
-|              |                                                                                                                              |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------------- |
-| **Expected** | Injectable AI **client** for same-origin `/api/...` calls (or thin facade over them), with request/response validation.      |
-| **Actual**   | Comment-only stub; no exports or methods.                                                                                    |
-| **Impact**   | Filename promises a service that does not exist; callers use `ai.queries.ts` and server routes import `ai.model.ts` instead. |
-
-### `ai/ai.model.ts`
-
-|              |                                                                                                                                                                                        |
-| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Expected** | Pure helpers (prompt builders, parsers, guards); no network or provider SDK.                                                                                                           |
-| **Actual**   | Server-only OpenAI **Responses API** calls (`$env/static/private`, `OpenAI` client, `responses.create`).                                                                               |
-| **Impact**   | Violates `*.model.ts` contract and ADR-006 boundary (provider + secrets belong in server service code, not “model”). Misleading for anyone importing from `$lib/api/ai` on the client. |
-
-### `ai/ai.queries.ts`
-
-|              |                                                                                                            |
-| ------------ | ---------------------------------------------------------------------------------------------------------- |
-| **Expected** | TanStack query factories only; delegate HTTP to `ai.service.ts`.                                           |
-| **Actual**   | Owns `fetch`, endpoint map, and `query()` helper (appropriate for **service**, duplicated responsibility). |
-| **Impact**   | Layer split in README (`service` = HTTP, `queries` = cache) is inverted for AI.                            |
-
-### `ai/index.ts`
-
-|              |                                                                                                  |
-| ------------ | ------------------------------------------------------------------------------------------------ |
-| **Expected** | Public API for the AI module (types, schemas, model, **service**, optionally queries).           |
-| **Actual**   | Re-exports `ai.model`, `ai.schemas`, `ai.types` only; omits `ai.service.ts` and `ai.queries.ts`. |
-| **Impact**   | Barrel does not match module surface; consumers deep-import `ai.queries`.                        |
-
-### `ai/` — dual provider paths (cross-cutting)
-
-|              |                                                                                                                                                                                                                                     |
-| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Expected** | Single AI integration path per ADR-007 (Responses + Zod in `src/lib/api/ai/`).                                                                                                                                                      |
-| **Actual**   | New flows use `ai.model.ts` (`/api/suggestions/*`, `/api/recipes/new`); legacy Chat Completions remain in `src/lib/server/openai.ts` (`/api/recipes` POST). `appendRecipeDetails` exists in **both** `ai.model.ts` and `openai.ts`. |
-| **Impact**   | Not a single-file naming issue, but `ai.model.ts` name hides that it is only **partial** server AI surface.                                                                                                                         |
-
 ### `auth/auth.service.ts`
 
 |              |                                                                                                                                                                                                                                              |
@@ -159,12 +119,12 @@ Use this as a sequenced backlog. Items may be combined in one PR when touching t
 
 ### AI module
 
-- [ ] **AI-1** Move OpenAI provider functions from `ai.model.ts` → `ai.service.ts` (or `ai.server.service.ts` if you want an explicit server-only name). Keep `ai.model.ts` for pure prompt/parse helpers only, or delete the file if nothing pure remains.
-- [ ] **AI-2** Extract HTTP `fetch` + `endpoints` + `query()` from `ai.queries.ts` into `ai.service.ts` (e.g. `postSuggestion`, `postRecipe`). Leave `ai.queries.ts` as thin `createQuery` wrappers calling the service.
-- [ ] **AI-3** Implement or remove `ai.service.ts` stub; ensure no comment-only service file remains.
-- [ ] **AI-4** Update `ai/index.ts` to export service (+ optionally `ai.queries.ts`) as the module public API.
-- [ ] **AI-5** Consolidate AI routes on one provider path: migrate `/api/recipes` off `src/lib/server/openai.ts` to `ai.service.ts`, then shrink or delete duplicate `appendRecipeDetails` / legacy handlers.
-- [ ] **AI-6** Add Zod `safeParse` at server boundaries for AI JSON (coordinate with GAP-006); parse in service or route, not only `JSON.parse` in handlers.
+- [x] **AI-1** Move OpenAI provider functions from `ai.model.ts` → `ai.server.service.ts`. `ai.model.ts` holds pure parse helpers only.
+- [x] **AI-2** Extract HTTP `fetch` + `endpoints` into `ai.service.ts` (`postSuggestions`, `postSuggestedRecipe`). `ai.queries.ts` is thin `createQuery` wrappers.
+- [x] **AI-3** `ai.service.ts` implements same-origin HTTP; no stub remains.
+- [x] **AI-4** `ai/index.ts` exports model, schemas, types, service, and queries (server provider stays off the barrel).
+- [x] **AI-5** `/api/recipes` and recipe form actions use `ai.server.service.ts` (Responses API). `src/lib/server/openai.ts` is a deprecated re-export shim.
+- [x] **AI-6** Routes validate request bodies and provider JSON via Zod `safeParse` in `ai.model.ts` parsers (partial GAP-006 remediation for suggestion/recipe routes).
 
 ### Auth module
 
@@ -202,7 +162,17 @@ Use this as a sequenced backlog. Items may be combined in one PR when touching t
 
 ## Resolved
 
-_(None yet.)_
+### AI module (2026-05-19)
+
+| Item | Resolution |
+| ---- | ---------- |
+| `ai.service.ts` | Same-origin HTTP client (`postSuggestions`, `postSuggestedRecipe`, `AI_ENDPOINTS`). |
+| `ai.server.service.ts` | Server-only OpenAI Responses API (not barrel-exported). |
+| `ai.model.ts` | Pure `parseStructuredOutput` / `safeParse` helpers and `AiParseError`. |
+| `ai.queries.ts` | TanStack `createQuery` wrappers delegating to `ai.service.ts`. |
+| `ai/index.ts` | Exports model, schemas, types, service, queries. |
+| Dual provider paths | `/api/recipes` and recipe form actions migrated to Responses API; `src/lib/server/openai.ts` is a deprecated re-export shim. |
+| GAP-006 (partial) | Suggestion/recipe/new routes validate bodies and provider JSON with Zod; legacy Chat Completions removed from active paths. |
 
 ---
 

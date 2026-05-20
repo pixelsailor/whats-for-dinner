@@ -12,7 +12,7 @@ This document describes how WFD uses **TanStack Query** (`@tanstack/svelte-query
 
 - Import **`createQuery`** from `@tanstack/svelte-query` when remote data should stay aligned with UI state.
 - Pass an options object (or a store of options) with at least a stable **`queryKey`** and **`queryFn`**. Common options include `select`, `enabled`, `staleTime`, `gcTime`, `placeholderData`, `initialData`, and suspense-related settings. Pass a custom **`queryClient`** as the second argument when shared client configuration or cache isolation is required.
-- The helper returns a **Svelte store** whose value matches TanStack’s **`CreateQueryResult<TData, TError>`** (or **`DefinedCreateQueryResult`** when `initialData` / `placeholderData` makes data always defined). Reactive fields include `data`, `error`, `status`, `fetchStatus`, `isPending`, `isSuccess`, `refetch`, `failureCount`, and related helpers—read them inside components via the store subscription pattern below.
+- With **`@tanstack/svelte-query` v6+**, `createQuery` takes an **accessor** `() => ({ queryKey, queryFn, … })` and returns a **reactive result object** (not a classic Svelte store—do **not** use the `$` prefix on it). Reactive fields include `data`, `error`, `status`, `fetchStatus`, `isPending`, `isSuccess`, `refetch`, and related helpers.
 
 ## Runes-friendly pattern
 
@@ -21,18 +21,14 @@ Keep the query store **outside** template logic and derive consumable state with
 ```ts
 import { createQuery } from '@tanstack/svelte-query';
 
-const recipesQueryStore = $derived(
-  createQuery({
-    queryKey: ['recipes', filters],
-    queryFn: fetchRecipes,
-    placeholderData: []
-  })
-);
+const recipesQuery = createQuery(() => ({
+  queryKey: ['recipes', filters],
+  queryFn: fetchRecipes,
+  placeholderData: []
+}));
 
-const recipesQueryResults = $derived($recipesQueryStore);
-
-const recipes = $derived(recipesQueryResults.data ?? []);
-const refreshRecipes = recipesQueryResults.refetch;
+const recipes = $derived(recipesQuery.data ?? []);
+const refreshRecipes = recipesQuery.refetch;
 ```
 
 Official reference: [TanStack Query — `createQuery` (Svelte)](https://tanstack.com/query/v5/docs/framework/svelte/reference/functions/createquery).

@@ -1,9 +1,10 @@
 import { z } from 'zod';
+
+import type { Recipe } from '$lib/api/recipe';
+
 import type {
   AiSuggestionSchema,
   RecipeAddendumResponseSchema,
-  RecipeDetailResponseSchema,
-  RecipeRevisionResponseSchema,
   RecipeSuggestionsResponseSchema
 } from './ai.schemas';
 
@@ -39,30 +40,31 @@ export type ApiResponse<T> = {
 };
 
 /**
- * Pairing of the originating prompt context with the parsed payload coming back from OpenAI.
+ * Pairing of the originating prompt context with the parsed payload (legacy `/api/recipes`).
  */
-export type OpenAiResponse<TPayload> = TPayload;
+export type OpenAiTupleResponse<TPayload> = [PromptContext, TPayload];
 
 /**
  * API payload returned by `/api/recipes` when wrapping OpenAI responses.
  */
-export type OpenAiApiResponse<TPayload> = ApiResponse<OpenAiResponse<TPayload>>;
+export type OpenAiApiResponse<TPayload> = ApiResponse<OpenAiTupleResponse<TPayload>>;
 
 /**
  * Partial enrichment returned by OpenAI when we ask it to append missing recipe metadata.
  */
-export type RecipeAddendum = {
-  short_description?: string;
-  description?: string;
-  tags?: string[];
-  yield?: string;
-  prep_time?: string;
-  cook_time?: string;
-};
+export type RecipeAddendum = z.infer<typeof RecipeAddendumResponseSchema>;
 
 export type RecipeSuggestion = z.infer<typeof AiSuggestionSchema>;
+
+/** Flat response for `/api/suggestions`. */
 export type RecipeSuggestionsResponse = z.infer<typeof RecipeSuggestionsResponseSchema>;
-export type RecipeDetailResponse = z.infer<typeof RecipeDetailResponseSchema>;
-export type RecipeRevisionResponse = z.infer<typeof RecipeRevisionResponseSchema>;
-export type RecipeAssistanceResponse = OpenAiResponse<string>;
-export type RecipeAddendumResponse = z.infer<typeof RecipeAddendumResponseSchema>;
+
+/** Full recipe returned by `/api/suggestions/recipe`. */
+export type SuggestedRecipeResponse = Recipe;
+
+/** Legacy tuple responses for `/api/recipes` and form actions. */
+export type LegacyRecipeSuggestionsResponse = OpenAiTupleResponse<RecipeSuggestion[]>;
+export type LegacyRecipeDetailResponse = OpenAiTupleResponse<Recipe>;
+export type LegacyRecipeRevisionResponse = OpenAiTupleResponse<Recipe>;
+export type LegacyRecipeAssistanceResponse = OpenAiTupleResponse<string>;
+export type LegacyRecipeAddendumResponse = OpenAiTupleResponse<RecipeAddendum>;

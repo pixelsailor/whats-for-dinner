@@ -7,7 +7,7 @@
 
   import { db } from '$lib/db';
   import { sanitizePromptInput } from '$lib/utils';
-  import { createFullRecipeQuery } from '$lib/api/ai/ai.queries';
+  import { createFullRecipeQuery } from '$lib/api/ai';
   import type { Recipe as FullRecipe, SavedRecipe, Suggestion } from '$lib/api/recipe';
   import { suggestionStoreById } from '$lib/stores/suggestions';
 
@@ -135,8 +135,8 @@
     }
   });
 
-  /** Subscribe to query results */
-  let recipeQueryResult = $derived($recipeQueryStore);
+  /** TanStack Query v6 returns a reactive result object (not a `$store`). */
+  let recipeQueryResult = $derived(recipeQueryStore);
   let recipeFromApi = $derived((recipeQueryResult?.data as unknown as FullRecipe) ?? null);
 
   // =============================================================================

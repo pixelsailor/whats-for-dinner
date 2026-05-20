@@ -1,5 +1,10 @@
 import { type Actions, fail } from '@sveltejs/kit';
-import { OPENAI_DISABLED_ERROR, askCookingQuestion, requestRecipeModifications } from '$lib/server/openai';
+import {
+  OPENAI_DISABLED_ERROR,
+  askCookingQuestionWithContext,
+  requestRecipeModificationsWithContext
+} from '$lib/api/ai/ai.server.service';
+import { AiParseError } from '$lib/api/ai/ai.model';
 import { isModificationRequest, sanitizePromptInput } from '$lib/utils';
 
 export const actions: Actions = {
@@ -27,17 +32,23 @@ export const actions: Actions = {
       return fail(400, { error: 'The recipe was not provided.' });
     }
 
-    const queryFn = isModificationRequest(message) ? requestRecipeModifications : askCookingQuestion;
+    const queryFn = isModificationRequest(message)
+      ? requestRecipeModificationsWithContext
+      : askCookingQuestionWithContext;
 
     try {
       const response = await queryFn(message, recipe);
       if (response && response[1]) {
-        const [type, message] = response;
-        return { type, message };
+        const [type, assistantMessage] = response;
+        return { type, message: assistantMessage };
       } else {
         return fail(502, { error: 'Invalid response from AI', message });
       }
     } catch (error) {
+      if (error instanceof AiParseError) {
+        return fail(502, { error: error.message, message });
+      }
+
       if (error instanceof Error && error.message === OPENAI_DISABLED_ERROR) {
         return fail(503, {
           error: 'AI service is unavailable right now',

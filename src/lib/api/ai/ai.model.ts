@@ -1,316 +1,113 @@
 /**
- * AI Model
- *
- * Legacy model for the AI using OpenAI's Chat Completion API. This is a work in progress. Continue
- * to use the deprecated function from $lib/openai until this is complete.
- *
- * @todo Replace with new Open AI Response API.
- * @todo Use structured JSON responses with zod schemas.
- * @todo Refactor responses without context tuples.
+ * @fileoverview Pure parsers and helpers for AI provider JSON; no network or secrets.
+ * @module lib/api/ai/ai.model
  */
-// import type { ChatCompletionMessageParam } from 'openai/resources';
-import { OpenAI } from 'openai';
-import { zodTextFormat } from 'openai/helpers/zod';
 
-import { OPENAI_API_KEY } from '$env/static/private';
+import { z } from 'zod';
+
+import type { Recipe } from '$lib/api/recipe';
 
 import {
-  type PromptContext,
-  type RecipeAddendum,
-  type RecipeAddendumResponse,
-  type RecipeAssistanceResponse,
-  type RecipeDetailResponse,
+  AiSuggestionsOutputSchema,
+  RecipeAddendumResponseSchema,
+  RecipeAssistanceOutputSchema,
   RecipeDetailResponseSchema,
-  type RecipeRevisionResponse,
-  type RecipeSuggestionsResponse,
   RecipeSuggestionsResponseSchema
-} from '$lib/api/ai';
-import { PromptContextEnum } from '$lib/types';
-import { type Recipe, RecipeSchema, type RecipeSummary, RecipeSummarySchema } from '$lib/api/recipe';
+} from './ai.schemas';
+import type { RecipeAddendum, RecipeSuggestionsResponse } from './ai.types';
 
-export const OPENAI_DISABLED_ERROR = 'OPENAI_DISABLED';
-
-let client: OpenAI | null = null;
-
-/**
- * Get the OpenAI client.
- *
- * @returns The OpenAI client.
- */
-function getOpenAI(): OpenAI {
-  if (!OPENAI_API_KEY) {
-    throw new Error(OPENAI_DISABLED_ERROR);
+/** Thrown when provider output is not valid JSON or fails Zod validation. */
+export class AiParseError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'AiParseError';
   }
-
-  if (!client) {
-    client = new OpenAI({
-      apiKey: OPENAI_API_KEY
-    });
-  }
-
-  return client;
 }
 
-// type ChatContent = string | null | undefined;
-
-// function ensureContent(raw: ChatContent, context: PromptContext): string {
-//   if (!raw || !raw.trim()) {
-//     throw new Error(`OpenAI returned an empty response for "${context}".`);
-//   }
-
-//   return raw;
-// }
-
-// function parseJsonPayload<TPayload>(raw: ChatContent, context: PromptContext): TPayload {
-//   const content = ensureContent(raw, context);
-
-//   try {
-//     return JSON.parse(content) as TPayload;
-//   } catch (error) {
-//     console.error(`Failed to parse OpenAI JSON for "${context}".`, { content, error });
-//     throw new Error(`Failed to parse OpenAI JSON for "${context}".`);
-//   }
-// }
-
 /**
- * Request 4-8 high-level recipe suggestions for a given prompt.
+ * Parses a JSON string and validates it with the given schema.
+ * @param raw - Provider `output_text` or other JSON string
+ * @param schema - Zod schema for the expected payload
+ * @param context - Label for logs and error messages
+ * @returns Validated payload
+ * @throws {AiParseError} When JSON is invalid or validation fails
  */
-export async function generateRecipeSuggestions(input: string, userPreferences: string): Promise<string | Error> {
-  const instructions = `
-		You are an expert meal planner. Respond with a JSON array of 4 to 10 recipe ideas based on the users's input. DO NOT include anything outside of the JSON response.
-		The recipes should take into consideration the user's preferences and dietary restrictions as follows: ${userPreferences}
-	`;
+export function parseStructuredOutput<T>(raw: string, schema: z.ZodType<T>, context: string): T {
+  let json: unknown;
 
   try {
-    const openai = getOpenAI();
-    const response = await openai.responses.create({
-      model: 'gpt-5-nano',
-      instructions,
-      input,
-      text: {
-        format: zodTextFormat(RecipeSuggestionsResponseSchema, 'suggestions')
-      }
-    });
-
-    // return JSON.parse(response.output_text) as RecipeSuggestionsResponse;
-    return response.output_text;
-    // const payload = response.output_text;
-    // return [PromptContextEnum.SUMMARIES, payload];
+    json = JSON.parse(raw);
   } catch (error) {
-    console.error('OpenAI API error:', error);
-    throw error;
+    console.error(`Failed to parse AI JSON for "${context}".`, { raw, error });
+    throw new AiParseError(`Failed to parse AI JSON for "${context}".`);
   }
+
+  const result = schema.safeParse(json);
+
+  if (!result.success) {
+    console.error(`AI output validation failed for "${context}".`, result.error.flatten());
+    throw new AiParseError(`AI output failed validation for "${context}".`);
+  }
+
+  return result.data;
 }
 
 /**
- * Request a complete `Recipe` based on the provided title and description.
+ * Validates OpenAI suggestion list output (without `request_id`).
+ * @param raw - Provider `output_text`
  */
-export async function generateRecipe(prompt: string, userPreferences?: string): Promise<string | Error> {
-  const { title, description } = JSON.parse(prompt) as { title: string; description: string };
-
-  const instructions = `You are an expert culinary assistant. You are thoughtful about flavor profiles,
-ingredients and traditional preparation methods. Consider the steps necessary during preparation
--- whether items that will be combined should be prepared/cooked separately, at the same time. Be
-considerate of the total time an item may spend cooking if additional items are added that must be
-cooked together. The recipes should take into consideration the user's preferences and dietary restrictions as follows: ${userPreferences}
-
-Formatting Guidelines:
-- Use clean, readable Markdown **within** the 'ingredients', 'instructions', and 'notes' strings.
-- For ingredients:
-  - Use a standard markdown list: each line begins with a dash (-), followed by a space.
-  - Do NOT use bullet characters (•) or other list symbols.
-  - Optional: You may use subheadings like "### For the Sauce" to divide ingredients into groups.
-- For instructions:
-  - Use a numbered list in Markdown format (e.g., "1. Step").
-  - Optional: You may use subheadings like "### For the Sauce" to divide steps into sections.
-  - Do NOT use headers like "# Instructions" — assume field labels are provided by the UI.
-- For notes:
-  - Use regular paragraph formatting or a markdown list.
-- DO NOT wrap any markdown with triple backticks or code blocks.
-- DO NOT return any extra text — respond with pure JSON only.
-- DO NOT use subheadings greater than three hashes (do NOT use "#" or "##").
-- If a field is unknown or not needed, omit it.
-- DO NOT include any emojis or non-ASCII characters.
-
-Keep your formatting consistent and minimal.
-`;
-  const input = `Provide a complete recipe for, "${title}", as described by, "${description}"`;
-
-  try {
-    const openai = getOpenAI();
-    const response = await openai.responses.create({
-      model: 'gpt-5-mini',
-      instructions,
-      input,
-      text: {
-        format: zodTextFormat(RecipeSchema, 'recipedetail')
-      }
-    });
-
-    // return JSON.parse(response.output_text) as RecipeSuggestionsResponse;
-    return response.output_text;
-    // const payload = response.output_text;
-    // return [PromptContextEnum.SUMMARIES, payload];
-  } catch (error) {
-    console.error('OpenAI API error:', error);
-    throw error;
-  }
+export function parseSuggestionsOutput(raw: string): z.infer<typeof AiSuggestionsOutputSchema> {
+  return parseStructuredOutput(raw, AiSuggestionsOutputSchema, 'suggestions');
 }
 
-// /**
-//  * Ask OpenAI to revise an existing recipe using the provided prompt.
-//  *
-//  * @returns Tuple of `[PromptContextEnum.REVISION, Recipe]`.
-//  */
-// export async function requestRecipeModifications(
-// 	input: string,
-// 	recipe: string
-// ): Promise<RecipeRevisionResponse> {
-// 	const messages: ChatCompletionMessageParam[] = [
-// 		{
-// 			role: 'system',
-// 			content: `You are an expert culinary assistant. A user will give you a recipe and a request to modify it.
-// You must respond ONLY with a full updated version of the recipe in JSON format that includes:
+/**
+ * Merges API-layer `request_id` into a validated suggestions payload.
+ * @param output - Validated model output
+ * @param requestId - Timestamp id assigned by the route handler
+ */
+export function buildSuggestionsResponse(
+  output: z.infer<typeof AiSuggestionsOutputSchema>,
+  requestId: number
+): RecipeSuggestionsResponse {
+  const merged = { request_id: requestId, ...output };
+  const result = RecipeSuggestionsResponseSchema.safeParse(merged);
 
-// {
-//   "title": "string",
-//   "short_description": "string",
-//   "description": "string",
-//   "ingredients": "markdown",
-//   "instructions": "markdown",
-//   "tags": ["string", ...],
-//   "yield": "e.g. 'Serves 4'",
-// 	"prep_time": "string (to include time marinating or chilling)",
-// 	"cook_time": "string",
-//   "notes": "markdown string (optional)"
-// }
+  if (!result.success) {
+    throw new AiParseError('Failed to assemble suggestions API response.');
+  }
 
-// Only return valid JSON — do not include any commentary, code blocks, or explanations.
-// If a field was not changed, preserve the original values.
-// Use clean, readable markdown where applicable. Do not use emojis.
-// Ensure the JSON is valid and parseable.
-// `
-// 		},
-// 		{
-// 			role: 'user',
-// 			content: `Here is the recipe:
-// ${recipe}
-
-// Here is the user's modification request:
-
-// "${input}"
-// `
-// 		}
-// 	];
-// 	try {
-// 		const openai = getOpenAI();
-// 		const response = await openai.chat.completions.create({
-// 			model,
-// 			messages,
-// 			temperature: 1.0
-// 		});
-
-// 		const payload = parseJsonPayload<Recipe>(
-// 			response.choices[0]?.message?.content,
-// 			PromptContextEnum.REVISION
-// 		);
-
-// 		return [PromptContextEnum.REVISION, payload];
-// 	} catch (err) {
-// 		console.error('OpenAI API error:', err);
-// 		throw err;
-// 	}
-// }
-
-// /**
-//  * Ask OpenAI for conversational cooking help related to an existing recipe.
-//  *
-//  * @returns Tuple of `[PromptContextEnum.ASSISTANCE, string]`.
-//  */
-// export async function askCookingQuestion(
-// 	question: string,
-// 	recipeJson: string
-// ): Promise<RecipeAssistanceResponse> {
-// 	const recipe = JSON.parse(recipeJson) as Recipe;
-// 	const prompt = `
-// You are an helpful, experienced culinary assistant helping a user working on a recipe.
-// When they ask a question, consider the recipe they provide and answer with helpful, conversational cooking advice.
-// Do not reformat or alter the recipe in any way or return code blocks or JSON.
-// Keep responses concise, friendly, and informative.
-// `;
-// 	const input = `
-// This is the recipe I'm working with:
-// ## ${recipe.title}
-
-// **Description:** ${recipe.description}
-
-// **Ingredients:**
-// ${recipe.ingredients}
-
-// **Instructions:**
-// ${recipe.instructions}
-
-// Now, here is my question:
-// ${question}
-// `;
-// 	const openai = getOpenAI();
-// 	const response = await openai.chat.completions.create({
-// 		model,
-// 		messages: [
-// 			{ role: 'system', content: prompt },
-// 			{ role: 'user', content: input }
-// 		],
-// 		temperature
-// 	});
-
-// 	const answer = ensureContent(response.choices[0]?.message?.content, PromptContextEnum.ASSISTANCE);
-
-// 	return [PromptContextEnum.ASSISTANCE, answer];
-// }
+  return result.data;
+}
 
 /**
- * Ask OpenAI to backfill missing metadata (description, tags, timing, etc.) for a recipe draft.
+ * Validates a full recipe payload from OpenAI.
+ * @param raw - Provider `output_text`
  */
-export async function appendRecipeDetails(recipe: string): Promise<string | Error> {
-  const { title, short_description, description, yields, prep_time, cook_time, ingredients, instructions, notes, tags } = JSON.parse(recipe);
-  const prompt = `You are an experienced culinary assistant helping a user working on a recipe.
-They have provided the following recipe but some of the fields are missing. Using the provided recipe as a guide, fill in any missing fields using your best estimation.
+export function parseRecipeDetail(raw: string): Recipe {
+  return parseStructuredOutput(raw, RecipeDetailResponseSchema, 'recipe detail');
+}
 
-DO NOT alter the recipe.
-DO NOT include any commentary, code blocks, or explanations.
-DO NOT return any extra text — respond with pure JSON only.
-DO NOT include any emojis or non-ASCII characters.
-YOU MAY add additional tags to the recipe if you think they are appropriate.
-`;
+/**
+ * Validates recipe revision output.
+ * @param raw - Provider `output_text`
+ */
+export function parseRecipeRevision(raw: string): Recipe {
+  return parseStructuredOutput(raw, RecipeDetailResponseSchema, 'recipe revision');
+}
 
-  const input = `The user has provided the following recipe details:
+/**
+ * Validates addendum / metadata enrichment output.
+ * @param raw - Provider `output_text`
+ */
+export function parseRecipeAddendum(raw: string): RecipeAddendum {
+  return parseStructuredOutput(raw, RecipeAddendumResponseSchema, 'recipe addendum');
+}
 
-title: ${title}
-short_description: ${short_description}
-description: ${description}
-yield: ${yields}
-prep_time: ${prep_time}
-cook_time: ${cook_time}
-tags: ${tags}
-ingredients: ${ingredients}
-instructions: ${instructions}
-notes: ${notes}
-`;
-
-  try {
-    const openai = getOpenAI();
-    const response = await openai.responses.create({
-      model: 'gpt-5-nano',
-      instructions: prompt,
-      input,
-      text: {
-        format: zodTextFormat(RecipeSchema, 'recipedetail')
-      }
-    });
-
-    return response.output_text;
-  } catch (err) {
-    console.error('OpenAI API error:', err);
-    throw err;
-  }
+/**
+ * Validates conversational assistance output and returns the answer text.
+ * @param raw - Provider `output_text`
+ */
+export function parseAssistanceAnswer(raw: string): string {
+  const parsed = parseStructuredOutput(raw, RecipeAssistanceOutputSchema, 'recipe assistance');
+  return parsed.answer;
 }

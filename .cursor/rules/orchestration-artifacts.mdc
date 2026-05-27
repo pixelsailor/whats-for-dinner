@@ -8,7 +8,7 @@ alwaysApply: false
 
 # Orchestration artifacts
 
-Full contracts: [`orchestrator.md`](../agents/orchestrator.md), [`planner.md`](../agents/planner.md), [`builder.md`](../agents/builder.md), [`tester.md`](../agents/tester.md), [`validator.md`](../agents/validator.md). Index: [`.cursor/agents/INDEX.md`](../agents/INDEX.md).
+Full contracts: [`orchestrator.md`](../agents/orchestrator.md), [`planner.md`](../agents/planner.md), [`builder.md`](../agents/builder.md), [`tester.md`](../agents/tester.md), [`validator.md`](../agents/validator.md). Per-agent Cursor rules: [`orchestrator.mdc`](./orchestrator.mdc), [`planner.mdc`](./planner.mdc), [`builder.mdc`](./builder.mdc), [`tester.mdc`](./tester.mdc), [`validator.mdc`](./validator.mdc). Index: [`.cursor/agents/INDEX.md`](../agents/INDEX.md).
 
 **Templates** ([`../orchestrations/_template/`](../orchestrations/_template/)): `task-manifest.json`, `plan.md`, `acceptance-criteria.md`, `test-matrix.md`, `build-log.md`, `test-report.md`, `validation-report.md`, `human-approval.md`, and [`README.md`](../orchestrations/_template/README.md) (copy into `{task-id}/` when bootstrapping). Cross-cutting audit: [`docs/validation-checklist.md`](../docs/validation-checklist.md). Test layers: [`docs/test-matrix-template.md`](../docs/test-matrix-template.md).
 

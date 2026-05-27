@@ -26,6 +26,11 @@ Catalog of **Cursor rules** (`.cursor/rules/*.mdc`). **Agent contracts** for orc
 | **Governance**             | adr-compliance                  | ADR index + governance; alignment gaps in `docs/readme-adr-alignment-gaps.md`                                                | alwaysApply                                                                                                                                          |
 |                            | readme-governance               | Root README scope; deep docs → ADRs, scoped READMEs, `docs/`                                                                 | globs `README.md`                                                                                                                                    |
 | **Agent Workflow**         | orchestration-artifacts         | Who may edit `.cursor/orchestrations/**` manifests and stage files                                                           | globs `.cursor/orchestrations/**`                                                                                                                    |
+|                            | orchestrator                    | Orchestration controller: manifest, routing, MG gates, Gate 6                                                                | manual (`alwaysApply: false`)                                                                                                                        |
+|                            | planner                         | Executable `plan.md`, ACs, planned test matrix                                                                               | manual                                                                                                                                               |
+|                            | builder                         | Implementation per plan + `build-log.md`                                                                                     | manual                                                                                                                                               |
+|                            | tester                          | Tester stage: Vitest specs + `test-report.md`                                                                                | manual                                                                                                                                               |
+|                            | validator                       | Fresh-context audit + `validation-report.md`                                                                                 | manual                                                                                                                                               |
 |                            | workflow-gates                  | Merge-ready checks **MG-01**–**MG-05**: ADR, gaps, validation-report, test-report                                            | globs `.cursor/orchestrations/**`, orchestration agent defs, `docs/ORCHESTRATED_DEVELOPMENT.md`                                                      |
 |                            | pr-commit-expectations          | PR/commit buckets (product, architecture, gaps); test evidence or untested risk                                              | alwaysApply                                                                                                                                          |
 |                            | validation-checklist            | Cross-cutting Validator/PR audit: offline, auth, cloud, AI, schema, a11y, tests                                              | globs `.cursor/orchestrations/**`, `docs/validation-checklist.md`                                                                                    |
@@ -35,13 +40,13 @@ Catalog of **Cursor rules** (`.cursor/rules/*.mdc`). **Agent contracts** for orc
 
 Invoke via Cursor **Agents** UI or `@` references. Full index: [`.cursor/agents/INDEX.md`](../agents/INDEX.md).
 
-| Agent        | Contract file            | Role summary                          |
-| ------------ | ------------------------ | ------------------------------------- |
-| Orchestrator | `agents/orchestrator.md` | Lifecycle, manifest, routing, Gate 6  |
-| Planner      | `agents/planner.md`      | Plan, ACs, planned test matrix        |
-| Builder      | `agents/builder.md`      | Implementation + build log            |
-| Tester       | `agents/tester.md`       | Vitest specs + test report            |
-| Validator    | `agents/validator.md`    | Independent audit + validation report |
+| Agent        | Contract file            | Cursor rule (invoke manually) | Role summary                          |
+| ------------ | ------------------------ | ----------------------------- | ------------------------------------- |
+| Orchestrator | `agents/orchestrator.md` | `rules/orchestrator.mdc`      | Lifecycle, manifest, routing, Gate 6  |
+| Planner      | `agents/planner.md`      | `rules/planner.mdc`           | Plan, ACs, planned test matrix        |
+| Builder      | `agents/builder.md`      | `rules/builder.mdc`           | Implementation + build log            |
+| Tester       | `agents/tester.md`       | `rules/tester.mdc`            | Vitest specs + test report            |
+| Validator    | `agents/validator.md`    | `rules/validator.mdc`         | Independent audit + validation report |
 
 ## Activation modes
 

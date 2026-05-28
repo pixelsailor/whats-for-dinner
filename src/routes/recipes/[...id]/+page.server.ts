@@ -1,11 +1,11 @@
 import { type Actions, fail } from '@sveltejs/kit';
 import {
   OPENAI_DISABLED_ERROR,
-  askCookingQuestionWithContext,
-  requestRecipeModificationsWithContext
+  OPENAI_INVALID_KEY_FORMAT_ERROR,
+  askCookingQuestion
 } from '$lib/api/ai/ai.server.service';
 import { AiParseError } from '$lib/api/ai/ai.model';
-import { isModificationRequest, sanitizePromptInput } from '$lib/utils';
+import { sanitizePromptInput } from '$lib/utils';
 
 export const actions: Actions = {
   default: async ({ request, locals }) => {
@@ -32,18 +32,9 @@ export const actions: Actions = {
       return fail(400, { error: 'The recipe was not provided.' });
     }
 
-    const queryFn = isModificationRequest(message)
-      ? requestRecipeModificationsWithContext
-      : askCookingQuestionWithContext;
-
     try {
-      const response = await queryFn(message, recipe);
-      if (response && response[1]) {
-        const [type, assistantMessage] = response;
-        return { type, message: assistantMessage };
-      } else {
-        return fail(502, { error: 'Invalid response from AI', message });
-      }
+      const response = await askCookingQuestion(message, recipe);
+      return { message: response };
     } catch (error) {
       if (error instanceof AiParseError) {
         return fail(502, { error: error.message, message });
@@ -52,6 +43,12 @@ export const actions: Actions = {
       if (error instanceof Error && error.message === OPENAI_DISABLED_ERROR) {
         return fail(503, {
           error: 'AI service is unavailable right now',
+          message
+        });
+      }
+      if (error instanceof Error && error.message === OPENAI_INVALID_KEY_FORMAT_ERROR) {
+        return fail(503, {
+          error: 'AI service configuration is invalid right now',
           message
         });
       }

@@ -1,25 +1,26 @@
 <script lang="ts">
+  import SvelteMarkdown from '@humanspeak/svelte-markdown';
   import { getLocalTimeZone, parseDate, parseTime, today } from '@internationalized/date';
   import { getContext, onDestroy, onMount, untrack } from 'svelte';
   import { slide } from 'svelte/transition';
   import { toast } from 'svelte-sonner';
   import { Button, DropdownMenu } from 'bits-ui';
 
+  import { enhance } from '$app/forms';
   import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
   import { page } from '$app/state';
 
+  import type { RecipeAssistanceResponse } from '$lib/api/ai';
   import { CloudService, SyncService } from '$lib/api/cloud';
   import type { SavedRecipe } from '$lib/api/recipe';
   import { db } from '$lib/db';
   import { getRecipeStore } from '$lib/stores/recipes';
-  import type { PromptContext, ViewState, Viewport } from '$lib/types';
+  import type { ViewState, Viewport } from '$lib/types';
 
   import { AppBar } from '$lib/ui/AppBar';
-  // import EditableRecipe from '$lib/ui/EditableRecipe.svelte';
   import FavoriteIcon from '$lib/ui/icons/FavoriteIcon.svelte';
   import FavoriteFilledIcon from '$lib/ui/icons/FavoriteFilledIcon.svelte';
-  import PxlIconButton from '$lib/ui/PxlIconButton.svelte';
   import PageHeader from '$lib/ui/PageHeader.svelte';
   import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
   import Prompt from '$lib/ui/Prompt.svelte';
@@ -30,10 +31,6 @@
   import { networkStore } from '$lib/stores/network';
   import { deriveAICapability } from '$lib/utils/capabilities';
   import CalendarHeatMapIcon from '$lib/ui/icons/CalendarHeatMapIcon.svelte';
-  import SvelteMarkdown from '@humanspeak/svelte-markdown';
-  import { enhance } from '$app/forms';
-  // import LockIcon from '$lib/ui/icons/LockIcon.svelte';
-  // import UnlockIcon from '$lib/ui/icons/UnlockIcon.svelte';
 
   const vp: Viewport = getContext('viewport');
 
@@ -107,11 +104,7 @@
   /** Whether the user has indicated they did not make this recipe today -- disables `checkoutTimer` */
   let iDidntMakeThisToday = $state(false);
 
-  let isLocked = $state(false);
-
   let promptInput = $state<string>();
-
-  let promptType = $state<PromptContext>();
 
   let conversationMsg = $state<string>();
 
@@ -155,12 +148,12 @@
 
   /** The current recipe from the store */
   let recipe = $derived<SavedRecipe | undefined>(recipeStoreValue.data ?? undefined);
+  
+  /** Responsible for passing the recipe to the FormData */
+  let recipeJson = $derived(recipe ? JSON.stringify(recipe) : '');
 
   /** The last date the recipe was opened. ISO string format: "2026-01-05T00:00:00+00:00" */
   let lastCheckoutDateTime = $derived(recipe?.checkout_history?.[recipe?.checkout_history.length - 1] ?? undefined);
-
-  // Responsible for passing the recipe to the FormData
-  // let recipeJson = $derived(recipe ? JSON.stringify(recipe) : '');
 
   let promptRef = $state<HTMLElement>();
   let left = $derived.by(() => {
@@ -187,8 +180,6 @@
 
     iMadeThisToday = false;
     iDidntMakeThisToday = false;
-    // Hardcoded for now. @TODO: Implement role based locking.
-    isLocked = false;
     markedAsOpenedRecipeId = null;
     markAsOpenedAttempts = 0;
 
@@ -282,21 +273,15 @@
   // React to user prompts
   $effect(() => {
     if (form && form.error === undefined) {
-      if (form.message === lastFormMessage) return;
-
-      const { type, message } = form;
-      promptType = type;
-      if (typeof message !== 'string') {
-        console.warn('Unexpected non-string form message payload', message);
-        return;
+      const assistantResponseData = JSON.parse(form.message) as RecipeAssistanceResponse;
+      if (assistantResponseData?.answer) {
+        conversationMsg = assistantResponseData.answer;
       }
-
-      lastFormMessage = message;
+      if (assistantResponseData?.recipe && recipe) {
+        recipe = {...recipe, ...assistantResponseData.recipe };
+      }
       waiting = false;
 
-      // if (type === 'assistance') {
-      // 	conversationMsg = message;
-      // } else {
       // 	// clone the snapshot to avoid "DataCloneError" in `saveModifiedRecipe()`
       // 	const originalRecipe = structuredClone($state.snapshot(recipe)) as SavedRecipe;
 
@@ -473,7 +458,7 @@
   }
 
   /** Open a date picker to update the last prepared date */
-  function updateLastPreparedDate() {}
+  // function updateLastPreparedDate() {}
 
   /**
    * Convert a AI generated time string to minutes
@@ -492,52 +477,52 @@
    * @param value - The time string to convert
    * @returns The time in minutes. Tuples are returned for ranges.
    */
-  function convertAiTime(value: string | undefined): string[] {
-    if (!value) return ['0'];
+  // function convertAiTime(value: string | undefined): string[] {
+  //   if (!value) return ['0'];
 
-    const ALPHA_RX = /^[a-zA-Z]+$/;
-    const HOURS_RX = /(\d+)\s?h|(\d+):/g;
-    const MINUTES_RX = /(\d+)\s?m|\d+:(\d+)/g;
+  //   const ALPHA_RX = /^[a-zA-Z]+$/;
+  //   const HOURS_RX = /(\d+)\s?h|(\d+):/g;
+  //   const MINUTES_RX = /(\d+)\s?m|\d+:(\d+)/g;
 
-    let isRange = false;
-    let isHours = false;
+  //   let isRange = false;
+  //   let isHours = false;
 
-    let times: string[] = [];
+  //   let times: string[] = [];
 
-    if (value.includes('-') || value.includes('to')) {
-      isRange = true;
-    }
+  //   if (value.includes('-') || value.includes('to')) {
+  //     isRange = true;
+  //   }
 
-    if (isRange) {
-      // Handle ranges with a single unit of time, e.g. "10-15 minutes"
-      if (value.includes('-')) {
-        if (value.includes('hours')) isHours = true;
-        value.split('-').forEach((time) => {
-          if (!ALPHA_RX.test(time)) {
-            times.push(isHours ? `${time} * 60` : `${time}`);
-          } else {
-            let hours = parseInt(HOURS_RX.exec(time)?.[1] ?? '0');
-            let minutes = parseInt(MINUTES_RX.exec(time)?.[1] ?? '0');
-            times.push((hours * 60 + minutes).toString());
-          }
-        });
-      } else {
-        // Handle ranges with two units of time, e.g. "45 minutes to 1 hour 10 minutes"
-        value.split('to').forEach((time) => {
-          let hours = parseInt(HOURS_RX.exec(time)?.[1] ?? '0');
-          let minutes = parseInt(MINUTES_RX.exec(time)?.[1] ?? '0');
-          times.push((hours * 60 + minutes).toString());
-        });
-      }
-    } else {
-      let hours = parseInt(HOURS_RX.exec(value)?.[1] ?? '0');
-      let minutes = parseInt(MINUTES_RX.exec(value)?.[1] ?? '0');
-      times.push((hours * 60 + minutes).toString());
-    }
+  //   if (isRange) {
+  //     // Handle ranges with a single unit of time, e.g. "10-15 minutes"
+  //     if (value.includes('-')) {
+  //       if (value.includes('hours')) isHours = true;
+  //       value.split('-').forEach((time) => {
+  //         if (!ALPHA_RX.test(time)) {
+  //           times.push(isHours ? `${time} * 60` : `${time}`);
+  //         } else {
+  //           let hours = parseInt(HOURS_RX.exec(time)?.[1] ?? '0');
+  //           let minutes = parseInt(MINUTES_RX.exec(time)?.[1] ?? '0');
+  //           times.push((hours * 60 + minutes).toString());
+  //         }
+  //       });
+  //     } else {
+  //       // Handle ranges with two units of time, e.g. "45 minutes to 1 hour 10 minutes"
+  //       value.split('to').forEach((time) => {
+  //         let hours = parseInt(HOURS_RX.exec(time)?.[1] ?? '0');
+  //         let minutes = parseInt(MINUTES_RX.exec(time)?.[1] ?? '0');
+  //         times.push((hours * 60 + minutes).toString());
+  //       });
+  //     }
+  //   } else {
+  //     let hours = parseInt(HOURS_RX.exec(value)?.[1] ?? '0');
+  //     let minutes = parseInt(MINUTES_RX.exec(value)?.[1] ?? '0');
+  //     times.push((hours * 60 + minutes).toString());
+  //   }
 
-    console.log('convertAiTime', value, times);
-    return times;
-  }
+  //   console.log('convertAiTime', value, times);
+  //   return times;
+  // }
 </script>
 
 <PageHeader>
@@ -555,18 +540,14 @@
 						<CloudBackupIcon size="xs" />
 					</PxlIconButton>
 				{/if} -->
-        <PxlIconButton
-          aria-label="Update last prepared date"
-          tooltip="I made this today"
-          onclick={() => {
-            toggleLastPreparedDate();
-          }}
-        >
+        <Button.Root class="button icon text" aria-label="I made this today" onclick={() => {
+          toggleLastPreparedDate();
+        }}>
           <CalendarHeatMapIcon size="xs" class={iMadeThisToday ? 'currentColor' : 'text-dark-40'} />
-        </PxlIconButton>
-        <PxlIconButton
+        </Button.Root>
+        <Button.Root
+          class="button icon text"
           aria-label={recipe?.is_favorite ? 'Remove from favorites' : 'Add to favorites'}
-          tooltip={recipe?.is_favorite ? 'Remove from favorites' : 'Add to favorites'}
           onclick={toggleFavorite}
         >
           {#if recipe?.is_favorite}
@@ -574,18 +555,7 @@
           {:else}
             <FavoriteIcon size="xs" />
           {/if}
-        </PxlIconButton>
-        <!-- <PxlIconButton
-					aria-label={isLocked ? 'Unlock recipe' : 'Lock recipe'}
-					tooltip={isLocked ? 'Unlock to make changes' : 'Lock to prevent changes'}
-					onclick={() => { isLocked = !isLocked }}
-				>
-					{#if isLocked}
-						<LockIcon size="xs" />
-					{:else}
-						<UnlockIcon size="xs" />
-					{/if}
-				</PxlIconButton> -->
+        </Button.Root>
         <DropdownMenu.Root>
           <DropdownMenu.Trigger>
             {#snippet child({ props })}
@@ -654,7 +624,7 @@
               <div class="markdown mb-4 self-center text-sm">
                 <SvelteMarkdown source={conversationMsg} />
               </div>
-              <Button.Root onclick={() => (conversationMsg = '')} class="button text icon" title="Close">
+              <Button.Root class="button text icon" title="Clear" onclick={() => (conversationMsg = '')}>
                 <CloseIcon size="xs" />
               </Button.Root>
             </div>
@@ -673,7 +643,7 @@
               bind:value={promptInput}
               placeholder="Make changes or ask a recipe related question"
             />
-            <!-- <input type="hidden" name="recipe" bind:value={recipeJson} /> -->
+            <input type="hidden" name="recipe" bind:value={recipeJson} />
             <Button.Root type="submit" disabled={waiting || !promptInput?.trim()} class="button text narrow">
               {waiting ? 'Thinking...' : 'Submit'}
             </Button.Root>

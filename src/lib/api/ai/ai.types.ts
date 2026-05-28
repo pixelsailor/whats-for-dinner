@@ -5,6 +5,7 @@ import type { Recipe } from '$lib/api/recipe';
 import type {
   AiSuggestionSchema,
   RecipeAddendumResponseSchema,
+  RecipeAssistanceOutputSchema,
   RecipeSuggestionsResponseSchema
 } from './ai.schemas';
 
@@ -61,6 +62,9 @@ export type RecipeSuggestionsResponse = z.infer<typeof RecipeSuggestionsResponse
 
 /** Full recipe returned by `/api/suggestions/recipe`. */
 export type SuggestedRecipeResponse = Recipe;
+
+/** Response for `/api/recipes` when asking for cooking assistance. */
+export type RecipeAssistanceResponse = z.infer<typeof RecipeAssistanceOutputSchema>;
 
 /** Legacy tuple responses for `/api/recipes` and form actions. */
 export type LegacyRecipeSuggestionsResponse = OpenAiTupleResponse<RecipeSuggestion[]>;

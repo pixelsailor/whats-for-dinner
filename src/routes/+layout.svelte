@@ -452,7 +452,7 @@
 <svelte:window bind:innerWidth={vp.width} />
 
 <QueryClientProvider client={queryClient}>
-  <div class="flex h-full w-full flex-row">
+  <div class="layout-container flex h-full w-full flex-row">
     <div
       class="relative w-0 flex-none"
       style:width={vp.layout === 'desktop--collapsed' ? 'calc(4rem + 1px)' : vp.layout === 'desktop--expanded' ? 'calc(18rem + 1px)' : ''}
@@ -503,6 +503,8 @@
     <main class="main-content body relative h-full min-h-screen w-full flex-1">
       {@render children()}
     </main>
+
+    <div class="saim-drawer"></div>
   </div>
 
   <!-- Cloud sync dialog -->
@@ -572,6 +574,11 @@
   .sidebar {
     height: 100%;
     height: -webkit-fill-available;
+  }
+
+  .navigation-wrapper {
+    position: relative;
+
   }
 
   :global(.sidenav-link) {

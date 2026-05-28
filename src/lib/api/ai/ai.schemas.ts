@@ -38,7 +38,8 @@ export const RecipeAddendumSchema = AiSuggestionSchema.extend({
 
 /** Structured output for conversational cooking help. */
 export const RecipeAssistanceOutputSchema = z.object({
-  answer: z.string().describe('Helpful, conversational cooking advice without altering the recipe.')
+  answer: z.string().describe('Helpful, conversational cooking advice without altering the recipe.'),
+  recipe: RecipeSchema.optional().nullable().describe('The recipe with any modifications made by the user.')
 });
 
 /** Full recipe JSON from OpenAI (detail, revision, addendum). */

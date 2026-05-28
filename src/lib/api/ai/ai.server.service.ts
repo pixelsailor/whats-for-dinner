@@ -19,7 +19,6 @@ import {
   parseRecipeAddendum,
   parseRecipeDetail,
   parseRecipeRevision,
-  parseStructuredOutput,
   parseSuggestionsOutput
 } from './ai.model';
 import { PromptContextEnum } from './ai.types';
@@ -32,6 +31,7 @@ import type {
 } from './ai.types';
 
 export const OPENAI_DISABLED_ERROR = 'OPENAI_DISABLED';
+export const OPENAI_INVALID_KEY_FORMAT_ERROR = 'OPENAI_INVALID_KEY_FORMAT';
 
 let client: OpenAI | null = null;
 
@@ -44,9 +44,15 @@ function getOpenAI(): OpenAI {
     throw new Error(OPENAI_DISABLED_ERROR);
   }
 
+  const normalizedApiKey = OPENAI_API_KEY.replace(/[\u200B-\u200D\uFEFF]/g, '').trim();
+
+  if ([...normalizedApiKey].some((char) => (char.codePointAt(0) ?? -1) > 255)) {
+    throw new Error(OPENAI_INVALID_KEY_FORMAT_ERROR);
+  }
+
   if (!client) {
     client = new OpenAI({
-      apiKey: OPENAI_API_KEY
+      apiKey: normalizedApiKey
     });
   }
 
@@ -74,7 +80,7 @@ export async function generateRecipeSuggestions(input: string, userPreferences: 
   try {
     const openai = getOpenAI();
     const response = await openai.responses.create({
-      model: 'gpt-5-nano',
+      model: 'gpt-5.4-nano',
       instructions,
       input,
       text: {
@@ -129,7 +135,7 @@ Keep your formatting consistent and minimal.
   try {
     const openai = getOpenAI();
     const response = await openai.responses.create({
-      model: 'gpt-5-mini',
+      model: 'gpt-5.4-nano',
       instructions,
       input,
       text: {
@@ -150,6 +156,7 @@ Keep your formatting consistent and minimal.
  * @param recipeJson - Serialized recipe to revise
  * @param userPreferences - Optional preferences text for the model
  * @returns Raw structured JSON string from the provider
+ * @deprecated Use {@link askCookingQuestion} instead.
  */
 export async function requestRecipeModifications(
   input: string,
@@ -193,39 +200,34 @@ Here is the user's modification request:
 
 /**
  * Ask OpenAI for conversational cooking help related to an existing recipe.
+ * May be a modification request or seeking general cooking advice.
  * @param question - User question
  * @param recipeJson - Serialized recipe context
  * @returns Raw structured JSON string from the provider
  */
 export async function askCookingQuestion(question: string, recipeJson: string): Promise<string> {
-  const recipe = parseStructuredOutput(recipeJson, RecipeSchema, 'recipe context');
-
   const instructions = `
-You are a helpful, experienced culinary assistant helping a user working on a recipe.
-When they ask a question, consider the recipe they provide and answer with helpful, conversational cooking advice.
-Do not reformat or alter the recipe in any way or return code blocks or JSON in the answer field.
+You are a helpful, experienced culinary assistant.
 Keep responses concise, friendly, and informative.
+Only alter the recipe if asked to do so. If unsure, respond with the answer then offer to update the recipe if needed.
+Do NOT change the recipe format or structure unless asked to do so.
 `;
 
   const input = `
-This is the recipe I'm working with:
-## ${recipe.title}
+The user has asked: ${question}
 
-**Description:** ${recipe.description ?? ''}
+---
 
-**Ingredients:**
-${recipe.ingredients ?? ''}
+This is the recipe in JSON format:
 
-**Instructions:**
-${recipe.instructions ?? ''}
-
-Now, here is my question:
-${question}
+\`\`\`json
+${recipeJson}
+\`\`\`
 `;
 
   const openai = getOpenAI();
   const response = await openai.responses.create({
-    model: 'gpt-5-nano',
+    model: 'gpt-5.4-mini',
     instructions,
     input,
     text: {

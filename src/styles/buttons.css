@@ -1,7 +1,7 @@
 /* Button styles */
 
 .button {
-  @apply rounded-input bg-dark-10 text-label dark:bg-muted hover:bg-dark-10/80 h-input inline-flex cursor-pointer flex-row items-center justify-center gap-3 border border-transparent px-6 font-semibold text-black active:scale-[0.98] active:transition-all;
+  @apply rounded-button bg-dark-10 text-label dark:bg-muted hover:bg-dark-40/80 h-input-mobile md:h-input inline-flex cursor-pointer flex-row items-center justify-center gap-3 border border-transparent px-6 font-semibold text-black active:scale-[0.98] active:transition-all;
 
   &.primary {
     @apply bg-dark text-dark-foreground hover:bg-dark/80 dark:bg-dark dark:text-dark-foreground dark:hover:bg-dark/80;
@@ -90,5 +90,24 @@
 
   &.text {
     @apply text-dark-40 hover:bg-muted bg-transparent;
+  }
+}
+
+.button-group {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+
+  .button {
+    border-radius: 0;
+  }
+
+  .button:first-child {
+    @apply rounded-l-button;
+  }
+
+  .button:last-child {
+    @apply rounded-r-button;
   }
 }

@@ -1,32 +1,36 @@
 <script lang="ts">
+  import { NavigationMenu, Tooltip } from 'bits-ui';
   import { onMount, setContext } from 'svelte';
+  import { get } from 'svelte/store';
   import { Toaster, toast } from 'svelte-sonner';
+  import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query';
 
   // import { SvelteQueryDevtools } from '@tanstack/svelte-query-devtools';
 
+  import { browser } from '$app/environment';
+  import { invalidate } from '$app/navigation';
+  import { PUBLIC_QA_PW, PUBLIC_QA_USER } from '$env/static/public';
+
+  import { CloudService, type ConflictResolution, type SyncConflict, type SyncPlan, SyncService } from '$lib/api/cloud';
   import { MIN_DESKTOP_SIZE } from '$lib/constants';
   import { recentlyOpenedStore } from '$lib/stores/recipes';
   import { networkStore } from '$lib/stores/network';
   import { AppBar } from '$lib/ui/AppBar';
-  import Button from '$lib/ui/Button/Button.svelte';
+  import Button from '$lib/ui/button.svelte';
   import Dialog from '$lib/ui/Dialog.svelte';
   import RecipesIcon from '$lib/ui/icons/RecipesIcon.svelte';
   import CollapseSidenavIcon from '$lib/ui/icons/CollapseSidenavIcon.svelte';
-  import '../app.css';
-  import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query';
-  import { browser } from '$app/environment';
   import ChatbotIcon from '$lib/ui/icons/ChatbotIcon.svelte';
   import SettingsIcon from '$lib/ui/icons/SettingsIcon.svelte';
   import OpenPanelLeftIcon from '$lib/ui/icons/OpenPanelLeftIcon.svelte';
-  import { NavigationMenu } from 'bits-ui';
-  import { PUBLIC_QA_PW, PUBLIC_QA_USER } from '$env/static/public';
-  import { invalidate } from '$app/navigation';
   import LogoutIcon from '$lib/ui/icons/LogoutIcon.svelte';
   import LoginIcon from '$lib/ui/icons/LoginIcon.svelte';
   import type { SavedRecipe } from '$lib/api/recipe/recipe.types';
-  import { CloudService, type ConflictResolution, type SyncConflict, type SyncPlan, SyncService } from '$lib/api/cloud';
   import { resetSyncStore, syncStore, updateSyncStore } from '$lib/stores/sync';
-  import { get } from 'svelte/store';
+  import DocumentAddIcon from '$lib/ui/icons/DocumentAddIcon.svelte';
+  import TimeIcon from '$lib/ui/icons/Time.svelte';
+  
+  import '../app.css';
 
   type Layout = 'mobile--collapsed' | 'mobile--expanded' | 'desktop--collapsed' | 'desktop--expanded';
 
@@ -362,15 +366,15 @@
 {#snippet sidenav()}
   <AppBar.Root disableMobileNav>
     <div class="ml-1">
-      <Button size="md" href="/" icon>
-        <ChatbotIcon />
+      <Button href="/" class="text icon">
+        <ChatbotIcon size="sm" />
       </Button>
     </div>
     <AppBar.Text primary="" />
     <AppBar.End>
       <div class="mr-4">
-        <Button size="xs" onClick={toggleSidenav} label="Minimize navigation panel" icon>
-          <CollapseSidenavIcon />
+        <Button class="text icon" onclick={toggleSidenav} tooltip="Minimize navigation panel">
+          <CollapseSidenavIcon size="sm" />
         </Button>
       </div>
     </AppBar.End>
@@ -379,23 +383,37 @@
   <div class="w-full overflow-x-hidden px-2">
     <NavigationMenu.Root orientation="vertical">
       <NavigationMenu.List>
+        {#if session}
+          <NavigationMenu.Item>
+            <NavigationMenu.Link href="/" class="sidenav-link h-input-mobile md:h-input hover:bg-gray-200 dark:hover:bg-gray-800">
+              <ChatbotIcon size="xs" />
+              <span class="sidenav-link__text">What's For Dinner?</span>
+            </NavigationMenu.Link>
+          </NavigationMenu.Item>
+        {/if}
         <NavigationMenu.Item>
-          <NavigationMenu.Link href="/" class="sidenav-link hover:bg-gray-200 dark:hover:bg-gray-800">
-            <ChatbotIcon size="xs" />
-            <span class="sidenav-link__text">What's For Dinner?</span>
+          <NavigationMenu.Link href="/recommendations" class="sidenav-link h-input-mobile md:h-input hover:bg-gray-200 dark:hover:bg-gray-800">
+            <TimeIcon size="xs" ariaLabel="Recommendations" />
+            <span class="sidenav-link__text">Recommendations</span>
           </NavigationMenu.Link>
         </NavigationMenu.Item>
-        <NavigationMenu.Item>
-          <NavigationMenu.Link href="/recipes" class="sidenav-link hover:bg-gray-200 dark:hover:bg-gray-800">
-            <RecipesIcon size="xs" />
-            <span class="sidenav-link__text">My Recipes</span>
-          </NavigationMenu.Link>
+        <NavigationMenu.Item class="hover:bg-gray-200/50 dark:hover:bg-gray-800/50">
+          <div class="button-group">
+            <NavigationMenu.Link href="/recipes" class="sidenav-link flex-grow h-input-mobile md:h-input hover:bg-gray-200 dark:hover:bg-gray-800 rounded-r-none">
+              <RecipesIcon size="xs" />
+              <span class="sidenav-link__text">My Recipes</span>
+            </NavigationMenu.Link>
+            <NavigationMenu.Link href="/recipes/new" class="sidenav-link flex-none min-content h-input-mobile md:h-input hover:bg-gray-200 dark:hover:bg-gray-800 rounded-l-none">
+              <DocumentAddIcon size="xs" />
+            </NavigationMenu.Link>
+          </div>
         </NavigationMenu.Item>
       </NavigationMenu.List>
     </NavigationMenu.Root>
     <div class="mx-3 mt-8 mb-2">
       <span class="heading-compact text-gray-500">Recent recipes</span>
     </div>
+
     {#if recentlyOpened.length === 0}
       <p class="helper-text m-3 italic">Your recently viewed recipes will appear here.</p>
     {:else if recentlyOpened.length > 0}
@@ -403,7 +421,7 @@
         <NavigationMenu.List>
           {#each recentlyOpened as recipe (recipe.id)}
             <NavigationMenu.Item>
-              <NavigationMenu.Link href="/recipes/{recipe.id}" title={recipe.title} class="sidenav-link hover:bg-gray-200 dark:hover:bg-gray-800">
+              <NavigationMenu.Link href="/recipes/{recipe.id}" title={recipe.title} class="sidenav-link h-input-mobile md:h-input hover:bg-gray-200 dark:hover:bg-gray-800">
                 <span class="sidenav-link__text">{recipe.title}</span>
               </NavigationMenu.Link>
             </NavigationMenu.Item>
@@ -424,20 +442,20 @@
       <NavigationMenu.List>
         {#if session}
           <NavigationMenu.Item>
-            <NavigationMenu.Link class="sidenav-link hover:bg-gray-200 dark:hover:bg-gray-800" href="/preferences">
+            <NavigationMenu.Link class="sidenav-link h-input-mobile md:h-input hover:bg-gray-200 dark:hover:bg-gray-800" href="/preferences">
               <SettingsIcon size="xs" />
               <span class="sidenav-link__text">Preferences</span>
             </NavigationMenu.Link>
           </NavigationMenu.Item>
           <NavigationMenu.Item>
-            <button class="sidenav-link hover:bg-gray-200 dark:hover:bg-gray-800" onclick={handleSignOut}>
+            <button class="sidenav-link h-input-mobile md:h-input hover:bg-gray-200 dark:hover:bg-gray-800" onclick={handleSignOut}>
               <LogoutIcon size="xs" />
               <span class="sidenav-link__text">{session.user.email}</span>
             </button>
           </NavigationMenu.Item>
         {:else}
           <NavigationMenu.Item>
-            <NavigationMenu.Link class="sidenav-link hover:bg-gray-200 dark:hover:bg-gray-800" href="/auth">
+            <NavigationMenu.Link class="sidenav-link h-input-mobile md:h-input hover:bg-gray-200 dark:hover:bg-gray-800" href="/auth">
               <LoginIcon size="xs" />
               <span class="sidenav-link__text">Log in</span>
             </NavigationMenu.Link>
@@ -452,6 +470,7 @@
 <svelte:window bind:innerWidth={vp.width} />
 
 <QueryClientProvider client={queryClient}>
+  <Tooltip.Provider>
   <div class="layout-container flex h-full w-full flex-row">
     <div
       class="relative w-0 flex-none"
@@ -472,23 +491,23 @@
           <AppBar.Root>
             <AppBar.Start>
               <div class="ml-1">
-                <Button size="xs" onClick={toggleSidenav} label="Toggle side-nav" icon>
-                  <OpenPanelLeftIcon />
+                <Button class="text icon" onclick={toggleSidenav} tooltip="Toggle side-nav">
+                  <OpenPanelLeftIcon size="xs" />
                 </Button>
               </div>
             </AppBar.Start>
           </AppBar.Root>
           <div class="flex flex-col gap-2 p-1">
-            <Button href="/" size="xs" label="Home" icon>
-              <ChatbotIcon />
+            <Button href="/" class="text icon" tooltip="Home">
+              <ChatbotIcon size="xs" />
             </Button>
-            <Button href="/recipes" size="xs" label="My Recipes" icon>
-              <RecipesIcon />
+            <Button href="/recipes" class="text icon" tooltip="My Recipes">
+              <RecipesIcon size="xs" />
             </Button>
           </div>
           <div class="fixed bottom-0 px-1 py-2">
-            <Button href="/preferences" size="xs" label="My Recipes" icon>
-              <SettingsIcon />
+            <Button href="/preferences" class="text icon" tooltip="Preferences">
+              <SettingsIcon size="xs" />
             </Button>
           </div>
         </div>
@@ -506,6 +525,7 @@
 
     <div class="saim-drawer"></div>
   </div>
+  </Tooltip.Provider>
 
   <!-- Cloud sync dialog -->
   <Dialog bind:open={openCloudSyncDialog}>
@@ -552,16 +572,16 @@
     {#snippet actions()}
       {#if syncDialogMode === 'first-sync'}
         <div class="flex justify-end gap-2">
-          <Button size="sm" cue="text" onClick={() => (openCloudSyncDialog = false)}>Skip</Button>
-          <Button size="sm" onClick={handleFirstSyncConfirm}>Upload to cloud</Button>
+          <Button class="text" onclick={() => (openCloudSyncDialog = false)}>Skip</Button>
+          <Button class="text" onclick={handleFirstSyncConfirm}>Upload to cloud</Button>
         </div>
       {:else if syncDialogMode === 'per-recipe' && currentConflict}
         <div class="flex flex-col gap-2">
-          <Button size="sm" cue="text" onClick={() => resolveCurrentConflict('download')}>Download cloud version</Button>
-          <Button size="sm" onClick={() => resolveCurrentConflict('upload')}>Upload device version</Button>
+          <Button class="text" onclick={() => resolveCurrentConflict('download')}>Download cloud version</Button>
+          <Button onclick={() => resolveCurrentConflict('upload')}>Upload device version</Button>
         </div>
       {:else}
-        <Button size="sm" cue="text" onClick={() => (openCloudSyncDialog = false)}>Close</Button>
+        <Button class="text" onclick={() => (openCloudSyncDialog = false)}>Close</Button>
       {/if}
     {/snippet}
   </Dialog>
@@ -570,15 +590,12 @@
   <Toaster position={vp.device === 'mobile' ? 'top-center' : 'top-right'} />
 </QueryClientProvider>
 
-<style>
+<style lang="postcss">
+  @reference "tailwindcss";
+
   .sidebar {
     height: 100%;
     height: -webkit-fill-available;
-  }
-
-  .navigation-wrapper {
-    position: relative;
-
   }
 
   :global(.sidenav-link) {
@@ -587,10 +604,21 @@
     justify-content: flex-start;
     gap: 1rem;
     font-size: 0.875rem;
-    width: 100%;
     align-items: center;
     border-radius: 0.25rem;
     padding: 0.5rem 0.75rem;
+  }
+
+  :global(.button-group .sidenav-link) {
+    border-radius: 0;
+    border-top-left-radius: var(--button-radius);
+    border-bottom-left-radius: var(--button-radius);
+  }
+
+  :global(.button-group .sidenav-link:last-child) {
+    border-radius: 0;
+    border-top-right-radius: var(--button-radius);
+    border-bottom-right-radius: var(--button-radius);
   }
 
   :global(.sidenav-link__text) {

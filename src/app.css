@@ -75,6 +75,14 @@
   --shadow-btn: 0px 1px 0px 1px rgba(0, 0, 0, 0.03);
   --shadow-card: 0px 2px 0px 1px rgba(0, 0, 0, 0.04);
   --shadow-date-field-focus: 0px 0px 0px 3px rgba(24, 24, 27, 0.17);
+
+  --button-radius: 0.25rem;
+  --button-height: 2.25rem;
+  --button-height-mobile: 2.75rem;
+  
+  --input-radius: 0.25rem;
+  --input-height: 2.25rem;
+  --input-height-mobile: 2.75rem;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -152,14 +160,15 @@
   --radius-card: 16px;
   --radius-card-lg: 20px;
   --radius-card-sm: 10px;
-  --radius-input: 0.25rem;
-  --radius-button: 5px;
+  --radius-button: var(--button-radius);
+  --radius-input: var(--input-radius);
   --radius-5px: 5px;
   --radius-9px: 9px;
   --radius-10px: 10px;
   --radius-15px: 15px;
 
-  --height-input: 2.5rem;
+  --height-input: var(--input-height);
+  --height-input-mobile: var(--input-height-mobile);
 
   --padding-input-xs: 0.6875rem;
   --padding-input-sm: 0.5625rem;

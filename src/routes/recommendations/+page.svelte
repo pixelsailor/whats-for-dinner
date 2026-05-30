@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Button, Toggle } from 'bits-ui';
+  import { Toggle } from 'bits-ui';
 
   import type { SavedRecipe } from '$lib/api/recipe';
   import { getMealContext } from '$lib/getMealContext';
@@ -10,6 +10,9 @@
   import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
   import { unsortedRecipesStore } from '$lib/stores/recipes';
   import { sentenceCase } from '$lib/utils';
+  import Button from '$lib/ui/button.svelte';
+  import DocumentAddIcon from '$lib/ui/icons/DocumentAddIcon.svelte';
+  import ArrowsClockwiseIcon from '$lib/ui/icons/arrows-clockwise.svelte';
 
   let recipes = $derived<SavedRecipe[]>($unsortedRecipesStore.data ?? []);
   let loading = $derived($unsortedRecipesStore.loading);
@@ -54,9 +57,14 @@
       <AppBar.Root>
         <!-- <AppBar.Text primary="Recommendations" /> -->
         <AppBar.End>
-          <Button.Root class="button text narrow" onclick={refreshRecommendations} disabled={loading}>
-            <span>Refresh</span>
-          </Button.Root>
+          <Button href="/recipes/new" aria-label="Add a recipe" class="text narrow">
+            <DocumentAddIcon size="xs" />
+            <span class="hidden md:inline">Add a recipe</span>
+          </Button>
+          <Button class="text narrow" onclick={refreshRecommendations} disabled={loading}>
+            <ArrowsClockwiseIcon size="xs" />
+            <span class="hidden md:inline">Refresh</span>
+          </Button>
         </AppBar.End>
       </AppBar.Root>
     </PageHeader>
@@ -83,12 +91,12 @@
                 {#if index > 0}
                   <hr class="border-gray-200 dark:border-gray-700" />
                 {/if}
-                <Button.Root href="/recipes/{recipe.id}" class="listitem button text narrow">
+                <Button href="/recipes/{recipe.id}" class="listitem button text narrow">
                   <span class="listitem__content">
                     <span class="title-medium">{recipe.title}</span>
                     <span class="body-medium text-foreground-alt dark:text-foreground-alt">{recipe.short_description}</span>
                   </span>
-                </Button.Root>
+                </Button>
               {/each}
             </div>
           </section>
@@ -103,18 +111,18 @@
               bind:pressed={useMealContext}
               class="h-input bg-background rounded-input border-border flex flex-nowrap items-stretch justify-start gap-1 border px-1 py-1"
             >
-              <Button.Root
+              <Button
                 onclick={() => (useMealContext = false)}
                 class={['button free narrow label-medium', !useMealContext ? 'text' : 'primary cursor-default!']}
               >
                 <span>{sentenceCase(currentMealContext ?? '')} recipes</span>
-              </Button.Root>
-              <Button.Root
+              </Button>
+              <Button
                 onclick={() => (useMealContext = true)}
                 class={['button free narrow label-medium', useMealContext ? 'text' : 'primary cursor-default!']}
               >
                 <span>All recipes</span>
-              </Button.Root>
+              </Button>
             </Toggle.Root>
           </div>
           <ul class="my-6">

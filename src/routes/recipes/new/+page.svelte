@@ -109,6 +109,8 @@
 
   let recipeURL = $state<string>('');
 
+  let markdownHelperText = $state<string>('You can use&nbsp;<a href="https://www.markdownguide.org/cheat-sheet/" target="_blank" class="underline">Markdown</a>&nbsp;here to make lists and add formatting');
+
   /**
    * Manage services for cloud and sync operations.
    */
@@ -364,7 +366,7 @@
   <form method="POST" class="form" onsubmit={saveRecipe}>
     <h1 class="display-small mb-4">Create a new recipe</h1>
     <p class="helper-text italic">
-      Required fields are marked with an asterisk (*).
+      Required fields are marked with an asterisk (<span class="text-destructive">*</span>).
       {#if useAiAssistance}
         <span>The AI will use its best guess for any fields you leave blank.</span>
       {/if}
@@ -384,20 +386,16 @@
         required={!useAiAssistance}
         error={validationErrors.errors?.shortDescription}
         label="Short description"
-        placeholder="Shown in recipe list and search results."
         autocomplete="off"
-        helperText={useAiAssistance ? 'Leave blank to generate with AI' : undefined}
+        helperText="Shown in recipe list and search results."
       />
       <Textarea
         id="description"
         name="description"
         bind:value={longDescription}
         label="Long-form description"
-        placeholder="A longer description with additional commentary or suggested pairings. Included in recipe details."
+        helperText="A longer description with additional commentary or suggested pairings. Included in recipe details."
       >
-        {#if useAiAssistance}
-          <p class="helper-text">Leave blank to generate with AI</p>
-        {/if}
       </Textarea>
       <Textinput
         name="yields"
@@ -409,8 +407,8 @@
 
       <!-- Prep time -->
       <div class="flex flex-row items-end gap-4">
-        <div class="form-field fit-content">
-          <label for="prepTimeStart" class="label-medium">Prep time</label>
+        <div class="form-field nohints fit-content">
+          <label for="prepTimeStart" class="label-large">Prep time</label>
           <div class="flex flex-row gap-4">
             <TimePicker bind:value={prepTimeStart} />
             {#if !usePrepTimeRange}
@@ -420,8 +418,8 @@
         </div>
         {#if usePrepTimeRange}
           <div class="flex items-end justify-center pb-1">TO</div>
-          <div class="form-field fit-content">
-            <label for="prepTimeEnd" class="label-medium">Prep time</label>
+          <div class="form-field nohints fit-content">
+            <label for="prepTimeEnd" class="label-large">Prep time</label>
             <TimePicker bind:value={prepTimeEnd} />
           </div>
           <Button onclick={() => (usePrepTimeRange = false)}>Use single time</Button>
@@ -431,7 +429,7 @@
       <!-- Cook time -->
       <div class="flex flex-col gap-1">
         <div class="flex flex-row items-end gap-4">
-          <div class="form-field fit-content">
+          <div class="form-field nohints fit-content">
             <label for="cookTimeStart" class="label-large">Cook time</label>
             <div class="flex flex-row gap-4">
               <TimePicker bind:value={cookTimeStart} />
@@ -442,7 +440,7 @@
           </div>
           {#if useCookTimeRange}
             <div class="flex items-end justify-center pb-1">TO</div>
-            <div class="form-field fit-content">
+            <div class="form-field nohints fit-content">
               <label for="cookTimeEnd" class="label-large">Cook time</label>
               <TimePicker bind:value={cookTimeEnd} />
             </div>
@@ -450,7 +448,7 @@
           {/if}
         </div>
         {#if useAiAssistance}
-          <p class="helper-text">The AI will use its best guess for the times if you leave either of these blank</p>
+          <p class="helper-text mt-2 mb-1">The AI will use its best guess for the times if you leave either of these blank</p>
         {/if}
       </div>
       <Textarea
@@ -461,11 +459,8 @@
         required
         error={validationErrors.errors?.ingredients}
         placeholder="Enter the ingredients for your recipe"
+        helperText={markdownHelperText}
       >
-        <p class="helper-text">
-          You can use <a href="https://www.markdownguide.org/cheat-sheet/" target="_blank" class="underline">Markdown</a
-          > here to make lists and add formatting
-        </p>
       </Textarea>
       <Textarea
         id="instructions"
@@ -475,11 +470,8 @@
         required
         error={validationErrors.errors?.instructions}
         placeholder="Enter the instructions for your recipe"
+        helperText={markdownHelperText}
       >
-        <p class="helper-text">
-          You can use <a href="https://www.markdownguide.org/cheat-sheet/" target="_blank" class="underline">Markdown</a
-          > here to make lists and add formatting
-        </p>
       </Textarea>
       <Textarea
         id="notes"
@@ -487,11 +479,8 @@
         bind:value={notes}
         label="Notes"
         placeholder="Enter any additional notes for your recipe"
+        helperText={markdownHelperText}
       >
-        <p class="helper-text">
-          You can use <a href="https://www.markdownguide.org/cheat-sheet/" target="_blank" class="underline">Markdown</a
-          > here to make lists and add formatting
-        </p>
       </Textarea>
       <div class="form-field">
         <label for="tags" class="label-large"
@@ -505,9 +494,6 @@
           items={availableTags}
           error={validationErrors.errors?.tags}
         />
-        {#if useAiAssistance}
-          <p class="helper-text">Leave blank to generate with AI</p>
-        {/if}
       </div>
       <div class="border-line my-4 border-t pt-4">
         <Button type="submit" class="primary" disabled={status === 'saving'}>Save</Button>

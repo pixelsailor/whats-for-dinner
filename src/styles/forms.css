@@ -18,6 +18,12 @@
   position: relative;
   justify-content: center;
 
+  &.stretch {
+    min-height: 7.5rem;
+    height: stretch;
+    height: -webkit-fill-available;
+  }
+
   & > label,
   & > .label {
     position: absolute;
@@ -28,7 +34,8 @@
 
   textarea {
     margin-block: 1.5rem;
-    height: fit-content;
+    height: auto;
+    field-sizing: content;
   }
 
   .helper-text-container {
@@ -40,11 +47,26 @@
 
   &.nolabel,
   &.nohints {
-    height: 4.25rem;
+    height: 3.75rem;
   }
 
   &.nolabel:not(.sl-form-field--selectable) {
     justify-content: start !important;
+
+    label {
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      position: absolute;
+      white-space: nowrap;
+      word-wrap: normal;
+      border: 0;
+    }
+
+    textarea {
+      margin-top: 0;
+    }
   }
 
   &.nohints {
@@ -76,6 +98,12 @@
       grid-area: c;
     }
   }
+
+  &.stretch {
+    min-height: 7rem;
+    height: stretch;
+    height: -webkit-fill-available;
+  }
 }
 
 .form-field .helper-text {
@@ -92,13 +120,7 @@
 }
 
 .textarea {
-  @apply border-border-input hover:border-border-input-hover max-h-64 min-h-16 resize-none border bg-input-bg dark:border-gray-800;
+  @apply border-border-input hover:border-border-input-hover max-h-64 min-h-16 resize-y border bg-input-bg dark:border-gray-800;
   border-radius: var(--radius-input);
   padding: var(--padding-input-y) var(--padding-input-x);
-
-  &.stretch {
-    min-height: 7.5rem;
-    height: stretch;
-    height: -webkit-fill-available;
-  }
 }

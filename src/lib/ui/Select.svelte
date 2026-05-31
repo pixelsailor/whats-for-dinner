@@ -59,7 +59,15 @@ _Reference: bits-ui [Select](https://bits-ui.com/docs/components/select/llms.txt
 >
   <div
     class={[
-      'body-medium h-input border-border-input hover:border-border-input-hover bg-background flex flex-row flex-nowrap items-stretch rounded-sm border dark:border-gray-700 dark:bg-gray-900',
+      'body-medium',
+      'h-input',
+      'border-border-input',
+      'hover:border-border-input-hover',
+      'bg-input-bg',
+      'flex',
+      'flex-row',
+      'flex-nowrap',
+      'items-stretch rounded-sm border',
       error ? 'border-destructive' : ''
     ]}
     bind:this={containerRef}

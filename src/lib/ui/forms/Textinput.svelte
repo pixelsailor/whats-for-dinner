@@ -1,4 +1,5 @@
 <script lang="ts">
+  /* eslint-disable svelte/no-at-html-tags */
   import type { HTMLInputAttributes } from 'svelte/elements';
   import type { WithElementRef } from 'bits-ui';
 
@@ -37,7 +38,7 @@ A text input component.
   {#if helperText}
     <div class="helper-text-container">
       {#if helperText && !error}
-        <span class="helper-text">{helperText}</span>
+        <span class="helper-text">{@html helperText}</span>
       {/if}
       {#if error}
         <span class="helper-text text-destructive">{error}</span>

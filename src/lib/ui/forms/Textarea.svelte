@@ -1,5 +1,6 @@
 <script lang="ts">
-  import type { WithChildren, WithElementRef } from 'bits-ui';
+  /* eslint-disable svelte/no-at-html-tags */
+  import type { WithElementRef } from 'bits-ui';
   import type { HTMLTextareaAttributes } from 'svelte/elements';
 
   type TextareaProps = WithElementRef<
@@ -8,6 +9,7 @@
       value: string;
       label?: string;
       required?: boolean;
+      helperText?: string;
       placeholder?: string;
       error?: string;
     } & Omit<HTMLTextareaAttributes, 'value' | 'class' | 'required' | 'id'>,
@@ -15,17 +17,17 @@
   >;
 
   let {
-    children,
     id,
     name,
     value = $bindable(),
     label,
     required = false,
+    helperText,
     placeholder = '',
     error,
     ref = $bindable(null),
     ...restProps
-  }: WithChildren<TextareaProps> = $props();
+  }: TextareaProps = $props();
 
   const pid = $props.id();
   let uid = $derived(id ?? pid);
@@ -43,7 +45,7 @@
 A textarea component incorporating a label and wrapping form field.
 
 -->
-<div class="flex flex-col gap-1">
+<div class="form-field stretch">
   {#if label}
     <label for={uid} class="label-large"
       >{label}
@@ -59,8 +61,15 @@ A textarea component incorporating a label and wrapping form field.
     oninput={autoResize}
     {required}
     bind:value
-    class={['textarea body-medium border-border-input field-sizing-content', error ? 'border-destructive' : '']}
+    class={['textarea body-medium border-border-input', error ? 'border-destructive' : '']}
     {...restProps}
   ></textarea>
-  {@render children?.()}
+  <div class="helper-text-container">
+    {#if helperText && !error}
+      <span class="helper-text">{@html helperText}</span>
+    {/if}
+    {#if error}
+      <span class="helper-text text-destructive">{error}</span>
+    {/if}
+  </div>
 </div>

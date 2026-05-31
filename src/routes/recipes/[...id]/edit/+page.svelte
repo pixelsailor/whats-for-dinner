@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { toast } from 'svelte-sonner';
 
   import { goto } from '$app/navigation';
@@ -6,16 +7,23 @@
   import { page } from '$app/state';
 
   import { CloudService, SyncService } from '$lib/api/cloud';
-  import { RecipeSchema, type SavedRecipe } from '$lib/api/recipe';
+  import { CATEGORY_TAGS, RecipeSchema, type SavedRecipe } from '$lib/api/recipe';
+  import type { ZodIssue } from 'zod';
   import { db } from '$lib/db';
   import { getRecipeStore } from '$lib/stores/recipes';
 
   import { AppBar } from '$lib/ui/AppBar';
-  import Button from '$lib/ui/Button/Button.svelte';
+  import Button from '$lib/ui/button.svelte';
+  import { Textarea, Textinput } from '$lib/ui/forms';
   import PageHeader from '$lib/ui/PageHeader.svelte';
   import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
+  import Select from '$lib/ui/Select.svelte';
+  import { TimePicker } from '$lib/ui/time-picker';
+  import type { SelectOption } from '$lib/ui/types.js';
 
   let { data } = $props();
+
+  let availableTags = $state<SelectOption[]>([]);
 
   let pathParam = $derived(page.params.id as string);
   let isShared = $derived(pathParam.startsWith('shared/'));
@@ -75,45 +83,80 @@
     }
   });
 
-  /** Form fields — recipe content only */
-  let title = $state('');
+  let recipeTitle = $state('');
   let shortDescription = $state('');
-  let description = $state('');
-  let recipeYield = $state('');
-  let prepMin = $state('');
-  let prepMax = $state('');
-  let cookMin = $state('');
-  let cookMax = $state('');
+  let longDescription = $state('');
+  let yields = $state('');
+  /** The prep time in minutes for the recipe */
+  let prepTimeStart = $state<number>(0);
+  /** The max prep time in minutes when using a range */
+  let prepTimeEnd = $state<number>(0);
+  /** The cooking time in minutes for the recipe */
+  let cookTimeStart = $state<number>(0);
+  /** The max cooking time in minutes when using a range */
+  let cookTimeEnd = $state<number>(0);
   let ingredients = $state('');
   let instructions = $state('');
   let notes = $state('');
-  let tagsText = $state('');
+  let tags = $state<string[]>([]);
+
+  /** Whether to use a range of time for the recipe */
+  let usePrepTimeRange = $state<boolean>(false);
+
+  /** Whether to use a range of time for the recipe */
+  let useCookTimeRange = $state<boolean>(false);
+
+  let markdownHelperText = $state<string>(
+    'You can use&nbsp;<a href="https://www.markdownguide.org/cheat-sheet/" target="_blank" class="underline">Markdown</a>&nbsp;here to make lists and add formatting'
+  );
+
+  let validationErrors = $state<{
+    hasErrors?: boolean;
+    errors?: {
+      title?: string;
+      shortDescription?: string;
+      ingredients?: string;
+      instructions?: string;
+      tags?: string;
+    };
+  }>({});
 
   let seededRouteId = $state<string | null>(null);
-  let saving = $state(false);
-  let validationMessage = $state('');
+  let status = $state<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
-  function tupleFromMinuteInputs(a: string, b: string): string[] | null {
-    const x = a.trim();
-    const y = b.trim();
-    if (!x && !y) return null;
-    if (x && y) return [x, y];
-    return x ? [x] : [y];
+  onMount(() => {
+    availableTags = Object.entries(CATEGORY_TAGS).map(([key, values]) => ({
+      label: key.charAt(0).toUpperCase() + key.slice(1),
+      value: key,
+      disabled: true,
+      items: values.map((tag) => ({
+        label: tag,
+        value: tag
+      }))
+    }));
+  });
+
+  function parseMinutes(value: string | undefined): number {
+    if (!value) return 0;
+    const parsed = Number.parseInt(value, 10);
+    return Number.isFinite(parsed) ? parsed : 0;
   }
 
   function seedFromRecipe(r: SavedRecipe): void {
-    title = r.title;
+    recipeTitle = r.title;
     shortDescription = r.short_description ?? '';
-    description = r.description ?? '';
-    recipeYield = r.yield ?? '';
-    prepMin = r.prep_time?.[0] ?? '';
-    prepMax = r.prep_time?.[1] ?? '';
-    cookMin = r.cook_time?.[0] ?? '';
-    cookMax = r.cook_time?.[1] ?? '';
+    longDescription = r.description ?? '';
+    yields = r.yield ?? '';
+    prepTimeStart = parseMinutes(r.prep_time?.[0]);
+    prepTimeEnd = parseMinutes(r.prep_time?.[1]);
+    usePrepTimeRange = Boolean(r.prep_time?.[1]);
+    cookTimeStart = parseMinutes(r.cook_time?.[0]);
+    cookTimeEnd = parseMinutes(r.cook_time?.[1]);
+    useCookTimeRange = Boolean(r.cook_time?.[1]);
     ingredients = r.ingredients ?? '';
     instructions = r.instructions ?? '';
     notes = r.notes ?? '';
-    tagsText = r.tags.join(', ');
+    tags = [...r.tags];
   }
 
   $effect(() => {
@@ -126,37 +169,62 @@
   });
 
   function buildRecipePayload() {
-    const tags = tagsText
-      .split(',')
-      .map((t) => t.trim().toLowerCase())
-      .filter((t) => t.length > 0);
+    const prepTime = [prepTimeStart.toString()];
+    const cookTime = [cookTimeStart.toString()];
+    if (usePrepTimeRange && prepTimeEnd !== 0) {
+      prepTime.push(prepTimeEnd.toString());
+    }
+    if (useCookTimeRange && cookTimeEnd !== 0) {
+      cookTime.push(cookTimeEnd.toString());
+    }
 
     return {
-      title: title.trim(),
+      title: recipeTitle.trim(),
       short_description: shortDescription.trim() || null,
-      description: description.trim() || null,
+      description: longDescription.trim() || '',
       ingredients: ingredients.trim(),
       instructions: instructions.trim(),
-      tags,
-      yield: recipeYield.trim(),
-      prep_time: tupleFromMinuteInputs(prepMin, prepMax),
-      cook_time: tupleFromMinuteInputs(cookMin, cookMax),
-      notes: notes.trim() || null
+      tags: $state.snapshot(tags),
+      yield: yields.trim(),
+      prep_time: prepTime,
+      cook_time: cookTime,
+      notes: notes.trim() || ''
     };
   }
 
-  async function saveRecipe(): Promise<void> {
+  function mapValidationErrors(issues: ZodIssue[]): void {
+    const errors: NonNullable<(typeof validationErrors)['errors']> = {};
+    for (const issue of issues) {
+      const field = issue.path[0];
+      if (field === 'title') errors.title = issue.message;
+      else if (field === 'short_description') errors.shortDescription = issue.message;
+      else if (field === 'ingredients') errors.ingredients = issue.message;
+      else if (field === 'instructions') errors.instructions = issue.message;
+      else if (field === 'tags') errors.tags = issue.message;
+    }
+
+    if (Object.keys(errors).length > 0) {
+      validationErrors = { hasErrors: true, errors };
+    } else {
+      validationErrors = { hasErrors: true, errors: { title: 'Please fix the errors in the form' } };
+    }
+  }
+
+  async function saveRecipe(event: SubmitEvent): Promise<void> {
+    event.preventDefault();
     if (!recipe) return;
 
-    validationMessage = '';
+    validationErrors = {};
     const payload = buildRecipePayload();
     const parsed = RecipeSchema.safeParse(payload);
     if (!parsed.success) {
-      validationMessage = parsed.error.issues.map((i) => i.message).join(' ');
+      status = 'error';
+      mapValidationErrors(parsed.error.issues);
+      toast.error('Please fix the errors in the form');
       return;
     }
 
-    saving = true;
+    status = 'saving';
     const base = $state.snapshot(recipe);
     const updatedAt = new Date().toISOString();
     const merged: SavedRecipe = { ...base, ...parsed.data, updated_at: updatedAt };
@@ -176,12 +244,12 @@
       } else {
         await db.recipes.update(recipe.id, { ...parsed.data, updated_at: updatedAt });
       }
+      status = 'saved';
       toast.success('Recipe saved');
       await goto(resolve('/recipes/[...id]', { id: pathParam }));
     } catch (err) {
+      status = 'error';
       toast.error(err instanceof Error ? err.message : 'Unknown error');
-    } finally {
-      saving = false;
     }
   }
 
@@ -190,11 +258,14 @@
   }
 </script>
 
+<svelte:head>
+  <title>Edit recipe</title>
+</svelte:head>
+
 <PageHeader>
   <AppBar.Root>
-    <AppBar.Text primary="Edit recipe" secondary={recipe?.title ?? ''} />
     <AppBar.End>
-      {#if saving}
+      {#if status === 'saving'}
         <div class="grid h-10 w-10 place-content-center">
           <ProgressSpinner size="xs" />
         </div>
@@ -203,12 +274,12 @@
   </AppBar.Root>
 </PageHeader>
 
-<article class="mx-auto max-w-5xl px-4 py-8 lg:px-8">
+<div class="mx-auto max-w-5xl px-4 py-8 lg:px-8">
   {#if isShared}
     <div class="mx-auto grid w-full max-w-3xl gap-4">
-      <h1 class="fluid-heading-05">Editing unavailable</h1>
-      <p class="text-muted-foreground">Shared recipes are not supported for editing yet.</p>
-      <Button type="button" cue="outlined" onClick={cancelEdit}>Back to recipe</Button>
+      <h1 class="display-small mb-4">Editing unavailable</h1>
+      <p class="helper-text">Shared recipes are not supported for editing yet.</p>
+      <Button type="button" onclick={cancelEdit}>Back to recipe</Button>
     </div>
   {:else if recipeStoreValue.loading}
     <div class="grid min-h-[40vh] place-content-center">
@@ -216,190 +287,149 @@
     </div>
   {:else if recipeStoreValue.error}
     <div class="mx-auto grid w-full max-w-3xl gap-4">
-      <h1 class="fluid-heading-05">Something went wrong</h1>
-      <p class="flex flex-wrap items-center gap-2">
+      <h1 class="display-small mb-4">Something went wrong</h1>
+      <p class="helper-text flex flex-wrap items-center gap-2">
         <span class="font-medium">{recipeStoreValue.error.name}</span>
         <span>|</span>
         <span>{recipeStoreValue.error.message}</span>
       </p>
-      <Button type="button" cue="outlined" onClick={cancelEdit}>Back</Button>
+      <Button type="button" onclick={cancelEdit}>Back</Button>
     </div>
   {:else if recipe}
-    <form
-      class="flex flex-col gap-8"
-      onsubmit={(e) => {
-        e.preventDefault();
-        void saveRecipe();
-      }}
-    >
-      {#if validationMessage}
-        <p
-          class="rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-500 dark:bg-amber-950 dark:text-amber-100"
-          role="alert"
-        >
-          {validationMessage}
-        </p>
-      {/if}
-
-      <div class="flex flex-col gap-2">
-        <label class="label-large" for="recipe-title">Title</label>
-        <input
-          id="recipe-title"
-          class="border-input bg-background w-full rounded-md border px-3 py-2 text-base outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-          type="text"
-          autocomplete="off"
-          bind:value={title}
+    <form method="POST" class="form" onsubmit={saveRecipe}>
+      <h1 class="display-small mb-4">Edit recipe</h1>
+      <p class="helper-text italic">
+        Required fields are marked with an asterisk (<span class="text-destructive">*</span>).
+      </p>
+      <div class="flex flex-col gap-5">
+        <Textinput
+          name="title"
+          bind:value={recipeTitle}
+          label="Recipe title"
           required
-        />
-      </div>
-
-      <div class="flex flex-col gap-2">
-        <label class="label-large" for="recipe-short-description">Short description</label>
-        <input
-          id="recipe-short-description"
-          class="border-input bg-background w-full rounded-md border px-3 py-2 text-base outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-          type="text"
           autocomplete="off"
+          error={validationErrors.errors?.title}
+        />
+        <Textinput
+          name="short_description"
           bind:value={shortDescription}
-        />
-      </div>
-
-      <div class="flex flex-col gap-2">
-        <label class="label-large" for="recipe-description">Description</label>
-        <textarea
-          id="recipe-description"
-          class="border-input bg-background min-h-[120px] w-full rounded-md border px-3 py-2 text-base outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-          rows={4}
-          bind:value={description}
-        ></textarea>
-      </div>
-
-      <div class="flex flex-col gap-2">
-        <label class="label-large" for="recipe-yield">Yield</label>
-        <input
-          id="recipe-yield"
-          class="border-input bg-background w-full rounded-md border px-3 py-2 text-base outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-          type="text"
+          error={validationErrors.errors?.shortDescription}
+          label="Short description"
           autocomplete="off"
-          bind:value={recipeYield}
-          placeholder="e.g. 4 servings"
+          helperText="Shown in recipe list and search results."
         />
-      </div>
+        <Textarea
+          id="description"
+          name="description"
+          bind:value={longDescription}
+          label="Long-form description"
+          helperText="A longer description with additional commentary or suggested pairings. Included in recipe details."
+        >
+        </Textarea>
+        <Textinput
+          name="yields"
+          bind:value={yields}
+          label="Yields"
+          helperText="Enter the number of servings or total amount for sauces, dressings or similar"
+          placeholder="E.g. 2 servings, 4 cups"
+        />
 
-      <div class="grid gap-6 sm:grid-cols-2">
-        <fieldset class="flex flex-col gap-3 rounded-md border border-transparent">
-          <legend class="label-large mb-1">Prep time (minutes)</legend>
-          <div class="flex flex-wrap items-end gap-3">
-            <div class="flex min-w-[6rem] flex-1 flex-col gap-1">
-              <label class="text-muted-foreground text-sm" for="prep-min">Min</label>
-              <input
-                id="prep-min"
-                class="border-input bg-background w-full rounded-md border px-3 py-2 text-base outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-                type="text"
-                inputmode="numeric"
-                autocomplete="off"
-                bind:value={prepMin}
-              />
-            </div>
-            <div class="flex min-w-[6rem] flex-1 flex-col gap-1">
-              <label class="text-muted-foreground text-sm" for="prep-max">Max (optional)</label>
-              <input
-                id="prep-max"
-                class="border-input bg-background w-full rounded-md border px-3 py-2 text-base outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-                type="text"
-                inputmode="numeric"
-                autocomplete="off"
-                bind:value={prepMax}
-              />
+        <!-- Prep time -->
+        <div class="flex flex-row items-end gap-4">
+          <div class="form-field nohints fit-content">
+            <label for="prepTimeStart" class="label-large">Prep time</label>
+            <div class="flex flex-row gap-4">
+              <TimePicker bind:value={prepTimeStart} />
+              {#if !usePrepTimeRange}
+                <Button onclick={() => (usePrepTimeRange = true)}>Use range</Button>
+              {/if}
             </div>
           </div>
-        </fieldset>
-        <fieldset class="flex flex-col gap-3 rounded-md border border-transparent">
-          <legend class="label-large mb-1">Cook time (minutes)</legend>
-          <div class="flex flex-wrap items-end gap-3">
-            <div class="flex min-w-[6rem] flex-1 flex-col gap-1">
-              <label class="text-muted-foreground text-sm" for="cook-min">Min</label>
-              <input
-                id="cook-min"
-                class="border-input bg-background w-full rounded-md border px-3 py-2 text-base outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-                type="text"
-                inputmode="numeric"
-                autocomplete="off"
-                bind:value={cookMin}
-              />
+          {#if usePrepTimeRange}
+            <div class="flex items-end justify-center pb-1">TO</div>
+            <div class="form-field nohints fit-content">
+              <label for="prepTimeEnd" class="label-large">Prep time</label>
+              <TimePicker bind:value={prepTimeEnd} />
             </div>
-            <div class="flex min-w-[6rem] flex-1 flex-col gap-1">
-              <label class="text-muted-foreground text-sm" for="cook-max">Max (optional)</label>
-              <input
-                id="cook-max"
-                class="border-input bg-background w-full rounded-md border px-3 py-2 text-base outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-                type="text"
-                inputmode="numeric"
-                autocomplete="off"
-                bind:value={cookMax}
-              />
-            </div>
-          </div>
-        </fieldset>
-      </div>
+            <Button onclick={() => (usePrepTimeRange = false)}>Use single time</Button>
+          {/if}
+        </div>
 
-      <div class="flex flex-col gap-2">
-        <label class="label-large" for="recipe-ingredients">Ingredients</label>
-        <p class="text-muted-foreground text-sm">Markdown list (e.g. lines starting with "- ").</p>
-        <textarea
-          id="recipe-ingredients"
-          class="border-input bg-background min-h-[180px] w-full rounded-md border px-3 py-2 font-mono text-sm outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-          rows={10}
+        <!-- Cook time -->
+        <div class="flex flex-col gap-1">
+          <div class="flex flex-row items-end gap-4">
+            <div class="form-field nohints fit-content">
+              <label for="cookTimeStart" class="label-large">Cook time</label>
+              <div class="flex flex-row gap-4">
+                <TimePicker bind:value={cookTimeStart} />
+                {#if !useCookTimeRange}
+                  <Button onclick={() => (useCookTimeRange = true)}>Use range</Button>
+                {/if}
+              </div>
+            </div>
+            {#if useCookTimeRange}
+              <div class="flex items-end justify-center pb-1">TO</div>
+              <div class="form-field nohints fit-content">
+                <label for="cookTimeEnd" class="label-large">Cook time</label>
+                <TimePicker bind:value={cookTimeEnd} />
+              </div>
+              <Button onclick={() => (useCookTimeRange = false)}>Use single time</Button>
+            {/if}
+          </div>
+        </div>
+        <Textarea
+          id="ingredients"
+          name="ingredients"
+          label="Ingredients"
           bind:value={ingredients}
           required
-        ></textarea>
-      </div>
-
-      <div class="flex flex-col gap-2">
-        <label class="label-large" for="recipe-instructions">Instructions</label>
-        <p class="text-muted-foreground text-sm">Markdown numbered or bullet steps.</p>
-        <textarea
-          id="recipe-instructions"
-          class="border-input bg-background min-h-[220px] w-full rounded-md border px-3 py-2 font-mono text-sm outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-          rows={12}
+          error={validationErrors.errors?.ingredients}
+          placeholder="Enter the ingredients for your recipe"
+          helperText={markdownHelperText}
+        >
+        </Textarea>
+        <Textarea
+          id="instructions"
+          name="instructions"
+          label="Instructions"
           bind:value={instructions}
           required
-        ></textarea>
-      </div>
-
-      <div class="flex flex-col gap-2">
-        <label class="label-large" for="recipe-notes">Notes</label>
-        <textarea
-          id="recipe-notes"
-          class="border-input bg-background min-h-[100px] w-full rounded-md border px-3 py-2 font-mono text-sm outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-          rows={4}
+          error={validationErrors.errors?.instructions}
+          placeholder="Enter the instructions for your recipe"
+          helperText={markdownHelperText}
+        >
+        </Textarea>
+        <Textarea
+          id="notes"
+          name="notes"
           bind:value={notes}
-        ></textarea>
-      </div>
-
-      <div class="flex flex-col gap-2">
-        <label class="label-large" for="recipe-tags">Tags</label>
-        <p class="text-muted-foreground text-sm">Comma-separated (lowercase).</p>
-        <input
-          id="recipe-tags"
-          class="border-input bg-background w-full rounded-md border px-3 py-2 text-base outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-          type="text"
-          autocomplete="off"
-          bind:value={tagsText}
-        />
-      </div>
-
-      <div class="flex flex-wrap gap-3 pt-2">
-        <Button type="submit" cue="filled" primary disabled={saving}>
-          {saving ? 'Saving…' : 'Save'}
-        </Button>
-        <Button type="button" cue="outlined" disabled={saving} onClick={cancelEdit}>Cancel</Button>
+          label="Notes"
+          placeholder="Enter any additional notes for your recipe"
+          helperText={markdownHelperText}
+        >
+        </Textarea>
+        <div class="form-field">
+          <label for="tags" class="label-large"
+            >Tags <span class="label-large text-destructive">*</span></label
+          >
+          <Select
+            name="tags"
+            type="multiple"
+            bind:value={tags}
+            items={availableTags}
+            error={validationErrors.errors?.tags}
+          />
+        </div>
+        <div class="border-line my-4 flex flex-wrap gap-3 border-t pt-4">
+          <Button type="submit" class="primary" disabled={status === 'saving'}>Save</Button>
+          <Button type="button" disabled={status === 'saving'} onclick={cancelEdit}>Cancel</Button>
+        </div>
       </div>
     </form>
   {:else}
     <div class="mx-auto grid w-full max-w-3xl gap-4">
-      <h1 class="fluid-heading-05">Recipe not found</h1>
-      <Button type="button" cue="outlined" onClick={() => goto(resolve('/recipes'))}>All recipes</Button>
+      <h1 class="display-small mb-4">Recipe not found</h1>
+      <Button type="button" onclick={() => goto(resolve('/recipes'))}>All recipes</Button>
     </div>
   {/if}
-</article>
+</div>

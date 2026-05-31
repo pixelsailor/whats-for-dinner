@@ -109,7 +109,38 @@ _Reference: bits-ui [Select](https://bits-ui.com/docs/components/select/llms.txt
     <Select.Content
       {...contentProps}
       customAnchor={containerRef}
-      class="focus-override border-muted bg-background shadow-popover data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-500 h-96 max-h-[var(--bits-select-content-available-height)] w-[var(--bits-select-anchor-width)] min-w-[var(--bits-select-anchor-width)] rounded-xl border px-1 py-3 outline-hidden select-none data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1"
+      class={[
+        'focus-override',
+        'border-muted',
+        'bg-background',
+        'shadow-popover',
+        'data-[state=open]:animate-in',
+        'data-[state=closed]:animate-out',
+        'data-[state=closed]:fade-out-0',
+        'data-[state=open]:fade-in-0',
+        'data-[state=closed]:zoom-out-95',
+        'data-[state=open]:zoom-in-95',
+        'data-[side=bottom]:slide-in-from-top-2',
+        'data-[side=left]:slide-in-from-right-2',
+        'data-[side=right]:slide-in-from-left-2',
+        'data-[side=top]:slide-in-from-bottom-2',
+        'z-500',
+        'min-h-36',
+        // 'h-[var(--bits-select-content-available-height)]',
+        'max-h-96',
+        'w-[var(--bits-select-anchor-width)]',
+        'min-w-[var(--bits-select-anchor-width)]',
+        'rounded-xl',
+        'border',
+        'px-1',
+        'py-3',
+        'outline-hidden',
+        'select-none',
+        'data-[side=bottom]:translate-y-1',
+        'data-[side=left]:-translate-x-1',
+        'data-[side=right]:translate-x-1',
+        'data-[side=top]:-translate-y-1'
+      ]}
     >
       <Select.ScrollUpButton class="flex justify-center">
         <CaretUpIcon size="xs" />
@@ -118,7 +149,7 @@ _Reference: bits-ui [Select](https://bits-ui.com/docs/components/select/llms.txt
         {#each items as item (item.value)}
           {#if item.items}
             <Select.Group>
-              <Select.GroupHeading class="label-medium mx-2 my-2 text-gray-500 uppercase">
+              <Select.GroupHeading class="label-medium px-2 py-1 text-foreground-alt uppercase bg-dark-04/50">
                 {item.label}
               </Select.GroupHeading>
               {#each item.items as subItem (subItem.value)}
@@ -126,7 +157,7 @@ _Reference: bits-ui [Select](https://bits-ui.com/docs/components/select/llms.txt
                   value={subItem.value}
                   label={subItem.label}
                   disabled={subItem.disabled}
-                  class="rounded-button data-highlighted:bg-muted flex h-10 w-full cursor-pointer items-center py-3 pr-1.5 pl-3 text-sm outline-hidden select-none data-disabled:opacity-50"
+                  class="rounded-button data-highlighted:bg-muted flex h-input w-full cursor-pointer items-center pr-1.5 pl-3 text-sm outline-hidden select-none data-disabled:opacity-50"
                 >
                   {#snippet children({ selected })}
                     <span class="w-min grow truncate">{subItem.label}</span>
@@ -144,7 +175,7 @@ _Reference: bits-ui [Select](https://bits-ui.com/docs/components/select/llms.txt
               value={item.value}
               label={item.label}
               disabled={item.disabled}
-              class="rounded-button data-highlighted:bg-muted flex h-10 w-full cursor-pointer items-center py-3 pr-1.5 pl-3 text-sm outline-hidden select-none data-disabled:opacity-50"
+              class="rounded-button data-highlighted:bg-muted flex h-input w-full cursor-pointer items-center pr-1.5 pl-3 text-sm outline-hidden select-none data-disabled:opacity-50"
             >
               {#snippet children({ selected })}
                 <span class="w-min grow truncate">{item.label}</span>

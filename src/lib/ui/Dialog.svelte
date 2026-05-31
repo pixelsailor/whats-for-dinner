@@ -66,7 +66,7 @@ See [ui-bits Dialog](https://ui-bits.dev/docs/components/dialog/llms.txt) for mo
     />
     <Dialog.Content
       class={[
-        "shadow-popover",
+        "shadow-dialog",
         "data-[state=open]:animate-in",
         "data-[state=closed]:animate-out",
         "data-[state=closed]:fade-out-0",

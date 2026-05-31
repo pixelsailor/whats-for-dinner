@@ -175,6 +175,16 @@ Suggested fields (adapt as needed):
 - **Notes:** Examples: [`suggestions/+page.svelte`](../src/routes/suggestions/+page.svelte), [`recipes/[...id]/+page.svelte`](../src/routes/recipes/[...id]/+page.svelte), [`recipes/new/+page.svelte`](../src/routes/recipes/new/+page.svelte). ADR-016 documents current direction; this gap tracks **migration**, not missing policy.
 - **Owner:** —
 
+### GAP-025
+
+- **Status:** Open
+- **Severity:** Major
+- **Source:** [ADR-012](../adrs/ADR-012-feature-roadmap-boundaries.md) §B (server fetch + extraction); [ADR-017](../adrs/ADR-017-recipe-url-extraction.md)
+- **Observed:** [`importRecipeFromURL`](../src/lib/api/ai/ai.server.service.ts) sends only `The URL is: …` to OpenAI; [`/api/import/url`](../src/routes/api/import/url/+server.ts) does not fetch the page. The model invents recipe content from the URL/title.
+- **Expected:** Server fetch → prepare content (JSON-LD and/or HTML text) → extraction prompt with page content in input → Zod-validated draft; fail closed when no recipe signal.
+- **Notes:** Remediate per [docs/recipe-import-url/README.md](./recipe-import-url/README.md) and ADR-017.
+- **Owner:** —
+
 ---
 
 ## Deferred / investigated

@@ -45,7 +45,7 @@ A textarea component incorporating a label and wrapping form field.
 -->
 <div class="flex flex-col gap-1">
   {#if label}
-    <label for={uid} class="label-medium"
+    <label for={uid} class="label-large"
       >{label}
       {#if required}
         <span class="label-large text-destructive">*</span>{/if}</label
@@ -59,7 +59,7 @@ A textarea component incorporating a label and wrapping form field.
     oninput={autoResize}
     {required}
     bind:value
-    class={['textarea body-medium border-border-input', error ? 'border-destructive' : '']}
+    class={['textarea body-medium border-border-input field-sizing-content', error ? 'border-destructive' : '']}
     {...restProps}
   ></textarea>
   {@render children?.()}

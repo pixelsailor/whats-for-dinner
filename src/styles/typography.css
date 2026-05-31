@@ -83,13 +83,14 @@
   letter-spacing: 0.1;
 }
 
+.label,
 .label-large {
   font-size: 0.875rem; /* 14px */
   line-height: 1.25rem; /* 20px */
   font-weight: 500;
   letter-spacing: 0;
 }
-
+.helper-text,
 .label-medium {
   font-size: 0.75rem; /* 12px */
   line-height: 1rem; /* 16px */
@@ -97,6 +98,7 @@
   letter-spacing: 0.1;
 }
 
+.legal,
 .label-small {
   font-size: 0.625rem; /* 10px */
   line-height: 1rem; /* 16px */
@@ -106,27 +108,6 @@
 
 /* Carbon DS type sets. Type set suffix has been removed. All class name belong to "02" (expressive). */
 /* See https://carbondesignsystem.com/elements/typography/type-sets/ for usage guidelines */
-
-.label {
-  font-size: 0.875rem;
-  line-height: 1.125rem;
-  font-weight: 400;
-  letter-spacing: 0.16px;
-}
-
-.helper-text {
-  font-size: 0.875rem;
-  line-height: 1.125rem;
-  font-weight: 400;
-  letter-spacing: 0.16px;
-}
-
-.legal {
-  font-size: 0.875rem;
-  line-height: 1.125rem;
-  font-weight: 400;
-  letter-spacing: 0.16px;
-}
 
 .body {
   font-size: 1rem;

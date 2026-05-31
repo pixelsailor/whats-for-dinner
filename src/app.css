@@ -29,9 +29,6 @@
   --color-secondary-900: #0c4a6e;
 } */
 
-/* @source "../node_modules/flowbite-svelte/dist"; */
-/* @source "../node_modules/flowbite-svelte-icons/dist"; */
-
 @layer base {
   /* disable chrome cancel button */
   input[type='search']::-webkit-search-cancel-button {
@@ -42,7 +39,7 @@
 :root {
   /* Colors */
   --background: hsl(0 0% 100%);
-  --background-alt: hsl(0 0% 100%);
+  --background-alt: hsl(0 0% 98%);
   --foreground: hsl(0 0% 9%);
   --foreground-alt: hsl(0 0% 32%);
   --muted: hsl(240 5% 96%);
@@ -146,6 +143,7 @@
   --color-success: var(--success);
   --color-line: var(--line);
   --color-contrast: var(--contrast);
+  --color-input-bg: var(--background-alt);
 
   --shadow-mini: var(--shadow-mini);
   --shadow-mini-inset: var(--shadow-mini-inset);

@@ -85,7 +85,7 @@ export const RecipeSummarySchema = RecipeRootSchema.extend({
  * Use `describe` to enforce zodResponseFormat for OpenAI responses.
  */
 export const RecipeSchema = RecipeRootSchema.extend({
-  description: z.string().nullable().describe('Two to three sentence description with additional commentary or suggested pairings'),
+  description: z.string().describe('Two to three sentence description with additional commentary or suggested pairings'),
   ingredients: z
     .string()
     .min(1)
@@ -106,15 +106,13 @@ export const RecipeSchema = RecipeRootSchema.extend({
   yield: z.string().describe("Number of servings for meals (e.g. 2 to 4 servings) or volume for sauces, dressings or similar, e.g. '2 cups"),
   prep_time: z
     .array(z.string())
-    .nullable()
     .describe(
-      'Preparation time in minutes, may include marinating or chilling. Use a tuple for range values, e.g. "10-15 minutes" is represented as ["10", "15"]'
+      'Preparation time in minutes, may include marinating or chilling. Use a second value for a range, e.g. "10-15 minutes" is represented as ["10", "15"]'
     ),
   cook_time: z
     .array(z.string())
-    .nullable()
-    .describe('Cooking time in minutes. Use a tuple for range values, e.g. "10-15 minutes" is represented as ["10", "15"]'),
-  notes: z.string().nullable().describe('Plain Markdown. DO NOT use "Notes" as the heading.')
+    .describe('Cooking time in minutes. Use a second value for a range, e.g. "10-15 minutes" is represented as ["10", "15"]'),
+  notes: z.string().describe('Plain Markdown. DO NOT use "Notes" as the heading.')
 });
 
 /**

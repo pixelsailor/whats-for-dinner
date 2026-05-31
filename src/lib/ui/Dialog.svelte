@@ -99,7 +99,7 @@ See [ui-bits Dialog](https://ui-bits.dev/docs/components/dialog/llms.txt) for mo
         {@render title()}
       </Dialog.Title>
       <Separator.Root class="bg-muted -mx-5 block h-px" />
-      <Dialog.Description class="body-large ">
+      <Dialog.Description class="body-large flex flex-col gap-2">
         {@render description()}
       </Dialog.Description>
 

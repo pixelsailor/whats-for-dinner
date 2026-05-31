@@ -508,12 +508,13 @@
   {/snippet}
   {#snippet description()}
     <p>Import a recipe from a URL.</p>
+    <p>Not all websites allow automated recipe extraction.</p>
   {/snippet}
   <form onsubmit={importRecipeFromURL}>
     <Textinput
       name="recipe_url"
       bind:value={recipeURL}
-      label="URL"
+      label="Recipe URL"
       placeholder="Enter the URL of the recipe to import"
     />
     <div class="flex flex-row-reverse">

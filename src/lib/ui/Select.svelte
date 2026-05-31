@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { Button, Select, type WithoutChildren } from 'bits-ui';
+  import { Select, type WithoutChildren } from 'bits-ui';
   import type { MouseEventHandler } from 'svelte/elements';
-  // import Button from './Button/Button.svelte';
+  import Button from './button.svelte';
   import CaretDownIcon from './icons/CaretDownIcon.svelte';
   import CaretUpIcon from './icons/CaretUpIcon.svelte';
   import CheckmarkIcon from './icons/CheckmarkIcon.svelte';
@@ -45,9 +45,9 @@ _Reference: bits-ui [Select](https://bits-ui.com/docs/components/select/llms.txt
 ```
 -->
 {#snippet tag(label: string)}
-  <Button.Root class="tag label-medium cursor-pointer" onclick={() => removeTag(label)}>
+  <button type="button" class="tag label-medium cursor-pointer" onclick={() => removeTag(label)}>
     <span>{label}</span>
-  </Button.Root>
+  </button>
 {/snippet}
 
 <Select.Root
@@ -90,18 +90,18 @@ _Reference: bits-ui [Select](https://bits-ui.com/docs/components/select/llms.txt
     </Select.Trigger>
     {#if value && value.length > 0}
       <div class="flex-none">
-        <Button.Root
+        <Button
           onclick={() => {
             value = [];
             if (restProps.type === 'multiple') {
               onValueChange?.([] as never);
             }
           }}
-          class="button narrow text inset"
+          class="narrow text inset"
           title="Clear values"
         >
           <CloseOutlineIcon size="xs" />
-        </Button.Root>
+        </Button>
       </div>
     {/if}
   </div>

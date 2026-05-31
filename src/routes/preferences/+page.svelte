@@ -1,16 +1,17 @@
 <script lang="ts">
   import type { SubmitFunction } from '@sveltejs/kit';
-  import { Button, Checkbox, RadioGroup, Switch } from 'bits-ui';
+  import { RadioGroup } from 'bits-ui';
   import { toast } from 'svelte-sonner';
   import { enhance } from '$app/forms';
 
   import type { ViewState } from '$lib/types';
-  import { AppBar } from '$lib/ui/AppBar';
-  import PageHeader from '$lib/ui/PageHeader.svelte';
+  // import { AppBar } from '$lib/ui/AppBar';
+  import Button from '$lib/ui/button.svelte';
+  // import PageHeader from '$lib/ui/PageHeader.svelte';
   import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
   import Select from '$lib/ui/Select.svelte';
   import type { UserPreferences, UserPreferencesResponse } from '$lib/api/account';
-  import Input from '$lib/ui/forms/Textinput.svelte';
+  import Textinput from '$lib/ui/forms/Textinput.svelte';
 
   const options: Record<string, { value: string; label: string; disabled?: boolean }[]> = {
     diet: [
@@ -129,13 +130,15 @@
     error: ''
   });
 
+  let isDirty = $state(false);
+
   let preferences = $derived<UserPreferencesResponse | null>(data.preferences ?? null);
   let dislikes = $derived(toTextFromArray(preferences?.dislikes ?? []));
 
   let diet = $derived(preferences?.diet ?? []);
   let allergies = $derived(preferences?.allergies ?? []);
   let equipment = $derived(preferences?.equipment ?? []);
-  let cuisinePreferences = $derived(preferences?.cuisine_preferences ?? []);
+  // let cuisinePreferences = $derived(preferences?.cuisine_preferences ?? []);
   let preferredPrepTime = $derived(preferences?.preferred_prep_time ?? '');
   let skillLevel = $derived(preferences?.skill_level ?? '');
   let measurementSystem = $state<'metric' | 'imperial'>('metric');
@@ -176,56 +179,64 @@
   }
 </script>
 
-<PageHeader>
+<!-- <PageHeader>
   <AppBar.Root />
-</PageHeader>
+</PageHeader> -->
 
 <div class="mx-auto max-w-5xl px-4 py-8 lg:px-8">
-  <form method="POST" use:enhance={submitPreferences}>
-    <h1 class="display-small mb-4">Preferences</h1>
-    <p class="body-medium my-4">
+  <form class="form" method="POST" use:enhance={submitPreferences} oninput={() => isDirty = true}>
+    <h1 class="display-small mb-4">AI Recipe Preferences</h1>
+    <p class="body-large">
       Set your recipe preferences here. These choices will affect every suggested recipe. If you want to modify recipes only occasionally, rather than setting a
       preference, just be specific when asking for ideas. You can modify recipes however you like when asking.
     </p>
 
-    <div class="mb-3 min-h-24">
-      <p class="label-large mb-1">Dietary considerations</p>
-      <Select type="multiple" items={options.diet} name="diet" bind:value={diet} placeholder="Select diet restrictions" />
+    <hr />
+
+    <div class="form-field">
+      <label for="diet" class="label-large">Dietary considerations</label>
+      <Select type="multiple" items={options.diet} name="diet" bind:value={diet} placeholder="Select diet restrictions" onValueChange={() => { isDirty = true; }} />
     </div>
 
-    <div class="mb-3 min-h-24">
-      <p class="label-large mb-1">Allergies</p>
-      <Select type="multiple" items={options.allergies} name="allergies" bind:value={allergies} placeholder="Select common allergies" />
+    <div class="form-field">
+      <label for="allergies" class="label-large">Allergies</label>
+      <Select type="multiple" items={options.allergies} name="allergies" bind:value={allergies} placeholder="Select common allergies" onValueChange={() => { isDirty = true; }} />
     </div>
 
-    <div class="mb-3 min-h-24">
-      <p class="label-large mb-1">Kitchen equipment to avoid</p>
-      <Select type="multiple" items={options.equipment} name="equipment" bind:value={equipment} placeholder="Select kitchen equipment" />
-      <p class="helper-text text-foreground-alt">
-        If you don't have something, include it here. The AI will make an attempt to avoid recipes that use these items.
-      </p>
+    <div class="form-field">
+      <label class="label-large" for="equipment">Kitchen equipment to avoid</label>
+      <Select type="multiple" items={options.equipment} name="equipment" bind:value={equipment} placeholder="Select kitchen equipment" onValueChange={() => { isDirty = true; }} />
+      <div class="helper-text-container">
+        <p class="helper-text">
+          If you don't have something, include it here. The AI will make an attempt to avoid recipes that use these items.
+        </p>
+      </div>
     </div>
 
-    <div class="mb-3 min-h-24">
-      <Input
-        label="Ingredients to avoid"
-        helperText="List anything you don't like that you want excluded."
-        name="dislikes"
-        placeholder="e.g. olives, capers"
-        bind:value={dislikes}
-      />
-      <p class="helper-text text-foreground-alt">List anything you don't like that you want excluded.</p>
-    </div>
+    <Textinput
+      label="Ingredients to avoid"
+      helperText="List anything you don't like that you want excluded or substituted."
+      name="dislikes"
+      placeholder="e.g. olives, capers"
+      bind:value={dislikes}
+    />
 
     <div class="my-3 grid grid-cols-1 gap-8 md:grid-cols-2">
-      <div>
-        <p class="label-large mb-1">Preferred prep time</p>
-        <Select type="single" name="preferred_prep_time" items={options.prepTime} bind:value={preferredPrepTime} placeholder="Select preferred cooking time" />
+      <div class="form-field">
+        <label for="preferred_prep_time" class="label-large">Preferred prep time</label>
+        <Select
+          type="single"
+          name="preferred_prep_time"
+          items={options.prepTime}
+          placeholder="Select preferred cooking time"
+          bind:value={preferredPrepTime}
+          onValueChange={() => { isDirty = true; }}
+        />
       </div>
 
-      <div>
-        <p class="label-large mb-1">Skill level</p>
-        <Select type="single" name="skill_level" items={options.skillLevel} bind:value={skillLevel} placeholder="How comfortable are you in the kitchen?" />
+      <div class="form-field">
+        <label for="skill_level" class="label-large">Skill level</label>
+        <Select type="single" name="skill_level" items={options.skillLevel} bind:value={skillLevel} placeholder="How comfortable are you in the kitchen?" onValueChange={() => { isDirty = true; }} />
       </div>
 
       <div>
@@ -247,16 +258,18 @@
     {/if}
 
     <p class="helper-text text-foreground-alt">Select the cuisines you prefer. The AI will make an attempt to suggest recipes in these cuisines.</p>
-    <hr class="my-6" />
+    <hr />
 
-    <Button.Root type="submit" class="button primary" disabled={app.status === 'loading'}>
-      {#if app.status === 'loading'}
-        <ProgressSpinner size="sm" />
-        Saving…
-      {:else}
-        Save preferences
-      {/if}
-    </Button.Root>
+    <div>
+      <Button type="submit" class="primary" disabled={app.status === 'loading' || !isDirty}>
+        {#if app.status === 'loading'}
+          <ProgressSpinner size="sm" />
+          Saving…
+        {:else}
+          Save preferences
+        {/if}
+      </Button>
+    </div>
   </form>
 
   <div class="my-18 grid gap-6">

@@ -448,7 +448,7 @@
             <span class="sidenav-link__text">Recommendations</span>
           </NavigationMenu.Link>
         </NavigationMenu.Item>
-        <NavigationMenu.Item class="hover:bg-gray-200/50 dark:hover:bg-gray-800/50">
+        <NavigationMenu.Item class="hover:bg-gray-200/50 dark:hover:bg-gray-800/50 rounded-button">
           <div class="button-group">
             <NavigationMenu.Link href="/recipes" class="sidenav-link flex-grow h-input-mobile md:h-input hover:bg-gray-200 dark:hover:bg-gray-800 rounded-r-none">
               <RecipesIcon size="xs" />
@@ -656,7 +656,7 @@
     gap: 1rem;
     font-size: 0.875rem;
     align-items: center;
-    border-radius: 0.25rem;
+    border-radius: var(--button-radius);
     padding: 0.5rem 0.75rem;
   }
 

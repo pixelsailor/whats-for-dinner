@@ -1,19 +1,29 @@
 /* Button styles */
 
 .button {
-  @apply rounded-button bg-dark-10 text-label hover:bg-dark-40/80 h-input-mobile md:h-input inline-flex cursor-pointer flex-row items-center justify-center gap-3 border border-transparent px-6 active:scale-[0.98] active:transition-all;
+  @apply rounded-button bg-dark-10 text-label h-input-mobile md:h-input inline-flex cursor-pointer flex-row items-center justify-center gap-3 border border-transparent px-6;
   color: color-contrast(var(--dark-40));
 
+  &:hover {
+    @apply bg-dark-10/70 shadow-btn;
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    @apply shadow-btn;
+    transform: translateY(0);
+  }
+
   &.primary {
-    @apply bg-dark text-dark-foreground hover:bg-dark/80 dark:bg-dark dark:text-dark-foreground dark:hover:bg-dark/80;
+    @apply bg-dark hover:bg-dark/80 text-white;
   }
 
   &.warn {
-    @apply bg-tertiary hover:bg-tertiary/80;
+    @apply bg-tertiary hover:bg-tertiary/80 text-black;
   }
 
   &.danger {
-    @apply bg-destructive hover:bg-destructive/80;
+    @apply bg-destructive hover:bg-destructive/80 text-black;
   }
 
   &.raised {
@@ -72,6 +82,15 @@
 .button.inset {
   @apply border-none;
   height: calc(var(--height-input) - 2px);
+
+  &:hover {
+    box-shadow: none;
+    transform: translateY(0);
+  }
+}
+
+.button.tag {
+  height: auto;
 }
 
 .button.free {

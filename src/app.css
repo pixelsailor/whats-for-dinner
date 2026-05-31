@@ -1,40 +1,8 @@
 @import 'tailwindcss';
-/* @plugin 'tailwindcss-animate'; */
+@plugin 'tailwindcss-animate';
 
-/* @plugin 'flowbite/plugin'; */
-
+/* Need to implement theme handling before enabling `.dark` variant */
 /* @custom-variant dark (&:where(.dark, .dark *)); */
-
-/* @theme {
-  --color-primary-50: #fff5f2;
-  --color-primary-100: #fff1ee;
-  --color-primary-200: #ffe4de;
-  --color-primary-300: #ffd5cc;
-  --color-primary-400: #ffbcad;
-  --color-primary-500: #fe795d;
-  --color-primary-600: #ef562f;
-  --color-primary-700: #eb4f27;
-  --color-primary-800: #cc4522;
-  --color-primary-900: #a5371b;
-
-  --color-secondary-50: #f0f9ff;
-  --color-secondary-100: #e0f2fe;
-  --color-secondary-200: #bae6fd;
-  --color-secondary-300: #7dd3fc;
-  --color-secondary-400: #38bdf8;
-  --color-secondary-500: #0ea5e9;
-  --color-secondary-600: #0284c7;
-  --color-secondary-700: #0369a1;
-  --color-secondary-800: #075985;
-  --color-secondary-900: #0c4a6e;
-} */
-
-@layer base {
-  /* disable chrome cancel button */
-  input[type='search']::-webkit-search-cancel-button {
-    display: none;
-  }
-}
 
 :root {
   /* Colors */
@@ -80,6 +48,26 @@
   --input-radius: 0.25rem;
   --input-height: 2.25rem;
   --input-height-mobile: 2.75rem;
+
+  /* Text sizes */
+  --text-xxs: 0.625rem;     /* 10px */
+  --text-xs: 0.75rem;       /* 12px */
+  --text-sm: 0.875rem;      /* 14px */
+  --text-base: 1rem;        /* 16px */
+  --text-lg: 1.125rem;      /* 18px */
+  --text-xl: 1.375rem;      /* 22px */
+  --text-2xl: 1.5rem;       /* 24px */
+  --text-3xl: 1.75rem;      /* 28px */
+  --text-4xl: 2rem;         /* 32px */
+  --text-5xl: 2.25rem;      /* 36px */
+  --text-6xl: 2.75rem;      /* 44px */
+  --text-7xl: 3.5rem;       /* 56px */
+
+  --font-light: 300;
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -153,7 +141,21 @@
   --shadow-card: var(--shadow-card);
   --shadow-date-field-focus: var(--shadow-date-field-focus);
 
-  --text-xxs: 10px;
+  --text-xxs: var(--text-xxs);
+  --text-xs: var(--text-xs);
+  --text-sm: var(--text-sm);
+  --text-base: var(--text-base);
+  --text-lg: var(--text-lg);
+  --text-xl: var(--text-xl);
+  --text-2xl: var(--text-2xl);
+  --text-3xl: var(--text-3xl);
+  --text-4xl: var(--text-4xl);
+  --text-5xl: var(--text-5xl);
+  --text-6xl: var(--text-6xl);
+  --text-7xl: var(--text-7xl);
+  --text-helper-text: var(--text-xs);
+  --text-label: var(--text-sm);
+  --text-body: var(--text-base);
 
   --radius-card: 16px;
   --radius-card-lg: 20px;
@@ -190,15 +192,6 @@
   --animate-enter-from-right: enter-from-right 0.2s ease;
   --animate-exit-to-left: exit-to-left 0.2s ease;
   --animate-exit-to-right: exit-to-right 0.2s ease;
-
-  /* --font-sans: "Inter", "sans-serif";
-	--font-mono: "Source Code Pro", "monospace";
-	--font-alt: "Courier", "sans-serif";
-	--font-display: "Cal Sans", "sans-serif"; */
-
-  --text-helper-text: 0.75rem;
-  --text-label: 0.875rem;
-  --text-body: 1rem;
 
   @keyframes accordion-down {
     from {
@@ -338,6 +331,11 @@
     font-feature-settings:
       'rlig' 1,
       'calt' 1;
+  }
+
+  /* disable chrome cancel button */
+  input[type='search']::-webkit-search-cancel-button {
+    display: none;
   }
 
   ::selection {

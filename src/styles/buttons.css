@@ -15,7 +15,7 @@
   }
 
   &.primary {
-    @apply bg-dark hover:bg-dark/80 text-white;
+    @apply bg-dark hover:bg-dark/80 text-dark-foreground;
   }
 
   &.warn {

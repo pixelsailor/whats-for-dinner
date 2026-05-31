@@ -1,7 +1,7 @@
 /* Button styles */
 
 .button {
-  @apply rounded-button bg-dark-10 text-label h-input-mobile md:h-input inline-flex cursor-pointer flex-row items-center justify-center gap-3 border border-transparent px-6;
+  @apply rounded-button bg-dark-10 text-label h-input-mobile md:h-input inline-flex cursor-pointer flex-row items-center justify-center gap-3 border border-transparent px-6 transition-all duration-200 ease-in-out;
   color: color-contrast(var(--dark-40));
 
   &:hover {

@@ -175,6 +175,22 @@ Suggested fields (adapt as needed):
 - **Notes:** Examples: [`suggestions/+page.svelte`](../src/routes/suggestions/+page.svelte), [`recipes/[...id]/+page.svelte`](../src/routes/recipes/[...id]/+page.svelte), [`recipes/new/+page.svelte`](../src/routes/recipes/new/+page.svelte). ADR-016 documents current direction; this gap tracks **migration**, not missing policy.
 - **Owner:** —
 
+### GAP-026
+
+- **Status:** Open
+- **Severity:** Minor
+- **Source:** [ADR-008](../adrs/ADR-008-schema-led-domain-contracts.md) §8 (source tree boundaries); [`src/lib/api/README.md`](../src/lib/api/README.md); [`src/lib/utils/README.md`](../src/lib/utils/README.md)
+- **Observed:**
+  - **Dual utils entry points:** both [`src/lib/utils.ts`](../src/lib/utils.ts) (legacy single file) and [`src/lib/utils/`](../src/lib/utils/) (directory) exist, blurring where new helpers should land.
+  - **Domain-adjacent code under `$lib/utils`:** [`src/lib/utils/session.ts`](../src/lib/utils/session.ts) (auth permission httpOnly cookies), [`src/lib/utils/capabilities.ts`](../src/lib/utils/capabilities.ts) (AI capability policy from session + permissions), and AI helpers in [`src/lib/utils.ts`](../src/lib/utils.ts) (`sanitizePromptInput`, `isGeneralCookingQuestion`, `isModificationRequest`) are tied to auth/AI domains but live outside `$lib/api/<domain>/`.
+  - **Historical misplacement:** session validation was briefly added as `$lib/utils/supabase-auth.ts` (since removed; logic now on `AuthService` in `$lib/api/auth/`).
+- **Expected:**
+  - New domain- or service-bound code lives under **`src/lib/api/<domain>/`** with the standard file split; `$lib/utils` holds only domain-agnostic pure helpers.
+  - No new exports on **`src/lib/utils.ts`**; migrate legacy symbols to `utils/<name>.ts` or the owning API domain when touched.
+  - Permission cookies → `$lib/api/auth/`; AI prompt/intent helpers → `$lib/api/ai/`; capability derivations → named domain module (auth/account) with tests.
+- **Notes:** Legitimate utils today: [`toMilliseconds.ts`](../src/lib/utils/toMilliseconds.ts), [`randombytes.ts`](../src/lib/utils/randombytes.ts), generic `sentenceCase` (move from `utils.ts` to `utils/sentenceCase.ts` when refactoring). [`src/routes/auth/README.md`](../src/routes/auth/README.md) still documents `utils/session.ts` — update when migration lands.
+- **Owner:** —
+
 ### GAP-025
 
 - **Status:** Fixed

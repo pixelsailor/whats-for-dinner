@@ -11,7 +11,8 @@ export function sanitizePromptInput(input: string): string {
 /**
  * Keywords to auto-detect type of LLM query
  *
- * TODO: it's probably easier to reverse the logic and detect commands to modify a recipe
+ * @deprecated Modification detection is now handled by the AI service
+ * @see askCookingQuestion
  */
 export function isGeneralCookingQuestion(input: string): boolean {
   const keywords = ['how do I', 'what happens if', 'can I use', "what's the best", 'how long should', 'should I', 'what is', 'is it okay to', 'why does'];
@@ -20,6 +21,12 @@ export function isGeneralCookingQuestion(input: string): boolean {
   return keywords.some((k) => lowered.startsWith(k) || lowered.includes(k));
 }
 
+/** 
+ * Keywords to auto-detect type of LLM query
+ *
+ * @deprecated Modification detection is now handled by the AI service
+ * @see askCookingQuestion
+ */
 export function isModificationRequest(input: string): boolean {
   const keywords = [
     'update',

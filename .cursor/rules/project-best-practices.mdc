@@ -19,6 +19,19 @@ This is a Svelte 5.x web application with:
 - **Main app:** `src/routes/` — routable pages and layouts
 - **App libraries:** `src/lib/` — Zod schemas, API handlers, LLM prompts, Dexie stores, and reusable UI components
 
+### `src/lib/` layout (where code goes)
+
+| Path | Role |
+| ---- | ---- |
+| **`src/lib/api/<domain>/`** | **Mandatory** home for service-layer and domain-bound code (schemas, types, models, services). See [`src/lib/api/README.md`](../src/lib/api/README.md) and [ADR-008 §8](../adrs/ADR-008-schema-led-domain-contracts.md). |
+| **`src/lib/utils/`** | Domain-agnostic pure helpers only — **not** a catch-all for API or auth code. See [`src/lib/utils/README.md`](../src/lib/utils/README.md). |
+| **`src/lib/utils.ts`** | Legacy single-file utils — **do not add new exports**; migrate when touched. |
+| **`src/lib/stores/`** | Dexie LiveQuery read models (ADR-002). |
+| **`src/lib/ui/`** | Reusable UI components (ADR-013). |
+| **`src/lib/types.ts`** | Cross-cutting non-domain TypeScript contracts. |
+
+**Rule routing:** Domain placement and Zod contracts → [`.cursor/rules/schema-and-type-safety.mdc`](./schema-and-type-safety.mdc). Supabase/auth/cloud → [`.cursor/rules/supabase-enhancement-boundary.mdc`](./supabase-enhancement-boundary.mdc).
+
 ## Rule routing (use the narrowest match)
 
 | Need | Rule |

@@ -28,9 +28,22 @@ For TanStack specifics, see **[`docs/tanstack-query.md`](../../../docs/tanstack-
 1. Separation of concerns: validation (schemas), types (types), business logic (models), API calls (service)
 2. Single source of truth: types derived from schemas
 3. Encapsulation: internal structure hidden behind `index.ts`
-4. Reusability: common patterns extracted to shared modules
+4. Reusability: common patterns extracted to shared modules **within the domain** or under `src/lib/api/common/` when truly cross-domain
 5. Type safety: validation at runtime, types at compile time
 6. Testability: pure functions in models, service methods are testable units
+7. **Structural enforcement:** All service- and domain-bound code for a capability lives under **`src/lib/api/<domain>/`**. Do **not** create ad hoc helper files elsewhere in `src/lib/` when they belong to an API domain — that breaks the module layout agents and reviewers rely on.
+
+### Boundary with other `src/lib/` folders
+
+| Folder | Use for | Not for |
+| ------ | ------- | ------- |
+| **`src/lib/api/<domain>/`** (this tree) | Schemas, types, domain models, injectable services, domain queries, auth/session/permission **Supabase** operations | Generic date/string/crypto helpers unrelated to a domain |
+| **`src/lib/utils/`** | Domain-agnostic pure helpers reused app-wide — see [`../utils/README.md`](../utils/README.md) | Auth, AI prompts, capability policy, Supabase I/O, or any code tied to a product API domain |
+| **`src/lib/utils.ts`** | Legacy only — **no new exports**; migrate to `utils/<name>.ts` or `$lib/api/<domain>/` when touched | New helpers of any kind |
+| **`src/lib/stores/`** | Dexie LiveQuery read models and mutation helpers over ADR-002 data | Parallel domain type definitions or remote API clients |
+| **`src/lib/types.ts`** | Cross-cutting non-entity contracts | Recipe, auth, account, or other domain entities |
+
+**Placement test:** If you would name the file after a product domain (`auth`, `ai`, `cloud`, `account`, `recipe`, …) or it calls that domain's service/client, it belongs here — not in `$lib/utils`.
 
 ### `*.schemas.ts` — Validation Schema Definitions
 
@@ -96,6 +109,8 @@ Accessing API services and models requires authorized user permissions. Anonymou
 
 Handles login, password reset, registration, and MFA. Provides secure session management with Supabase authentication.
 Refer to Supabase [JavaScript Client Library](https://supabase.com/docs/reference/javascript/introduction) documentation for **auth** guidance.
+
+**Module:** [`./auth/`](./auth/) — `AuthService` (sign-in, JWT validation via `getValidatedSession`, stale-session cleanup). Permission **cookie** helpers are still in [`../utils/session.ts`](../utils/session.ts) pending migration (**[GAP-026](../../../docs/readme-adr-alignment-gaps.md#gap-026)**).
 
 **Key Services**
 

@@ -43,6 +43,8 @@ The repo already documents an intended layout in [`src/lib/api/README.md`](../sr
    - **`*.service.ts`** — I/O; **validate** inputs and outputs with `.safeParse()` (or schema transforms) at the boundary; fail closed on invalid data.
    - **`index.ts`** — public barrel per domain.
 
+   **Do not** place service- or domain-bound code in `$lib/utils/**` or ad hoc files under `src/lib/` when an owning `$lib/api/<domain>/` module exists. See **§ Source tree boundaries** below.
+
 4. **Dexie (`src/lib/db.ts`)** uses entity types imported from the **recipe/API barrels** (`SavedRecipe`, `Suggestion`, etc.), not parallel definitions. **New tables** get a Zod schema in the owning domain before widening `Table<>` generics.
 
 5. **Stores (`src/lib/stores/**`)** operate on **inferred domain types\*\* and mutation helpers; they should not invent alternate entity shapes.
@@ -50,6 +52,17 @@ The repo already documents an intended layout in [`src/lib/api/README.md`](../sr
 6. **Strict object contracts:** New and materially revised **object** schemas in `src/lib/api/**` should use **`.strict()`** (or equivalent rejection of unknown keys), so unexpected fields surface at validation time rather than silently flowing through. **Operational detail** (boundary use of `.safeParse()`, `.transform()`, composite schemas, and file layout examples) is maintained in [`.cursor/rules/schema-and-type-safety.mdc`](../.cursor/rules/schema-and-type-safety.mdc)—not in ad hoc per-agent summaries.
 
 7. **Validation points:** Any code path that accepts **user input**, **network JSON**, or **model output** must validate before treating data as the domain type. Prefer `.safeParse()` and explicit error handling over unchecked casts.
+
+8. **Source tree boundaries** under `src/lib/` (see also [`src/lib/utils/README.md`](../src/lib/utils/README.md)):
+
+   | Location | Role | Do **not** use for |
+   | -------- | ---- | ------------------ |
+   | **`src/lib/api/<domain>/`** | Mandatory home for **service-layer and domain-bound** code: Zod schemas, inferred types, domain models, injectable services (`CloudService`, `AuthService`, etc.), and domain-specific queries. Enforces the `schemas` / `types` / `model` / `service` / `index.ts` split per domain. | Generic string/date helpers; cross-domain UI capability glue that belongs in a named domain module; new one-off “API helper” files outside a domain folder. |
+   | **`src/lib/utils/`** | **General-purpose helpers** reused across unrelated features: pure functions with **no owning domain** (e.g. date parsing, secure random bytes, generic string casing). One concern per file; optional domain `README.md` at this level describes placement rules. | Auth/session/permission logic, AI prompt handling, Supabase I/O, recipe/cloud/account contracts, or anything that would break `$lib/api/*` organization if added here. **`$lib/utils` is not a catch-all.** |
+   | **`src/lib/utils.ts`** | **Legacy single-file module** (historical). **Do not add new exports.** When touching existing symbols, prefer moving them to `src/lib/utils/<name>.ts` or to the owning `$lib/api/<domain>/` module. | Any new helper or service-adjacent code. |
+   | **`src/lib/types.ts`** | Cross-cutting **non-domain** TypeScript contracts (layout data shapes, shared enums used across many modules). | Entity types that belong under `$lib/api/<domain>/`. |
+
+   **Decision test:** If the code talks to Supabase, validates domain payloads, encodes auth/permissions/capabilities for a product feature, or would naturally live beside an existing `$lib/api/<domain>/` service — it belongs in **`$lib/api`**, not **`$lib/utils`**.
 
 ### Explicit exclusions (required)
 
@@ -102,11 +115,12 @@ The following **known gaps** exist relative to this ADR as of authoring; they ar
 | **`PromptRequest` (Dexie)**     | Defined only as a TypeScript type in [`src/lib/db.ts`](../src/lib/db.ts); no Zod schema or read-time validation.                                                                                                                                                                                          |
 | **`.strict()` on schemas**      | ADR-008 requires `.strict()` on new/materially revised object schemas, but current `src/lib/api/**/*.schemas.ts` files do not consistently apply it—tightening should happen as schemas are touched or in a focused pass.                                                                                 |
 | **AI JSON without `safeParse`** | Partially overlaps [GAP-006](../docs/readme-adr-alignment-gaps.md): some deprecated Chat Completions paths parse JSON without Zod at the boundary.                                                                                                                                                        |
+| **`$lib/utils` vs `$lib/api` drift** | See [GAP-026](../docs/readme-adr-alignment-gaps.md#gap-026): domain- and service-adjacent helpers live under `$lib/utils/**` or legacy `$lib/utils.ts` instead of owning `$lib/api/<domain>/` modules; dual `utils.ts` / `utils/` layout blurs boundaries. |
 
 ## Enforcement rules
 
 - **Cursor / agent rules:** [`.cursor/rules/schema-and-type-safety.mdc`](../.cursor/rules/schema-and-type-safety.mdc) (backlog item in [`docs/adr-and-rules-todo.md`](../docs/adr-and-rules-todo.md) marked done).
-- **Code / architecture:** Domain entities and API payloads live under `src/lib/api/**` with the `schemas` / `types` / `model` / `service` split; Dexie entity generics import from API barrels; no new parallel domain `type` blocks in `$lib/types.ts`.
+- **Code / architecture:** Domain entities and API payloads live under `src/lib/api/**` with the `schemas` / `types` / `model` / `service` split; Dexie entity generics import from API barrels; no new parallel domain `type` blocks in `$lib/types.ts`. General helpers belong in `src/lib/utils/` only when domain-agnostic (ADR-008 §8); do not grow `src/lib/utils.ts`.
 - **When to revisit:** Introduction of a second persistence layer, shared mobile client, or non-Zod validation technology.
 
 ## Supersession notes

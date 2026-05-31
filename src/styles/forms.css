@@ -1,5 +1,5 @@
 ::placeholder {
-  @apply text-foreground-alt/80 dark:text-foreground-alt/80;
+  @apply text-foreground-alt/80;
 }
 
 .form {
@@ -13,71 +13,76 @@
 .form-field {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  /* height: 5.875rem; */
+  height: 5.125rem;
+  position: relative;
+  justify-content: center;
 
-  .form-field__error,
-  .form-field__hint {
+  & > label,
+  & > .label {
     position: absolute;
-    bottom: 0;
+    top: 0;
     left: 0;
     right: 0;
   }
 
-  &.twi-inline {
-    flex-flow: row wrap;
-    align-items: center;
-    gap: 0.75rem;
+  textarea {
+    margin-block: 1.5rem;
+    height: fit-content;
   }
 
-  &.form-field--nolabel,
-  &.form-field--nohints {
+  .helper-text-container {
+    position: absolute;
+    bottom: 0.25rem;
+    left: 0;
+    right: 0;
+  }
+
+  &.nolabel,
+  &.nohints {
     height: 4.25rem;
   }
 
-  &.form-field--nolabel {
+  &.nolabel:not(.sl-form-field--selectable) {
     justify-content: start !important;
-
-    & > label {
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      overflow: hidden;
-      clip-path: rect(0 0 0 0);
-      overflow-wrap: normal;
-      border: 0;
-    }
-
-    textarea {
-      margin-top: 0;
-    }
   }
 
-  &.form-field--nohints {
+  &.nohints {
     justify-content: end !important;
   }
 
-  &.form-field--nolabel.form-field--nohints {
-    height: 2.825rem;
+  &.nolabel.nohints {
+    height: var(--input-height);
 
     textarea {
       margin-bottom: 0;
     }
   }
 
-  &.tw-dense {
-    height: 4.5rem;
-  }
+  &.inline {
+    display: grid;
+    grid-template:
+      "a b" var(--input-height)
+      ". c" 1.125rem / min-content auto;
+    gap: 0.5rem 0.5rem;
 
-  &.twi-otp,
-  &.twi-stretch {
-    min-height: 7.5rem;
-    height: stretch;
-  }
+    & > label,
+    & > .label {
+      position: relative;
+    }
 
-  /* Reserve additional space when a header row (label + actions) is used. Adds ~2rem for the header row above the control for improved error spacing */
-  &.form-field--with-header {
-    height: 8rem;
+    & > .sl-form-field__error,
+    & > .sl-form-field__hint {
+      grid-area: c;
+    }
   }
+}
+
+.form-field .helper-text {
+  display: flex;
+  flex-direction: row;
+  opacity: 0.8;
+  line-height: 1;
 }
 
 .textinput {

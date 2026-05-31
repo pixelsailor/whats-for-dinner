@@ -25,7 +25,7 @@
 A text input component.
 
 -->
-<div class="flex flex-col gap-1">
+<div class="form-field">
   {#if label}
     <label for={uid} class="label-large"
       >{label}
@@ -34,10 +34,14 @@ A text input component.
     >
   {/if}
   <input id={uid} bind:this={ref} bind:value class={['textinput body-medium border-border-input', error ? 'border-destructive' : '']} {...inputProps} />
-  {#if helperText && !error}
-    <p class="helper-text">{helperText}</p>
-  {/if}
-  {#if error}
-    <p class="helper-text text-destructive">{error}</p>
+  {#if helperText}
+    <div class="helper-text-container">
+      {#if helperText && !error}
+        <span class="helper-text">{helperText}</span>
+      {/if}
+      {#if error}
+        <span class="helper-text text-destructive">{error}</span>
+      {/if}
+    </div>
   {/if}
 </div>

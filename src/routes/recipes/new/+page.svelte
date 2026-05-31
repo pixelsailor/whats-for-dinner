@@ -1,12 +1,11 @@
 <script lang="ts">
-  import Button from '$lib/ui/button.svelte';
   import { onMount } from 'svelte';
   import { toast } from 'svelte-sonner';
 
   import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
 
-  import { AccountService, type UserPreferences, type UserPreferencesResponse } from '$lib/api/account';
+  import { type UserPreferencesResponse } from '$lib/api/account';
   import { CATEGORY_TAGS, type Recipe, type SavedRecipe } from '$lib/api/recipe';
   import { CloudService } from '$lib/api/cloud';
   import { db } from '$lib/db.js';
@@ -14,6 +13,8 @@
   import { deriveAICapability } from '$lib/utils/capabilities';
 
   import { AppBar } from '$lib/ui/AppBar';
+  import Button from '$lib/ui/button.svelte';
+  import Dialog from '$lib/ui/Dialog.svelte';
   import { Textarea, Textinput } from '$lib/ui/forms';
   import PageHeader from '$lib/ui/PageHeader.svelte';
   import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
@@ -27,9 +28,11 @@
 
   let currentUserId = $state<string | undefined>(undefined);
   let cloudService: CloudService | undefined = $state(undefined);
-  let accountService: AccountService | undefined = $state(undefined);
+  // let accountService: AccountService | undefined = $state(undefined);
 
   let status = $state<'idle' | 'saving' | 'saved' | 'error'>('idle');
+
+  let dialogStatus = $state<'idle' | 'importing' | 'error'>('idle');
 
   let validationErrors = $state<{
     hasErrors?: boolean;
@@ -52,20 +55,20 @@
     })
   );
   let canUseAI = $derived(aiCapability.canUseAI);
-  let aiRestrictionMessage = $derived.by(() => {
-    switch (aiCapability.reason) {
-      case 'offline':
-        return 'You are offline. Reconnect to request full recipes or adjustments.';
-      case 'disabled':
-        return 'AI recipe details are unavailable in this build.';
-      case 'unauthenticated':
-        return 'Log in to request full recipes.';
-      case 'unauthorized':
-        return 'Your account does not include AI recipe requests.';
-      default:
-        return '';
-    }
-  });
+  // let aiRestrictionMessage = $derived.by(() => {
+  //   switch (aiCapability.reason) {
+  //     case 'offline':
+  //       return 'You are offline. Reconnect to request full recipes or adjustments.';
+  //     case 'disabled':
+  //       return 'AI recipe details are unavailable in this build.';
+  //     case 'unauthenticated':
+  //       return 'Log in to request full recipes.';
+  //     case 'unauthorized':
+  //       return 'Your account does not include AI recipe requests.';
+  //     default:
+  //       return '';
+  //   }
+  // });
 
   /**
    * Get current user permissions (cloud and AI access) from local storage if available.
@@ -102,6 +105,10 @@
   /** Whether to use a range of time for the recipe */
   let useCookTimeRange = $state<boolean>(false);
 
+  let openImportFromURLDialog = $state<boolean>(false);
+
+  let recipeURL = $state<string>('');
+
   /**
    * Manage services for cloud and sync operations.
    */
@@ -109,7 +116,7 @@
     const userId = data.user?.id;
     if (userId && userId !== currentUserId) {
       cloudService = new CloudService(data.supabase, userId);
-      accountService = new AccountService(data.supabase, userId);
+      // accountService = new AccountService(data.supabase, userId);
       // syncService = new SyncService(cloudService);
       currentUserId = userId;
     } else if (!userId && currentUserId) {
@@ -130,6 +137,31 @@
       }))
     }));
   });
+
+  /**
+   * Persist a recipe locally and optionally sync to cloud.
+   * @param recipe - Validated recipe payload to save
+   * @returns The saved recipe record written to Dexie
+   */
+  async function persistRecipe(recipe: Recipe): Promise<SavedRecipe> {
+    if (hasCloudStorageAccess && cloudService) {
+      try {
+        const savedRecipe = await cloudService.uploadLocalRecipe(recipe);
+        await db.recipes.add(savedRecipe);
+        return savedRecipe;
+      } catch (err) {
+        console.error('Cloud save failed; continuing locally', err);
+        const candidate = _createSavedRecipe(recipe, err instanceof Error ? err.message : 'Unknown sync error');
+        await db.recipes.add(candidate);
+        toast.error('Recipe saved locally but failed to sync to cloud');
+        return candidate;
+      }
+    }
+
+    const candidate = _createSavedRecipe(recipe);
+    await db.recipes.add(candidate);
+    return candidate;
+  }
 
   /**
    * Save the recipe.
@@ -188,28 +220,10 @@
       }
     }
 
-    if (hasCloudStorageAccess && cloudService) {
-      try {
-        const savedRecipe = await cloudService.uploadLocalRecipe(recipe);
-        await db.recipes.add(savedRecipe);
-        status = 'saved';
-        toast.success('Recipe saved');
-        goto(resolve(`/recipes/${savedRecipe.id}`), { replaceState: true });
-      } catch (err) {
-        console.error('Cloud save failed; continuing locally', err);
-        status = 'error';
-        const candidate = _createSavedRecipe(recipe, err instanceof Error ? err.message : 'Unknown sync error');
-        await db.recipes.add(candidate);
-        toast.error('Recipe saved locally but failed to sync to cloud');
-        goto(resolve(`/recipes/${candidate.id}`), { replaceState: true });
-      }
-    } else {
-      const candidate = _createSavedRecipe(recipe);
-      await db.recipes.add(candidate);
-      status = 'saved';
-      toast.success('Recipe saved');
-      goto(resolve(`/recipes/${candidate.id}`), { replaceState: true });
-    }
+    const savedRecipe = await persistRecipe(recipe);
+    status = 'saved';
+    toast.success('Recipe saved');
+    goto(resolve(`/recipes/${savedRecipe.id}`), { replaceState: true });
   }
 
   /**
@@ -237,18 +251,6 @@
       validationErrors.errors = undefined;
     }
   }
-
-  // function selectAll(event: Event) {
-  //   const input = event.target as HTMLInputElement;
-  //   input.select();
-  // }
-
-  // function _convertTimeToMinutes(hours: string, minutes: string): string {
-  //   const hoursInt = parseInt(hours.trim());
-  //   const minutesInt = parseInt(minutes.trim());
-  //   const time = hoursInt * 60 + minutesInt;
-  //   return time.toString();
-  // }
 
   /**
    * Create a saved recipe object.
@@ -281,11 +283,63 @@
     return savedRecipe;
   }
 
-  /** Determine if the time fields are blank or zero */
-  // function _isEmptyTimeRange(range: string[]): boolean {
-  //   if (!range.length) return true;
-  //   return range.every((time) => time === '0');
-  // }
+  async function importRecipeFromURL(event: SubmitEvent) {
+    event.preventDefault();
+
+    if (!canUseAI) {
+      toast.error('AI recipe import is unavailable right now');
+      return;
+    }
+
+    const form = new FormData(event.target as HTMLFormElement);
+    const url = form.get('recipe_url')?.toString().trim() ?? '';
+
+    if (!url) {
+      toast.error('Enter a recipe URL to import');
+      return;
+    }
+
+    dialogStatus = 'importing';
+
+    const recipeUrl = _validateUrl(url);
+
+    try {
+      const response = await fetch('/api/import/url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: recipeUrl })
+      });
+
+      const result = (await response.json()) as {
+        success: boolean;
+        data: Recipe | null;
+        error?: string;
+      };
+
+      if (!response.ok || !result.success || !result.data) {
+        dialogStatus = 'error';
+        toast.error(result.error ?? 'Failed to import recipe from URL');
+        return;
+      }
+
+      const savedRecipe = await persistRecipe(result.data);
+      openImportFromURLDialog = false;
+      recipeURL = '';
+      dialogStatus = 'idle';
+      toast.success('Recipe imported');
+      goto(resolve(`/recipes/${savedRecipe.id}`), { replaceState: true });
+    } catch (err) {
+      console.error('Import from URL failed', err);
+      dialogStatus = 'error';
+      toast.error('Failed to import recipe from URL');
+    }
+  }
+
+  /** Test for http(s):// and append if missing */
+  function _validateUrl(url: string): string {
+    const URL_RX = /^(https?:\/\/)?(www\.)?[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(\/\S*)?$/;
+    return URL_RX.test(url) ? url : `https://${url}`;
+  }
 </script>
 
 <svelte:head>
@@ -300,7 +354,9 @@
           <ProgressSpinner size="xs" />
         </div>
       {/if}
-
+      <Button class="text narrow" onclick={() => (openImportFromURLDialog = true)} disabled={!canUseAI}>
+        <span class="hidden md:inline">Import from URL</span>
+      </Button>
     </AppBar.End>
   </AppBar.Root>
 </PageHeader>
@@ -308,13 +364,20 @@
   <form method="POST" class="form" onsubmit={saveRecipe}>
     <h1 class="display-small mb-4">Create a new recipe</h1>
     <p class="helper-text italic">
-      Required fields are marked with an asterisk (*). 
+      Required fields are marked with an asterisk (*).
       {#if useAiAssistance}
         <span>The AI will use its best guess for any fields you leave blank.</span>
       {/if}
     </p>
     <div class="flex flex-col gap-5">
-      <Textinput name="title" bind:value={recipeTitle} label="Recipe title" required autocomplete="off" error={validationErrors.errors?.title} />
+      <Textinput
+        name="title"
+        bind:value={recipeTitle}
+        label="Recipe title"
+        required
+        autocomplete="off"
+        error={validationErrors.errors?.title}
+      />
       <Textinput
         name="short_description"
         bind:value={shortDescription}
@@ -336,52 +399,54 @@
           <p class="helper-text">Leave blank to generate with AI</p>
         {/if}
       </Textarea>
-      <Textinput name="yields" bind:value={yields} label="Yields" helperText="Enter the number of servings or total amount for sauces, dressings or similar" placeholder="E.g. 2 servings, 4 cups" />
+      <Textinput
+        name="yields"
+        bind:value={yields}
+        label="Yields"
+        helperText="Enter the number of servings or total amount for sauces, dressings or similar"
+        placeholder="E.g. 2 servings, 4 cups"
+      />
 
       <!-- Prep time -->
-      <div class="flex flex-row gap-4 items-end">
+      <div class="flex flex-row items-end gap-4">
         <div class="form-field fit-content">
           <label for="prepTimeStart" class="label-medium">Prep time</label>
           <div class="flex flex-row gap-4">
             <TimePicker bind:value={prepTimeStart} />
             {#if !usePrepTimeRange}
-              <Button onclick={() => usePrepTimeRange = true}>Use range</Button>
+              <Button onclick={() => (usePrepTimeRange = true)}>Use range</Button>
             {/if}
           </div>
         </div>
         {#if usePrepTimeRange}
-          <div class="flex justify-center items-end pb-1">
-            TO
-          </div>
+          <div class="flex items-end justify-center pb-1">TO</div>
           <div class="form-field fit-content">
             <label for="prepTimeEnd" class="label-medium">Prep time</label>
             <TimePicker bind:value={prepTimeEnd} />
           </div>
-          <Button onclick={() => usePrepTimeRange = false}>Use single time</Button>
+          <Button onclick={() => (usePrepTimeRange = false)}>Use single time</Button>
         {/if}
       </div>
 
       <!-- Cook time -->
       <div class="flex flex-col gap-1">
-        <div class="flex flex-row gap-4 items-end">
+        <div class="flex flex-row items-end gap-4">
           <div class="form-field fit-content">
-            <label for="cookTimeStart" class="label-medium">Cook time</label>
+            <label for="cookTimeStart" class="label-large">Cook time</label>
             <div class="flex flex-row gap-4">
               <TimePicker bind:value={cookTimeStart} />
               {#if !useCookTimeRange}
-                <Button onclick={() => useCookTimeRange = true}>Use range</Button>
+                <Button onclick={() => (useCookTimeRange = true)}>Use range</Button>
               {/if}
             </div>
           </div>
           {#if useCookTimeRange}
-            <div class="flex justify-center items-end pb-1">
-              TO
-            </div>
+            <div class="flex items-end justify-center pb-1">TO</div>
             <div class="form-field fit-content">
-              <label for="cookTimeEnd" class="label-medium">Cook time</label>
+              <label for="cookTimeEnd" class="label-large">Cook time</label>
               <TimePicker bind:value={cookTimeEnd} />
             </div>
-            <Button onclick={() => useCookTimeRange = false}>Use single time</Button>
+            <Button onclick={() => (useCookTimeRange = false)}>Use single time</Button>
           {/if}
         </div>
         {#if useAiAssistance}
@@ -398,7 +463,8 @@
         placeholder="Enter the ingredients for your recipe"
       >
         <p class="helper-text">
-          You can use <a href="https://www.markdownguide.org/cheat-sheet/" target="_blank" class="underline">Markdown</a> here to make lists and add formatting
+          You can use <a href="https://www.markdownguide.org/cheat-sheet/" target="_blank" class="underline">Markdown</a
+          > here to make lists and add formatting
         </p>
       </Textarea>
       <Textarea
@@ -411,12 +477,20 @@
         placeholder="Enter the instructions for your recipe"
       >
         <p class="helper-text">
-          You can use <a href="https://www.markdownguide.org/cheat-sheet/" target="_blank" class="underline">Markdown</a> here to make lists and add formatting
+          You can use <a href="https://www.markdownguide.org/cheat-sheet/" target="_blank" class="underline">Markdown</a
+          > here to make lists and add formatting
         </p>
       </Textarea>
-      <Textarea id="notes" name="notes" bind:value={notes} label="Notes" placeholder="Enter any additional notes for your recipe">
+      <Textarea
+        id="notes"
+        name="notes"
+        bind:value={notes}
+        label="Notes"
+        placeholder="Enter any additional notes for your recipe"
+      >
         <p class="helper-text">
-          You can use <a href="https://www.markdownguide.org/cheat-sheet/" target="_blank" class="underline">Markdown</a> here to make lists and add formatting
+          You can use <a href="https://www.markdownguide.org/cheat-sheet/" target="_blank" class="underline">Markdown</a
+          > here to make lists and add formatting
         </p>
       </Textarea>
       <div class="form-field">
@@ -424,7 +498,13 @@
           >Tags {#if !useAiAssistance}
             <span class="label-large text-destructive">*</span>{/if}</label
         >
-        <Select name="tags" type="multiple" bind:value={tags} items={availableTags} error={validationErrors.errors?.tags} />
+        <Select
+          name="tags"
+          type="multiple"
+          bind:value={tags}
+          items={availableTags}
+          error={validationErrors.errors?.tags}
+        />
         {#if useAiAssistance}
           <p class="helper-text">Leave blank to generate with AI</p>
         {/if}
@@ -435,3 +515,29 @@
     </div>
   </form>
 </div>
+
+<Dialog bind:open={openImportFromURLDialog}>
+  {#snippet title()}
+    <h2 class="text-lg font-semibold">Import from URL</h2>
+  {/snippet}
+  {#snippet description()}
+    <p>Import a recipe from a URL.</p>
+  {/snippet}
+  <form onsubmit={importRecipeFromURL}>
+    <Textinput
+      name="recipe_url"
+      bind:value={recipeURL}
+      label="URL"
+      placeholder="Enter the URL of the recipe to import"
+    />
+    <div class="flex flex-row-reverse">
+      <Button type="submit" class="primary" disabled={dialogStatus === 'importing' || !recipeURL.trim()}>
+        {#if dialogStatus === 'importing'}
+          <ProgressSpinner size="xs" />
+        {:else}
+          Import
+        {/if}
+      </Button>
+    </div>
+  </form>
+</Dialog>

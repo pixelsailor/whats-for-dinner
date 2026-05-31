@@ -88,3 +88,9 @@ export const RecipeNewPostBodySchema = z
       .optional()
   })
   .strict();
+
+export const ImportUrlPostBodySchema = z
+  .object({
+    url: z.string().min(1)
+  })
+  .strict();

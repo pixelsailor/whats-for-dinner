@@ -448,7 +448,7 @@
             </NavigationMenu.Link>
           </NavigationMenu.Item>
           <NavigationMenu.Item>
-            <button class="sidenav-link h-input-mobile md:h-input hover:bg-gray-200 dark:hover:bg-gray-800" onclick={handleSignOut}>
+            <button class="sidenav-link w-full h-input-mobile md:h-input hover:bg-gray-200 dark:hover:bg-gray-800 hover:cursor-pointer" onclick={handleSignOut}>
               <LogoutIcon size="xs" />
               <span class="sidenav-link__text">{session.user.email}</span>
             </button>

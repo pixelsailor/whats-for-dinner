@@ -4,6 +4,10 @@ import type { RequestHandler } from './$types';
 import { AiParseError, parseRecipeDetail } from '$lib/api/ai/ai.model';
 import { ImportUrlPostBodySchema } from '$lib/api/ai/ai.schemas';
 import { OPENAI_DISABLED_ERROR, importRecipeFromURL } from '$lib/api/ai/ai.server.service';
+import { RecipeImportError } from '$lib/api/recipe-import/recipe-import.errors';
+import { fetchAndPrepareRecipeImport } from '$lib/api/recipe-import/recipe-import.service';
+
+const FEATURE_ID = 'recipe-import-url';
 
 /**
  * Normalizes a recipe URL for server-side import.
@@ -12,9 +16,11 @@ import { OPENAI_DISABLED_ERROR, importRecipeFromURL } from '$lib/api/ai/ai.serve
  */
 function normalizeImportUrl(raw: string): string {
   const trimmed = raw.trim();
+
   if (/^https?:\/\//i.test(trimmed)) {
     return trimmed;
   }
+
   return `https://${trimmed}`;
 }
 
@@ -36,16 +42,26 @@ export const POST: RequestHandler = async ({ request, locals }) => {
   const url = normalizeImportUrl(bodyResult.data.url);
 
   try {
-    new URL(url);
-  } catch {
-    return json({ success: false, data: null, error: 'Invalid URL' }, { status: 400 });
-  }
+    const prepared = await fetchAndPrepareRecipeImport(url);
 
-  try {
-    const raw = await importRecipeFromURL(url);
+    console.info(FEATURE_ID, {
+      stage: 'prepared',
+      source: prepared.preparationSource,
+      primaryChars: prepared.primaryBlock.length,
+      supplementalChars: prepared.supplementalText.length
+    });
+
+    const raw = await importRecipeFromURL(prepared.sourceUrl, prepared);
     const data = parseRecipeDetail(raw);
+
     return json({ success: true, data });
   } catch (err) {
+    if (err instanceof RecipeImportError) {
+      console.info(FEATURE_ID, { stage: 'failed', code: err.code });
+
+      return json({ success: false, data: null, error: err.message }, { status: err.httpStatus });
+    }
+
     if (err instanceof AiParseError) {
       return json({ success: false, data: null, error: err.message }, { status: 502 });
     }
@@ -54,7 +70,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
       return json({ success: false, data: null, error: 'AI service is unavailable right now' }, { status: 503 });
     }
 
-    console.error('recipe-import-url failed', err);
+    console.error(`${FEATURE_ID} failed`, err);
+
     return json(
       { success: false, data: null, error: err instanceof Error ? err.message : 'Failed to import recipe' },
       { status: 500 }

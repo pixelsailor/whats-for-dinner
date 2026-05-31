@@ -6,11 +6,11 @@
 
 ## Implementation checklist (phase 1)
 
-1. `src/lib/api/recipe-import/` — fetch, URL safety, JSON-LD parse, HTML-to-text, preparation errors.
-2. `src/routes/api/import/url/+server.ts` — orchestrate fetch → prepare → AI → validate.
-3. `importRecipeFromURL(url, prepared)` — extraction prompt; page content in model input.
-4. Tests — JSON-LD fixture, empty CSR shell fixture, route error paths.
-5. Close [GAP-025](../readme-adr-alignment-gaps.md) when URL-only input is removed.
+1. [x] `src/lib/api/recipe-import/` — fetch, URL safety, JSON-LD parse, HTML-to-text, preparation errors.
+2. [x] `src/routes/api/import/url/+server.ts` — orchestrate fetch → prepare → AI → validate.
+3. [x] `importRecipeFromURL(url, prepared)` — extraction prompt; page content in model input.
+4. [x] Tests — `recipe-import.prepare.test.ts`, `recipe-import.url.test.ts`.
+5. [x] [GAP-025](../readme-adr-alignment-gaps.md) closed (2026-05-31).
 
 ## API
 

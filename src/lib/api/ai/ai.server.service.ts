@@ -12,6 +12,7 @@ import { zodTextFormat } from 'openai/helpers/zod';
 import { OPENAI_API_KEY } from '$env/static/private';
 
 import { RecipeSchema } from '$lib/api/recipe';
+import type { PreparedImportContent } from '$lib/api/recipe-import/recipe-import.types';
 
 import { AiSuggestionsOutputSchema, RecipeAssistanceOutputSchema } from './ai.schemas';
 import {
@@ -304,30 +305,42 @@ notes: ${notes}
   }
 }
 
-export async function importRecipeFromURL(url: string): Promise<string> {
+/**
+ * Extracts a recipe from prepared page content (ADR-017). Caller must fetch and prepare first.
+ * @param url - Canonical source URL for attribution
+ * @param prepared - Server-prepared JSON-LD and/or HTML text from the page
+ * @returns Raw structured JSON string from the provider
+ */
+export async function importRecipeFromURL(url: string, prepared: PreparedImportContent): Promise<string> {
   const instructions = `You are a recipe extraction assistant, not a recipe author.
 
-Your job is to copy the recipe published at the given URL into the required JSON shape.
-You must NOT invent, improve, substitute, or complete missing steps from general knowledge.
+Your job is to copy the recipe from the PROVIDED PAGE CONTENT below into the required JSON shape.
+You must NOT invent, improve, substitute, or complete missing steps from general knowledge or from the URL alone.
 
-Source priority (use the first that contains a full recipe):
-1. JSON-LD or microdata with @type Recipe (recipeIngredient, recipeInstructions, name, description, recipeYield, prepTime, cookTime).
-2. Visible recipe content in the page body (ingredient list and numbered steps).
-3. If neither is available or the page is paywalled/blocked/login-only, set title to a short error summary and set ingredients and instructions to a single line explaining that import failed — do NOT fabricate a plausible recipe.
+Source priority within the provided content:
+1. PRIMARY SOURCE block (JSON-LD Recipe data) when present.
+2. SUPPLEMENTAL PAGE TEXT for any fields missing from the primary block.
 
 Extraction rules:
-- title, ingredients, and instructions must come from the page text, not from the URL path or your memory of a dish with a similar name.
+- title, ingredients, and instructions must come only from the provided content blocks, not from the URL path or your memory of a dish with a similar name.
 - Preserve ingredient quantities, units, and order; light normalization only (e.g. trim whitespace, unify list markers to markdown "- ").
 - Preserve step order and wording; you may renumber for markdown "1. 2. 3." but do not merge, split, or rewrite steps unless the source is clearly one combined step.
-- description and short_description: paraphrase only from the page's own intro or description field — do not add pairings or commentary not on the page.
-- yield, prep_time, cook_time: copy from the page when present; use your best judgement only if absent.
-- tags: infer only from explicit page labels (cuisine, course, diet badges); do not tag from guesswork.
-- Ignore ads, comments, related recipes, navigation, and author bios.
+- description and short_description: use only text present in the provided content.
+- yield, prep_time, cook_time: copy from the provided content when present; do not guess typical values for the dish.
+- tags: infer only from explicit labels in the provided content; do not tag from guesswork.
+- Ignore ads, comments, related recipes, navigation, and author bios if they appear in supplemental text.
 
 ${formatInstructions}
 `;
 
-  const input = `The URL is: ${url}`;
+  const input = `Source URL: ${url}
+
+--- PRIMARY SOURCE (JSON-LD Recipe; prefer this) ---
+${prepared.primaryBlock || '(none)'}
+
+--- SUPPLEMENTAL PAGE TEXT ---
+${prepared.supplementalText || '(none)'}
+--- END PAGE CONTENT ---`;
 
   try {
     const openai = getOpenAI();

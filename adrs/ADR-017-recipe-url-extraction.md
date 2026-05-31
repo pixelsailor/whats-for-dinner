@@ -197,5 +197,5 @@ Orchestration is **recommended** for the implementation tranche (fetch + prepare
 ### Merge / workflow gates
 
 - [x] ADR **Accepted** (2026-05-31).
-- [ ] GAP-025 closed when pipeline ships.
+- [x] GAP-025 closed when pipeline ships (2026-05-31).
 - [ ] Validation checklist rows for AI boundary and offline degradation reviewed.

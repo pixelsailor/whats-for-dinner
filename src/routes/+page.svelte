@@ -3,13 +3,10 @@
 
   import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
-  import type { RecipeSummary } from '$lib/types';
-  import { AppBar } from '$lib/ui/AppBar';
-  import DocumentAddIcon from '$lib/ui/icons/DocumentAddIcon.svelte';
-  import PageHeader from '$lib/ui/PageHeader.svelte';
+
+  import { getGreeting } from '$lib/greetings';
   import Prompt from '$lib/ui/Prompt.svelte';
   import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
-  import { getGreeting } from '$lib/greetings';
   import { networkStore } from '$lib/stores/network';
   import { deriveAICapability } from '$lib/utils/capabilities';
 
@@ -41,12 +38,8 @@
 
   let app = $state({
     input: '',
-    lastInput: '',
     view: 'idle' as 'idle' | 'detail' | 'suggestions' | 'loading' | 'error',
-    suggestions: [] as RecipeSummary[],
-    selected: null as RecipeSummary | null,
     error: '',
-    saveStatus: 'idle' as 'idle' | 'saving' | 'saved' | 'error'
   });
 
   // Show request status without changing app.view
@@ -62,17 +55,6 @@
     goto(resolve(`/suggestions?prompt=${prompt}`));
   }
 </script>
-
-<PageHeader position="absolute">
-  <AppBar.Root>
-    <AppBar.End>
-      <Button.Root href="/recipes/new" aria-label="Add a recipe" class="button text narrow">
-        <DocumentAddIcon size="xs" />
-        <span class="hidden md:inline">Add a recipe</span>
-      </Button.Root>
-    </AppBar.End>
-  </AppBar.Root>
-</PageHeader>
 
 <div class="mx-auto flex h-screen max-w-5xl items-center px-4 lg:px-8" style:height={app.view === 'suggestions' ? 'auto' : ''}>
   {#if app.view === 'loading'}

@@ -131,10 +131,30 @@
     invalidate('supabase:auth');
   }
 
+  async function verifySessionAndSignOutIfExpired() {
+    if (!session) {
+      return;
+    }
+
+    const {
+      data: { user },
+      error
+    } = await supabase.auth.getUser();
+
+    if (error || !user) {
+      await supabase.auth.signOut();
+      invalidate('supabase:auth');
+    }
+  }
+
   onMount(() => {
-    // Handle auth state changes
-    const { data } = supabase.auth.onAuthStateChange((event, newSession) => {
-      if (newSession?.expires_at !== session?.expires_at) {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, newSession) => {
+      if (
+        event === 'SIGNED_OUT' ||
+        event === 'SIGNED_IN' ||
+        event === 'TOKEN_REFRESHED' ||
+        event === 'USER_UPDATED'
+      ) {
         invalidate('supabase:auth');
       }
 
@@ -143,11 +163,42 @@
       }
     });
 
+    function onVisibilityChange() {
+      if (document.visibilityState === 'visible' && session) {
+        void verifySessionAndSignOutIfExpired();
+      }
+    }
+
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
     if (session?.user) {
       runSync(session.user.id);
     }
 
-    return () => data.subscription.unsubscribe();
+    return () => {
+      authListener.subscription.unsubscribe();
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
+  });
+
+  $effect(() => {
+    if (!browser) {
+      return;
+    }
+
+    const expiresAt = session?.expires_at;
+    if (!expiresAt) {
+      return;
+    }
+
+    const timer = setTimeout(
+      () => {
+        void verifySessionAndSignOutIfExpired();
+      },
+      Math.max(expiresAt * 1000 - Date.now() + 1000, 0)
+    );
+
+    return () => clearTimeout(timer);
   });
 
   function toggleSidenav() {

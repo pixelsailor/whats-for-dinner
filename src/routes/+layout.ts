@@ -1,5 +1,6 @@
 import { createBrowserClient, createServerClient, isBrowser } from '@supabase/ssr';
 import { PUBLIC_SUPABASE_PUBLISHABLE_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public';
+import { AuthService } from '$lib/api/auth';
 import type { LayoutLoad } from './$types';
 
 export const load: LayoutLoad = async ({ data, depends, fetch }) => {
@@ -34,13 +35,12 @@ export const load: LayoutLoad = async ({ data, depends, fetch }) => {
     };
   }
 
-  const {
-    data: { session }
-  } = await supabase.auth.getSession();
+  const authService = new AuthService(supabase);
+  const { session, user } = await authService.getValidatedSession();
 
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
+  if (!session) {
+    await authService.clearStaleSession();
+  }
 
   // Forward server-provided data (permissions, feature flags, cookies, etc.)
   return {

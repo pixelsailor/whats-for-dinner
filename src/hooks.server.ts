@@ -1,5 +1,6 @@
 import { PUBLIC_SUPABASE_PUBLISHABLE_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public';
 import { createServerClient } from '@supabase/ssr';
+import { AuthService } from '$lib/api/auth';
 import { getSessionPermissions } from '$lib/utils/session';
 import { type Handle, redirect } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
@@ -31,27 +32,7 @@ const supabase: Handle = async ({ event, resolve }) => {
    * validating the JWT, this function also calls `getUser()` to validate the
    * JWT before returning the session.
    */
-  event.locals.safeGetSession = async () => {
-    const {
-      data: { session }
-    } = await event.locals.supabase.auth.getSession();
-
-    if (!session) {
-      return { session: null, user: null };
-    }
-
-    const {
-      data: { user },
-      error
-    } = await event.locals.supabase.auth.getUser();
-
-    if (error) {
-      // JWT validation failed
-      return { session: null, user: null };
-    }
-
-    return { session, user };
-  };
+  event.locals.safeGetSession = () => new AuthService(event.locals.supabase).getValidatedSession();
 
   return resolve(event, {
     filterSerializedResponseHeaders(name) {

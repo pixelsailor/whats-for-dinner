@@ -147,6 +147,22 @@ export class CloudService {
   }
 
   /**
+   * Prepare a local recipe for cloud upsert by assigning ownership and clearing stale sync flags.
+   * @param recipe - Local recipe row to upload.
+   * @returns Recipe payload safe to send to Supabase.
+   */
+  prepareRecipeForUpload(recipe: Recipe | SavedRecipe): SavedRecipe {
+    const saved = recipe as SavedRecipe;
+
+    return {
+      ...saved,
+      owner_id: saved.owner_id ?? this._userId,
+      synced: true,
+      sync_error: null
+    };
+  }
+
+  /**
    * Upload a local recipe to the cloud.
    *
    * Supabase will automatically update the `last_synced_at` timestamp.
@@ -154,7 +170,8 @@ export class CloudService {
    * @param recipe - The recipe to sync.
    */
   async uploadLocalRecipe(recipe: Recipe | SavedRecipe): Promise<SavedRecipe> {
-    const { data, error } = await this.supabase.from('recipes').upsert(recipe).select().single();
+    const payload = this.prepareRecipeForUpload(recipe);
+    const { data, error } = await this.supabase.from('recipes').upsert(payload).select().single();
 
     if (error) throw error;
 
@@ -167,7 +184,8 @@ export class CloudService {
    * @param recipes - The recipes to sync.
    */
   async uploadAllLocalRecipes(recipes: SavedRecipe[]): Promise<SavedRecipe[] | null> {
-    const { data, error } = await this.supabase.from('recipes').upsert(recipes).select();
+    const payload = recipes.map((recipe) => this.prepareRecipeForUpload(recipe));
+    const { data, error } = await this.supabase.from('recipes').upsert(payload).select();
 
     if (error) throw error;
 
@@ -184,6 +202,10 @@ export class CloudService {
     const { data, error } = await this.supabase.from('recipes').update(recipeData).eq('id', recipeData.id).eq('owner_id', this._userId).select().maybeSingle();
 
     if (error) throw error;
+
+    if (!data) {
+      throw new Error('Recipe not found in cloud or not owned by the current user');
+    }
 
     return data;
   }

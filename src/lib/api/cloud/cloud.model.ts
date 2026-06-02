@@ -19,6 +19,13 @@ import toMillis from '$lib/utils/toMilliseconds';
  */
 export const isActive = (recipe: SavedRecipe): boolean => !recipe.archived && !recipe.deleted_at;
 
+/**
+ * Whether a local recipe still needs to be pushed to or reconciled with the cloud.
+ * @param recipe - Local recipe row from Dexie.
+ * @returns True when the row is marked unsynced or carries a prior sync failure.
+ */
+export const needsCloudSync = (recipe: SavedRecipe): boolean => recipe.synced === false || Boolean(recipe.sync_error);
+
 const CONFLICT_TIMESTAMP_WINDOW_MS = 2 * 60 * 1000; // 2 minutes
 
 const compareMillis = (value: string | number | Date | null | undefined): number => {
@@ -111,7 +118,7 @@ export const buildSyncPlan = (localRecipes: SavedRecipe[], remoteRecipes: SavedR
     const localSynced = toMillis(local.last_synced_at ?? '');
     const remoteSynced = toMillis(remote.last_synced_at ?? '');
 
-    if ((localSynced ?? 0) !== (remoteSynced ?? 0)) {
+    if ((localSynced ?? 0) !== (remoteSynced ?? 0) || needsCloudSync(local)) {
       conflicts.push({ local, cloud: remote });
     } else {
       matched.push(local);

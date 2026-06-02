@@ -123,6 +123,7 @@
   let conflictQueue = $state<SyncConflict[]>([]);
   let currentConflict = $derived(conflictQueue[0] ?? null);
   let syncing = $state(false);
+  let wasOnline = $state(browser ? navigator.onLine : true);
 
   let recentlyOpened = $derived($recentlyOpenedStore.data ?? []);
 
@@ -199,6 +200,22 @@
     );
 
     return () => clearTimeout(timer);
+  });
+
+  /** Re-run cloud sync when the browser reconnects after being offline. */
+  $effect(() => {
+    if (!browser) {
+      return;
+    }
+
+    const online = network.online;
+    const userId = session?.user?.id;
+
+    if (online && !wasOnline && userId && !syncing) {
+      void runSync(userId);
+    }
+
+    wasOnline = online;
   });
 
   function toggleSidenav() {

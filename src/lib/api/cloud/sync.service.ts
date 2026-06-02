@@ -14,6 +14,7 @@ import { CloudService } from './cloud.service';
 import { buildSyncPlan, isActive } from './cloud.model';
 import type { ConflictResolution, SyncConflict, SyncPlan } from './cloud.types';
 import type { ApiResponse } from '../ai';
+import { formatSyncError } from './sync-errors';
 
 /**
  * Sync service for syncing recipes between local and remote.
@@ -57,6 +58,33 @@ export class SyncService {
   }
 
   /**
+   * Upload and reconcile a single recipe, returning a structured result for UI callers.
+   * @param recipe - Full local recipe row to push to the cloud.
+   * @returns Success with cloud id, or failure with a persisted `sync_error`.
+   */
+  async syncRecipeToCloud(recipe: SavedRecipe): Promise<ApiResponse<string>> {
+    try {
+      const uploaded = await this.cloud.uploadLocalRecipe(recipe);
+      if (!uploaded) {
+        const message = 'Cloud upload returned no data';
+        await this.markSyncFailed(recipe, message);
+        return { success: false, data: recipe.id, error: { message } };
+      }
+
+      await db.recipes.put({
+        ...uploaded,
+        synced: true,
+        sync_error: null
+      });
+      return { success: true, data: uploaded.id };
+    } catch (err) {
+      const message = formatSyncError(err);
+      await this.markSyncFailed(recipe, message);
+      return { success: false, data: recipe.id, error: { message } };
+    }
+  }
+
+  /**
    * Upload a single recipe to the cloud.
    * This method has limited functionality as it only update the local database if the upload fails.
    *
@@ -64,26 +92,8 @@ export class SyncService {
    * @returns The id of the uploaded recipe.
    */
   async uploadRecipe(recipe: SavedRecipe): Promise<string | null> {
-    const payload: SavedRecipe = {
-      ...recipe,
-      synced: true,
-      sync_error: null
-    };
-
-    try {
-      const uploaded = await this.cloud.uploadLocalRecipe(payload);
-      if (!uploaded) return null;
-      return uploaded.id;
-    } catch (err) {
-      const failed: SavedRecipe = {
-        ...recipe,
-        updated_at: new Date().toISOString(),
-        synced: false,
-        sync_error: err instanceof Error ? err.message : 'Unknown sync error'
-      };
-      await db.recipes.put(failed);
-      return failed.id;
-    }
+    const response = await this.syncRecipeToCloud(recipe);
+    return response.success ? response.data : response.data ?? null;
   }
 
   /**
@@ -97,28 +107,7 @@ export class SyncService {
    * @returns The id of the uploaded recipe.
    */
   async uploadRecipeAndSyncLocal(recipe: SavedRecipe): Promise<string | null> {
-    const payload: SavedRecipe = {
-      ...recipe,
-      synced: true,
-      sync_error: null
-    };
-    try {
-      const uploaded = await this.cloud.uploadLocalRecipe(payload);
-      if (!uploaded) return null;
-
-      // Update the local database with the uploaded recipe
-      await db.recipes.put(uploaded);
-      return uploaded.id;
-    } catch (err) {
-      const failed: SavedRecipe = {
-        ...recipe,
-        updated_at: new Date().toISOString(),
-        synced: false,
-        sync_error: err instanceof Error ? err.message : 'Unknown sync error'
-      };
-      await db.recipes.put(failed);
-      return failed.id;
-    }
+    return this.uploadRecipe(recipe);
   }
 
   /**
@@ -128,25 +117,23 @@ export class SyncService {
    */
   async uploadRecipes(recipes: SavedRecipe[]): Promise<void> {
     if (!recipes.length) return;
-    const payload: SavedRecipe[] = recipes.map((recipe) => ({
-      ...recipe,
-      synced: true,
-      sync_error: null
-    }));
+
     try {
+      const payload = recipes.map((recipe) => this.cloud.prepareRecipeForUpload(recipe));
       const uploaded = await this.cloud.uploadAllLocalRecipes(payload);
       if (!uploaded) return;
 
-      await db.recipes.bulkPut(uploaded);
-    } catch (err) {
-      const now = new Date().toISOString();
-      const failed = recipes.map((recipe) => ({
-        ...recipe,
-        updated_at: now,
-        synced: false,
-        sync_error: err instanceof Error ? err.message : 'Unknown sync error'
-      }));
-      await db.recipes.bulkPut(failed);
+      await db.recipes.bulkPut(
+        uploaded.map((recipe) => ({
+          ...recipe,
+          synced: true,
+          sync_error: null
+        }))
+      );
+    } catch {
+      for (const recipe of recipes) {
+        await this.uploadRecipeAndSyncLocal(recipe);
+      }
     }
   }
 
@@ -163,17 +150,22 @@ export class SyncService {
     if (!recipeData.id) throw new Error('Recipe ID is required');
     try {
       const updated = await this.cloud.updateRecipe(recipeData);
-      await db.recipes.update(recipeData.id, updated);
+      await db.recipes.update(recipeData.id, {
+        ...updated,
+        synced: true,
+        sync_error: null
+      });
       return { success: true, data: recipeData.id };
     } catch (err) {
+      const message = formatSyncError(err);
       const failed: Partial<SavedRecipe> & { id: string } = {
         ...recipeData,
         updated_at: new Date().toISOString(),
         synced: false,
-        sync_error: err instanceof Error ? err.message : 'Unknown sync error'
+        sync_error: message
       };
       await db.recipes.update(recipeData.id, failed);
-      return { success: false, data: recipeData.id, error: { message: err instanceof Error ? err.message : 'Unknown sync error' } };
+      return { success: false, data: recipeData.id, error: { message } };
     }
   }
 
@@ -189,11 +181,13 @@ export class SyncService {
       await db.recipes.delete(id);
       return { success: true, data: void 0 };
     } catch (err) {
-      // Note that if the delete fails the local database will not be updated in this case.
-      // Deleting the recipe locally would make the cloud unaware of the recipe state and cause
-      // the recipe to be restored during the next sync. The local record should be updated
-      // with a sync error.
-      return { success: false, error: { message: err instanceof Error ? err.message : 'Unknown sync error' } };
+      const message = formatSyncError(err);
+      await db.recipes.update(id, {
+        synced: false,
+        sync_error: message,
+        updated_at: new Date().toISOString()
+      });
+      return { success: false, error: { message } };
     }
   }
 
@@ -213,11 +207,18 @@ export class SyncService {
       await db.recipes.bulkDelete(recipeIds);
       return { success: true, data: void 0 };
     } catch (err) {
-      // Note that if the delete fails the local database will not be updated in this case.
-      // Deleting the recipe locally would make the cloud unaware of the recipe state and cause
-      // the recipe to be restored during the next sync. The local record should be updated
-      // with a sync error.
-      return { success: false, error: { message: err instanceof Error ? err.message : 'Unknown sync error' } };
+      const message = formatSyncError(err);
+      const now = new Date().toISOString();
+      await Promise.all(
+        recipeIds.map((id) =>
+          db.recipes.update(id, {
+            synced: false,
+            sync_error: message,
+            updated_at: now
+          })
+        )
+      );
+      return { success: false, error: { message } };
     }
   }
 
@@ -313,5 +314,19 @@ export class SyncService {
     const remote = await this.cloud.downloadAllRemoteRecipes();
     if (!remote) return [];
     return remote.filter(isActive);
+  }
+
+  /**
+   * Persist a failed sync attempt on a local recipe row.
+   * @param recipe - Recipe that failed to upload.
+   * @param message - User-visible sync error message.
+   */
+  private async markSyncFailed(recipe: SavedRecipe, message: string): Promise<void> {
+    await db.recipes.put({
+      ...recipe,
+      updated_at: new Date().toISOString(),
+      synced: false,
+      sync_error: message
+    });
   }
 }

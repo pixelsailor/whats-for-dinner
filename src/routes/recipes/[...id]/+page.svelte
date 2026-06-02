@@ -308,6 +308,35 @@
   });
 
   /**
+   * Manually push the current recipe to the cloud.
+   * @param recipeId - Id of the recipe to sync.
+   */
+  async function syncRecipe(recipeId: string) {
+    if (!recipe || recipe.id !== recipeId) return;
+    if (!hasCloudStorageAccess || !syncService) {
+      toast.error('Cloud sync is not available for your account.');
+      return;
+    }
+    if (!network.online) {
+      toast.error('You are offline. Reconnect to sync this recipe.');
+      return;
+    }
+
+    app.status = 'loading';
+    try {
+      const snapshot = $state.snapshot(recipe) as SavedRecipe;
+      const response = await syncService.syncRecipeToCloud(snapshot);
+      if (response.success) {
+        toast.success('Recipe synced');
+      } else {
+        toast.error(response.error?.message ?? 'Sync failed');
+      }
+    } finally {
+      app.status = 'idle';
+    }
+  }
+
+  /**
    * Toggle the recipe's `is_favorite` status
    */
   function toggleFavorite() {
@@ -352,19 +381,25 @@
     if (!recipe) return;
     app.status = 'loading';
 
-    let candidate: Partial<SavedRecipe> & { id: string };
-
     if (hasCloudStorageAccess && syncService) {
       try {
         // Ensure entire recipe is included if the recipe isn't synced.
         // Unsynced recipes may not exist in the cloud yet; using PATCH/UPDATE can 406.
         if (recipe.synced) {
-          candidate = changes ? { ...changes, id: recipe.id } : $state.snapshot(recipe);
-          await syncService.updateRecipeAndSyncLocal(candidate);
+          const candidate: Partial<SavedRecipe> & { id: string } = changes ? { ...changes, id: recipe.id } : $state.snapshot(recipe);
+          const response = await syncService.updateRecipeAndSyncLocal(candidate);
+          if (!response.success) {
+            toast.error(response.error?.message ?? 'Failed to save recipe');
+            return;
+          }
         } else {
           const snapshot = $state.snapshot(recipe) as SavedRecipe;
           const fullCandidate = (changes ? { ...snapshot, ...changes } : snapshot) as SavedRecipe;
-          await syncService.uploadRecipeAndSyncLocal(fullCandidate);
+          const response = await syncService.syncRecipeToCloud(fullCandidate);
+          if (!response.success) {
+            toast.error(response.error?.message ?? 'Failed to save recipe');
+            return;
+          }
         }
         if (!disableToast) {
           toast.success('Recipe saved');
@@ -581,6 +616,11 @@
                     </a>
                   {/snippet}
                 </DropdownMenu.Item>
+                {#if hasCloudStorageAccess && syncService}
+                  <DropdownMenu.Item textValue="Sync recipe" onclick={() => syncRecipe(recipe!.id)}>
+                    Sync recipe
+                  </DropdownMenu.Item>
+                {/if}
                 <DropdownMenu.Item
                   textValue="Move to trash"
                   class="rounded-button text-destructive data-highlighted:bg-destructive/10 flex h-10 items-center py-3 pr-1.5 pl-3 text-sm font-medium ring-0! ring-transparent! select-none focus-visible:outline-none"

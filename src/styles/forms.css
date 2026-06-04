@@ -114,7 +114,7 @@
 }
 
 .textinput {
-  @apply h-input border-border-input hover:border-border-input-hover border bg-input-bg dark:border-gray-800;
+  @apply h-input-mobile md:h-input border-border-input hover:border-border-input-hover border bg-input-bg dark:border-gray-800;
   border-radius: var(--radius-input);
   padding: var(--padding-input-y) var(--padding-input-x);
 }
@@ -123,4 +123,31 @@
   @apply border-border-input hover:border-border-input-hover max-h-64 min-h-16 resize-y border bg-input-bg dark:border-gray-800;
   border-radius: var(--radius-input);
   padding: var(--padding-input-y) var(--padding-input-x);
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+  height: var(--input-height-mobile);
+  background: var(--muted);
+  border-radius: var(--radius-input);
+  border: 1px solid var(--border-input);
+
+  & > input {
+    background: transparent;
+    border: none;
+    outline: none;
+    flex: 1;
+    height: 100%;
+  }
+
+  @media (min-width: 768px) {
+    & {
+      height: var(--input-height);
+    }
+  }
+}
+
+input:is(:autofill, :-webkit-autofill) {
+  @apply bg-input-bg;
 }

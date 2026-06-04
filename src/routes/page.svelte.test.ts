@@ -6,6 +6,8 @@ import { deriveAICapability } from '$lib/utils/capabilities';
 import { getGreeting } from '$lib/greetings';
 
 const PROMPT_PLACEHOLDER = 'Ask for event ideas, regional recipes, or just list ingredients';
+const SUBMIT_BUTTON_LABEL = 'Get ideas';
+const WORKING_BUTTON_LABEL = 'Thinking...';
 
 vi.mock('$app/navigation', () => ({
   goto: vi.fn()
@@ -66,7 +68,7 @@ describe('/+page.svelte', () => {
     const promptInput = screen.getByPlaceholder(PROMPT_PLACEHOLDER);
     await expect.element(promptInput).toBeInTheDocument();
 
-    const submitButton = screen.getByRole('button', { name: 'Submit request' });
+    const submitButton = screen.getByRole('button', { name: SUBMIT_BUTTON_LABEL });
     await expect.element(submitButton).toBeDisabled();
 
     expect(mockedGreeting).toHaveBeenCalled();
@@ -79,16 +81,16 @@ describe('/+page.svelte', () => {
     const promptInput = screen.getByPlaceholder(PROMPT_PLACEHOLDER);
     await promptInput.fill('chili + rice');
 
-    const submitButton = screen.getByRole('button', { name: 'Submit request' });
+    const submitButton = screen.getByRole('button', { name: SUBMIT_BUTTON_LABEL });
     await expect.element(submitButton).toBeEnabled();
 
     await submitButton.click();
 
     expect(mockedGoto).toHaveBeenCalledWith('/suggestions?prompt=chili%20%2B%20rice');
 
-    await expect.element(submitButton).toBeDisabled();
-    const workingLabel = screen.getByText('Thinking...');
-    await expect.element(workingLabel).toBeInTheDocument();
+    const workingButton = screen.getByRole('button', { name: WORKING_BUTTON_LABEL });
+    await expect.element(workingButton).toBeDisabled();
+    await expect.element(workingButton).toBeInTheDocument();
   });
 
   it('shows restriction message when AI is unavailable', async () => {

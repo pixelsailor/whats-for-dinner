@@ -1,11 +1,17 @@
 /**
- * User account information and permissions.
+ * @fileoverview Zod contracts for Supabase account profiles and user preferences rows.
+ * @module lib/api/account/account.schemas
  */
 
 import { z } from 'zod';
 
 /**
- * User preferences for recipe suggestions and instructions.
+ * User preferences row in the `user_preferences` table.
+ *
+ * @remarks
+ * Diet, allergies, and similar fields are edited on `/preferences` and used for AI
+ * suggestion flows. On the new-recipe form, only `use_ai_assistance` is read from
+ * this row — manual recipe fields are not shaped by these preferences.
  */
 export const UserPreferencesSchema = z.object({
   created_at: z.iso.datetime().nullable().optional(),
@@ -29,7 +35,13 @@ export const UserPreferencesSchema = z.object({
 });
 
 /**
- * User account information and permissions.
+ * Permission flags on the `user_profiles` row.
+ *
+ * @remarks
+ * Live preference data is in `user_preferences` ({@link UserPreferencesSchema}).
+ * The `preferences` jsonb column on `user_profiles` is legacy and unused by
+ * application code — keep it on this schema until the column is dropped in
+ * Supabase so `safeParse` matches the table shape.
  */
 export const UserProfileSchema = z.object({
   id: z.uuid(),
@@ -39,8 +51,15 @@ export const UserProfileSchema = z.object({
   ai_assistance: z.boolean(),
   /** Whether the user has access to cloud storage. */
   cloud_storage: z.boolean(),
-  /** User preferences. */
-  preferences: UserPreferencesSchema.optional().nullable()
+  /**
+   * Legacy jsonb on `user_profiles`; unused — do not read or write in application code.
+   * @deprecated Remove when the Supabase column is dropped.
+   */
+  preferences: UserPreferencesSchema.optional()
+    .nullable()
+    .describe(
+      'Legacy jsonb on `user_profiles`; unused — do not read or write in application code. @deprecated Remove when the Supabase column is dropped.'
+    )
 });
 
 export const UserPreferencesRepsonseSchema = UserPreferencesSchema.extend({

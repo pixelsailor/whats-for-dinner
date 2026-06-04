@@ -47,13 +47,13 @@ Audit of `src/lib/api/**` against the layer conventions in [`src/lib/api/README.
 | **Actual**   | `hasPermission(user, permission)` is pure and correct, but **unused**; service defines a different async `hasPermission` that hits the DB. |
 | **Impact**   | Duplicate concept, wrong layer for the live code path; model helper never adopted.                                                         |
 
-### `account/account.service.ts` + `account.schemas.ts` (data shape)
+### `account/account.schemas.ts` (profile vs preferences)
 
-|              |                                                                                                                                        |
-| ------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
-| **Expected** | One coherent account/preferences model.                                                                                                |
-| **Actual**   | `UserProfileSchema.preferences` embeds preferences on `user_profiles`, while service reads/writes a separate `user_preferences` table. |
-| **Impact**   | Schema file name suggests SoT for profile shape, but service persistence does not match `UserProfileSchema` layout.                    |
+|              |                                                                                                                                                                                                                                                              |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Expected** | `UserProfileSchema` mirrors `user_profiles`; live preferences use `user_preferences` via `UserPreferencesSchema`.                                                                                                                                              |
+| **Actual**   | ~~Confusion: nested `preferences` on `UserProfileSchema` looked like the live store.~~ **Clarified (ACCT-2):** jsonb is legacy/unused; `user_preferences` is canonical. Field stays on `UserProfileSchema` until Supabase drops the column. Documented in [`account/README.md`](../src/lib/api/account/README.md). |
+| **Impact**   | Application code must not read/write profile jsonb; remove from schema only after DB migration.                                                                                                                                                             |
 
 ### `common/common.model.ts`
 
@@ -107,7 +107,7 @@ Use this as a sequenced backlog. Items may be combined in one PR when touching t
 ### Account module
 
 - [ ] **ACCT-1** Validate `getUserProfile` / `updateUser` / preferences read/write with `UserProfileSchema`, `UserPreferencesSchema`, and `UserPreferencesRepsonseSchema` via `safeParse`.
-- [ ] **ACCT-2** Resolve `user_profiles.preferences` vs `user_preferences` table: align `account.schemas.ts` with persistence, or split schemas (`account.profile.schemas.ts` / `account.preferences.schemas.ts`).
+- [x] **ACCT-2** Clarify profile vs preferences: `user_preferences` is canonical; legacy `user_profiles.preferences` jsonb documented as unused. Keep `preferences` on `UserProfileSchema` until column drop. See [`account/README.md`](../src/lib/api/account/README.md).
 - [ ] **ACCT-3** Use `account.model.ts` `hasPermission(profile, …)` in server/layout code after profile fetch; remove redundant async DB-only `hasPermission` on the service **or** rename service method to `fetchPermissionFlag` if a round-trip is required.
 
 ### Common module
@@ -134,6 +134,12 @@ Use this as a sequenced backlog. Items may be combined in one PR when touching t
 ---
 
 ## Resolved
+
+### Account module (2026-06-03)
+
+| Item | Resolution |
+| ---- | ---------- |
+| **ACCT-2** / profile vs preferences | Both Supabase tables are real: `user_profiles` holds permission flags plus legacy unused `preferences` jsonb; `user_preferences` holds live preference rows. Schema and docs clarified in [`account/README.md`](../src/lib/api/account/README.md). Remove `preferences` from `UserProfileSchema` only after the jsonb column is dropped. On `/recipes/new`, only `use_ai_assistance` is read from preferences. |
 
 ### Common module (2026-06-03)
 

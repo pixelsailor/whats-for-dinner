@@ -5,6 +5,10 @@
 /* @custom-variant dark (&:where(.dark, .dark *)); */
 
 :root {
+  --base-font-size: 16px;
+  --base-font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  --base-font-weight: 300;
+
   /* Colors */
   --background: hsl(0 0% 100%);
   --background-alt: hsl(0 0% 98%);
@@ -49,6 +53,7 @@
   --input-radius: 0.25rem;
   --input-height: 2.25rem;
   --input-height-mobile: 2.75rem;
+  --input-bg: var(--muted);
 
   /* Text sizes */
   --text-xxs: 0.625rem;     /* 10px */
@@ -78,12 +83,12 @@
     --background-alt: hsl(0 0% 8%);
     --foreground: hsl(0 0% 95%);
     --foreground-alt: hsl(0 0% 70%);
-    --muted: hsl(240 4% 16%);
+    --muted: hsla(240, 4%, 16%, 0.2);
     --muted-foreground: hsla(0 0% 100% / 0.4);
     --border: hsl(0 0% 96%);
     --border-input: hsla(0 0% 96% / 0.17);
     --border-input-hover: hsla(0 0% 96% / 0.4);
-    --border-card: hsla(0 0% 96% / 0.1);
+    --border-card: hsla(0 0% 50% / 0.25);
     --dark: hsl(0 0% 96%);
     --dark-foreground: hsl(0 0% 5% / 0.8);
     --dark-40: hsl(0 0% 96% / 0.4);
@@ -132,7 +137,7 @@
   --color-success: var(--success);
   --color-line: var(--line);
   --color-contrast: var(--contrast);
-  --color-input-bg: var(--background-alt);
+  --color-input-bg: var(--muted);
 
   --shadow-mini: var(--shadow-mini);
   --shadow-mini-inset: var(--shadow-mini-inset);
@@ -158,7 +163,7 @@
   --text-label: var(--text-sm);
   --text-body: var(--text-base);
 
-  --radius-card: 16px;
+  --radius-card: 8px;
   --radius-card-lg: 20px;
   --radius-card-sm: 10px;
   --radius-button: var(--button-radius);
@@ -176,6 +181,8 @@
   --padding-input: 0.6875rem;
   --padding-input-x: 0.5625rem;
   --padding-input-y: 0.4625rem;
+  --padding-card: 1.5rem;
+  --padding-dialog: 1.5rem;
 
   --spacing-input: 3rem;
   --spacing-input-sm: 2.5rem;
@@ -318,20 +325,27 @@
     border-color: var(--color-border-card, currentColor);
   }
 
-  * {
-    @apply border-border;
+  *, :after, :before, ::backdrop {
+    box-sizing: border-box;
+    border: 0 solid;
+    margin: 0;
+    padding: 0;
   }
+  
   html {
-    -webkit-text-size-adjust: 100%;
-    font-variation-settings: normal;
-    scrollbar-color: var(--bg-muted);
-  }
-
-  body {
     @apply bg-background text-foreground;
-    font-feature-settings:
-      'rlig' 1,
-      'calt' 1;
+    font-size: var(--base-font-size, 14px);
+    font-family: var(--base-font-family);
+    font-weight: var(--base-font-weight, 300);
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    margin: 0;
+    padding: 0;
+    min-block-size: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   /* disable chrome cancel button */
@@ -367,3 +381,24 @@
 @import './styles/typography';
 @import './styles/markdown';
 @import './styles/ui';
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.hidden {
+  display: none;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}

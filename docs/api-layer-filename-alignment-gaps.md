@@ -4,7 +4,7 @@ Audit of `src/lib/api/**` against the layer conventions in [`src/lib/api/README.
 
 **Scope:** Naming vs content mismatches and missing files implied by the README. This is separate from product/ADR drift in [`readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md) (e.g. GAP-002 sync tombstones), though some todos overlap.
 
-**Last reviewed:** 2026-05-19
+**Last reviewed:** 2026-06-03
 
 ---
 
@@ -95,22 +95,6 @@ Audit of `src/lib/api/**` against the layer conventions in [`src/lib/api/README.
 | **Actual**   | Imports `ApiResponse` from `../ai` instead of `../common`.                      |
 | **Impact**   | Incorrect module coupling; reinforces duplicate `ApiResponse` in `ai.types.ts`. |
 
-### `recipe/` (missing `recipe.service.ts`)
-
-|              |                                                                                                                                                                   |
-| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Expected** | README “Local Recipe Management” lists Dexie integration and recipe CRUD under API services.                                                                      |
-| **Actual**   | Only `recipe.schemas.ts` + `recipe.types.ts`; local CRUD lives in `src/lib/stores/recipes.ts` and `src/lib/db.ts`.                                                |
-| **Impact**   | Either an intentional omission (document README) or a missing `recipe.service.ts` / `recipe.local.service.ts` for Dexie mutations to match the documented layout. |
-
-### `src/lib/api/README.md` (documentation vs filenames)
-
-|              |                                                                                                                                                                 |
-| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Expected** | Accurate pattern description.                                                                                                                                   |
-| **Actual**   | States service methods “return Observables”; implementations use `async`/`Promise`. Documents local recipe “Key Services” without a `recipe.*.ts` service file. |
-| **Impact**   | Misleading for contributors aligning new code to filenames.                                                                                                     |
-
 ---
 
 ## Resolution todo list
@@ -151,16 +135,23 @@ Use this as a sequenced backlog. Items may be combined in one PR when touching t
 
 ### Recipe module
 
-- [ ] **REC-1** Decide explicitly: add `recipe.service.ts` (Dexie/local CRUD facade used by stores and routes) **or** update [`src/lib/api/README.md`](../src/lib/api/README.md) to state local recipe I/O lives in `src/lib/stores/` only (no `recipe.service.ts`).
+- [x] **REC-1** No `recipe.service.ts` by design; local I/O documented under stores + [`src/lib/api/recipe/README.md`](../src/lib/api/recipe/README.md).
 
 ### Documentation
 
-- [ ] **DOC-1** Update [`src/lib/api/README.md`](../src/lib/api/README.md): remove Observable claim; document actual `Promise` + TanStack split; clarify `recipe/` has no service by design (after REC-1).
+- [x] **DOC-1** [`src/lib/api/README.md`](../src/lib/api/README.md): `Promise` service pattern, TanStack in `*.queries.ts`, local recipe table points at stores/`db` (no API service file).
 - [ ] **DOC-2** When a gap row is fully fixed, strike or move it under **Resolved** below with PR link.
 
 ---
 
 ## Resolved
+
+### Recipe module and API README (2026-06-03)
+
+| Item | Resolution |
+| ---- | ---------- |
+| **REC-1** / `recipe/` | **No** `recipe.service.ts`. `$lib/api/recipe` exports schemas + types only; Dexie reads via [`src/lib/stores/recipes.ts`](../src/lib/stores/recipes.ts); writes via routes/store/`db` helpers. Documented in [`src/lib/api/recipe/README.md`](../src/lib/api/recipe/README.md) and Local Recipe Management in [`src/lib/api/README.md`](../src/lib/api/README.md). |
+| **DOC-1** / API README | `*.service.ts` pattern documents `async`/`Promise` (not Observables), TanStack in `*.queries.ts`, and explicit exclusion of Dexie from service files. |
 
 ### AI module (2026-05-19)
 

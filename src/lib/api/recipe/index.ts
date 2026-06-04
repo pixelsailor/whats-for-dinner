@@ -1,7 +1,10 @@
 /**
- * Recipe API Module
+ * Recipe API module — contracts only (schemas + types).
  *
- * Export types and schemas for recipes and recipe management.
+ * Local Dexie I/O: {@link ../../stores/recipes.ts} and route/store helpers.
+ * Remote sync/share: {@link ../cloud/README.md}.
+ *
+ * @see ./README.md
  */
 
 export * from './recipe.types';

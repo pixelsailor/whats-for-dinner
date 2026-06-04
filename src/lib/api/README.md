@@ -81,7 +81,9 @@ For TanStack specifics, see **[`docs/tanstack-query.md`](../../../docs/tanstack-
 
 **Intent**: Abstracts API calls, enforces validation, handles authentication/authorization, and provides a typed interface for components.
 
-**Pattern**: All HTTP operations go through this service. Methods validate requests/responses using schemas. Authorization checks are enforced. Returns Observables. Methods are organized by functional area.
+**Pattern**: Remote HTTP or provider operations go through this service. Methods validate requests/responses using schemas (`safeParse` at boundaries). Authorization checks are enforced where applicable. Methods return **`async`/`Promise`** results (not RxJS Observables). TanStack Query wrappers belong in `*.queries.ts`, not in the service. Methods are organized by functional area.
+
+**Not for Dexie:** Local IndexedDB reads and writes for ADR-002 domains (for example the recipe book) use **`src/lib/stores/`** and `src/lib/db.ts` helpers—see [Local Recipe Management](#local-recipe-management) and [`recipe/README.md`](./recipe/README.md).
 
 ---
 
@@ -141,15 +143,19 @@ End-to-end recipe management consists of three key areas: local, remote/cloud, A
 
 #### Local Recipe Management
 
+**Module:** [`./recipe/`](./recipe/) — **schemas and types only** ([`recipe/README.md`](./recipe/README.md)). There is **no** `recipe.service.ts` by design.
+
 **Local/Offline recipe workflow and storage with Dexie/IndexedDB**
 
 Primary recipe management including recipe CRUD workflows and recommendations using local IndexedDB data suitable for offline, unauthorized users without cloud or AI assisted recipe permissions.
 
-**Key Services**
-
-- **Dexie** integration for facilitating offline IndexedDB management and mutations
-- Recipe lifecycle management (create, update, delete)
-- Recipe search based on title, tags, and usage (recently added, most popular, haven't made in 2 months, etc)
+| Concern | Location |
+| ------- | -------- |
+| Validation contracts | `$lib/api/recipe` (`recipe.schemas.ts`, `recipe.types.ts`) |
+| Reactive reads (LiveQuery) | `$lib/stores/recipes.ts` and related stores |
+| Dexie schema / `db` instance | `$lib/db.ts` |
+| User-facing writes | Routes, form actions, and store or `db` helpers (prefer centralizing new `db.recipes` mutations in stores/db—not a `*.service.ts` file) |
+| Deterministic recommendations | `$lib/recommendations/` (reads Dexie-backed stores) |
 
 #### [Remote/Cloud Recipe Management](./cloud/README.md)
 

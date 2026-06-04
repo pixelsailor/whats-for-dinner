@@ -2,12 +2,16 @@ import { z } from 'zod';
 
 import type { Recipe } from '$lib/api/recipe';
 
+import type { ApiResponse } from '$lib/api/common';
+
 import type {
   AiSuggestionSchema,
   RecipeAddendumResponseSchema,
   RecipeAssistanceOutputSchema,
   RecipeSuggestionsResponseSchema
 } from './ai.schemas';
+
+export type { ApiResponse };
 
 /**
  * Exported as both a runtime enum-like object and a type-safe union.
@@ -21,24 +25,6 @@ export const PromptContextEnum = {
 } as const;
 
 export type PromptContext = (typeof PromptContextEnum)[keyof typeof PromptContextEnum];
-
-/**
- * Generic API response envelope used by server routes.
- * @template T - payload type
- */
-export type ApiResponse<T> = {
-  /** Whether the request succeeded. */
-  success: boolean;
-  /** Payload returned by the API when successful. */
-  data: T;
-  /** Optional human readable message (errors or success info). */
-  message?: string;
-  /** Optional structured error object for failures. */
-  error?: {
-    message: string;
-    code?: string;
-  };
-};
 
 /**
  * Pairing of the originating prompt context with the parsed payload (legacy `/api/recipes`).

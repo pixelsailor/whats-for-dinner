@@ -13,7 +13,7 @@ import type { SavedRecipe } from '$lib/api/recipe';
 import { CloudService } from './cloud.service';
 import { buildSyncPlan, isActive } from './cloud.model';
 import type { ConflictResolution, SyncConflict, SyncPlan } from './cloud.types';
-import type { ApiResponse } from '../ai';
+import type { ApiResponse } from '$lib/api/common';
 import { formatSyncError } from './sync-errors';
 
 /**

@@ -68,8 +68,7 @@ Audit of `src/lib/api/**` against the layer conventions in [`src/lib/api/README.
 |              |                                                                                                                    |
 | ------------ | ------------------------------------------------------------------------------------------------------------------ |
 | **Expected** | Single `ApiResponse` envelope in `common`.                                                                         |
-| **Actual**   | `ApiResponse` / `ApiResponseSchema` defined in both **common** and **ai**; `sync.service.ts` imports from `../ai`. |
-| **Impact**   | `ai.types.ts` holds cross-cutting API types, not AI-specific domain types.                                         |
+| **Actual**   | ~~`ApiResponse` / `ApiResponseSchema` defined in both **common** and **ai**; `sync.service.ts` imports from `../ai`.~~ **Resolved (COM-1, COM-2).** |
 
 ### `cloud/cloud.service.ts` + `cloud.schemas.ts`
 
@@ -84,8 +83,7 @@ Audit of `src/lib/api/**` against the layer conventions in [`src/lib/api/README.
 |              |                                                                                 |
 | ------------ | ------------------------------------------------------------------------------- |
 | **Expected** | Dexie + `CloudService` orchestration (largely **aligned**).                     |
-| **Actual**   | Imports `ApiResponse` from `../ai` instead of `../common`.                      |
-| **Impact**   | Incorrect module coupling; reinforces duplicate `ApiResponse` in `ai.types.ts`. |
+| **Actual**   | ~~Imports `ApiResponse` from `../ai` instead of `../common`.~~ **Resolved (COM-2).** |
 
 ---
 
@@ -115,8 +113,8 @@ Use this as a sequenced backlog. Items may be combined in one PR when touching t
 
 ### Common module
 
-- [ ] **COM-1** Deduplicate `ApiResponse`: keep types in `common/common.types.ts` (and schema in `common.schemas.ts`); remove duplicates from `ai/ai.types.ts` (re-export from common if needed).
-- [ ] **COM-2** Point `sync.service.ts` (and any other consumers) at `$lib/api/common` for `ApiResponse`.
+- [x] **COM-1** Deduplicate `ApiResponse`: keep types in `common/common.types.ts` (and schema in `common.schemas.ts`); remove duplicates from `ai/ai.types.ts` (re-export from common if needed).
+- [x] **COM-2** Point `sync.service.ts` (and any other consumers) at `$lib/api/common` for `ApiResponse`.
 - [ ] **COM-3** Rename `common.model.ts` → `common.client.ts` (or delete if unused) and document that Supabase clients come from layout/`locals`, not a shared model file.
 
 ### Cloud module
@@ -137,6 +135,13 @@ Use this as a sequenced backlog. Items may be combined in one PR when touching t
 ---
 
 ## Resolved
+
+### Common module (2026-06-03)
+
+| Item | Resolution |
+| ---- | ---------- |
+| **COM-1** / `ApiResponse` | Single source in `common/common.schemas.ts` and `common/common.types.ts`; `ai/ai.types.ts` re-exports from `$lib/api/common`. Added `common/index.ts` barrel. |
+| **COM-2** / sync imports | `sync.service.ts` imports `ApiResponse` from `$lib/api/common` instead of `../ai`. |
 
 ### Cloud module (2026-06-03)
 

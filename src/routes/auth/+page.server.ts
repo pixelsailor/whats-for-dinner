@@ -1,3 +1,4 @@
+import { hasPermission } from '$lib/api/account/account.model';
 import { AccountService } from '$lib/api/account/account.service';
 import { clearSessionPermissions, setSessionPermissions } from '$lib/utils/session';
 import { fail, redirect } from '@sveltejs/kit';
@@ -39,8 +40,8 @@ export const actions: Actions = {
         const profile = await accountService.getUserProfile();
 
         setSessionPermissions(cookies, {
-          ai_assistance: Boolean(profile.ai_assistance),
-          cloud_storage: Boolean(profile.cloud_storage)
+          ai_assistance: hasPermission(profile, 'ai_assistance'),
+          cloud_storage: hasPermission(profile, 'cloud_storage')
         });
       } else {
         clearSessionPermissions(cookies);

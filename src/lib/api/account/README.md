@@ -13,7 +13,7 @@ The Account API service layer provides user profile and preferences management i
 
 ### `user_profiles`
 
-Permission flags for signed-in users. Read via `AccountService.getUserProfile()` and `hasPermission()`.
+Permission flags for signed-in users. Read via `AccountService.getUserProfile()`; check flags with pure `hasPermission(profile, …)` from `account.model.ts` (used when seeding the session cookie after login).
 
 | name          | format        | nullable | default            |
 | ------------- | ------------- | -------- | ------------------ |

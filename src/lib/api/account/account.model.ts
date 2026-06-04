@@ -108,11 +108,14 @@ export function parseUserPreferencesResponseRows(data: unknown): UserPreferences
   return parseOrThrow(z.array(UserPreferencesRepsonseSchema).safeParse(data), 'user preferences rows');
 }
 
+/** Boolean permission columns on `user_profiles`. */
+export type ProfilePermissionFlag = 'ai_assistance' | 'cloud_storage';
+
 /**
  * Returns true when the profile grants the given permission flag.
- * @param user - Validated user profile
+ * @param user - Validated user profile from {@link parseUserProfile} or {@link AccountService.getUserProfile}
  * @param permission - Permission column on `user_profiles`
  */
-export function hasPermission(user: UserProfile, permission: keyof UserProfile): boolean {
+export function hasPermission(user: UserProfile, permission: ProfilePermissionFlag): boolean {
   return user[permission] === true;
 }

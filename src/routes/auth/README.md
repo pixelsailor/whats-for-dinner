@@ -1,7 +1,7 @@
 ## Auth Flow with Permission Storage
 
 - Login is handled in `src/routes/auth/+page.server.ts` via `supabase.auth.signInWithPassword`.
-- After a successful login, we fetch the Supabase `user_profiles` row using `AccountService` and extract `ai_assistance` and `cloud_storage`.
+- After a successful login, we fetch the Supabase `user_profiles` row using `AccountService` and derive `ai_assistance` / `cloud_storage` with `hasPermission(profile, …)` from `$lib/api/account/account.model`.
 - These permission flags are stored in a session cookie (`wfd-permissions`) for reuse across requests.
 
 ### Session Cookie Details

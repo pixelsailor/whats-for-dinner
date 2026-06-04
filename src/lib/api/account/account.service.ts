@@ -80,24 +80,6 @@ export class AccountService {
   }
 
   /**
-   * Check if the user has a specific permission.
-   *
-   * @param permission - The permission to check.
-   * @returns True if the user has the permission, false otherwise.
-   */
-  async hasPermission(permission: keyof UserProfile): Promise<boolean> {
-    const { data, error }: { data: { [key in keyof UserProfile]: boolean } | null; error: Error | null } = await this.supabase
-      .from('user_profiles')
-      .select(permission)
-      .eq('user_id', this.userId)
-      .single();
-
-    if (error) throw error;
-
-    return data?.[permission] === true;
-  }
-
-  /**
    * Get the user's preferences.
    *
    * @returns The user's preferences, or null when no row exists

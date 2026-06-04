@@ -36,7 +36,7 @@ Audit of `src/lib/api/**` against the layer conventions in [`src/lib/api/README.
 |              |                                                                                                                                                                                                                                              |
 | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Expected** | Supabase I/O with **Zod `safeParse`** on inputs/outputs per README.                                                                                                                                                                          |
-| **Actual**   | ~~Raw Supabase calls; returns untyped/`any`-ish rows; no schema validation at boundary.~~ **Resolved (ACCT-1):** `account.model.ts` parsers validate profile/preferences at boundaries; service returns typed rows. `hasPermission` DB path unchanged (ACCT-3). |
+| **Actual**   | ~~Raw Supabase calls; returns untyped/`any`-ish rows; no schema validation at boundary.~~ **Resolved (ACCT-1):** `account.model.ts` parsers validate profile/preferences at boundaries; service returns typed rows. |
 | **Impact**   | ~~Drift from schema-led contract (ADR-008).~~ Boundary validation aligned for profile and preferences I/O.                                                                                                                                   |
 
 ### `account/account.model.ts`
@@ -44,8 +44,8 @@ Audit of `src/lib/api/**` against the layer conventions in [`src/lib/api/README.
 |              |                                                                                                                                            |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Expected** | Pure helpers only.                                                                                                                         |
-| **Actual**   | `hasPermission(user, permission)` is pure and correct, but **unused**; service defines a different async `hasPermission` that hits the DB. |
-| **Impact**   | Duplicate concept, wrong layer for the live code path; model helper never adopted.                                                         |
+| **Actual**   | ~~`hasPermission` unused; duplicate async DB `hasPermission` on service.~~ **Resolved (ACCT-3):** `hasPermission(profile, …)` seeds session flags after login; service DB-only helper removed. |
+| **Impact**   | ~~Duplicate concept, wrong layer for the live code path.~~ Single pure permission check on validated profile rows.                         |
 
 ### `account/account.schemas.ts` (profile vs preferences)
 
@@ -108,7 +108,7 @@ Use this as a sequenced backlog. Items may be combined in one PR when touching t
 
 - [x] **ACCT-1** Validate `getUserProfile` / `updateUser` / preferences read/write with `UserProfileSchema`, `UserPreferencesSchema`, and `UserPreferencesRepsonseSchema` via `safeParse`.
 - [x] **ACCT-2** Clarify profile vs preferences: `user_preferences` is canonical; legacy `user_profiles.preferences` jsonb documented as unused. Keep `preferences` on `UserProfileSchema` until column drop. See [`account/README.md`](../src/lib/api/account/README.md).
-- [ ] **ACCT-3** Use `account.model.ts` `hasPermission(profile, …)` in server/layout code after profile fetch; remove redundant async DB-only `hasPermission` on the service **or** rename service method to `fetchPermissionFlag` if a round-trip is required.
+- [x] **ACCT-3** Use `account.model.ts` `hasPermission(profile, …)` in server/layout code after profile fetch; remove redundant async DB-only `hasPermission` on the service **or** rename service method to `fetchPermissionFlag` if a round-trip is required.
 
 ### Common module
 
@@ -141,6 +141,7 @@ Use this as a sequenced backlog. Items may be combined in one PR when touching t
 | ---- | ---------- |
 | **ACCT-1** / service boundaries | `account.model.ts` exposes `parseUserProfile`, `parseUserProfileUpdate`, `parseUserProfileRows`, `parseUserPreferencesResponse`, `parseUserPreferencesUpdate`, and `parseUserPreferencesResponseRows` (Zod `safeParse`). `AccountService` validates all profile and preferences read/write paths; throws `AccountParseError` on contract mismatch. Covered by `account.model.test.ts`. |
 | **ACCT-2** / profile vs preferences | Both Supabase tables are real: `user_profiles` holds permission flags plus legacy unused `preferences` jsonb; `user_preferences` holds live preference rows. Schema and docs clarified in [`account/README.md`](../src/lib/api/account/README.md). Remove `preferences` from `UserProfileSchema` only after the jsonb column is dropped. On `/recipes/new`, only `use_ai_assistance` is read from preferences. |
+| **ACCT-3** / `hasPermission` | Pure `hasPermission(profile, …)` in `account.model.ts` (`ProfilePermissionFlag`) seeds `wfd-permissions` in `auth/+page.server.ts` after `getUserProfile()`. Removed redundant async `AccountService.hasPermission` DB round-trip. |
 
 ### Common module (2026-06-03)
 

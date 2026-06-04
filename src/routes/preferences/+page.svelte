@@ -184,6 +184,9 @@
 </PageHeader> -->
 
 <div class="mx-auto max-w-5xl px-4 py-8 lg:px-8">
+  {#if data.loadError}
+    <p class="body-large text-destructive mb-4" role="alert">{data.loadError}</p>
+  {/if}
   <form class="form" method="POST" use:enhance={submitPreferences} oninput={() => isDirty = true}>
     <h1 class="display-small mb-4">AI Recipe Preferences</h1>
     <p class="body-large">

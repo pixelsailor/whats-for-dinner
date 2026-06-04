@@ -43,6 +43,19 @@ describe('parseUserPreferencesResponse', () => {
     });
   });
 
+  it('accepts PostgREST timestamptz strings with a numeric offset', () => {
+    expect(
+      parseUserPreferencesResponse({
+        ...samplePreferences,
+        created_at: '2024-01-15T12:00:00+00:00',
+        updated_at: '2024-01-15T12:00:00.123456+00:00'
+      })
+    ).toMatchObject({
+      created_at: '2024-01-15T12:00:00+00:00',
+      updated_at: '2024-01-15T12:00:00.123456+00:00'
+    });
+  });
+
   it('throws AccountParseError for invalid rows', () => {
     expect(() => parseUserPreferencesResponse({ user_id: 'bad' })).toThrow(AccountParseError);
   });

@@ -13,10 +13,10 @@ export const load: PageServerLoad = async ({ locals }) => {
 
   try {
     const preferences = await accountService.getUserPreferences();
-    return { preferences };
+    return { preferences, loadError: null };
   } catch (error) {
     console.error('Failed to load user preferences', error);
-    return fail(500, { error: 'Unable to load preferences' });
+    return { preferences: null, loadError: 'Unable to load preferences' };
   }
 };
 

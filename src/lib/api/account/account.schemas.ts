@@ -3,6 +3,7 @@
  * @module lib/api/account/account.schemas
  */
 
+import { supabaseTimestamptzSchema } from '$lib/api/common/common.schemas';
 import { z } from 'zod';
 
 /**
@@ -14,8 +15,8 @@ import { z } from 'zod';
  * this row — manual recipe fields are not shaped by these preferences.
  */
 export const UserPreferencesSchema = z.object({
-  created_at: z.iso.datetime().nullable().optional(),
-  updated_at: z.iso.datetime().nullable().optional(),
+  created_at: supabaseTimestamptzSchema.nullable().optional(),
+  updated_at: supabaseTimestamptzSchema.nullable().optional(),
   /** Dietary restrictions or preferences (e.g., ['vegetarian']). */
   diet: z.array(z.string()).optional().nullable(),
   /** Allergies the user has (e.g., ['peanuts']). */
@@ -65,6 +66,6 @@ export const UserProfileSchema = z.object({
 export const UserPreferencesRepsonseSchema = UserPreferencesSchema.extend({
   id: z.uuid().nullable().optional(),
   user_id: z.uuid(),
-  created_at: z.iso.datetime().nullable().optional(),
-  updated_at: z.iso.datetime().nullable().optional()
+  created_at: supabaseTimestamptzSchema.nullable().optional(),
+  updated_at: supabaseTimestamptzSchema.nullable().optional()
 });

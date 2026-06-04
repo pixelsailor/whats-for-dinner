@@ -1,30 +1,25 @@
 <script lang="ts">
-  import { Button } from 'bits-ui';
-  import { Checkbox } from 'bits-ui';
-  import { Label } from 'bits-ui';
-  import { Card, Input } from 'flowbite-svelte';
+  import Button from '$lib/ui/button.svelte';
+  import { Card } from '$lib/ui/card';
+  import { Checkbox } from '$lib/ui/checkbox';
+  import { Textinput } from '$lib/ui/forms';
+  import Password from '$lib/ui/password/password.svelte';
+
+  let email = $state('');
+  let password = $state('');
+  let rememberMe = $state(false);
 </script>
 
 <div class="flex h-screen items-center justify-center">
-  <Card class="w-96 bg-white p-4 sm:p-6 md:p-8 dark:bg-gray-800">
-    <form method="POST" action="?/login" class="flex flex-col space-y-6">
-      <h3 class="p-0 text-xl font-medium text-gray-900 dark:text-white">Log In</h3>
-      <Label.Root class="space-y-2">
-        <span>Email</span>
-        <Input type="email" name="email" placeholder="name@company.com" required />
-      </Label.Root>
-      <Label.Root class="space-y-2">
-        <span>Password</span>
-        <Input type="password" name="password" placeholder="•••••" required />
-      </Label.Root>
+  <Card class="w-96">
+    <form method="POST" action="?/login" class="form">
+      <h3 class="p-0 text-xl font-medium">Log In</h3>
+      <Textinput type="email" label="Email" name="email" placeholder="name@example.com" value={email} />
+      <Password labelText="Password" name="password" placeholder="•••••" value={password} />
       <div class="flex items-center gap-2">
-        <Checkbox.Root id="remember-me" />
-        <Label.Root id="remember-me" for="remember-me" class="label-medium">Remember me</Label.Root>
+        <Checkbox labelText="Remember me" id="remember-me" checked={rememberMe} />
       </div>
-      <Button.Root type="submit" class="button primary w-full">Sign in</Button.Root>
-      <!-- <p class="text-sm font-light text-gray-500 dark:text-gray-400">
-        Don’t have an account yet? <a href="/" class="text-primary-600 dark:text-primary-500 font-medium hover:underline">Sign up</a>
-      </p> -->
+      <Button type="submit" class="primary w-full" disabled={!email || !password}>Sign in</Button>
     </form>
   </Card>
 </div>

@@ -105,6 +105,12 @@ Accessing API services and models requires authorized user permissions. Anonymou
 
 ## API Service Domains
 
+### [Common (cross-domain)](./common/README.md)
+
+Shared validation schemas and types (for example `ApiResponse`). **No** Supabase or other provider clients — those are wired in `hooks.server.ts`, `+layout.ts`, and injected into domain services.
+
+---
+
 ### Authentication
 
 **Core authentication and user management workflows**

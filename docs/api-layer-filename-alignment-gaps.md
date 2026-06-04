@@ -60,8 +60,7 @@ Audit of `src/lib/api/**` against the layer conventions in [`src/lib/api/README.
 |              |                                                                                                                                                                     |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Expected** | Shared pure utilities.                                                                                                                                              |
-| **Actual**   | Instantiates and exports a **Supabase browser client** (`createClient` + public env).                                                                               |
-| **Impact**   | Wrong suffix; file is unused anywhere in `src/` (dead). Should be `common.client.ts` or removed in favor of layout-injected clients per supabase-enhancement rules. |
+| **Actual**   | ~~Instantiates and exports a **Supabase browser client** (`createClient` + public env).~~ **Removed (COM-3).** Documented in [`common/README.md`](../src/lib/api/common/README.md). |
 
 ### `common/common.schemas.ts` + `common/common.types.ts` vs `ai/ai.types.ts`
 
@@ -115,7 +114,7 @@ Use this as a sequenced backlog. Items may be combined in one PR when touching t
 
 - [x] **COM-1** Deduplicate `ApiResponse`: keep types in `common/common.types.ts` (and schema in `common.schemas.ts`); remove duplicates from `ai/ai.types.ts` (re-export from common if needed).
 - [x] **COM-2** Point `sync.service.ts` (and any other consumers) at `$lib/api/common` for `ApiResponse`.
-- [ ] **COM-3** Rename `common.model.ts` → `common.client.ts` (or delete if unused) and document that Supabase clients come from layout/`locals`, not a shared model file.
+- [x] **COM-3** Rename `common.model.ts` → `common.client.ts` (or delete if unused) and document that Supabase clients come from layout/`locals`, not a shared model file.
 
 ### Cloud module
 
@@ -142,6 +141,7 @@ Use this as a sequenced backlog. Items may be combined in one PR when touching t
 | ---- | ---------- |
 | **COM-1** / `ApiResponse` | Single source in `common/common.schemas.ts` and `common/common.types.ts`; `ai/ai.types.ts` re-exports from `$lib/api/common`. Added `common/index.ts` barrel. |
 | **COM-2** / sync imports | `sync.service.ts` imports `ApiResponse` from `$lib/api/common` instead of `../ai`. |
+| **COM-3** / Supabase client | Removed unused `common.model.ts` singleton. [`common/README.md`](../src/lib/api/common/README.md) documents that Supabase clients come from `locals.supabase`, layout `data.supabase`, or service injection — not `$lib/api/common`. |
 
 ### Cloud module (2026-06-03)
 

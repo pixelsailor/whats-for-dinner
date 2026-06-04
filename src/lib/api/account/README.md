@@ -31,7 +31,7 @@ Permission flags for signed-in users. Read via `AccountService.getUserProfile()`
 
 Canonical store for user recipe preferences. Read/write via `AccountService.getUserPreferences()` and `updateUserPreferences()`.
 
-Validated with `UserPreferencesSchema` (payload) and `UserPreferencesRepsonseSchema` (row including `id`, `user_id`, timestamps).
+Validated with `UserPreferencesSchema` (payload) and `UserPreferencesRepsonseSchema` (row including `id`, `user_id`, timestamps). `AccountService` runs `safeParse` at read/write boundaries via parsers in `account.model.ts`.
 
 **Product usage**
 

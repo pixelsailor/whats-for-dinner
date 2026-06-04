@@ -1,5 +1,19 @@
+/**
+ * @fileoverview Supabase account I/O with Zod validation at read/write boundaries.
+ * @module lib/api/account/account.service
+ */
+
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { UserPreferences, UserPreferencesResponse, UserProfile } from './account.types';
+
+import {
+  parseUserPreferencesResponse,
+  parseUserPreferencesResponseRows,
+  parseUserPreferencesUpdate,
+  parseUserProfile,
+  parseUserProfileRows,
+  parseUserProfileUpdate
+} from './account.model';
+import type { UserPreferencesResponse, UserProfile } from './account.types';
 
 /**
  * Account Service
@@ -32,20 +46,37 @@ export class AccountService {
     this.userId = userId;
   }
 
-  async getUserProfile() {
+  /**
+   * Loads the signed-in user's `user_profiles` row.
+   * @returns Validated profile
+   * @throws Supabase or {@link AccountParseError} when the row is missing or invalid
+   */
+  async getUserProfile(): Promise<UserProfile> {
     const { data, error } = await this.supabase.from('user_profiles').select('*').eq('user_id', this.userId).single();
 
     if (error) throw error;
 
-    return data;
+    return parseUserProfile(data);
   }
 
-  async updateUser(updateData: Partial<UserProfile>) {
-    const { data, error } = await this.supabase.from('user_profiles').update(updateData).eq('user_id', this.userId).select();
+  /**
+   * Updates permission fields on `user_profiles`.
+   * @param updateData - Partial profile fields to persist
+   * @returns Validated rows returned from `.select()`
+   * @throws Supabase or {@link AccountParseError} on failure or invalid response
+   */
+  async updateUser(updateData: Partial<UserProfile>): Promise<UserProfile[]> {
+    const validatedUpdate = parseUserProfileUpdate(updateData);
+
+    const { data, error } = await this.supabase
+      .from('user_profiles')
+      .update(validatedUpdate)
+      .eq('user_id', this.userId)
+      .select();
 
     if (error) throw error;
 
-    return data;
+    return parseUserProfileRows(data);
   }
 
   /**
@@ -69,17 +100,20 @@ export class AccountService {
   /**
    * Get the user's preferences.
    *
-   * @returns The user's preferences.
+   * @returns The user's preferences, or null when no row exists
+   * @throws Supabase or {@link AccountParseError} when the row is invalid
    */
   async getUserPreferences(): Promise<UserPreferencesResponse | null> {
-    const { data, error }: { data: UserPreferencesResponse | null; error: Error | null } = await this.supabase
+    const { data, error } = await this.supabase
       .from('user_preferences')
       .select('*')
       .eq('user_id', this.userId)
       .maybeSingle();
 
     if (error) throw error;
-    return data ?? null;
+    if (data === null) return null;
+
+    return parseUserPreferencesResponse(data);
   }
 
   /**
@@ -87,13 +121,20 @@ export class AccountService {
    *
    * @note The `onConflict` parameter is used to prevent duplicate entries for the same user.
    * @param preferences - The updates to apply to the user's preferences.
-   * @returns The updated user preferences.
+   * @returns Validated preference rows returned from `.select()`
+   * @throws Supabase or {@link AccountParseError} on failure or invalid response
    */
-  async updateUserPreferences(preferences: Partial<UserPreferences>) {
-    const { data, error } = await this.supabase.from('user_preferences').upsert(preferences, { onConflict: 'user_id' }).eq('user_id', this.userId).select();
+  async updateUserPreferences(preferences: Partial<UserPreferencesResponse>): Promise<UserPreferencesResponse[]> {
+    const validatedPreferences = parseUserPreferencesUpdate(preferences);
+
+    const { data, error } = await this.supabase
+      .from('user_preferences')
+      .upsert(validatedPreferences, { onConflict: 'user_id' })
+      .eq('user_id', this.userId)
+      .select();
 
     if (error) throw error;
 
-    return data;
+    return parseUserPreferencesResponseRows(data);
   }
 }

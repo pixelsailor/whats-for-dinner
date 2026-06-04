@@ -71,14 +71,6 @@ Audit of `src/lib/api/**` against the layer conventions in [`src/lib/api/README.
 | **Actual**   | `ApiResponse` / `ApiResponseSchema` defined in both **common** and **ai**; `sync.service.ts` imports from `../ai`. |
 | **Impact**   | `ai.types.ts` holds cross-cutting API types, not AI-specific domain types.                                         |
 
-### `cloud/cloud.service.ts`
-
-|              |                                                                                                                                               |
-| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Expected** | Remote-only Supabase operations (aligned with cloud README).                                                                                  |
-| **Actual**   | Mostly remote CRUD; **`createSharedRecipeUrl`** generates share tokens locally (`randomBytes`, alphabet loop) before insert.                  |
-| **Impact**   | Token generation is domain logic, belongs in `cloud.model.ts` (or `cloud/share.utils.ts`) with service calling a pure `generateShareToken()`. |
-
 ### `cloud/cloud.service.ts` + `cloud.schemas.ts`
 
 |              |                                                                            |
@@ -129,7 +121,7 @@ Use this as a sequenced backlog. Items may be combined in one PR when touching t
 
 ### Cloud module
 
-- [ ] **CLD-1** Move share token generation from `cloud.service.ts` to a pure helper in `cloud.model.ts` (or `cloud/share-token.ts`); service calls helper then Supabase insert.
+- [x] **CLD-1** Move share token generation from `cloud.service.ts` to a pure helper in `cloud.model.ts` (or `cloud/share-token.ts`); service calls helper then Supabase insert.
 - [ ] **CLD-2** Apply `SharedRecipeSchema` (and recipe row schemas where appropriate) in `CloudService` methods via `safeParse`.
 - [ ] **CLD-3** (Related product gap) Tombstone-aware sync in `sync.service.ts` / `cloud.model.ts` — see **GAP-002** in [`readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md).
 
@@ -145,6 +137,12 @@ Use this as a sequenced backlog. Items may be combined in one PR when touching t
 ---
 
 ## Resolved
+
+### Cloud module (2026-06-03)
+
+| Item | Resolution |
+| ---- | ---------- |
+| **CLD-1** / share tokens | `generateShareToken` and `encodeShareToken` live in `cloud.model.ts`; `CloudService.createSharedRecipeUrl` calls the helper then inserts into `shared_links`. Covered by `cloud.model.test.ts`. |
 
 ### Recipe module and API README (2026-06-03)
 

@@ -1,6 +1,13 @@
 import type { SavedRecipe } from '../recipe/recipe.types';
 import type { ConflictResolution, SyncConflict, SyncPlan, SyncScenario } from './cloud.types';
+import randomBytes from '$lib/utils/randombytes';
 import toMillis from '$lib/utils/toMilliseconds';
+
+/** Base58 alphabet for public share link tokens (excludes 0, O, I, l). */
+export const SHARE_TOKEN_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+
+/** Number of random bytes encoded into a share link token. */
+export const SHARE_TOKEN_BYTE_LENGTH = 8;
 
 /**
  * Cloud Models
@@ -18,6 +25,22 @@ import toMillis from '$lib/utils/toMilliseconds';
  * @returns True if the recipe is active, false otherwise.
  */
 export const isActive = (recipe: SavedRecipe): boolean => !recipe.archived && !recipe.deleted_at;
+
+/**
+ * Encode random bytes into a share link token using {@link SHARE_TOKEN_ALPHABET}.
+ * @param bytes - Random bytes to map into the token alphabet.
+ * @returns Token string with one character per input byte.
+ */
+export const encodeShareToken = (bytes: Uint8Array): string =>
+  Array.from(bytes)
+    .map((b) => SHARE_TOKEN_ALPHABET[b % SHARE_TOKEN_ALPHABET.length])
+    .join('');
+
+/**
+ * Generate a short random share link token for `shared_links.token`.
+ * @returns Base58-style token suitable for `/share/{token}` URLs.
+ */
+export const generateShareToken = (): string => encodeShareToken(randomBytes(SHARE_TOKEN_BYTE_LENGTH));
 
 /**
  * Whether a local recipe still needs to be pushed to or reconciled with the cloud.

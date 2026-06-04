@@ -1,7 +1,7 @@
 import { SupabaseClient } from '@supabase/supabase-js';
-import randomBytes from '$lib/utils/randombytes';
 
 import type { Recipe, SavedRecipe } from '../recipe/recipe.types';
+import { generateShareToken } from './cloud.model';
 
 type AugmentedSavedRecipe = SavedRecipe & {
   last_synced_at: string;
@@ -76,11 +76,7 @@ export class CloudService {
       return { token: recipe.shared_id, url: `/share/${recipe.shared_id}` };
     }
 
-    // Generate a short token (Base58, 10 chars)
-    const alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
-    const token = Array.from(randomBytes(8))
-      .map((b) => alphabet[b % alphabet.length])
-      .join('');
+    const token = generateShareToken();
 
     const { error } = await this.supabase
       .from('shared_links')

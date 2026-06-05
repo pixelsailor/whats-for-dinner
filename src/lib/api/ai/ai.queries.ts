@@ -5,7 +5,7 @@
 
 import { createQuery } from '@tanstack/svelte-query';
 
-import { sanitizePromptInput } from '$lib/utils';
+import { sanitizePromptInput } from './ai.model';
 
 import { AI_ENDPOINTS, postAiJson, postSuggestedRecipe, postSuggestions } from './ai.service';
 import type { RecipeSuggestionsResponse, SuggestedRecipeResponse } from './ai.types';

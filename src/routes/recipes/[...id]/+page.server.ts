@@ -5,7 +5,7 @@ import {
   askCookingQuestion
 } from '$lib/api/ai/ai.server.service';
 import { AiParseError } from '$lib/api/ai/ai.model';
-import { sanitizePromptInput } from '$lib/utils';
+import { sanitizePromptInput } from '$lib/api/ai/ai.model';
 
 export const actions: Actions = {
   default: async ({ request, locals }) => {

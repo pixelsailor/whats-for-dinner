@@ -6,7 +6,7 @@
   import { toast } from 'svelte-sonner';
 
   import { db } from '$lib/db';
-  import { sanitizePromptInput } from '$lib/utils';
+  import { sanitizePromptInput } from '$lib/api/ai/ai.model';
   import { createFullRecipeQuery } from '$lib/api/ai';
   import type { Recipe as FullRecipe, SavedRecipe, Suggestion } from '$lib/api/recipe';
   import { suggestionStoreById } from '$lib/stores/suggestions';
@@ -18,7 +18,7 @@
   import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
   import Recipe from '$lib/ui/Recipe.svelte';
   import { networkStore } from '$lib/stores/network';
-  import { deriveAICapability } from '$lib/utils/capabilities';
+  import { deriveAICapability } from '$lib/api/auth/auth.capability';
   import type { ViewState } from '$lib/types.js';
   import { CloudService, SyncService } from '$lib/api/cloud';
 

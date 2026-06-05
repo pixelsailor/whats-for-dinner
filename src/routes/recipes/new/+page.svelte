@@ -10,7 +10,7 @@
   import { CloudService } from '$lib/api/cloud';
   import { db } from '$lib/db.js';
   import { networkStore } from '$lib/stores/network';
-  import { deriveAICapability } from '$lib/utils/capabilities';
+  import { deriveAICapability } from '$lib/api/auth/auth.capability';
 
   import { AppBar } from '$lib/ui/AppBar';
   import Button from '$lib/ui/button.svelte';

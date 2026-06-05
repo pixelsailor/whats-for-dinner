@@ -1,6 +1,6 @@
 import { hasPermission } from '$lib/api/account/account.model';
 import { AccountService } from '$lib/api/account/account.service';
-import { clearSessionPermissions, setSessionPermissions } from '$lib/utils/session';
+import { clearSessionPermissions, setSessionPermissions } from '$lib/api/auth/auth.permissions';
 import { fail, redirect } from '@sveltejs/kit';
 
 import type { Actions } from './$types';

@@ -6,16 +6,9 @@ This folder holds **general-purpose helper functions** that are reused across un
 
 **`$lib/utils` is not a catch-all.** It does not replace the API service layer under [`../api/`](../api/README.md).
 
-## Relationship to `$lib/utils.ts`
+## Import convention
 
-The repository also contains a **legacy single-file module** at [`../utils.ts`](../utils.ts). That file predates this directory and creates a confusing dual entry point:
-
-| Module | Status | Guidance |
-| ------ | ------ | -------- |
-| **`src/lib/utils/`** (this folder) | **Preferred** for new domain-agnostic helpers | Add one file per concern (e.g. `toMilliseconds.ts`) |
-| **`src/lib/utils.ts`** | **Legacy** | **Do not add new exports.** When editing symbols here, move them into this folder or into the owning `$lib/api/<domain>/` module |
-
-Consumers may import from either path today; new code should import from **`$lib/utils/<file>`** unless migrating the legacy file in the same change.
+Add one file per concern (e.g. `toMilliseconds.ts`, `sentenceCase.ts`) and import from **`$lib/utils/<file>`**. Domain-bound helpers belong in **`$lib/api/<domain>/`**, not here.
 
 ## What belongs here
 
@@ -27,12 +20,12 @@ Consumers may import from either path today; new code should import from **`$lib
 
 Move these to the owning **`src/lib/api/<domain>/`** module (usually `*.model.ts` or `*.service.ts`):
 
-| Concern | Belongs in | Current drift (see GAP-026) |
-| ------- | ---------- | ----------------------------- |
-| Supabase session / JWT validation | `$lib/api/auth/` (`AuthService`) | — (remediated) |
-| Permission httpOnly cookie read/write | `$lib/api/auth/` | [`session.ts`](./session.ts) |
-| AI prompt sanitization, query intent detection | `$lib/api/ai/` | [`../utils.ts`](../utils.ts) |
-| AI/cloud capability derivation from session + permissions | `$lib/api/auth/` or `$lib/api/account/` | [`capabilities.ts`](./capabilities.ts) |
+| Concern                                             | Belongs in                          |
+| --------------------------------------------------- | ----------------------------------- |
+| Supabase session / JWT validation                   | `$lib/api/auth/` (`AuthService`)    |
+| Permission httpOnly cookie read/write               | `$lib/api/auth/auth.permissions.ts` |
+| AI prompt sanitization, query intent detection      | `$lib/api/ai/ai.model.ts`           |
+| AI capability derivation from session + permissions | `$lib/api/auth/auth.capability.ts`  |
 
 If the helper would naturally sit next to a domain service, schema, or route under `src/routes/api/<domain>/`, it is **not** a shared utility.
 
@@ -50,4 +43,4 @@ When in doubt, use [`../api/README.md`](../api/README.md) and [ADR-008 §8](../.
 ## Governance
 
 - **Binding layout rules:** [ADR-008: Schema-led domain contracts](../../../adrs/ADR-008-schema-led-domain-contracts.md) (§ Source tree boundaries)
-- **Implementation backlog:** [GAP-026](../../../docs/readme-adr-alignment-gaps.md#gap-026)
+- **Boundary remediation:** GAP-026 resolved (2026-06-05) — see **Resolved** table in [`docs/readme-adr-alignment-gaps.md`](../../../docs/readme-adr-alignment-gaps.md)

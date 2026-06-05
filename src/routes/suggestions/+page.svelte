@@ -24,8 +24,8 @@
   import PageHeader from '$lib/ui/PageHeader.svelte';
   import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
   import ViewedBadge from '$lib/ui/ViewedBadge.svelte';
-  import { sanitizePromptInput } from '$lib/utils.js';
-  import { deriveAICapability } from '$lib/utils/capabilities';
+  import { deriveAICapability } from '$lib/api/auth/auth.capability';
+  import { sanitizePromptInput } from '$lib/api/ai/ai.model';
   import RecipesIcon from '$lib/ui/icons/RecipesIcon.svelte';
 
   let { data } = $props();

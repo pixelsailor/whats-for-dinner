@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import PageHarness from './__tests__/PageHarness.svelte';
 import { goto } from '$app/navigation';
-import { deriveAICapability } from '$lib/utils/capabilities';
+import { deriveAICapability } from '$lib/api/auth/auth.capability';
 import { getGreeting } from '$lib/greetings';
 
 const PROMPT_PLACEHOLDER = 'Ask for event ideas, regional recipes, or just list ingredients';
@@ -22,7 +22,7 @@ vi.mock('$lib/stores/network', () => ({
   }
 }));
 
-vi.mock('$lib/utils/capabilities', () => ({
+vi.mock('$lib/api/auth/auth.capability', () => ({
   deriveAICapability: vi.fn()
 }));
 

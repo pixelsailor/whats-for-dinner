@@ -24,7 +24,7 @@ Without a governing decision, contributors will keep adding Supabase-only checks
 The current implementation already has shape that **forecloses** self-hosting if not deliberately constrained:
 
 - `PUBLIC_SUPABASE_URL` / `PUBLIC_SUPABASE_PUBLISHABLE_KEY` are **compile-time** public env vars consumed by Supabase client entry points such as [`src/lib/supabaseClient.ts`](../src/lib/supabaseClient.ts), [`src/hooks.server.ts`](../src/hooks.server.ts), and [`src/routes/+layout.ts`](../src/routes/+layout.ts) (browser/SSR layout client); there is no runtime way to point at a different cloud database.
-- AI server routes ([`src/routes/api/suggestions/+server.ts`](../src/routes/api/suggestions/+server.ts), [`src/routes/api/recipes/+server.ts`](../src/routes/api/recipes/+server.ts), [`src/routes/api/recipes/new/+server.ts`](../src/routes/api/recipes/new/+server.ts)) gate AI access with `permissions.ai_assistance` derived from a Supabase-issued cookie ([`src/lib/utils/session.ts`](../src/lib/utils/session.ts)); a user with their own AI key but no WFD-managed account is currently blocked.
+- AI server routes ([`src/routes/api/suggestions/+server.ts`](../src/routes/api/suggestions/+server.ts), [`src/routes/api/recipes/+server.ts`](../src/routes/api/recipes/+server.ts), [`src/routes/api/recipes/new/+server.ts`](../src/routes/api/recipes/new/+server.ts)) gate AI access with `permissions.ai_assistance` derived from a Supabase-issued cookie ([`src/lib/api/auth/auth.permissions.ts`](../src/lib/api/auth/auth.permissions.ts)); a user with their own AI key but no WFD-managed account is currently blocked.
 - The AI client in [`src/lib/api/ai/ai.model.ts`](../src/lib/api/ai/ai.model.ts) and [`src/lib/server/openai.ts`](../src/lib/server/openai.ts) is a **singleton** keyed by one server env var (`OPENAI_API_KEY`); there is no per-request or per-deployment override.
 - [`src/lib/api/cloud/cloud.service.ts`](../src/lib/api/cloud/cloud.service.ts) is a Supabase **class**, not a generic interface; sync helpers and route handlers depend on it directly.
 
@@ -90,7 +90,7 @@ User-supplied provider configuration is **device-local** by default and **never*
 
 ### 4. Permission semantics under self-hosting
 
-`permissions.ai_assistance` and `permissions.cloud_storage` ([`src/lib/utils/session.ts`](../src/lib/utils/session.ts)) are checks against **WFD-managed Supabase entitlements**. They were intended as gating for **WFD-paid features**, not as a global "is AI available?" flag.
+`permissions.ai_assistance` and `permissions.cloud_storage` ([`src/lib/api/auth/auth.permissions.ts`](../src/lib/api/auth/auth.permissions.ts)) are checks against **WFD-managed Supabase entitlements**. They were intended as gating for **WFD-paid features**, not as a global "is AI available?" flag.
 
 - A request that arrives with valid **personal AI provider** configuration **must not** be rejected solely because `permissions.ai_assistance` is false. The check should become "is **this request's** AI access allowed?" — true when either WFD-managed permission is granted **or** a validated personal provider config is present.
 - A request that uses the **WFD-managed default** AI provider (no personal config) keeps today's behavior: `ai_assistance` permission required.

@@ -29,7 +29,7 @@
   import TrashIcon from '$lib/ui/icons/TrashIcon.svelte';
   import Recipe from '$lib/ui/Recipe.svelte';
   import { networkStore } from '$lib/stores/network';
-  import { deriveAICapability } from '$lib/utils/capabilities';
+  import { deriveAICapability } from '$lib/api/auth/auth.capability';
   import CalendarHeatMapIcon from '$lib/ui/icons/CalendarHeatMapIcon.svelte';
 
   const vp: Viewport = getContext('viewport');

@@ -18,3 +18,9 @@ export type ValidatedSession = {
   session: Session | null;
   user: User | null;
 };
+
+/** Permission booleans cached in the httpOnly `wfd-permissions` cookie after login. */
+export type PermissionFlags = {
+  ai_assistance: boolean;
+  cloud_storage: boolean;
+};

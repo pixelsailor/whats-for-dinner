@@ -9,8 +9,7 @@
 - Name: `wfd-permissions`
 - Shape: `{ ai_assistance: boolean; cloud_storage: boolean }`
 - Options: `httpOnly`, `sameSite: 'lax'`, `secure` (in production), `path: '/'`, `maxAge: 7 days`
-- Utilities live in `src/lib/utils/session.ts` (`getSessionPermissions`, `setSessionPermissions`, `clearSessionPermissions`).
-- **Planned home:** `$lib/api/auth/` per [ADR-008 §8](../../../adrs/ADR-008-schema-led-domain-contracts.md) and **[GAP-026](../../../docs/readme-adr-alignment-gaps.md#gap-026)** — cookie helpers are auth-domain code, not generic utils.
+- Utilities live in `$lib/api/auth/auth.permissions.ts` (`getSessionPermissions`, `setSessionPermissions`, `clearSessionPermissions`).
 
 ### Server Locals and Page Data
 

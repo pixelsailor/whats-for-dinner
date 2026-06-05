@@ -26,7 +26,6 @@ alwaysApply: false
 | Dexie `Table<>` entities and rows | Types imported from the **owning domain barrel** (`$lib/api/...`); **new tables** get a Zod schema in that domain before widening generics (ADR-008 §4). |
 | **Generic** or **cross-cutting** contracts reused across many non-Svelte modules (e.g. shared layout data, feature-flag shapes) | `src/lib/types.ts` (or a dedicated module under `src/lib/` if size warrants) — **not** a second home for recipe/suggestion/preferences/etc. that already belong under `$lib/api/**`. |
 | **Domain-agnostic** pure helpers (date parse, secure random bytes, generic string casing) with no owning API domain | `src/lib/utils/<name>.ts` — see [`src/lib/utils/README.md`](../src/lib/utils/README.md). **Not** a catch-all; when a domain exists, use `$lib/api/<domain>/`. |
-| Legacy single-file utils | `src/lib/utils.ts` — **no new exports**; migrate to `utils/<name>.ts` or `$lib/api/<domain>/` when touched (ADR-008 §8). |
 | Single-file type aliases | Colocate with the implementation when they are not imported elsewhere. |
 
 ## Svelte components

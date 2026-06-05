@@ -111,3 +111,78 @@ export function parseAssistanceAnswer(raw: string): string {
   const parsed = parseStructuredOutput(raw, RecipeAssistanceOutputSchema, 'recipe assistance');
   return parsed.answer;
 }
+
+/**
+ * Strips risky characters and caps length before sending user text to AI routes.
+ * @param input - Raw user prompt or preference text
+ * @returns Sanitized string suitable for provider input
+ */
+export function sanitizePromptInput(input: string): string {
+  return input
+    .replace(/[<>`$]/g, '')
+    .trim()
+    .slice(0, 500);
+}
+
+/**
+ * Heuristic for general cooking Q&A prompts.
+ * @param input - User message
+ * @deprecated Modification detection is now handled by the AI service; see `askCookingQuestion`.
+ */
+export function isGeneralCookingQuestion(input: string): boolean {
+  const keywords = [
+    'how do I',
+    'what happens if',
+    'can I use',
+    "what's the best",
+    'how long should',
+    'should I',
+    'what is',
+    'is it okay to',
+    'why does'
+  ];
+
+  const lowered = input.toLowerCase().trim();
+  return keywords.some((k) => lowered.startsWith(k) || lowered.includes(k));
+}
+
+/**
+ * Heuristic for recipe modification prompts.
+ * @param input - User message
+ * @deprecated Modification detection is now handled by the AI service; see `askCookingQuestion`.
+ */
+export function isModificationRequest(input: string): boolean {
+  const keywords = [
+    'update',
+    'change',
+    'replace',
+    'add',
+    'remove',
+    'increase',
+    'decrease',
+    'reduce',
+    'take out',
+    'swap',
+    'substitute',
+    'use',
+    'alter',
+    'convert to',
+    'adjust',
+    'omit',
+    'make this',
+    'make it',
+    'modify',
+    'double',
+    'triple',
+    'halve',
+    'cut it',
+    'cut this',
+    'cut the',
+    'split',
+    'turn this into',
+    'transform'
+  ];
+
+  const lowered = input.toLowerCase().trim();
+  return keywords.some((k) => lowered.startsWith(k));
+}

@@ -38,8 +38,7 @@ For TanStack specifics, see **[`docs/tanstack-query.md`](../../../docs/tanstack-
 | Folder                                  | Use for                                                                                                             | Not for                                                                                     |
 | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
 | **`src/lib/api/<domain>/`** (this tree) | Schemas, types, domain models, injectable services, domain queries, auth/session/permission **Supabase** operations | Generic date/string/crypto helpers unrelated to a domain                                    |
-| **`src/lib/utils/`**                    | Domain-agnostic pure helpers reused app-wide — see [`../utils/README.md`](../utils/README.md)                       | Auth, AI prompts, capability policy, Supabase I/O, or any code tied to a product API domain |
-| **`src/lib/utils.ts`**                  | Legacy only — **no new exports**; migrate to `utils/<name>.ts` or `$lib/api/<domain>/` when touched                 | New helpers of any kind                                                                     |
+| **`src/lib/utils/`**                    | Domain-agnostic pure helpers reused app-wide — one file per concern; see [`../utils/README.md`](../utils/README.md) | Auth, AI prompts, capability policy, Supabase I/O, or any code tied to a product API domain |
 | **`src/lib/stores/`**                   | Dexie LiveQuery read models and mutation helpers over ADR-002 data                                                  | Parallel domain type definitions or remote API clients                                      |
 | **`src/lib/types.ts`**                  | Cross-cutting non-entity contracts                                                                                  | Recipe, auth, account, or other domain entities                                             |
 
@@ -124,7 +123,7 @@ Factories for per-request SSR (`createRequestServerClient`) and universal layout
 Handles login, password reset, registration, and MFA. **Identity operations** on an injected Supabase client (not client wiring — that is [`./session/`](./session/README.md)).
 Refer to Supabase [JavaScript Client Library](https://supabase.com/docs/reference/javascript/introduction) documentation for **auth** guidance.
 
-**Module:** [`./auth/`](./auth/) — `AuthService` (sign-in, JWT validation via `getValidatedSession`, stale-session cleanup). Profile rows and permission flags come from [`./account/`](./account/README.md). Permission **cookie** helpers are still in [`../utils/session.ts`](../utils/session.ts) pending migration (**[GAP-026](../../../docs/readme-adr-alignment-gaps.md#gap-026)**) — distinct from the **`session`** factory module.
+**Module:** [`./auth/`](./auth/) — `AuthService` (sign-in, JWT validation via `getValidatedSession`, stale-session cleanup), permission **cookie** helpers (`auth.permissions.ts`), and AI capability policy (`auth.capability.ts`). Profile rows and permission flags come from [`./account/`](./account/README.md). Distinct from the **`session`** factory module (Supabase client wiring).
 
 **Key Services**
 

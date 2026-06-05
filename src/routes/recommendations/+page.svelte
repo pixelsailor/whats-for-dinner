@@ -9,7 +9,7 @@
   import PageHeader from '$lib/ui/PageHeader.svelte';
   import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
   import { unsortedRecipesStore } from '$lib/stores/recipes';
-  import { sentenceCase } from '$lib/utils';
+  import { sentenceCase } from '$lib/utils/sentenceCase';
   import Button from '$lib/ui/button.svelte';
   import DocumentAddIcon from '$lib/ui/icons/DocumentAddIcon.svelte';
   import ArrowsClockwiseIcon from '$lib/ui/icons/arrows-clockwise.svelte';

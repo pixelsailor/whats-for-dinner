@@ -8,7 +8,7 @@
   import Prompt from '$lib/ui/Prompt.svelte';
   import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
   import { networkStore } from '$lib/stores/network';
-  import { deriveAICapability } from '$lib/utils/capabilities';
+  import { deriveAICapability } from '$lib/api/auth/auth.capability';
 
   let { data } = $props();
   let network = $derived($networkStore);

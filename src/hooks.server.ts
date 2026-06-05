@@ -1,6 +1,6 @@
 import { AuthService } from '$lib/api/auth';
 import { createRequestServerClient, isSessionSerializedResponseHeader } from '$lib/api/session';
-import { getSessionPermissions } from '$lib/utils/session';
+import { getSessionPermissions } from '$lib/api/auth/auth.permissions';
 import { type Handle, redirect } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 

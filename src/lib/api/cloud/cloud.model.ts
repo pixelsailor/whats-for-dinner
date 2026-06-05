@@ -1,5 +1,14 @@
-import type { SavedRecipe } from '../recipe/recipe.types';
-import type { ConflictResolution, SyncConflict, SyncPlan, SyncScenario } from './cloud.types';
+/**
+ * @fileoverview Pure cloud sync helpers and Zod boundary parsers; no Supabase I/O.
+ * @module lib/api/cloud/cloud.model
+ */
+
+import { z } from 'zod';
+
+import { CloudRecipeSchema, CloudRecipeSyncSummarySchema, SavedRecipeSchema } from '../recipe/recipe.schemas';
+import type { CloudRecipe, CloudRecipeSyncSummary, SavedRecipe } from '../recipe/recipe.types';
+import { SharedRecipeSchema } from './cloud.schemas';
+import type { ConflictResolution, SharedRecipe, SyncConflict, SyncPlan, SyncScenario } from './cloud.types';
 import randomBytes from '$lib/utils/randombytes';
 import toMillis from '$lib/utils/toMilliseconds';
 
@@ -9,12 +18,203 @@ export const SHARE_TOKEN_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghij
 /** Number of random bytes encoded into a share link token. */
 export const SHARE_TOKEN_BYTE_LENGTH = 8;
 
+/** Partial `recipes` row accepted by {@link CloudService.updateRecipe}. */
+const CloudRecipeUpdateSchema = SavedRecipeSchema.extend({ owner_id: z.uuid() })
+  .partial()
+  .extend({ id: z.uuid() });
+
+/** Optional context for a single cloud recipe row that failed validation. */
+export type CloudRecipeParseFailure = {
+  recipeId?: string;
+  recipeTitle?: string;
+  fieldErrors: Record<string, string[]>;
+};
+
+/** Thrown when Supabase row JSON fails Zod validation at the cloud service boundary. */
+export class CloudParseError extends Error {
+  /** Set when a specific `recipes` row failed validation (for sync repair UI). */
+  readonly recipeId?: string;
+
+  /** Set when a specific `recipes` row failed validation (for sync repair UI). */
+  readonly recipeTitle?: string;
+
+  /** Zod field errors for the failing row, when applicable. */
+  readonly fieldErrors?: Record<string, string[]>;
+
+  constructor(message: string, details?: Omit<CloudRecipeParseFailure, 'fieldErrors'> & { fieldErrors?: Record<string, string[]> }) {
+    super(message);
+    this.name = 'CloudParseError';
+    this.recipeId = details?.recipeId;
+    this.recipeTitle = details?.recipeTitle;
+    this.fieldErrors = details?.fieldErrors;
+  }
+}
+
 /**
- * Cloud Models
- *
- * Pure helpers for cloud backup and synchronization of recipes.
- * Keep this module side-effect free (no Dexie/Supabase imports).
+ * Extracts id/title from a raw Supabase `recipes` row for error reporting.
+ * @param data - Unvalidated row JSON
  */
+function cloudRecipeRowIdentity(data: unknown): { recipeId?: string; recipeTitle?: string } {
+  if (typeof data !== 'object' || data === null) {
+    return {};
+  }
+
+  const row = data as Record<string, unknown>;
+
+  return {
+    recipeId: typeof row.id === 'string' ? row.id : undefined,
+    recipeTitle: typeof row.title === 'string' ? row.title : undefined
+  };
+}
+
+/**
+ * @param identity - Recipe id/title when known
+ * @returns Suffix for error messages
+ */
+function formatRecipeIdentitySuffix(identity: { recipeId?: string; recipeTitle?: string }): string {
+  if (identity.recipeId && identity.recipeTitle) {
+    return ` (recipe "${identity.recipeTitle}", id ${identity.recipeId})`;
+  }
+
+  if (identity.recipeId) {
+    return ` (recipe id ${identity.recipeId})`;
+  }
+
+  if (identity.recipeTitle) {
+    return ` (recipe "${identity.recipeTitle}")`;
+  }
+
+  return '';
+}
+
+/**
+ * Validates one cloud recipe row and throws {@link CloudParseError} with row context on failure.
+ * @param data - Raw row from Supabase
+ * @param context - Label for logs and error messages
+ * @returns Typed cloud recipe
+ */
+function parseCloudRecipeOrThrow(data: unknown, context: string): CloudRecipe {
+  const result = CloudRecipeSchema.safeParse(data);
+
+  if (!result.success) {
+    const identity = cloudRecipeRowIdentity(data);
+    const fieldErrors = result.error.flatten().fieldErrors;
+    console.error(`Cloud data validation failed for "${context}".`, fieldErrors, identity);
+    throw new CloudParseError(`Cloud data failed validation for "${context}"${formatRecipeIdentitySuffix(identity)}.`, {
+      ...identity,
+      fieldErrors
+    });
+  }
+
+  return result.data;
+}
+
+/**
+ * @param result - Zod safeParse outcome
+ * @param context - Label for logs and error messages
+ * @returns Validated payload
+ * @throws {CloudParseError} When validation fails
+ */
+function parseOrThrow<T>(result: z.ZodSafeParseResult<T>, context: string): T {
+  if (!result.success) {
+    console.error(`Cloud data validation failed for "${context}".`, result.error.flatten());
+    throw new CloudParseError(`Cloud data failed validation for "${context}".`);
+  }
+
+  return result.data;
+}
+
+/**
+ * Validates a `shared_links` row from Supabase.
+ * @param data - Raw row from `.select()` / `.single()`
+ * @returns Typed shared link
+ * @throws {CloudParseError} When the row does not match {@link SharedRecipeSchema}
+ */
+export function parseSharedRecipe(data: unknown): SharedRecipe {
+  return parseOrThrow(SharedRecipeSchema.safeParse(data), 'shared link');
+}
+
+/**
+ * Validates `shared_links` rows returned from `.select()` after insert.
+ * @param data - Raw array from Supabase
+ * @returns Typed shared link rows
+ * @throws {CloudParseError} When any row fails validation
+ */
+export function parseSharedRecipeRows(data: unknown): SharedRecipe[] {
+  return parseOrThrow(z.array(SharedRecipeSchema).safeParse(data), 'shared link rows');
+}
+
+/**
+ * Validates a cloud `recipes` row with a non-null `owner_id`.
+ * @param data - Raw row from `.select()` / `.single()`
+ * @returns Typed cloud recipe
+ * @throws {CloudParseError} When the row does not match {@link CloudRecipeSchema}
+ */
+export function parseCloudRecipe(data: unknown): CloudRecipe {
+  return parseCloudRecipeOrThrow(data, 'cloud recipe');
+}
+
+/**
+ * Validates a cloud recipe row or null from `.maybeSingle()`.
+ * @param data - Raw row or null from Supabase
+ * @returns Typed recipe or null when absent
+ * @throws {CloudParseError} When a non-null row fails validation
+ */
+export function parseCloudRecipeMaybe(data: unknown): CloudRecipe | null {
+  if (data === null || data === undefined) {
+    return null;
+  }
+
+  return parseCloudRecipe(data);
+}
+
+/**
+ * Validates cloud `recipes` rows from `.select()`.
+ * @param data - Raw array or null from Supabase
+ * @returns Typed recipe rows, or null when Supabase returns null
+ * @throws {CloudParseError} When any non-null row fails validation
+ */
+export function parseCloudRecipeRows(data: unknown): CloudRecipe[] | null {
+  if (data === null || data === undefined) {
+    return null;
+  }
+
+  if (!Array.isArray(data)) {
+    return parseOrThrow(z.array(CloudRecipeSchema).safeParse(data), 'cloud recipe rows');
+  }
+
+  return data.map((row, index) => parseCloudRecipeOrThrow(row, `cloud recipe rows[${index}]`));
+}
+
+/**
+ * Validates a recipe payload before upsert to Supabase.
+ * @param data - Prepared upload row from {@link CloudService.prepareRecipeForUpload}
+ * @returns Typed upload payload
+ * @throws {CloudParseError} When fields are invalid
+ */
+export function parseCloudRecipeUpload(data: unknown): CloudRecipe {
+  return parseCloudRecipeOrThrow(data, 'cloud recipe upload');
+}
+
+/**
+ * Validates a partial recipe update before writing to Supabase.
+ * @param data - Fields to merge into `recipes`
+ * @returns Typed update payload
+ * @throws {CloudParseError} When fields are invalid
+ */
+export function parseCloudRecipeUpdate(data: unknown): Partial<CloudRecipe> & { id: string } {
+  return parseOrThrow(CloudRecipeUpdateSchema.safeParse(data), 'cloud recipe update');
+}
+
+/**
+ * Validates sync summary rows from {@link CloudService.getAllRecipeSummaries}.
+ * @param data - Raw array from Supabase
+ * @returns Typed summary rows
+ * @throws {CloudParseError} When any row fails validation
+ */
+export function parseCloudRecipeSyncSummaryRows(data: unknown): CloudRecipeSyncSummary[] {
+  return parseOrThrow(z.array(CloudRecipeSyncSummarySchema).safeParse(data), 'cloud recipe summaries');
+}
 
 /**
  * Check if a recipe is active.

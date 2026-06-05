@@ -10,9 +10,11 @@
  * Some fields are nullable to allow for AI assistance to fill in missing values.
  *
  * The Recipe schemas are considered "common" and may be imported by other schemas. To prevent
- * circular imports, DO NOT import any other schemas into this file.
+ * circular imports, DO NOT import domain schemas into this file.
+ * Exception: {@link supabaseTimestamptzSchema} from `common` (no recipe dependency).
  */
 
+import { supabaseTimestamptzSchema } from '$lib/api/common/common.schemas';
 import { z } from 'zod';
 
 export const CATEGORY_TAGS = {
@@ -76,8 +78,8 @@ export const RecipeRootSchema = z.object({
 export const RecipeSummarySchema = RecipeRootSchema.extend({
   /** Primary id (UUID). Used to link to the suggestion in the suggestion history. */
   id: z.uuid(),
-  created_at: z.iso.datetime(),
-  last_opened: z.iso.datetime().optional()
+  created_at: supabaseTimestamptzSchema,
+  last_opened: supabaseTimestamptzSchema.optional()
 });
 
 /**
@@ -88,13 +90,11 @@ export const RecipeSchema = RecipeRootSchema.extend({
   description: z.string().describe('Two to three sentence description with additional commentary or suggested pairings'),
   ingredients: z
     .string()
-    .min(1)
     .describe(
       "Markdown dash-space list of ingredients. Optional '### Section' headings allowed for multi-part recipes. DO NOT use 'Ingredients' as a heading. No bullets (•)."
     ),
   instructions: z
     .string()
-    .min(1)
     .describe(
       "Markdown numbered list of instructions. Optional '### Section' headings allowed for multi-part recipes. DO NOT use 'Instructions' as a heading. No H1/H2 headings."
     ),
@@ -112,7 +112,7 @@ export const RecipeSchema = RecipeRootSchema.extend({
   cook_time: z
     .array(z.string())
     .describe('Cooking time in minutes. Use a second value for a range, e.g. "10-15 minutes" is represented as ["10", "15"]'),
-  notes: z.string().describe('Plain Markdown. DO NOT use "Notes" as the heading.')
+  notes: z.string().nullable().describe('Plain Markdown. DO NOT use "Notes" as the heading.')
 });
 
 /**
@@ -123,15 +123,15 @@ export const SavedRecipeSchema = RecipeSchema.extend({
   /** Primary id (UUID). */
   id: z.uuid(),
   /** Creation timestamp. Automatically set by supabase trigger functions. */
-  created_at: z.iso.datetime(),
+  created_at: supabaseTimestamptzSchema,
   /** Update timestamp. Automatically set by supabase trigger functions. */
-  updated_at: z.iso.datetime().nullable(),
+  updated_at: supabaseTimestamptzSchema.nullable(),
   /** Optional archived timestamp. Cloud backup: Recipe is not saved locally. Requires cloud_storage permission. */
-  archived: z.iso.datetime().nullable(),
+  archived: supabaseTimestamptzSchema.nullable(),
   /** Optional deletion timestamp. */
-  deleted_at: z.iso.datetime().nullable(),
+  deleted_at: supabaseTimestamptzSchema.nullable(),
   /** Timestamp indicating when the recipe was last opened. */
-  last_opened: z.iso.datetime().nullable(),
+  last_opened: supabaseTimestamptzSchema.nullable(),
   /** Monotonically increasing version number used for edits.
    * @todo Requires repo of recipe versions -- supabase users only
    */
@@ -141,21 +141,31 @@ export const SavedRecipeSchema = RecipeSchema.extend({
   /** Marks whether this row is the current active version. */
   is_current: z.boolean(),
   /** Whether the recipe is favorited in the UI. */
-  is_favorite: z.boolean(),
-  /** Owner id when synced to the cloud. Automatically set by supabase trigger functions. */
+  is_favorite: z.boolean().nullable(),
+  /** Owner id when synced to the cloud. Automatically set by supabase trigger functions. `owner_id` is required for cloud sync. */
   owner_id: z.uuid().nullable(),
   /** Shared id for public/shared recipes. */
   shared_id: z.string().nullable(),
   /** Whether the recipe has been synced to remote. */
   synced: z.boolean().nullable(),
   /** Last sync timestamp. Automatically set by supabase trigger functions. */
-  last_synced_at: z.iso.datetime().nullable(),
+  last_synced_at: supabaseTimestamptzSchema.nullable(),
   /** Error message from last sync attempt, if any. */
   sync_error: z.string().nullable(),
   /** History of checkout/made this today dates. */
-  checkout_history: z.array(z.iso.datetime()).nullable()
+  checkout_history: z.array(supabaseTimestamptzSchema).nullable()
 });
 
+/** Fields returned by {@link CloudService.getAllRecipeSummaries} for sync comparison. */
+export const CloudRecipeSyncSummarySchema = RecipeRootSchema.extend({
+  id: z.uuid(),
+  last_synced_at: supabaseTimestamptzSchema
+});
+
+/**
+ * Cloud `recipes` row with required `owner_id`.
+ * @remarks Invalid legacy rows must be corrected in product UI — see **CLD-4** in `docs/api-layer-filename-alignment-gaps.md`.
+ */
 export const CloudRecipeSchema = SavedRecipeSchema.extend({
   /** Owner id when synced to the cloud. Automatically set by supabase trigger functions. */
   owner_id: z.uuid()

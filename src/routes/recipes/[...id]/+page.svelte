@@ -341,7 +341,7 @@
    */
   function toggleFavorite() {
     if (!recipe) return;
-    saveChanges(true, { is_favorite: !recipe.is_favorite });
+    saveChanges(true, { is_favorite: recipe.is_favorite === true ? false : true });
   }
 
   /** Revert the user's indication of whether they made this today */

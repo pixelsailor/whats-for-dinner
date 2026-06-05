@@ -68,7 +68,7 @@ export function categorizeRecipes(recipes: SavedRecipe[], options: CategorizeRec
 
   const ctx = (list: SavedRecipe[]) => filterByMealContext(list, mealTag, useMealContext);
 
-  const favoriteRecipes = base.filter((r) => r.is_favorite);
+  const favoriteRecipes = base.filter((r) => r.is_favorite === true);
   const favorites = shuffleAndTake(ctx(favoriteRecipes), 8);
 
   const recentlyAddedRecipes = base.filter((r) => {

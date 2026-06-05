@@ -19,7 +19,7 @@
       <div class="flex items-center gap-2">
         <Checkbox labelText="Remember me" id="remember-me" checked={rememberMe} />
       </div>
-      <Button type="submit" class="primary w-full" disabled={!email || !password}>Sign in</Button>
+      <Button type="submit" class="primary w-full">Sign in</Button>
     </form>
   </Card>
 </div>

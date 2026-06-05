@@ -1,11 +1,21 @@
+/**
+ * @fileoverview Remote Supabase I/O for recipe backup, sync, archive, and sharing.
+ * @module lib/api/cloud/cloud.service
+ */
+
 import { SupabaseClient } from '@supabase/supabase-js';
 
-import type { Recipe, SavedRecipe } from '../recipe/recipe.types';
-import { generateShareToken } from './cloud.model';
-
-type AugmentedSavedRecipe = SavedRecipe & {
-  last_synced_at: string;
-};
+import type { CloudRecipe, CloudRecipeSyncSummary, Recipe, SavedRecipe } from '../recipe/recipe.types';
+import {
+  generateShareToken,
+  parseCloudRecipe,
+  parseCloudRecipeMaybe,
+  parseCloudRecipeRows,
+  parseCloudRecipeSyncSummaryRows,
+  parseCloudRecipeUpdate,
+  parseCloudRecipeUpload,
+  parseSharedRecipeRows
+} from './cloud.model';
 
 /**
  * Cloud Service
@@ -53,8 +63,8 @@ export class CloudService {
    *
    * @returns The recipe summaries.
    */
-  async getAllRecipeSummaries(): Promise<AugmentedSavedRecipe[]> {
-    const { data, error }: { data: Partial<SavedRecipe>[] | null; error: Error | null } = await this.supabase
+  async getAllRecipeSummaries(): Promise<CloudRecipeSyncSummary[]> {
+    const { data, error } = await this.supabase
       .from('recipes')
       .select('title, short_description, id, last_synced_at')
       .eq('owner_id', this._userId)
@@ -62,7 +72,7 @@ export class CloudService {
 
     if (error) throw error;
 
-    return (data as AugmentedSavedRecipe[]) ?? [];
+    return parseCloudRecipeSyncSummaryRows(data ?? []);
   }
 
   /**
@@ -78,17 +88,19 @@ export class CloudService {
 
     const token = generateShareToken();
 
-    const { error } = await this.supabase
+    const { data, error } = await this.supabase
       .from('shared_links')
       .insert({
         token,
         recipe_id: recipe.id,
-        user_id: recipe.owner_id,
+        user_id: this._userId,
         expires_at: expiresAt ? expiresAt : null
       })
       .select();
 
     if (error) throw error;
+
+    parseSharedRecipeRows(data);
 
     return { token, url: `/share/${token}` };
   }
@@ -111,8 +123,8 @@ export class CloudService {
    *
    * @returns The archived recipes.
    */
-  async getArchivedRecipes(): Promise<SavedRecipe[] | null> {
-    const { data, error }: { data: SavedRecipe[] | null; error: Error | null } = await this.supabase
+  async getArchivedRecipes(): Promise<CloudRecipe[] | null> {
+    const { data, error } = await this.supabase
       .from('recipes')
       .select('*')
       .eq('owner_id', this._userId)
@@ -120,7 +132,7 @@ export class CloudService {
 
     if (error) throw error;
 
-    return data;
+    return parseCloudRecipeRows(data);
   }
 
   /**
@@ -129,8 +141,8 @@ export class CloudService {
    * @param recipeId - The id of the recipe to download.
    * @returns The recipe.
    */
-  async downloadArchivedRecipe(recipeId: string): Promise<SavedRecipe | null> {
-    const { data, error }: { data: SavedRecipe | null; error: Error | null } = await this.supabase
+  async downloadArchivedRecipe(recipeId: string): Promise<CloudRecipe | null> {
+    const { data, error } = await this.supabase
       .from('recipes')
       .select('*')
       .eq('owner_id', this._userId)
@@ -139,7 +151,7 @@ export class CloudService {
 
     if (error) throw error;
 
-    return data;
+    return parseCloudRecipe(data);
   }
 
   /**
@@ -147,15 +159,15 @@ export class CloudService {
    * @param recipe - Local recipe row to upload.
    * @returns Recipe payload safe to send to Supabase.
    */
-  prepareRecipeForUpload(recipe: Recipe | SavedRecipe): SavedRecipe {
+  prepareRecipeForUpload(recipe: Recipe | SavedRecipe): CloudRecipe {
     const saved = recipe as SavedRecipe;
 
-    return {
+    return parseCloudRecipeUpload({
       ...saved,
-      owner_id: saved.owner_id ?? this._userId,
+      owner_id: this._userId,
       synced: true,
       sync_error: null
-    };
+    });
   }
 
   /**
@@ -165,13 +177,13 @@ export class CloudService {
    *
    * @param recipe - The recipe to sync.
    */
-  async uploadLocalRecipe(recipe: Recipe | SavedRecipe): Promise<SavedRecipe> {
+  async uploadLocalRecipe(recipe: Recipe | SavedRecipe): Promise<CloudRecipe> {
     const payload = this.prepareRecipeForUpload(recipe);
     const { data, error } = await this.supabase.from('recipes').upsert(payload).select().single();
 
     if (error) throw error;
 
-    return data;
+    return parseCloudRecipe(data);
   }
 
   /**
@@ -179,13 +191,13 @@ export class CloudService {
    *
    * @param recipes - The recipes to sync.
    */
-  async uploadAllLocalRecipes(recipes: SavedRecipe[]): Promise<SavedRecipe[] | null> {
+  async uploadAllLocalRecipes(recipes: SavedRecipe[]): Promise<CloudRecipe[] | null> {
     const payload = recipes.map((recipe) => this.prepareRecipeForUpload(recipe));
     const { data, error } = await this.supabase.from('recipes').upsert(payload).select();
 
     if (error) throw error;
 
-    return data;
+    return parseCloudRecipeRows(data);
   }
 
   /**
@@ -194,8 +206,15 @@ export class CloudService {
    * @param recipeData - The recipe data to update.
    * @returns The updated recipe.
    */
-  async updateRecipe(recipeData: Partial<SavedRecipe> & { id: string }): Promise<SavedRecipe> {
-    const { data, error } = await this.supabase.from('recipes').update(recipeData).eq('id', recipeData.id).eq('owner_id', this._userId).select().maybeSingle();
+  async updateRecipe(recipeData: Partial<SavedRecipe> & { id: string }): Promise<CloudRecipe> {
+    const validatedUpdate = parseCloudRecipeUpdate(recipeData);
+    const { data, error } = await this.supabase
+      .from('recipes')
+      .update(validatedUpdate)
+      .eq('id', validatedUpdate.id)
+      .eq('owner_id', this._userId)
+      .select()
+      .maybeSingle();
 
     if (error) throw error;
 
@@ -203,7 +222,7 @@ export class CloudService {
       throw new Error('Recipe not found in cloud or not owned by the current user');
     }
 
-    return data;
+    return parseCloudRecipe(data);
   }
 
   /**
@@ -211,8 +230,8 @@ export class CloudService {
    *
    * @returns The synced recipes or null if there was an error.
    */
-  async downloadAllRemoteRecipes(): Promise<SavedRecipe[] | null> {
-    const { data, error }: { data: SavedRecipe[] | null; error: Error | null } = await this.supabase
+  async downloadAllRemoteRecipes(): Promise<CloudRecipe[] | null> {
+    const { data, error } = await this.supabase
       .from('recipes')
       .select('*')
       .eq('owner_id', this._userId)
@@ -220,7 +239,7 @@ export class CloudService {
 
     if (error) throw error;
 
-    return data;
+    return parseCloudRecipeRows(data);
   }
 
   /**
@@ -229,8 +248,8 @@ export class CloudService {
    * @param recipeId - The id of the recipe to download.
    * @returns The recipe or null if not found.
    */
-  async downloadRecipeById(recipeId: string): Promise<SavedRecipe | null> {
-    const { data, error }: { data: SavedRecipe | null; error: Error | null } = await this.supabase
+  async downloadRecipeById(recipeId: string): Promise<CloudRecipe | null> {
+    const { data, error } = await this.supabase
       .from('recipes')
       .select('*')
       .eq('owner_id', this._userId)
@@ -239,7 +258,7 @@ export class CloudService {
 
     if (error) throw error;
 
-    return data;
+    return parseCloudRecipeMaybe(data);
   }
 
   /**
@@ -249,8 +268,8 @@ export class CloudService {
    * @param sharedId - Token stored on `recipes.shared_id` (synced from `shared_links`).
    * @returns The recipe row, or null when none matches.
    */
-  async downloadRecipeBySharedId(sharedId: string): Promise<SavedRecipe | null> {
-    const { data, error }: { data: SavedRecipe | null; error: Error | null } = await this.supabase
+  async downloadRecipeBySharedId(sharedId: string): Promise<CloudRecipe | null> {
+    const { data, error } = await this.supabase
       .from('recipes')
       .select('*')
       .eq('shared_id', sharedId)
@@ -258,7 +277,7 @@ export class CloudService {
 
     if (error) throw error;
 
-    return data;
+    return parseCloudRecipeMaybe(data);
   }
 
   /**
@@ -270,8 +289,8 @@ export class CloudService {
    *
    * @returns The deleted recipes.
    */
-  async getDeletedRecipes(): Promise<SavedRecipe[] | null> {
-    const { data, error }: { data: SavedRecipe[] | null; error: Error | null } = await this.supabase
+  async getDeletedRecipes(): Promise<CloudRecipe[] | null> {
+    const { data, error } = await this.supabase
       .from('recipes')
       .select('*')
       .eq('owner_id', this._userId)
@@ -279,7 +298,7 @@ export class CloudService {
 
     if (error) throw error;
 
-    return data;
+    return parseCloudRecipeRows(data);
   }
 
   /**

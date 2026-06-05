@@ -71,11 +71,11 @@ Audit of `src/lib/api/**` against the layer conventions in [`src/lib/api/README.
 
 ### `cloud/cloud.service.ts` + `cloud.schemas.ts`
 
-|              |                                                                            |
-| ------------ | -------------------------------------------------------------------------- |
-| **Expected** | Service validates shared-link and recipe payloads with `cloud.schemas.ts`. |
-| **Actual**   | `SharedRecipeSchema` exists; service does not `safeParse` responses.       |
-| **Impact**   | Schemas file underused at the boundary named for integration.              |
+|              |                                                                                                                                                                                                                                              |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Expected** | Service validates shared-link and recipe payloads with Zod at the boundary.                                                                                                                                                                    |
+| **Actual**   | ~~`SharedRecipeSchema` exists; service does not `safeParse` responses.~~ **Resolved (CLD-2):** `cloud.model.ts` parsers validate `SharedRecipeSchema` and canonical `CloudRecipeSchema`; `CloudService` calls parsers on all recipe/shared-link I/O. |
+| **Impact**   | ~~Schemas file underused at the boundary named for integration.~~ Boundary validation aligned; recipe rows use `$lib/api/recipe` schemas (no cloud shadow row schema).                                                                          |
 
 ### `cloud/sync.service.ts`
 
@@ -119,8 +119,9 @@ Use this as a sequenced backlog. Items may be combined in one PR when touching t
 ### Cloud module
 
 - [x] **CLD-1** Move share token generation from `cloud.service.ts` to a pure helper in `cloud.model.ts` (or `cloud/share-token.ts`); service calls helper then Supabase insert.
-- [ ] **CLD-2** Apply `SharedRecipeSchema` (and recipe row schemas where appropriate) in `CloudService` methods via `safeParse`.
+- [x] **CLD-2** Apply `SharedRecipeSchema` (and recipe row schemas where appropriate) in `CloudService` methods via `safeParse`.
 - [ ] **CLD-3** (Related product gap) Tombstone-aware sync in `sync.service.ts` / `cloud.model.ts` — see **GAP-002** in [`readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md).
+- [ ] **CLD-4** Cloud sync validation repair UI: when `CloudParseError` identifies a failing cloud recipe (`recipeId`, `recipeTitle`, `fieldErrors`), surface it in the sync flow with a dialog and editable form fields so the user can correct invalid legacy data and retry sync — do not silently normalize rows at the schema boundary.
 
 ### Recipe module
 
@@ -151,10 +152,11 @@ Use this as a sequenced backlog. Items may be combined in one PR when touching t
 | **COM-2** / sync imports | `sync.service.ts` imports `ApiResponse` from `$lib/api/common` instead of `../ai`. |
 | **COM-3** / Supabase client | Removed unused `common.model.ts` singleton. [`common/README.md`](../src/lib/api/common/README.md) documents that Supabase clients come from `locals.supabase`, layout `data.supabase`, or service injection — not `$lib/api/common`. |
 
-### Cloud module (2026-06-03)
+### Cloud module (2026-06-04)
 
 | Item | Resolution |
 | ---- | ---------- |
+| **CLD-2** / service boundaries | `cloud.model.ts` exposes `parseSharedRecipe`, `parseCloudRecipe`, `parseCloudRecipeMaybe`, `parseCloudRecipeRows`, `parseCloudRecipeUpload`, `parseCloudRecipeUpdate`, and `parseCloudRecipeSyncSummaryRows` (Zod `safeParse`). `CloudService` validates all recipe and `shared_links` read/write paths; upload stamps `owner_id` from session. Recipe rows use canonical `CloudRecipeSchema` from `recipe.schemas.ts`; `CloudParseError` carries `recipeId`, `recipeTitle`, and `fieldErrors` for failing rows. Legacy repair UI tracked as **CLD-4**. Covered by `cloud.model.test.ts`. |
 | **CLD-1** / share tokens | `generateShareToken` and `encodeShareToken` live in `cloud.model.ts`; `CloudService.createSharedRecipeUrl` calls the helper then inserts into `shared_links`. Covered by `cloud.model.test.ts`. |
 
 ### Recipe module and API README (2026-06-03)

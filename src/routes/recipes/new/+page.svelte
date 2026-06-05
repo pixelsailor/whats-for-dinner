@@ -202,7 +202,7 @@
       cook_time: cookTime,
       ingredients: form.get('ingredients')?.toString() ?? '',
       instructions: form.get('instructions')?.toString() ?? '',
-      notes: form.get('notes')?.toString() ?? '',
+      notes: (form.get('notes')?.toString() ?? '').trim() || null,
       tags: $state.snapshot(tags)
     };
 

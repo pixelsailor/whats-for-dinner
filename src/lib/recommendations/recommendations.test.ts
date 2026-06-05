@@ -57,6 +57,17 @@ describe('categorizeRecipes', () => {
     expect(rows.map((r) => r.id)).toEqual(orderBefore);
   });
 
+  it('excludes recipes with null is_favorite from favorites', () => {
+    const rows = [
+      recipe({ id: 'fav', title: 'Fav', is_favorite: true }),
+      recipe({ id: 'unset', title: 'Unset', is_favorite: null }),
+      recipe({ id: 'off', title: 'Off', is_favorite: false })
+    ];
+    const cats = categorizeRecipes(rows, { mealTag: null, useMealContext: false });
+    const favoriteIds = cats.find((c) => c.id === 'favorites')?.recipes.map((r) => r.id) ?? [];
+    expect(favoriteIds).toEqual(['fav']);
+  });
+
   it('places last-cook 5 months ago only in the 2–6 month bucket, not the 6+ bucket', () => {
     const now = Date.now();
     const fiveMonthsAgo = new Date(now - 150 * msPerDay).toISOString();

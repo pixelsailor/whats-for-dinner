@@ -217,14 +217,17 @@ export function parseCloudRecipeSyncSummaryRows(data: unknown): CloudRecipeSyncS
 }
 
 /**
- * Check if a recipe is active.
- *
- * A recipe is active if it is not archived and not deleted.
- *
- * @param recipe - The recipe to check.
- * @returns True if the recipe is active, false otherwise.
+ * Whether a recipe is visible in active recipe lists (not archived, not soft-deleted).
+ * @param recipe - Local or cloud recipe row.
  */
 export const isActive = (recipe: SavedRecipe): boolean => !recipe.archived && !recipe.deleted_at;
+
+/**
+ * Whether a recipe participates in sync planning (active or tombstoned, but not archived).
+ * @param recipe - Local or cloud recipe row.
+ * @remarks Tombstoned rows must sync so deletes and restores propagate per ADR-005.
+ */
+export const isSyncable = (recipe: SavedRecipe): boolean => !recipe.archived;
 
 /**
  * Encode random bytes into a share link token using {@link SHARE_TOKEN_ALPHABET}.
@@ -262,6 +265,33 @@ export const categorizeConflict = (conflict: SyncConflict): ConflictResolution =
   const cloudUpdated = compareMillis(cloud.updated_at ?? '');
   const localSynced = compareMillis(local.last_synced_at ?? '');
   const cloudSynced = compareMillis(cloud.last_synced_at ?? '');
+
+  const localDeleted = Boolean(local.deleted_at);
+  const cloudDeleted = Boolean(cloud.deleted_at);
+
+  if (localDeleted !== cloudDeleted) {
+    if (localDeleted) {
+      if (localUpdated > cloudUpdated) {
+        return { conflict, action: 'upload', reason: 'local-tombstone-newer' };
+      }
+
+      if (cloudUpdated > localUpdated) {
+        return { conflict, action: 'download', reason: 'cloud-active-or-restored-newer' };
+      }
+
+      return { conflict, action: 'manual', reason: 'delete-state-mismatch-equal-timestamps' };
+    }
+
+    if (cloudUpdated > localUpdated) {
+      return { conflict, action: 'download', reason: 'cloud-tombstone-newer' };
+    }
+
+    if (localUpdated > cloudUpdated) {
+      return { conflict, action: 'upload', reason: 'local-active-or-restored-newer' };
+    }
+
+    return { conflict, action: 'manual', reason: 'delete-state-mismatch-equal-timestamps' };
+  }
 
   const localNeverSynced = !local.last_synced_at;
   const cloudNeverSynced = !cloud.last_synced_at;
@@ -318,8 +348,8 @@ export const categorizeConflict = (conflict: SyncConflict): ConflictResolution =
  *
  * The sync plan is a list of recipes that need to be uploaded, downloaded, or have conflicts.
  *
- * @param localRecipes - The local recipes to sync.
- * @param remoteRecipes - The remote recipes to sync.
+ * @param localRecipes - Syncable local rows (active and tombstoned; archived excluded).
+ * @param remoteRecipes - Syncable remote rows (active and tombstoned; archived excluded).
  * @returns The sync plan.
  */
 export const buildSyncPlan = (localRecipes: SavedRecipe[], remoteRecipes: SavedRecipe[]): SyncPlan => {

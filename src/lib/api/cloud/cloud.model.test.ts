@@ -1,8 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import type { CloudRecipe } from '../recipe/recipe.types';
+import type { CloudRecipe, SavedRecipe } from '../recipe/recipe.types';
 import {
+  buildSyncPlan,
+  categorizeConflict,
   CloudParseError,
+  isActive,
+  isSyncable,
   SHARE_TOKEN_ALPHABET,
   SHARE_TOKEN_BYTE_LENGTH,
   encodeShareToken,
@@ -228,5 +232,138 @@ describe('generateShareToken', () => {
     for (const char of generateShareToken()) {
       expect(SHARE_TOKEN_ALPHABET).toContain(char);
     }
+  });
+});
+
+const syncRecipe = (overrides: Partial<SavedRecipe> = {}): SavedRecipe => ({
+  ...sampleCloudRecipe,
+  ...overrides
+});
+
+describe('isActive and isSyncable', () => {
+  it('treats tombstoned rows as inactive but syncable', () => {
+    const tombstoned = syncRecipe({ deleted_at: '2024-02-01T12:00:00.000Z' });
+
+    expect(isActive(tombstoned)).toBe(false);
+    expect(isSyncable(tombstoned)).toBe(true);
+  });
+
+  it('excludes archived rows from both helpers', () => {
+    const archived = syncRecipe({ archived: '2024-02-01T12:00:00.000Z' });
+
+    expect(isActive(archived)).toBe(false);
+    expect(isSyncable(archived)).toBe(false);
+  });
+});
+
+describe('buildSyncPlan tombstones', () => {
+  it('includes local-only tombstones for upload', () => {
+    const localTombstone = syncRecipe({
+      id: '11111111-1111-4111-8111-111111111111',
+      deleted_at: '2024-02-01T12:00:00.000Z',
+      updated_at: '2024-02-01T12:00:00.000Z',
+      last_synced_at: '2024-01-15T12:00:00.000Z',
+      synced: false
+    });
+
+    const plan = buildSyncPlan([localTombstone], []);
+
+    expect(plan.localOnly).toEqual([localTombstone]);
+    expect(plan.cloudOnly).toEqual([]);
+  });
+
+  it('includes cloud-only tombstones for download', () => {
+    const cloudTombstone = syncRecipe({
+      id: '22222222-2222-4222-8222-222222222222',
+      deleted_at: '2024-02-01T12:00:00.000Z',
+      updated_at: '2024-02-01T12:00:00.000Z',
+      last_synced_at: '2024-02-01T12:00:00.000Z'
+    });
+
+    const plan = buildSyncPlan([], [cloudTombstone]);
+
+    expect(plan.cloudOnly).toEqual([cloudTombstone]);
+    expect(plan.localOnly).toEqual([]);
+  });
+
+  it('flags tombstone drift as conflicts when sync timestamps differ', () => {
+    const local = syncRecipe({
+      deleted_at: '2024-02-01T12:00:00.000Z',
+      updated_at: '2024-02-01T12:00:00.000Z',
+      last_synced_at: '2024-01-15T12:00:00.000Z',
+      synced: false
+    });
+    const cloud = syncRecipe({
+      deleted_at: null,
+      updated_at: '2024-01-20T12:00:00.000Z',
+      last_synced_at: '2024-01-20T12:00:00.000Z'
+    });
+
+    const plan = buildSyncPlan([local], [cloud]);
+
+    expect(plan.conflicts).toHaveLength(1);
+    expect(plan.autoResolvable[0]).toMatchObject({ action: 'upload', reason: 'local-tombstone-newer' });
+  });
+});
+
+describe('categorizeConflict tombstones', () => {
+  it('uploads a newer local tombstone over an active cloud row', () => {
+    const resolution = categorizeConflict({
+      local: syncRecipe({
+        deleted_at: '2024-02-01T12:00:00.000Z',
+        updated_at: '2024-02-01T12:00:00.000Z'
+      }),
+      cloud: syncRecipe({
+        deleted_at: null,
+        updated_at: '2024-01-20T12:00:00.000Z'
+      })
+    });
+
+    expect(resolution).toMatchObject({ action: 'upload', reason: 'local-tombstone-newer' });
+  });
+
+  it('downloads a newer cloud tombstone over an active local row', () => {
+    const resolution = categorizeConflict({
+      local: syncRecipe({
+        deleted_at: null,
+        updated_at: '2024-01-20T12:00:00.000Z'
+      }),
+      cloud: syncRecipe({
+        deleted_at: '2024-02-01T12:00:00.000Z',
+        updated_at: '2024-02-01T12:00:00.000Z'
+      })
+    });
+
+    expect(resolution).toMatchObject({ action: 'download', reason: 'cloud-tombstone-newer' });
+  });
+
+  it('uploads a local restore when the active row is newer than a cloud tombstone', () => {
+    const resolution = categorizeConflict({
+      local: syncRecipe({
+        deleted_at: null,
+        updated_at: '2024-03-01T12:00:00.000Z'
+      }),
+      cloud: syncRecipe({
+        deleted_at: '2024-02-01T12:00:00.000Z',
+        updated_at: '2024-02-01T12:00:00.000Z'
+      })
+    });
+
+    expect(resolution).toMatchObject({ action: 'upload', reason: 'local-active-or-restored-newer' });
+  });
+
+  it('downloads a cloud restore when the active row is newer than a local tombstone', () => {
+    const resolution = categorizeConflict({
+      local: syncRecipe({
+        deleted_at: '2024-02-01T12:00:00.000Z',
+        updated_at: '2024-02-01T12:00:00.000Z'
+      }),
+      cloud: syncRecipe({
+        deleted_at: null,
+        updated_at: '2024-03-01T12:00:00.000Z'
+      })
+    });
+
+    expect(resolution).toMatchObject({ action: 'download', reason: 'cloud-active-or-restored-newer' });
   });
 });

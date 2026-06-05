@@ -7,7 +7,7 @@ The Cloud API service layer provides comprehensize recipe mangagement functional
 ## Responsibilities
 
 - `CloudService`: remote-only Supabase access (recipes CRUD, archived recipes, shared links). No Dexie usage.
-- Sync model (`cloud.model.ts`): pure helpers like `buildSyncPlan` and `isActive` to compare local vs remote data without side effects.
+- Sync model (`cloud.model.ts`): pure helpers like `buildSyncPlan`, `isActive` (list views), and `isSyncable` (sync planning, includes tombstones) to compare local vs remote data without side effects.
 - `SyncService`: orchestration layer that coordinates Dexie (local) with `CloudService` (remote) using the sync model.
 
 ## Supabase Trigger Functions

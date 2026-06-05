@@ -120,7 +120,7 @@ Use this as a sequenced backlog. Items may be combined in one PR when touching t
 
 - [x] **CLD-1** Move share token generation from `cloud.service.ts` to a pure helper in `cloud.model.ts` (or `cloud/share-token.ts`); service calls helper then Supabase insert.
 - [x] **CLD-2** Apply `SharedRecipeSchema` (and recipe row schemas where appropriate) in `CloudService` methods via `safeParse`.
-- [ ] **CLD-3** (Related product gap) Tombstone-aware sync in `sync.service.ts` / `cloud.model.ts` — see **GAP-002** in [`readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md).
+- [x] **CLD-3** (Related product gap) Tombstone-aware sync in `sync.service.ts` / `cloud.model.ts` — see **GAP-002** in [`readme-adr-alignment-gaps.md`](./readme-adr-alignment-gaps.md).
 - [ ] **CLD-4** Cloud sync validation repair UI: when `CloudParseError` identifies a failing cloud recipe (`recipeId`, `recipeTitle`, `fieldErrors`), surface it in the sync flow with a dialog and editable form fields so the user can correct invalid legacy data and retry sync — do not silently normalize rows at the schema boundary.
 
 ### Recipe module
@@ -158,6 +158,12 @@ Use this as a sequenced backlog. Items may be combined in one PR when touching t
 | ---- | ---------- |
 | **CLD-2** / service boundaries | `cloud.model.ts` exposes `parseSharedRecipe`, `parseCloudRecipe`, `parseCloudRecipeMaybe`, `parseCloudRecipeRows`, `parseCloudRecipeUpload`, `parseCloudRecipeUpdate`, and `parseCloudRecipeSyncSummaryRows` (Zod `safeParse`). `CloudService` validates all recipe and `shared_links` read/write paths; upload stamps `owner_id` from session. Recipe rows use canonical `CloudRecipeSchema` from `recipe.schemas.ts`; `CloudParseError` carries `recipeId`, `recipeTitle`, and `fieldErrors` for failing rows. Legacy repair UI tracked as **CLD-4**. Covered by `cloud.model.test.ts`. |
 | **CLD-1** / share tokens | `generateShareToken` and `encodeShareToken` live in `cloud.model.ts`; `CloudService.createSharedRecipeUrl` calls the helper then inserts into `shared_links`. Covered by `cloud.model.test.ts`. |
+
+### Cloud module (2026-06-05)
+
+| Item | Resolution |
+| ---- | ---------- |
+| **CLD-3** / tombstone sync | `isSyncable` includes tombstoned rows in sync planning (archived still excluded). `SyncService.buildPlan` reads syncable local and remote rows via `getLocalSyncableRecipes` / `getRemoteSyncableRecipes`. `categorizeConflict` resolves delete/restore drift: newer tombstone wins over older active row; newer active row wins over older tombstone (restore). Remediates **GAP-002**. Covered by `cloud.model.test.ts`. |
 
 ### Recipe module and API README (2026-06-03)
 

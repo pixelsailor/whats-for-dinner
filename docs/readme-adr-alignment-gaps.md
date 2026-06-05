@@ -41,12 +41,12 @@ Suggested fields (adapt as needed):
 
 ### GAP-002
 
-- **Status:** Open
+- **Status:** Resolved (2026-06-05)
 - **Severity:** Major
 - **Source:** [ADR-005](../adrs/ADR-005-sync-and-conflict-resolution.md) soft delete and restore behavior
-- **Observed:** Current sync planning reads active recipes only, filtering out rows with `deleted_at` or `archived` before building the plan.
+- **Observed:** ~~Current sync planning reads active recipes only, filtering out rows with `deleted_at` or `archived` before building the plan.~~ **Resolved (CLD-3):** `isSyncable` includes tombstoned rows; `SyncService.buildPlan` and `categorizeConflict` propagate deletes and restores per ADR-005.
 - **Expected:** Sync planning should include tombstoned rows so deletes and restores propagate across devices and do not reappear as active data.
-- **Notes:** Affected area: `src/lib/api/cloud/sync.service.ts` and `src/lib/api/cloud/cloud.model.ts`; remediation should include tombstone-aware planning and tests for delete/restore propagation.
+- **Notes:** Affected area: `src/lib/api/cloud/sync.service.ts` and `src/lib/api/cloud/cloud.model.ts`. Tests in `cloud.model.test.ts` cover tombstone upload/download planning and delete/restore conflict resolution.
 - **Owner:** —
 
 ### GAP-005

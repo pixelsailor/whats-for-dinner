@@ -11,7 +11,7 @@
 import { db } from '$lib/db';
 import type { SavedRecipe } from '$lib/api/recipe';
 import { CloudService } from './cloud.service';
-import { buildSyncPlan, isActive } from './cloud.model';
+import { buildSyncPlan, isSyncable } from './cloud.model';
 import type { ConflictResolution, SyncConflict, SyncPlan } from './cloud.types';
 import type { ApiResponse } from '$lib/api/common';
 import { formatSyncError } from './sync-errors';
@@ -52,7 +52,7 @@ export class SyncService {
    * @returns The sync plan.
    */
   async buildPlan(): Promise<SyncPlan> {
-    const [localRecipes, remoteRecipes] = await Promise.all([this.getLocalActiveRecipes(), this.getRemoteActiveRecipes()]);
+    const [localRecipes, remoteRecipes] = await Promise.all([this.getLocalSyncableRecipes(), this.getRemoteSyncableRecipes()]);
 
     return buildSyncPlan(localRecipes, remoteRecipes);
   }
@@ -296,24 +296,24 @@ export class SyncService {
   }
 
   /**
-   * Get all active local recipes.
+   * Get local recipes that participate in sync (active and tombstoned; archived excluded).
    *
-   * @returns The active local recipes from the local database.
+   * @returns Syncable local rows from Dexie.
    */
-  private async getLocalActiveRecipes(): Promise<SavedRecipe[]> {
+  private async getLocalSyncableRecipes(): Promise<SavedRecipe[]> {
     const all = await db.recipes.toArray();
-    return all.filter(isActive);
+    return all.filter(isSyncable);
   }
 
   /**
-   * Get all active remote recipes from the cloud.
+   * Get remote recipes that participate in sync (active and tombstoned; archived excluded).
    *
-   * @returns The active remote recipes from the cloud.
+   * @returns Syncable remote rows from the cloud.
    */
-  private async getRemoteActiveRecipes(): Promise<SavedRecipe[]> {
+  private async getRemoteSyncableRecipes(): Promise<SavedRecipe[]> {
     const remote = await this.cloud.downloadAllRemoteRecipes();
     if (!remote) return [];
-    return remote.filter(isActive);
+    return remote.filter(isSyncable);
   }
 
   /**

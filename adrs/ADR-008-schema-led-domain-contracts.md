@@ -64,6 +64,8 @@ The repo already documents an intended layout in [`src/lib/api/README.md`](../sr
 
    **Decision test:** If the code talks to Supabase, validates domain payloads, encodes auth/permissions/capabilities for a product feature, or would naturally live beside an existing `$lib/api/<domain>/` service — it belongs in **`$lib/api`**, not **`$lib/utils`**.
 
+   **Wiring-only exception — [`src/lib/api/session/`](../src/lib/api/session/):** Session-bound Supabase **client factories** live in `session.model.ts` (no `*.service.ts`). This module **instantiates** clients at app boundaries; it does **not** perform auth, account, or cloud domain I/O. **`AuthService`**, **`AccountService`**, and **`CloudService`** receive an injected `SupabaseClient` from those boundaries — see ADR-004 **API module boundaries** and [`src/lib/api/session/README.md`](../src/lib/api/session/README.md). Do not add sign-in rules, profile queries, or recipe cloud mutations to `session/`.
+
 ### Explicit exclusions (required)
 
 - **UI-only tokens** (icon sizes, viewport layout state, view-state enums) may remain plain TypeScript where they are not serialized or stored as domain records.

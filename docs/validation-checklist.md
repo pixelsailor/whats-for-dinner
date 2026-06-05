@@ -152,7 +152,7 @@ Binding for orchestrated work per [GOVERNANCE.md §10.5](../adrs/GOVERNANCE.md#1
 - [ ] **CLD-01:** Cloud backup/sync/share fail gracefully: local data remains usable; errors are surfaced as enhancement failures, not app fatals.
 - [ ] **CLD-02:** Missing cloud permission disables cloud actions with distinct copy from “offline” or “logged out.”
 - [ ] **CLD-03:** Sync or backup code does not clear local recipe data because cloud is unreachable.
-- [ ] **CLD-04:** New Supabase usage uses `PUBLIC_SUPABASE_PUBLISHABLE_KEY` only and routes through documented client surfaces (**GAP-017** for factory consolidation).
+- [ ] **CLD-04:** New Supabase usage uses `PUBLIC_SUPABASE_PUBLISHABLE_KEY` only and routes through [`src/lib/api/session/`](../src/lib/api/session/) or [`createAnonymousCloudClient`](../src/lib/api/cloud/cloud.client.ts) (not ad hoc `createClient`).
 
 ---
 

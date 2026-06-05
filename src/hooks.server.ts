@@ -1,6 +1,5 @@
-import { PUBLIC_SUPABASE_PUBLISHABLE_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public';
-import { createServerClient } from '@supabase/ssr';
 import { AuthService } from '$lib/api/auth';
+import { createRequestServerClient, isSessionSerializedResponseHeader } from '$lib/api/session';
 import { getSessionPermissions } from '$lib/utils/session';
 import { type Handle, redirect } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
@@ -11,19 +10,17 @@ const supabase: Handle = async ({ event, resolve }) => {
    *
    * The Supabase client gets the Auth token from the request cookies.
    */
-  event.locals.supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
-    cookies: {
-      getAll: () => event.cookies.getAll(),
-      /**
-       * SvelteKit's cookies API requires `path` to be explicitly set in
-       * the cookie options. Setting `path` to `/` replicates previous/
-       * standard behavior.
-       */
-      setAll: (cookiesToSet) => {
-        cookiesToSet.forEach(({ name, value, options }) => {
-          event.cookies.set(name, value, { ...options, path: '/' });
-        });
-      }
+  event.locals.supabase = createRequestServerClient({
+    getAll: () => event.cookies.getAll(),
+    /**
+     * SvelteKit's cookies API requires `path` to be explicitly set in
+     * the cookie options. Setting `path` to `/` replicates previous/
+     * standard behavior.
+     */
+    setAll: (cookiesToSet) => {
+      cookiesToSet.forEach(({ name, value, options }) => {
+        event.cookies.set(name, value, { ...options, path: '/' });
+      });
     }
   });
 
@@ -40,7 +37,7 @@ const supabase: Handle = async ({ event, resolve }) => {
        * Supabase libraries use the `content-range` and `x-supabase-api-version`
        * headers, so we need to tell SvelteKit to pass it through.
        */
-      return name === 'content-range' || name === 'x-supabase-api-version';
+      return isSessionSerializedResponseHeader(name);
     }
   });
 };

@@ -3,13 +3,13 @@ description: >-
   Supabase as optional cloud enhancement (auth, backup, sync, share); local-first
   continuity; anon-only client surfaces; provider-agnostic seams per ADR-004.
 globs: >-
-  src/hooks.server.ts,src/routes/+layout.ts,src/routes/+layout.server.ts,src/lib/supabaseClient.ts,src/lib/api/common/**/*.ts,src/lib/api/cloud/**/*.ts,src/lib/api/account/**/*.ts,src/lib/api/auth/**/*.ts,src/routes/auth/**/*.ts,src/app.d.ts
+  src/hooks.server.ts,src/routes/+layout.ts,src/routes/+layout.server.ts,src/lib/api/session/**/*.ts,src/lib/api/cloud/**/*.ts,src/lib/api/account/**/*.ts,src/lib/api/auth/**/*.ts,src/routes/auth/**/*.ts,src/app.d.ts
 alwaysApply: false
 ---
 
 # Supabase enhancement boundary
 
-**Binding:** [ADR-004: Account and cloud enhancement model](../adrs/ADR-004-account-and-cloud-enhancement-model.md) (Accepted), [ADR-006: Serverless and secret boundary](../adrs/ADR-006-serverless-and-secret-boundary.md) (Accepted). **Local system of record:** [ADR-002](../adrs/ADR-002-local-data-ownership.md). **Product baseline:** [ADR-001](../adrs/ADR-001-product-operating-model.md). **Sync semantics:** [ADR-005](../adrs/ADR-005-sync-and-conflict-resolution.md) (Accepted). **Schemas at boundaries:** [ADR-008](../adrs/ADR-008-schema-led-domain-contracts.md). **Self-hosting:** [ADR-011](../adrs/ADR-011-self-hosting-provider-model.md) (Accepted). **Layering:** [`src/lib/api/cloud/README.md`](../src/lib/api/cloud/README.md), [`src/lib/api/README.md`](../src/lib/api/README.md).
+**Binding:** [ADR-004: Account and cloud enhancement model](../adrs/ADR-004-account-and-cloud-enhancement-model.md) (Accepted), [ADR-006: Serverless and secret boundary](../adrs/ADR-006-serverless-and-secret-boundary.md) (Accepted). **Local system of record:** [ADR-002](../adrs/ADR-002-local-data-ownership.md). **Product baseline:** [ADR-001](../adrs/ADR-001-product-operating-model.md). **Sync semantics:** [ADR-005](../adrs/ADR-005-sync-and-conflict-resolution.md) (Accepted). **Schemas at boundaries:** [ADR-008](../adrs/ADR-008-schema-led-domain-contracts.md). **Self-hosting:** [ADR-011](../adrs/ADR-011-self-hosting-provider-model.md) (Accepted). **Layering:** [`src/lib/api/session/README.md`](../src/lib/api/session/README.md), [`src/lib/api/cloud/README.md`](../src/lib/api/cloud/README.md), [`src/lib/api/README.md`](../src/lib/api/README.md).
 
 ## What Supabase is allowed to own
 
@@ -18,25 +18,25 @@ alwaysApply: false
 
 ## Wiring conventions
 
-- **Server request client:** `src/hooks.server.ts` attaches `event.locals.supabase` with `@supabase/ssr`, `PUBLIC_SUPABASE_PUBLISHABLE_KEY`, and validated session via `safeGetSession` (JWT checked with `getUser`, not session alone).
-- **Universal layout client:** `src/routes/+layout.ts` builds the browser Supabase client used by loads and UI with `PUBLIC_SUPABASE_PUBLISHABLE_KEY`; during SSR it still creates the `@supabase/ssr` layout client required by the Supabase SvelteKit pattern, but trusted `session` / `user` data comes from `+layout.server.ts` via `locals.safeGetSession`. **GAP-017** in [`docs/readme-adr-alignment-gaps.md`](../docs/readme-adr-alignment-gaps.md) tracks longer-term factory consolidation.
+- **Session client factories:** Cookie-backed clients are created through [`src/lib/api/session/`](../src/lib/api/session/) — do not call `createClient` or `@supabase/ssr` constructors directly in routes, hooks, or domain services.
+- **Anonymous cloud reads:** Server-only public paths use `createAnonymousCloudClient` from [`src/lib/api/cloud/cloud.client.ts`](../src/lib/api/cloud/cloud.client.ts).
+- **Server request client:** `src/hooks.server.ts` attaches `event.locals.supabase` via `createRequestServerClient`, with validated session via `safeGetSession` (JWT checked with `getUser`, not session alone).
+- **Universal layout client:** `src/routes/+layout.ts` builds `data.supabase` via `createLayoutBrowserClient` (browser) or `createLayoutServerClient` (SSR); trusted `session` / `user` data comes from `+layout.server.ts` via `locals.safeGetSession`.
 - **Privileged credentials:** use **only** browser-safe project keys in client and SSR client graphs; **never** import service-role or other privileged Supabase secrets into client graphs or shared modules ([ADR-006](../adrs/ADR-006-serverless-and-secret-boundary.md)).
-- **Remote recipe/cloud mutations:** prefer `CloudService` / `SyncService` under `src/lib/api/cloud/` (constructor-injected `SupabaseClient` + `userId`) rather than scattering ad hoc table access ([ADR-004](../adrs/ADR-004-account-and-cloud-enhancement-model.md) enforcement). Standalone `createClient` modules (e.g. `supabaseClient.ts`) should shrink over time, not multiply. **`$lib/api/common`** holds cross-domain schemas/types only — see [`src/lib/api/common/README.md`](../src/lib/api/common/README.md).
-- **Auth and session code:** Supabase JWT validation and sign-in/out belong in **`$lib/api/auth/`** (`AuthService`). Do **not** add auth or permission logic under `$lib/utils/` — see [ADR-008 §8](../adrs/ADR-008-schema-led-domain-contracts.md) and [`src/lib/utils/README.md`](../src/lib/utils/README.md).
+- **Remote recipe/cloud mutations:** prefer `CloudService` / `SyncService` under `src/lib/api/cloud/` (constructor-injected `SupabaseClient` + `userId`) rather than scattering ad hoc table access ([ADR-004](../adrs/ADR-004-account-and-cloud-enhancement-model.md) enforcement). **`$lib/api/common`** holds cross-domain schemas/types only — see [`src/lib/api/common/README.md`](../src/lib/api/common/README.md).
+- **Auth and session code:** Supabase JWT validation and sign-in/out belong in **`$lib/api/auth/`** (`AuthService`). Session **transport** (cookie adapters, layout client wiring) belongs in **`$lib/api/session/`**. Do **not** add auth or permission logic under `$lib/utils/` — see [ADR-008 §8](../adrs/ADR-008-schema-led-domain-contracts.md) and [`src/lib/utils/README.md`](../src/lib/utils/README.md).
 
 ## Auth, sharing, and backup — client surfaces
 
-**Authoritative wiring** for Supabase in the browser and on the server is the table below (supersedes older two-bullet summaries that named only `supabaseClient.ts` and `hooks.server.ts`).
+**Authoritative wiring** for Supabase in the browser and on the server is the table below.
 
-| Surface | Role | Typical files |
-| ------- | ---- | ------------- |
-| **`event.locals.supabase`** | Per-request SSR client (`@supabase/ssr` `createServerClient`, `PUBLIC_SUPABASE_PUBLISHABLE_KEY`). Cookie-backed session; used by **`safeGetSession`**, auth **form actions** (`signInWithPassword`, `verifyOtp`, etc.), and the **`authGuard`** chain that sets `event.locals.session`, `user`, and `permissions`. | [`src/hooks.server.ts`](../src/hooks.server.ts), [`src/routes/auth/+page.server.ts`](../src/routes/auth/+page.server.ts), [`src/routes/auth/confirm/+server.ts`](../src/routes/auth/confirm/+server.ts) |
-| **`data.supabase` from layout load** | Universal client: browser `createBrowserClient` or SSR branch `createServerClient` with `PUBLIC_SUPABASE_PUBLISHABLE_KEY`. Exposed to pages for session reads, **`CloudService` / `AccountService`**, and other layout consumers. Trusted SSR session/user values come from `+layout.server.ts`, which calls `locals.safeGetSession`; the SSR branch exists to keep the Supabase client available to layout consumers. | [`src/routes/+layout.ts`](../src/routes/+layout.ts), [`src/routes/+layout.server.ts`](../src/routes/+layout.server.ts) |
-| **`src/lib/supabaseClient.ts`** | Standalone `createClient` + `PUBLIC_SUPABASE_PUBLISHABLE_KEY` **without** the SSR cookie adapter — **narrow** use today (e.g. share-by-token API). **Not** the primary password/OTP login path. Prefer `locals.supabase` or layout-injected clients for new auth or user-scoped cloud work. | [`src/lib/supabaseClient.ts`](../src/lib/supabaseClient.ts), [`src/routes/api/share/[token]/+server.ts`](../src/routes/api/share/%5Btoken%5D/+server.ts) |
+| Surface | Factory | Role | Typical files |
+| ------- | ------- | ---- | ------------- |
+| **`event.locals.supabase`** | `createRequestServerClient` | Per-request SSR client. Cookie-backed session; used by **`safeGetSession`**, auth **form actions** (`signInWithPassword`, `verifyOtp`, etc.), and the **`authGuard`** chain that sets `event.locals.session`, `user`, and `permissions`. | [`src/hooks.server.ts`](../src/hooks.server.ts), [`src/routes/auth/+page.server.ts`](../src/routes/auth/+page.server.ts), [`src/routes/auth/confirm/+server.ts`](../src/routes/auth/confirm/+server.ts) |
+| **`data.supabase` from layout load** | `createLayoutBrowserClient` / `createLayoutServerClient` | Universal client for session reads, **`CloudService` / `AccountService`**, and other layout consumers. Trusted SSR session/user values come from `+layout.server.ts`. | [`src/routes/+layout.ts`](../src/routes/+layout.ts), [`src/routes/+layout.server.ts`](../src/routes/+layout.server.ts) |
+| **Anonymous server reads** | `createAnonymousCloudClient` | Server-only public cloud paths (e.g. share-by-token GET). **Not** for login or user-scoped cloud work. | [`src/routes/api/share/[token]/+server.ts`](../src/routes/api/share/%5Btoken%5D/+server.ts) |
 
-**Backup, sync, and sharing** behavior and layering: [ADR-004](../adrs/ADR-004-account-and-cloud-enhancement-model.md), [`src/lib/api/cloud/README.md`](../src/lib/api/cloud/README.md). **Secrets and which keys may appear in client graphs:** [ADR-006](../adrs/ADR-006-serverless-and-secret-boundary.md).
-
-**Legacy discrepancy:** Older docs omitted **`+layout.ts` / `data.supabase`** and implied **`supabaseClient.ts` owns “authentication at login.”** Current login flows use **`locals.supabase`**. The legacy anon-key split is resolved (**GAP-016**, 2026-06-05); factory sprawl remains **GAP-017** in [`docs/readme-adr-alignment-gaps.md`](../docs/readme-adr-alignment-gaps.md) and the [Supabase consolidation audit](../docs/readme-adr-alignment-gaps.md#supabase-consolidation-audit-2026-05-10).
+**Backup, sync, and sharing** behavior and layering: [ADR-004](../adrs/ADR-004-account-and-cloud-enhancement-model.md), [`src/lib/api/cloud/README.md`](../src/lib/api/cloud/README.md). **Session factory reference:** [`src/lib/api/session/README.md`](../src/lib/api/session/README.md). **Secrets and which keys may appear in client graphs:** [ADR-006](../adrs/ADR-006-serverless-and-secret-boundary.md).
 
 ## New and changed Supabase-related work
 

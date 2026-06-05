@@ -48,6 +48,20 @@ Supabase is an **optional enhancement provider** with the following scope:
 - **Cloud enhancement data:** Supabase stores account-linked backup/sync/share state for supported domains.
 - **Transient AI artifacts:** Suggestion artifacts remain local/transient per ADR-003 and are not promoted to cloud durable recipe data unless explicitly converted/saved as recipes.
 
+### API module boundaries — auth, session, and account
+
+Supabase-related code is split across **`$lib/api`** domains. The word **session** appears in product copy and module names; the roles below do not overlap.
+
+| Module | Path | Owns | Does **not** own |
+| ------ | ---- | ---- | ---------------- |
+| **Session** (transport) | [`src/lib/api/session/`](../src/lib/api/session/) | Cookie-backed **Supabase client factories** at SvelteKit wiring boundaries (`hooks.server.ts`, `+layout.ts`). `*.model.ts` only — no domain `*.service.ts`. | Sign-in, JWT validation, `user_profiles` / `user_preferences` I/O, permission policy, or cloud recipe operations. |
+| **Auth** (identity) | [`src/lib/api/auth/`](../src/lib/api/auth/) | `AuthService` on an **injected** client: sign-in/out, password change, **`getValidatedSession`** (JWT validated with `getUser`, not session object alone). | Client construction, profile/preference rows, or capability matrices in layout data. |
+| **Account** (profile data) | [`src/lib/api/account/`](../src/lib/api/account/) | `AccountService`: `user_profiles` permission flags and `user_preferences` rows; pure `hasPermission` helpers on validated profile shapes. | Login transport, SSR cookie adapters, or anonymous public cloud reads. |
+
+**Typical signed-in path:** session factories supply the client → auth establishes validated identity → account loads profile flags → layout/route surfaces cached permission flags for enhancement gating (httpOnly cookie helpers today in [`src/lib/utils/session.ts`](../src/lib/utils/session.ts), targeted migration to `$lib/api/auth/` per [GAP-026](../docs/readme-adr-alignment-gaps.md#gap-026)). **Cloud** ([`CloudService`](../src/lib/api/cloud/cloud.service.ts), [`SyncService`](../src/lib/api/cloud/sync.service.ts)) uses the same injected client for backup/sync/share — not the session module.
+
+**Naming:** In this ADR’s capability matrix, **session** means **signed-in state** (identity present). The **`session` API module** means **how that state is wired** through Supabase SSR cookies — distinct from auth business rules and account row data.
+
 ### Self-hosting compatibility boundary
 
 - Supabase-specific checks should be treated as current provider implementation details, not immutable product invariants.
@@ -96,7 +110,7 @@ Supabase is an **optional enhancement provider** with the following scope:
 ## Enforcement rules
 
 - **Cursor / agent rules:** Future “Supabase enhancement boundary” and “Self-hosting compatibility” rules should cite this ADR.
-- **Code / architecture:** Keep cloud operations behind service boundaries (`CloudService`, `SyncService` or successors); maintain local fallbacks in feature paths.
+- **Code / architecture:** Keep cloud operations behind service boundaries (`CloudService`, `SyncService` or successors); maintain local fallbacks in feature paths. Instantiate Supabase clients only through [`src/lib/api/session/`](../src/lib/api/session/) (cookie-backed) or [`cloud.client.ts`](../src/lib/api/cloud/cloud.client.ts) (anonymous server reads); route identity work through `AuthService`, profile data through `AccountService` — see **API module boundaries** above.
 - **When to revisit:** Introduction of new cloud providers, expanded sharing model, or product decision to require account for previously local capabilities.
 
 ## Supersession notes

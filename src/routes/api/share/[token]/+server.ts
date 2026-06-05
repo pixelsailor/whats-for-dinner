@@ -4,15 +4,20 @@
  */
 
 import { error, json } from '@sveltejs/kit';
-import { supabase } from '$lib/supabaseClient';
+import { createAnonymousCloudClient } from '$lib/api/cloud';
 
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ params }) => {
   const { token } = params;
+  const supabase = createAnonymousCloudClient();
 
   // Step 1: Find the recipe_id from the share token
-  const { data: link, error: linkErr } = await supabase.from('shared_links').select('recipe_id').eq('token', token).maybeSingle();
+  const { data: link, error: linkErr } = await supabase
+    .from('shared_links')
+    .select('recipe_id')
+    .eq('token', token)
+    .maybeSingle();
 
   if (linkErr || !link) {
     throw error(404, 'Link not found');

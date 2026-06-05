@@ -1,6 +1,6 @@
-import { createBrowserClient, createServerClient, isBrowser } from '@supabase/ssr';
-import { PUBLIC_SUPABASE_PUBLISHABLE_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public';
+import { isBrowser } from '@supabase/ssr';
 import { AuthService } from '$lib/api/auth';
+import { createLayoutBrowserClient, createLayoutServerClient } from '$lib/api/session';
 import type { LayoutLoad } from './$types';
 
 export const load: LayoutLoad = async ({ data, depends, fetch }) => {
@@ -12,21 +12,15 @@ export const load: LayoutLoad = async ({ data, depends, fetch }) => {
 
   const browser = isBrowser();
   const supabase = browser
-    ? createBrowserClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
-        global: {
-          fetch
-        }
-      })
-    : createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
-        global: {
-          fetch
-        },
-        cookies: {
+    ? createLayoutBrowserClient(fetch)
+    : createLayoutServerClient(
+        {
           getAll() {
             return data.cookies;
           }
-        }
-      });
+        },
+        fetch
+      );
 
   if (!browser) {
     return {

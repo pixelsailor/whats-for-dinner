@@ -35,13 +35,13 @@ For TanStack specifics, see **[`docs/tanstack-query.md`](../../../docs/tanstack-
 
 ### Boundary with other `src/lib/` folders
 
-| Folder | Use for | Not for |
-| ------ | ------- | ------- |
-| **`src/lib/api/<domain>/`** (this tree) | Schemas, types, domain models, injectable services, domain queries, auth/session/permission **Supabase** operations | Generic date/string/crypto helpers unrelated to a domain |
-| **`src/lib/utils/`** | Domain-agnostic pure helpers reused app-wide — see [`../utils/README.md`](../utils/README.md) | Auth, AI prompts, capability policy, Supabase I/O, or any code tied to a product API domain |
-| **`src/lib/utils.ts`** | Legacy only — **no new exports**; migrate to `utils/<name>.ts` or `$lib/api/<domain>/` when touched | New helpers of any kind |
-| **`src/lib/stores/`** | Dexie LiveQuery read models and mutation helpers over ADR-002 data | Parallel domain type definitions or remote API clients |
-| **`src/lib/types.ts`** | Cross-cutting non-entity contracts | Recipe, auth, account, or other domain entities |
+| Folder                                  | Use for                                                                                                             | Not for                                                                                     |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| **`src/lib/api/<domain>/`** (this tree) | Schemas, types, domain models, injectable services, domain queries, auth/session/permission **Supabase** operations | Generic date/string/crypto helpers unrelated to a domain                                    |
+| **`src/lib/utils/`**                    | Domain-agnostic pure helpers reused app-wide — see [`../utils/README.md`](../utils/README.md)                       | Auth, AI prompts, capability policy, Supabase I/O, or any code tied to a product API domain |
+| **`src/lib/utils.ts`**                  | Legacy only — **no new exports**; migrate to `utils/<name>.ts` or `$lib/api/<domain>/` when touched                 | New helpers of any kind                                                                     |
+| **`src/lib/stores/`**                   | Dexie LiveQuery read models and mutation helpers over ADR-002 data                                                  | Parallel domain type definitions or remote API clients                                      |
+| **`src/lib/types.ts`**                  | Cross-cutting non-entity contracts                                                                                  | Recipe, auth, account, or other domain entities                                             |
 
 **Placement test:** If you would name the file after a product domain (`auth`, `ai`, `cloud`, `account`, `recipe`, …) or it calls that domain's service/client, it belongs here — not in `$lib/utils`.
 
@@ -107,7 +107,13 @@ Accessing API services and models requires authorized user permissions. Anonymou
 
 ### [Common (cross-domain)](./common/README.md)
 
-Shared validation schemas and types (for example `ApiResponse`). **No** Supabase or other provider clients — those are wired in `hooks.server.ts`, `+layout.ts`, and injected into domain services.
+Shared validation schemas and types (for example `ApiResponse`). **No** Supabase or other provider clients — see the Supabase module below.
+
+### [Session client factories](./session/README.md)
+
+**Cookie-backed Supabase client wiring for hooks and layout**
+
+Factories for per-request SSR (`createRequestServerClient`) and universal layout (`createLayoutBrowserClient`, `createLayoutServerClient`). Anonymous public cloud reads use `createAnonymousCloudClient` in the [cloud](./cloud/) module. Domain services receive an injected `SupabaseClient` from these surfaces — see the session README for why this is separate from **auth**, **account**, and **cloud** services.
 
 ---
 
@@ -115,10 +121,10 @@ Shared validation schemas and types (for example `ApiResponse`). **No** Supabase
 
 **Core authentication and user management workflows**
 
-Handles login, password reset, registration, and MFA. Provides secure session management with Supabase authentication.
+Handles login, password reset, registration, and MFA. **Identity operations** on an injected Supabase client (not client wiring — that is [`./session/`](./session/README.md)).
 Refer to Supabase [JavaScript Client Library](https://supabase.com/docs/reference/javascript/introduction) documentation for **auth** guidance.
 
-**Module:** [`./auth/`](./auth/) — `AuthService` (sign-in, JWT validation via `getValidatedSession`, stale-session cleanup). Permission **cookie** helpers are still in [`../utils/session.ts`](../utils/session.ts) pending migration (**[GAP-026](../../../docs/readme-adr-alignment-gaps.md#gap-026)**).
+**Module:** [`./auth/`](./auth/) — `AuthService` (sign-in, JWT validation via `getValidatedSession`, stale-session cleanup). Profile rows and permission flags come from [`./account/`](./account/README.md). Permission **cookie** helpers are still in [`../utils/session.ts`](../utils/session.ts) pending migration (**[GAP-026](../../../docs/readme-adr-alignment-gaps.md#gap-026)**) — distinct from the **`session`** factory module.
 
 **Key Services**
 
@@ -155,13 +161,13 @@ End-to-end recipe management consists of three key areas: local, remote/cloud, A
 
 Primary recipe management including recipe CRUD workflows and recommendations using local IndexedDB data suitable for offline, unauthorized users without cloud or AI assisted recipe permissions.
 
-| Concern | Location |
-| ------- | -------- |
-| Validation contracts | `$lib/api/recipe` (`recipe.schemas.ts`, `recipe.types.ts`) |
-| Reactive reads (LiveQuery) | `$lib/stores/recipes.ts` and related stores |
-| Dexie schema / `db` instance | `$lib/db.ts` |
-| User-facing writes | Routes, form actions, and store or `db` helpers (prefer centralizing new `db.recipes` mutations in stores/db—not a `*.service.ts` file) |
-| Deterministic recommendations | `$lib/recommendations/` (reads Dexie-backed stores) |
+| Concern                       | Location                                                                                                                                |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Validation contracts          | `$lib/api/recipe` (`recipe.schemas.ts`, `recipe.types.ts`)                                                                              |
+| Reactive reads (LiveQuery)    | `$lib/stores/recipes.ts` and related stores                                                                                             |
+| Dexie schema / `db` instance  | `$lib/db.ts`                                                                                                                            |
+| User-facing writes            | Routes, form actions, and store or `db` helpers (prefer centralizing new `db.recipes` mutations in stores/db—not a `*.service.ts` file) |
+| Deterministic recommendations | `$lib/recommendations/` (reads Dexie-backed stores)                                                                                     |
 
 #### [Remote/Cloud Recipe Management](./cloud/README.md)
 

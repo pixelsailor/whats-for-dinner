@@ -12,7 +12,7 @@ alwaysApply: true
 
 **Binding:** [ADR-001: Product operating model](../adrs/ADR-001-product-operating-model.md) — non-blocking degraded UI; registered users offline/logged out. **Supporting:** [ADR-004: Account and cloud enhancement model](../adrs/ADR-004-account-and-cloud-enhancement-model.md) — continuity, graceful cloud unavailability; [ADR-010: Offline cache and service worker](../adrs/ADR-010-offline-cache-and-service-worker.md) — cold/warm/stale document cache, Cache Storage not SoT. **Sync:** [ADR-005: Sync and conflict resolution](../adrs/ADR-005-sync-and-conflict-resolution.md) (Accepted) — pending rows, reconnect propagation. **AI degradation:** [ADR-007: AI provider contract](../adrs/ADR-007-ai-provider-contract.md) — offline / no-AI behavior.
 
-**Known implementation drift:** [GAP-001](../docs/readme-adr-alignment-gaps.md) (offline slowness/timeouts), [GAP-016](../docs/readme-adr-alignment-gaps.md) (dual Supabase public keys; do not change key usage without browser-verified flows). See **Deferred — Supabase consolidation audit** in [`docs/readme-adr-alignment-gaps.md`](../docs/readme-adr-alignment-gaps.md) (`navigator.onLine` vs Supabase reachability).
+**Known implementation drift:** [GAP-001](../docs/readme-adr-alignment-gaps.md) (offline slowness/timeouts). See **Deferred — Supabase consolidation audit** in [`docs/readme-adr-alignment-gaps.md`](../docs/readme-adr-alignment-gaps.md) (`navigator.onLine` vs Supabase reachability). Dual Supabase public keys (**GAP-016**) resolved 2026-06-05.
 
 ## What this rule adds beyond “offline-first”
 

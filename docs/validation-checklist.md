@@ -119,7 +119,7 @@ Binding for orchestrated work per [GOVERNANCE.md §10.5](../adrs/GOVERNANCE.md#1
 **Refs:** [offline-connectivity-capability](../.cursor/rules/offline-connectivity-capability.mdc), ADR-001, ADR-004, ADR-007.
 
 - [ ] **NET-01:** UI does not collapse **offline**, **logged out**, **missing cloud/AI permission**, and **provider/sync failure** into a single misleading “offline” message.
-- [ ] **NET-02:** `navigator.onLine` is treated as a **hint** only; sync/cloud failures while online show provider/deferred state when surfaced (see **GAP-001**, **GAP-016**).
+- [ ] **NET-02:** `navigator.onLine` is treated as a **hint** only; sync/cloud failures while online show provider/deferred state when surfaced (see **GAP-001**).
 - [ ] **NET-03:** Gated surfaces subscribe or re-check on `online`/`offline`, visibility resume, or focus where the feature defers network work (not one-shot at mount only).
 - [ ] **NET-04:** Disabled controls show a short, honest reason (degraded) rather than a blocking global error for local-only paths.
 
@@ -152,7 +152,7 @@ Binding for orchestrated work per [GOVERNANCE.md §10.5](../adrs/GOVERNANCE.md#1
 - [ ] **CLD-01:** Cloud backup/sync/share fail gracefully: local data remains usable; errors are surfaced as enhancement failures, not app fatals.
 - [ ] **CLD-02:** Missing cloud permission disables cloud actions with distinct copy from “offline” or “logged out.”
 - [ ] **CLD-03:** Sync or backup code does not clear local recipe data because cloud is unreachable.
-- [ ] **CLD-04:** New Supabase usage documents which public key surface applies and does not expand dual-key drift without alignment-gap note (**GAP-016**, **GAP-017**).
+- [ ] **CLD-04:** New Supabase usage uses `PUBLIC_SUPABASE_PUBLISHABLE_KEY` only and routes through documented client surfaces (**GAP-017** for factory consolidation).
 
 ---
 

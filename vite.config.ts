@@ -1,5 +1,6 @@
 import tailwindcss from '@tailwindcss/vite';
 import devtoolsJson from 'vite-plugin-devtools-json';
+import { playwright } from '@vitest/browser-playwright';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 
@@ -11,10 +12,9 @@ export default defineConfig({
         extends: './vite.config.ts',
         test: {
           name: 'client',
-          environment: 'browser',
           browser: {
             enabled: true,
-            provider: 'playwright',
+            provider: playwright(),
             instances: [{ browser: 'chromium' }]
           },
           include: ['src/**/*.svelte.{test,spec}.{js,ts}'],

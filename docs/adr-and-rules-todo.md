@@ -149,11 +149,15 @@ This backlog turns the project principles in the top-level README into enforceab
   - Track expected coverage for unit, component, browser, offline, and integration-like flows.
   - **Done (2026-05-16):** [`docs/test-matrix-template.md`](./test-matrix-template.md) (canonical layer IDs: UNIT, COMP, INTG, OFFL; Vitest `server`/`client` projects; Playwright as Vitest browser provider only — standalone E2E not adopted). Per-run [`.cursor/orchestrations/_template/test-matrix.md`](../.cursor/orchestrations/_template/test-matrix.md) (planned → actual) and [`.cursor/orchestrations/_template/test-report.md`](../.cursor/orchestrations/_template/test-report.md). [`.cursor/rules/test-matrix.mdc`](../.cursor/rules/test-matrix.mdc); Planner/Tester/orchestration-artifacts contracts updated; [ADR `TEMPLATE.md`](../adrs/TEMPLATE.md) and [`.cursor/agents/INDEX.md`](../.cursor/agents/INDEX.md) reconciled to WFD artifact names (legacy `_TEST_MATRIX.md` retired).
 
+- [x] **Unblock Playwright on Ubuntu 26 (Vitest browser provider)**
+  - **Done (2026-06-05):** Pinned `playwright@1.61.0-alpha-2026-06-02` in [`package.json`](../package.json) (commit `ca72ae6`) to resolve Ubuntu 26 incompatibility with the Vitest **`client`** project (`vite.config.ts` → Playwright provider). `pnpm run test` passes all **COMP** specs (e.g. `src/routes/page.svelte.test.ts`) alongside **UNIT**/**INTG** server tests.
+  - **Scope:** Vitest component/browser tests only — not standalone `@playwright/test` E2E (see open item below).
+
 - [ ] **Adopt standalone Playwright Test (E2E) and update test matrix**
   - Add `@playwright/test` as a first-class runner (config, `e2e/` or equivalent layout, `package.json` scripts such as `test:e2e`, CI wiring) so full-app flows (offline smoke, auth-gated routes, multi-page journeys) can be automated beyond Vitest component/browser projects.
   - Update [`docs/test-matrix-template.md`](./test-matrix-template.md): promote **E2E** from reserved to required where applicable; document when **COMP** (Vitest browser) vs **E2E** (Playwright Test) applies; add commands and file patterns.
   - Sync [`.cursor/orchestrations/_template/test-matrix.md`](../.cursor/orchestrations/_template/test-matrix.md), [`.cursor/agents/tester.md`](../.cursor/agents/tester.md), [`.cursor/agents/INDEX.md`](../.cursor/agents/INDEX.md), [`.cursor/rules/test-matrix.mdc`](../.cursor/rules/test-matrix.mdc), and [`docs/validation-checklist.md`](./validation-checklist.md) (`TST-*`) so orchestrated runs expect E2E evidence when planned.
-  - **Note:** Playwright is already a **Vitest browser provider** (`vite.config.ts` → `client` project); this item is for **standalone** `@playwright/test`, not replacing component tests.
+  - **Note:** Playwright is already a **Vitest browser provider** (`vite.config.ts` → `client` project); this item is for **standalone** `@playwright/test`, not replacing component tests. Ubuntu 26 unblock (above) does not satisfy this item.
 
 - [x] **Define Plan-Build-Test-Validate roles**
   - Planner produces an executable plan and identifies relevant ADRs.

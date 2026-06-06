@@ -8,7 +8,7 @@
     {
       field: FormField;
       helperText?: string;
-      label?: string;
+      labelText?: string;
       onblur?: (event: FocusEvent) => void;
       onchange?: (event: Event) => void;
       oninput?: (event: Event) => void;
@@ -35,9 +35,8 @@
 
   let {
     field,
-    label,
+    labelText,
     helperText,
-    required,
     ref = $bindable(null),
     type = 'text',
     onblur: onBlurFn,
@@ -57,6 +56,7 @@
   let isDisabled = $derived(field.disabled);
   let isHidden = $derived(field.hidden);
   let isReadonly = $derived(field.readonly);
+  let isRequired = $derived(field.validators?.required);
 
   const onblur = (event: FocusEvent) => {
     field.handleBlur(event);
@@ -94,6 +94,7 @@ Example:
     name: 'first_name',
     value: '',
     validators: {
+      required: 'This field is required',
       onInput: (value) => value.length < 3 ? 'Minimum 3 characters' : null,
     }
   });
@@ -112,10 +113,10 @@ Example:
 ```
 -->
 <div class="form-field">
-  {#if label}
+  {#if labelText}
     <label for={field.name} class="label-large">
-      {label}
-      {#if required}
+      {labelText}
+      {#if isRequired}
         <span class="label-large text-destructive">*</span>
       {/if}
     </label>

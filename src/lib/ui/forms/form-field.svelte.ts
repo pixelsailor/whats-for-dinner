@@ -3,6 +3,11 @@
  * @module lib/ui/forms/form-field
  */
 
+// Old validation types -- may be reimplemented later for additional field value types.
+// type ValidatorName = 'onChange' | 'onBlur' | 'onInput' | 'onFocus' | 'required';
+// type Validators<T = string> = Record<keyof ValidatorName, ValidationFn<T>>;
+// type FieldValue = string | number | boolean;
+
 /**
  * A function that validates a value.
  * @param value - The value to validate.
@@ -10,24 +15,20 @@
  */
 export type ValidationFn<T = string> = (value: T) => null | string;
 
-/**
- * A validator name.
- */
-type ValidatorName = 'onChange' | 'onBlur' | 'onInput' | 'onFocus';
 
 /**
  * A validator for a field in the shape of `onChange: (value: T) => null | string`
  * where `string` is the error message if the value is invalid, otherwise null.
+ * Validation using `required` is given special handling to ensure it is always validated on blur.
+ * `required` will show it's value as the error message if the field is empty.
  */
-// type Validators<T = string> = Record<keyof ValidatorName, ValidationFn<T>>;
 interface Validators {
 	onChange?: ValidationFn<string>;
 	onBlur?: ValidationFn<string>;
 	onInput?: ValidationFn<string>;
 	onFocus?: ValidationFn<string>;
+	required?: string;
 }
-
-// type FieldValue = string | number | boolean;
 
 export default class FormField {
 	/** Current value of the field. */
@@ -63,6 +64,9 @@ export default class FormField {
 	/** Name and ID of the field. */
 	name = $state('');
 
+	/** Whether the field is required. */
+	required = $state(false);
+
 	/** Validators for the field. */
 	validators: Validators | undefined = undefined;
 
@@ -88,10 +92,19 @@ export default class FormField {
 	}
 
 	private _bindValidationHandlers() {
+		if (this.validators?.required) {
+			this.required = true;
+		}
+
 		this.handleBlur = (event: Event) => {
+			/** Always validate required field on blur. */
+			const value = (event.target as HTMLInputElement).value;
+			if (this.required) {
+				this.#validateRequired(value);
+			}
 			const validator = this.validators?.onBlur;
 			if (!validator) return;
-			this.#validateOnBlur((event.target as HTMLInputElement).value);
+			this.#validateOnBlur(value);
 		};
 		this.handleChange = (event: Event) => {
 			const validator = this.validators?.onChange;
@@ -150,6 +163,11 @@ export default class FormField {
 
 	#validateOnFocus(value: string) {
 		const error = this.validators?.onFocus?.(value);
+		this.#setFieldState(value, error ?? null);
+	}
+
+	#validateRequired(value: string) {
+		const error = value.length === 0 ? this.validators?.required : null;
 		this.#setFieldState(value, error ?? null);
 	}
 }

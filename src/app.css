@@ -125,7 +125,7 @@
   --shadow-input-focus: 0px 0px 1px 1px rgba(24, 24, 27, 0.17);
   --shadow-date-field-focus: var(--shadow-input-focus);
 
-  --shadow-ring: 1px 1px 1px 1px var(--accent)
+  --shadow-ring: 1px 1px 1px 1px var(--accent);
 
   --button-radius: 0.25rem;
   --button-height: 2.25rem;

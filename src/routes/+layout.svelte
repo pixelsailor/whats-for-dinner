@@ -9,7 +9,6 @@
 
   import { browser } from '$app/environment';
   import { invalidate } from '$app/navigation';
-  import { PUBLIC_QA_PW, PUBLIC_QA_USER } from '$env/static/public';
 
   import { CloudService, type ConflictResolution, type SyncConflict, type SyncPlan, SyncService } from '$lib/api/cloud';
   import { MIN_DESKTOP_SIZE } from '$lib/constants';
@@ -108,14 +107,6 @@
   const vp = new Viewport();
 
   setContext('viewport', vp);
-
-  let showLoginDialog = $state(false);
-
-  let email = $state(PUBLIC_QA_USER);
-  let password = $state(PUBLIC_QA_PW);
-  let loading = $state(false);
-  let error = $state('');
-  let success = $state('');
 
   let openCloudSyncDialog = $state(false);
   let syncDialogMode = $state<'none' | 'first-sync' | 'per-recipe'>('none');
@@ -479,7 +470,7 @@
       </NavigationMenu.List>
     </NavigationMenu.Root>
     <div class="mx-3 mt-8 mb-2">
-      <span class="heading-compact text-gray-500">Recent recipes</span>
+      <span class="heading-compact text-muted-foreground">Recent recipes</span>
     </div>
 
     {#if recentlyOpened.length === 0}
@@ -547,7 +538,7 @@
       {#if vp.layout === 'mobile--expanded'}
         <!-- Layout when mobile sidenav is expanded -->
         <div class="sidebar fixed inset-0 z-10 backdrop-blur-md">
-          <div class="h-full w-2xs border-gray-200 bg-gray-100 shadow-md dark:border-gray-700 dark:bg-gray-900">
+          <div class="h-full w-2xs bg-background-alt border-border shadow-md dark:border-gray-700 dark:bg-gray-900">
             {@render sidenav()}
           </div>
         </div>
@@ -555,7 +546,7 @@
         <!-- Layout when mobile sidenav is collapsed/hidden -->
       {:else if vp.layout === 'desktop--collapsed'}
         <!-- Layout when desktop sidenav is minimized -->
-        <div class="fixed h-full min-h-screen w-min flex-none border-r border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-900">
+        <div class="fixed h-full min-h-screen w-min flex-none border-r border-border bg-background-alt">
           <AppBar.Root>
             <AppBar.Start>
               <div class="ml-1">
@@ -581,7 +572,7 @@
         </div>
       {:else}
         <!-- Standard desktop Layout with sidenav expanded -->
-        <div class="fixed h-full min-h-screen w-2xs flex-none border-r border-gray-200 bg-gray-100 shadow-xs dark:border-gray-700 dark:bg-gray-900/50">
+        <div class="fixed h-full min-h-screen w-2xs flex-none border-r border-border bg-background-alt shadow-xs">
           {@render sidenav()}
         </div>
       {/if}

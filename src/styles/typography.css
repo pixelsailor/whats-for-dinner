@@ -106,6 +106,10 @@
   letter-spacing: 0.1;
 }
 
+.helper-text-container .helper-text {
+  line-height: 1.25;
+}
+
 /* Carbon DS type sets. Type set suffix has been removed. All class name belong to "02" (expressive). */
 /* See https://carbondesignsystem.com/elements/typography/type-sets/ for usage guidelines */
 

@@ -1,5 +1,9 @@
 ::placeholder {
-  @apply text-foreground-alt/80;
+  @apply text-muted-foreground;
+}
+
+input.invalid {
+  border-color: var(--destructive);
 }
 
 .form {
@@ -40,7 +44,7 @@
 
   .helper-text-container {
     position: absolute;
-    bottom: 0.25rem;
+    top: 4rem;
     left: 0;
     right: 0;
   }
@@ -114,31 +118,49 @@
 }
 
 .textinput {
-  @apply h-input-mobile md:h-input border-border-input hover:border-border-input-hover border bg-input-bg dark:border-gray-800;
-  border-radius: var(--radius-input);
+  @apply h-input-mobile md:h-input bg-input-bg rounded-input;
   padding: var(--padding-input-y) var(--padding-input-x);
 }
 
 .textarea {
-  @apply border-border-input hover:border-border-input-hover max-h-64 min-h-16 resize-y border bg-input-bg dark:border-gray-800;
+  /* @apply border-border-input hover:border-border-input-hover max-h-64 min-h-16 resize-y border bg-input-bg dark:border-gray-800; */
+  background-color: var(--input-bg);
+  border: 1px solid transparent;
   border-radius: var(--radius-input);
   padding: var(--padding-input-y) var(--padding-input-x);
 }
 
 .input-group {
+  @apply h-input-mobile md:h-input bg-input-bg rounded-input border border-border-input shadow-mini;
   display: flex;
   align-items: center;
-  height: var(--input-height-mobile);
-  background: var(--muted);
-  border-radius: var(--radius-input);
-  border: 1px solid var(--border-input);
 
   & > input {
     background: transparent;
     border: none;
-    outline: none;
     flex: 1;
     height: 100%;
+
+    &:focus,
+    &:focus-visible {
+      outline: none;
+      border-color: transparent;
+      -tw-ring-offset-width: 0px;
+      -tw-ring-offset-color: transparent;
+      box-shadow: none;
+    }
+  }
+
+  &:has(input:focus, input:focus-visible) {
+    @apply outline-hidden shadow-sm shadow-accent ring ring-accent/70;
+  }
+
+  &.invalid {
+    border-color: var(--destructive);
+
+    &:has(input:focus, input:focus-visible) {
+      @apply ring-warn;
+    }
   }
 
   @media (min-width: 768px) {

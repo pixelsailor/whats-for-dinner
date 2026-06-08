@@ -25,6 +25,10 @@ export const actions: Actions = {
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
 
+    if (email === 'qa@pixel-lab.dev' && password === '8hYP-J?#Pt939w') {
+      return fail(200, { message: `Nice try ;) but that login is not allowed.` });
+    }
+
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {

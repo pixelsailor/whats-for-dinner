@@ -1,26 +1,36 @@
 <script lang="ts">
   /* eslint-disable svelte/no-at-html-tags */
-  import { Label, Toggle } from 'bits-ui';
-  import ViewIcon from '../icons/View.svelte';
-  import ViewOffIcon from '../icons/ViewOff.svelte';
-  import type { InputFieldProps } from '../forms/types';
+  import type { HTMLInputAttributes } from 'svelte/elements';
+  import { Label, type WithElementRef } from 'bits-ui';
   import type { FormControlState } from '../form/types';
 
-  type Props = Omit<InputFieldProps, 'ref' | 'value'> & {
-    /** Wrapper `.form-field` element; the `<input>` uses an internal ref. */
-    ref?: HTMLElement | null;
-    control: FormControlState<string>;
-    showPassword?: boolean;
-  };
+  type TextInputProps = WithElementRef<
+    {
+      name: string;
+      control: FormControlState<string>;
+      labelText?: string | undefined;
+      labelRef?: HTMLLabelElement | null;
+      helperText?: string | undefined;
+      requiredText?: string | undefined;
+      validateOn?: 'input' | 'change';
+      minLength?: (value: string) => string | null;
+      maxLength?: (value: string) => string | null;
+      pattern?: (value: string) => string | null;
+      onblur?: (event: FocusEvent) => void;
+      onchange?: (event: Event) => void;
+      onfocus?: (event: FocusEvent) => void;
+      oninput?: (event: Event) => void;
+    } & Omit<HTMLInputAttributes, 'value' | 'class' | 'name' | 'pattern' | 'minlength' | 'maxlength' | 'onblur' | 'oninput'>,
+    HTMLInputElement
+  >;
 
   let {
-    ref = $bindable(null),
     control = $bindable(),
+    type = 'text',
     name,
-    helperText,
     labelText,
     labelRef = $bindable(null),
-    showPassword = $bindable(false),
+    helperText,
     disabled,
     required: requiredProp,
     requiredText,
@@ -33,7 +43,7 @@
     onfocus: onFocusFn,
     oninput: onInputFn,
     ...inputProps
-  }: Props = $props();
+  }: TextInputProps = $props();
 
   let inputRef = $state<HTMLInputElement>();
 
@@ -44,10 +54,8 @@
   let errorMessage = $state<string | undefined>(undefined);
 
   let touched = $state<boolean | undefined>();
-  
-  let dirty = $state<boolean | undefined>();
 
-  let pressed = $derived(showPassword);
+  let dirty = $state<boolean | undefined>();
 
   let onblur = (event: FocusEvent) => {
     onBlurFn?.(event);
@@ -84,6 +92,7 @@
       }
       if (msg) break;
     }
+    
     setInvalid(!inputRef?.validity.valid);
     setValid(inputRef?.validity.valid ?? false);
     setErrorMessage(inputRef?.validationMessage ?? '');
@@ -105,25 +114,7 @@
   }
 </script>
 
-<!--
-@component
-A password input component with optional built-in validators.
-
-Validation does not run until the configured interaction event fires (`validateOn`, default `blur`).
-Pass `oninput` / `onblur` to hook the same events without replacing value binding.
-
-Example:
-```svelte
-<Password name="password" bind:value={password} required />
-```
-
-Minimum length validator:
-```svelte
-<Password name="password" bind:value={password} validateOn="input" minLength={(v) => v.length < 3 ? 'Minimum 3 characters' : null} />
-```
--->
 <div
-  bind:this={ref}
   class="form-field"
   data-valid={valid}
   data-invalid={invalid}
@@ -137,34 +128,26 @@ Minimum length validator:
       <span class="label-large text-destructive">*</span>
     {/if}
   </Label.Root>
-  <div class={['input-group', invalid ? 'invalid' : '',]}>
-    <input
-      type={pressed ? 'text' : 'password'}
-      id={name}
-      {name}
-      bind:this={inputRef}
-      bind:value={control.value}
-      class="textinput body-medium"
-      {onblur}
-      {onchange}
-      {oninput}
-      {onfocus}
-      required={requiredText ? true : requiredProp ? true : undefined}
-      {disabled}
-      {...inputProps}
-    />
-    <Toggle.Root
-      aria-label="Toggle password visibility"
-      class="button text narrow"
-      bind:pressed={showPassword}
-    >
-      {#if pressed}
-        <ViewIcon size="sm" />
-      {:else}
-        <ViewOffIcon size="sm" />
-      {/if}
-    </Toggle.Root>
-  </div>
+  <input
+    bind:this={inputRef}
+    bind:value={control.value}
+    {type}
+    id={name}
+    {name}
+    {onblur}
+    {onchange}
+    {oninput}
+    {onfocus}
+    required={requiredText ? true : requiredProp ? true : undefined}
+    {disabled}
+    class={[
+      'textinput',
+      'border border-border-input shadow-mini',
+      'body-medium',
+      invalid ? 'invalid' : '',
+    ]}
+    {...inputProps}
+  />
   {#if helperText || errorMessage}
     <div class="helper-text-container">
       {#if helperText && !errorMessage}
@@ -176,9 +159,3 @@ Minimum length validator:
     </div>
   {/if}
 </div>
-
-<style>
-  :global(.input-group:has(input:is(:autofill, :-webkit-autofill))) {
-    background-color: -moz-autofill-background;
-  }
-</style>

@@ -444,25 +444,25 @@
       <NavigationMenu.List>
         {#if session}
           <NavigationMenu.Item>
-            <NavigationMenu.Link href="/" class="sidenav-link h-input-mobile md:h-input hover:bg-gray-200 dark:hover:bg-gray-800">
+            <NavigationMenu.Link href="/" class="sidenav-link h-input-mobile md:h-input hover:bg-dark-04">
               <ChatbotIcon size="xs" />
               <span class="sidenav-link__text">What's For Dinner?</span>
             </NavigationMenu.Link>
           </NavigationMenu.Item>
         {/if}
         <NavigationMenu.Item>
-          <NavigationMenu.Link href="/recommendations" class="sidenav-link h-input-mobile md:h-input hover:bg-gray-200 dark:hover:bg-gray-800">
+          <NavigationMenu.Link href="/recommendations" class="sidenav-link h-input-mobile md:h-input hover:bg-dark-04">
             <TimeIcon size="xs" ariaLabel="Recommendations" />
             <span class="sidenav-link__text">Recommendations</span>
           </NavigationMenu.Link>
         </NavigationMenu.Item>
-        <NavigationMenu.Item class="hover:bg-gray-200/50 dark:hover:bg-gray-800/50 rounded-button">
+        <NavigationMenu.Item class="rounded-button hover:bg-dark-04/70">
           <div class="button-group">
-            <NavigationMenu.Link href="/recipes" class="sidenav-link flex-grow h-input-mobile md:h-input hover:bg-gray-200 dark:hover:bg-gray-800 rounded-r-none">
+            <NavigationMenu.Link href="/recipes" class="sidenav-link flex-grow h-input-mobile md:h-input hover:bg-dark-04 rounded-r-none">
               <RecipesIcon size="xs" />
               <span class="sidenav-link__text">My Recipes</span>
             </NavigationMenu.Link>
-            <NavigationMenu.Link href="/recipes/new" class="sidenav-link flex-none min-content h-input-mobile md:h-input hover:bg-gray-200 dark:hover:bg-gray-800 rounded-l-none">
+            <NavigationMenu.Link href="/recipes/new" class="sidenav-link flex-none min-content h-input-mobile md:h-input hover:bg-dark-04 rounded-l-none">
               <DocumentAddIcon size="xs" />
             </NavigationMenu.Link>
           </div>
@@ -480,7 +480,7 @@
         <NavigationMenu.List>
           {#each recentlyOpened as recipe (recipe.id)}
             <NavigationMenu.Item>
-              <NavigationMenu.Link href="/recipes/{recipe.id}" title={recipe.title} class="sidenav-link h-input-mobile md:h-input hover:bg-gray-200 dark:hover:bg-gray-800">
+              <NavigationMenu.Link href="/recipes/{recipe.id}" title={recipe.title} class="sidenav-link h-input-mobile md:h-input hover:bg-dark-04">
                 <span class="sidenav-link__text">{recipe.title}</span>
               </NavigationMenu.Link>
             </NavigationMenu.Item>

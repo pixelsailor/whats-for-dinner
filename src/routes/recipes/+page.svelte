@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Select as BitsSelect, Button } from 'bits-ui';
+  import { Select as BitsSelect, Label } from 'bits-ui';
   import { SvelteSet } from 'svelte/reactivity';
   import { toast } from 'svelte-sonner';
 
@@ -16,7 +16,6 @@
   import TrashIcon from '$lib/ui/icons/TrashIcon.svelte';
   import PageHeader from '$lib/ui/PageHeader.svelte';
   import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
-  import PxlIconButton from '$lib/ui/PxlIconButton.svelte';
   import Select from '$lib/ui/Select.svelte';
   import type { SelectOption } from '$lib/ui/types.js';
   import type { SavedRecipe } from '$lib/api/recipe';
@@ -24,6 +23,7 @@
   import ArrowDownIcon from '$lib/ui/icons/ArrowDownIcon.svelte';
   import CheveronSortIcon from '$lib/ui/icons/CheveronSortIcon.svelte';
   import toMillis from '$lib/utils/toMilliseconds';
+  import Button from '$lib/ui/button.svelte';
 
   /** Milliseconds for last checkout; `0` matches never-made / unparseable (same baseline as old epoch fallback). */
   function lastCheckoutMillis(raw: string | undefined): number {
@@ -32,7 +32,7 @@
     return ms === -1 ? 0 : ms;
   }
 
-  let { data } = $props();
+  // let { data } = $props();
 
   let recipes = $derived<SavedRecipe[]>($recipesStore.data ?? []);
 
@@ -51,6 +51,14 @@
   ]);
   let selectedSort = $state<RecipeListSort>('title');
   let sortDirection = $state<'asc' | 'desc'>('asc');
+  let selectedSortLabel = $derived.by(() => {
+    let options = {
+      'title': 'Title',
+      'created_at': 'Created',
+      'last_made': 'Last made'
+    }
+    return options[selectedSort] || selectedSort;
+  })
 
   const recipesListPath = resolve('/recipes');
 
@@ -186,13 +194,13 @@
   <AppBar.Root>
     <AppBar.Text primary="My Recipes" />
     <AppBar.End>
-      <Button.Root href="/recipes/new" aria-label="Add a recipe" class="button text narrow">
+      <Button href="/recipes/new" aria-label="Add a recipe" class="text narrow">
         <DocumentAddIcon size="xs" />
         <span class="hidden md:inline">Add a recipe</span>
-      </Button.Root>
-      <Button.Root href="/recipes/trash" aria-label="Open trash" class="button icon text">
+      </Button>
+      <Button href="/recipes/trash" aria-label="Open trash" class="text icon" tooltip="Open trash">
         <TrashIcon size="xs" />
-      </Button.Root>
+      </Button>
       <!-- {#if data.session}
 				<PxlIconButton onClick={syncRecipeStore} aria-label="Sync recipes" tooltip="Sync recipes">
 					<CloudBackupIcon size="xs" />
@@ -216,85 +224,132 @@
     </div>
   {:else if $recipesStore.data}
     <h1 class="display-small mb-8">My Recipes</h1>
-    <div class="my-12 grid w-full grid-cols-3 gap-4">
-      <input
-        type="text"
-        class="label h-input flex w-full flex-row flex-nowrap items-stretch rounded-sm border border-gray-200 px-3 dark:border-gray-700 dark:bg-gray-900 hover:dark:bg-gray-800"
-        placeholder="Search history"
-        bind:value={search}
-        onblur={syncFiltersToUrl}
-      />
-      <Select type="multiple" items={tags} bind:value={selectedTags} placeholder="Filter by tags" onValueChange={syncFiltersToUrl} />
-      <div
-        class="body-medium h-input border-border-input hover:border-border-input-hover bg-background flex flex-row flex-nowrap items-stretch rounded-sm border dark:border-gray-700 dark:bg-gray-900"
-      >
-        <BitsSelect.Root type="single" items={sortOptions} bind:value={getSortOrder, setSortOrder}>
-          <BitsSelect.Trigger
-            class="h-input data-placeholder:text-foreground-alt/50 px-input inline-flex w-[296px] flex-auto cursor-pointer touch-none items-center border border-none text-sm transition-colors select-none"
-          >
-            <span class="body-medium text-foreground-alt/50">{selectedSort}</span>
-            <span class="flex-1"></span>
-            <CheveronSortIcon size="xs" />
-          </BitsSelect.Trigger>
-          <BitsSelect.Portal>
-            <BitsSelect.Content
-              class="focus-override border-muted bg-background shadow-popover data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-500 h-96 max-h-[var(--bits-select-content-available-height)] w-[var(--bits-select-anchor-width)] min-w-[var(--bits-select-anchor-width)] rounded-xl border px-1 py-3 outline-hidden select-none data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1"
-            >
-              <BitsSelect.Viewport class="p-1">
-                {#each sortOptions as option, i (i + option.value)}
-                  <BitsSelect.Item
-                    class="rounded-button data-highlighted:bg-muted flex h-10 w-full cursor-pointer items-center py-3 pr-1.5 pl-3 text-sm outline-hidden select-none data-disabled:opacity-50"
-                    value={option.value}
-                    label={option.label}
-                  >
-                    {#snippet children({ selected })}
-                      <span class="w-min grow truncate">{option.label}</span>
-                      {#if selected}
-                        <span class="flex-none text-green-500">
-                          {#if sortDirection === 'asc'}
-                            <Button.Root class="button text narrow -mr-1" onclick={(event: MouseEvent) => toggleSortDirection(event)}>
-                              <ArrowUpIcon size="xs" />
-                            </Button.Root>
-                          {:else}
-                            <Button.Root class="button text narrow -mr-1" onclick={(event: MouseEvent) => toggleSortDirection(event)}>
-                              <ArrowDownIcon size="xs" />
-                            </Button.Root>
-                          {/if}
-                        </span>
-                      {/if}
-                    {/snippet}
-                  </BitsSelect.Item>
-                {/each}
-              </BitsSelect.Viewport>
-            </BitsSelect.Content>
-          </BitsSelect.Portal>
-        </BitsSelect.Root>
+    {#if filteredRecipes.length === 0}
+      <div class="flex flex-col items-center justify-center gap-4">
+        <p>You haven't saved any recipes yet.</p>
+        <Button href="/recipes/new">Add a recipe</Button>
       </div>
-    </div>
-    <div class="list">
-      {#each filteredRecipes! as recipe (recipe.id)}
-        <hr />
-        <Button.Root href="/recipes/{recipe.id}" class="listitem button text narrow">
-          <span class="listitem__content">
-            <span class="title-medium">{recipe.title}</span>
-            <span class="body-medium text-foreground-alt dark:text-foreground-alt">{recipe.short_description}</span>
-          </span>
-          <span class="listitem__end">
-            <PxlIconButton
-              aria-label="Delete recipe"
-              tooltip="Delete recipe"
-              tooltipPosition="left"
-              onclick={(event: MouseEvent) => {
-                event.preventDefault();
-                event.stopImmediatePropagation();
-                deleteRecipe(recipe.id, recipe.title);
-              }}
-            >
-              <TrashIcon size="xs" />
-            </PxlIconButton>
-          </span>
-        </Button.Root>
-      {/each}
-    </div>
+    {:else}
+      <div class="my-12 grid w-full grid-cols-3 gap-4">
+        <div class="form-field">
+          <label for="keyword-search" class="label-large">Search titles</label>
+          <input
+            type="text"
+            id="keyword-search"
+            class="textinput body-medium"
+            bind:value={search}
+            onblur={syncFiltersToUrl}
+          />
+        </div>
+        <div class="form-field">
+          <Label.Root for="tag-filter" class="label-large">Filter by tags</Label.Root>
+          <Select type="multiple" id="tag-filter" items={tags} bind:value={selectedTags} onValueChange={syncFiltersToUrl} />
+        </div>
+        <div class="form-field">
+          <Label.Root for="sort-order" class="label-large">Sort by</Label.Root>
+          <div
+            class="body-medium textinput p-0! flex flex-row flex-nowrap items-stretch"
+          >
+            <BitsSelect.Root type="single" items={sortOptions} bind:value={getSortOrder, setSortOrder}>
+              <BitsSelect.Trigger
+                class="h-input data-placeholder:text-placeholder px-input inline-flex w-[296px] flex-auto cursor-pointer touch-none items-center border border-none text-sm transition-colors select-none"
+              >
+                <span class="body-medium">{selectedSortLabel}</span>
+                <span class="flex-1"></span>
+                <CheveronSortIcon size="xs" />
+              </BitsSelect.Trigger>
+              <BitsSelect.Portal>
+                <BitsSelect.Content
+                  class={[
+                    'focus-override',
+                    'bg-popover',
+                    'backdrop-blur-xs',
+                    'shadow-popover',
+                    'rounded-popover',
+                    'border',
+                    'border-muted',
+                    'data-[state=open]:animate-in',
+                    'data-[state=closed]:animate-out',
+                    'data-[state=closed]:fade-out-0',
+                    'data-[state=open]:fade-in-0',
+                    'data-[state=closed]:zoom-out-95',
+                    'data-[state=open]:zoom-in-95',
+                    'data-[side=bottom]:slide-in-from-top-2',
+                    'data-[side=left]:slide-in-from-right-2',
+                    'data-[side=right]:slide-in-from-left-2',
+                    'data-[side=top]:slide-in-from-bottom-2',
+                    'z-500',
+                    'h-96',
+                    'max-h-[var(--bits-select-content-available-height)]',
+                    'w-[var(--bits-select-anchor-width)]',
+                    'min-w-[var(--bits-select-anchor-width)]',
+                    'px-1',
+                    'py-3',
+                    'outline-hidden',
+                    'select-none',
+                    'data-[side=bottom]:translate-y-1',
+                    'data-[side=left]:-translate-x-1',
+                    'data-[side=right]:translate-x-1',
+                    'data-[side=top]:-translate-y-1'
+                  ]}
+                >
+                  <BitsSelect.Viewport class="p-1">
+                    {#each sortOptions as option, i (i + option.value)}
+                      <BitsSelect.Item
+                        class="rounded data-highlighted:bg-dark-04 flex h-input-mobile md:h-input w-full cursor-pointer items-center py-3 pr-1.5 pl-3 text-sm outline-hidden select-none data-disabled:opacity-50"
+                        value={option.value}
+                        label={option.label}
+                      >
+                        {#snippet children({ selected })}
+                          <span class="w-min grow truncate">{option.label}</span>
+                          {#if selected}
+                            <span class="flex-none text-green-500">
+                              {#if sortDirection === 'asc'}
+                                <Button class="text narrow -mr-1" onclick={(event: MouseEvent) => toggleSortDirection(event)}>
+                                  <ArrowUpIcon size="xs" />
+                                </Button>
+                              {:else}
+                                <Button class="text narrow -mr-1" onclick={(event: MouseEvent) => toggleSortDirection(event)}>
+                                  <ArrowDownIcon size="xs" />
+                                </Button>
+                              {/if}
+                            </span>
+                          {/if}
+                        {/snippet}
+                      </BitsSelect.Item>
+                    {/each}
+                  </BitsSelect.Viewport>
+                </BitsSelect.Content>
+              </BitsSelect.Portal>
+            </BitsSelect.Root>
+          </div>
+        </div>
+      </div>
+      <div class="list">
+        {#each filteredRecipes! as recipe (recipe.id)}
+          <hr />
+          <Button href="/recipes/{recipe.id}" class="listitem text narrow">
+            <span class="listitem__content">
+              <span class="title-medium">{recipe.title}</span>
+              <span class="body-medium text-foreground-alt">{recipe.short_description}</span>
+            </span>
+            <span class="listitem__end">
+              <Button
+                class="text icon"
+                aria-label="Delete recipe"
+                tooltip="Delete recipe"
+                onclick={(event: MouseEvent) => {
+                  event.preventDefault();
+                  event.stopImmediatePropagation();
+                  deleteRecipe(recipe.id, recipe.title);
+                }}
+              >
+                <TrashIcon size="xs" />
+              </Button>
+            </span>
+          </Button>
+        {/each}
+      </div>
+    {/if}
   {/if}
 </div>

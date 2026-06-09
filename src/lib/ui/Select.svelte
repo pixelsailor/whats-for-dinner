@@ -10,6 +10,7 @@
 
   type Props = WithoutChildren<Select.RootProps> & {
     placeholder?: string;
+    id?: string;
     items?: SelectOption[];
     contentProps?: WithoutChildren<Select.ContentProps>;
     // any other specific component props if needed
@@ -60,20 +61,18 @@ _Reference: bits-ui [Select](https://bits-ui.com/docs/components/select/llms.txt
   <div
     class={[
       'body-medium',
-      'h-input',
-      'border-border-input',
-      'hover:border-border-input-hover',
-      'bg-input-bg',
+      'textinput',
+      'pr-0! py-0!',
       'flex',
       'flex-row',
       'flex-nowrap',
-      'items-stretch rounded-sm border',
+      'items-stretch',
       error ? 'border-destructive' : ''
     ]}
     bind:this={containerRef}
   >
     <Select.Trigger
-      class="h-input data-placeholder:text-foreground-alt/50 px-input inline-flex w-[296px] flex-auto cursor-pointer touch-none items-center border border-none text-sm transition-colors select-none"
+      class="inline-flex w-[296px] flex-auto cursor-pointer touch-none items-center border border-none text-sm transition-colors select-none"
     >
       <div class="flex flex-row flex-wrap gap-1">
         {#if restProps.type === 'multiple'}
@@ -111,9 +110,12 @@ _Reference: bits-ui [Select](https://bits-ui.com/docs/components/select/llms.txt
       customAnchor={containerRef}
       class={[
         'focus-override',
-        'border-muted',
-        'bg-background',
+        'bg-popover',
+        'backdrop-blur-xs',
         'shadow-popover',
+        'rounded-popover',
+        'border',
+        'border-muted',
         'data-[state=open]:animate-in',
         'data-[state=closed]:animate-out',
         'data-[state=closed]:fade-out-0',
@@ -125,13 +127,11 @@ _Reference: bits-ui [Select](https://bits-ui.com/docs/components/select/llms.txt
         'data-[side=right]:slide-in-from-left-2',
         'data-[side=top]:slide-in-from-bottom-2',
         'z-500',
-        'min-h-36',
+        'min-h-18',
         // 'h-[var(--bits-select-content-available-height)]',
         'max-h-96',
         'w-[var(--bits-select-anchor-width)]',
         'min-w-[var(--bits-select-anchor-width)]',
-        'rounded-xl',
-        'border',
         'px-1',
         'py-3',
         'outline-hidden',
@@ -157,7 +157,7 @@ _Reference: bits-ui [Select](https://bits-ui.com/docs/components/select/llms.txt
                   value={subItem.value}
                   label={subItem.label}
                   disabled={subItem.disabled}
-                  class="rounded-button data-highlighted:bg-muted flex h-input w-full cursor-pointer items-center pr-1.5 pl-3 text-sm outline-hidden select-none data-disabled:opacity-50"
+                  class="rounded data-highlighted:bg-dark-04 flex h-input-mobile md:h-input w-full cursor-pointer items-center pr-1.5 pl-3 body-medium outline-hidden select-none data-disabled:opacity-50"
                 >
                   {#snippet children({ selected })}
                     <span class="w-min grow truncate">{subItem.label}</span>
@@ -175,7 +175,7 @@ _Reference: bits-ui [Select](https://bits-ui.com/docs/components/select/llms.txt
               value={item.value}
               label={item.label}
               disabled={item.disabled}
-              class="rounded-button data-highlighted:bg-muted flex h-input w-full cursor-pointer items-center pr-1.5 pl-3 text-sm outline-hidden select-none data-disabled:opacity-50"
+              class="rounded data-highlighted:bg-dark-04 flex h-input-mobile md:h-input w-full cursor-pointer items-center pr-1.5 pl-3 body-medium outline-hidden select-none data-disabled:opacity-50"
             >
               {#snippet children({ selected })}
                 <span class="w-min grow truncate">{item.label}</span>

@@ -85,6 +85,11 @@
 	--warn-text: hsl(20.5 90.2% 48.2%);
 	--danger: hsl(8 73.7% 41.8%);
 	--danger-text: hsl(8 73.7% 41.8%);
+  
+  --destructive: var(--danger);
+  --tertiary: hsl(37.7 92.1% 50.2%);
+  --info: hsl(201 90% 50%);
+  --success: hsl(141 71% 48%);
 
   --background: var(--mauve-100);
   --background-alt: var(--mauve-200);
@@ -94,24 +99,20 @@
   --muted-foreground: oklch(from var(--mauve-900) l c h / 0.4);
   --accent: AccentColor;
   --accent-foreground: AccentColorText;
-  --input: oklch(from var(--mauve-50) l c h / 0.5);
-  --input-bg: var(--input);
-  --border: hsl(240 6% 10%);
+  --dark: var(--mauve-800);
+  --dark-foreground: hsl(0 0% 100% / 0.8);
+  --dark-40: oklch(from var(--mauve-800) l c h / 0.4);
+  --dark-10: oklch(from var(--mauve-800) l c h / 0.1);
+  --dark-04: oklch(from var(--mauve-800) l c h / 0.04);
+  --input: var(--mauve-950);
+  --input-bg: oklch(from var(--mauve-50) l c h / 0.75);
+  --border: var(--mauve-300);
   --border-input: var(--mauve-100);
   --border-input-hover: hsla(240 6% 10% / 0.4);
   --border-card: hsla(240 6% 10% / 0.1);
   --line: hsl(0 0% 90.92%);
-  --dark: hsl(240 6% 10%);
-  --dark-foreground: hsl(0 0% 100% / 0.8);
-  --dark-10: hsla(240 6% 10% / 0.1);
-  --dark-40: hsla(240 6% 10% / 0.4);
-  --dark-04: hsla(240 6% 10% / 0.04);
-  --accent: var(hsla(240 6% 10%));
-  --accent-foreground: hsl(0 0% 100% / 0.8);
-  --destructive: hsl(347 77% 50%);
-  --tertiary: hsl(37.7 92.1% 50.2%);
-  --info: hsl(201 90% 50%);
-  --success: hsl(141 71% 48%);
+  --card: var(--foreground-alt);
+  --popover: oklch(from var(--mauve-50) l c h / 0.85);
 
   /* Shadows */
   --shadow-mini: 0px 1px 1px rgba(0, 0, 0, 0.1);
@@ -134,6 +135,8 @@
   --input-radius: 0.25rem;
   --input-height: 2.25rem;
   --input-height-mobile: 2.75rem;
+
+  --popover-radius: 0.5rem;
 
   /* Text sizes */
   --text-xxs: 0.625rem;     /* 10px */
@@ -159,28 +162,28 @@
 @media (prefers-color-scheme: dark) {
   :root {
     /* Colors */
+    --destructive: hsl(350 89% 60%);
+    --tertiary: hsl(61.3 100% 82.2%);
     --background: var(--black);
     --background-alt: var(--mauve-900);
     --foreground: var(--mauve-50);
     --foreground-alt: var(--mauve-300);
     --muted: hsla(240, 4%, 16%, 0.2);
     --muted-foreground: var(--mauve-400);
-    --card-bg: var(--mauve-800);
-    --input: var(--white);
-    --input-bg: oklch(from var(--mauve-800) l c h / 0.75);
-    --border: oklch(from var(--mauve-800) l c h / 0.25);
-    --border-input: hsla(0 0% 96% / 0.17);
-    --border-input-hover: hsla(0 0% 96% / 0.4);
-    --border-card: hsla(0 0% 50% / 0.25);
-    --line: hsl(0 0% 15%);
-    --ring-foreground: AccentColor;
     --dark: hsl(0 0% 96%);
     --dark-foreground: hsl(0 0% 5% / 0.8);
     --dark-40: hsl(0 0% 96% / 0.4);
     --dark-10: hsl(0 0% 96% / 0.1);
     --dark-04: hsl(0 0% 96% / 0.04);
-    --destructive: hsl(350 89% 60%);
-    --tertiary: hsl(61.3 100% 82.2%);
+    --input: var(--white);
+    --input-bg: oklch(from var(--mauve-800) l c h / 0.75);
+    --border: oklch(from var(--mauve-800) l c h / 0.25);
+    --border-input: oklch(from var(--mauve-500) l c h / 0.17);
+    --border-input-hover: hsla(0 0% 96% / 0.4);
+    --border-card: hsla(0 0% 50% / 0.25);
+    --line: hsl(0 0% 15%);
+    --ring-foreground: AccentColor;
+    --popover: oklch(from var(--mauve-900) l c h / 0.85);
 
     /* Shadows */
     --shadow-mini: 1px 1px 1px 1px rgba(0, 0, 0, 0.1);
@@ -196,6 +199,8 @@
 }
 
 @theme inline {
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-warn: var(--warn);
   --color-tertiary: var(--tertiary);
@@ -207,23 +212,23 @@
   --color-foreground-alt: var(--foreground-alt);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
+  --color-dark: var(--dark);
+  --color-dark-foreground: var(--dark-foreground);
+  --color-dark-10: var(--dark-10);
+  --color-dark-40: var(--dark-40);
+  --color-dark-04: var(--dark-04);
+  --color-input: var(--input);
+  --color-input-bg: var(--input-bg);
   --color-border: var(--border-card);
   --color-border-input: var(--border-input);
   --color-border-input-hover: var(--border-input-hover);
   --color-border-card: var(--border-card);
   --color-border-destructive: var(--destructive);
   --color-ring: var(--accent);
-  --color-dark: var(--dark);
-  --color-dark-foreground: var(--dark-foreground);
-  --color-dark-10: var(--dark-10);
-  --color-dark-40: var(--dark-40);
-  --color-dark-04: var(--dark-04);
   --color-line: var(--line);
-  --color-contrast: var(--contrast);
-  --color-input-bg: var(--muted);
-  --color-input: var(--mauve-200);
+  --color-card: var(--card);
+  --color-popover: var(--popover);
+  --color-placeholder: var(--muted-foreground);
 
   --shadow-mini: var(--shadow-mini);
   --shadow-mini-inset: var(--shadow-mini-inset);
@@ -258,6 +263,7 @@
   --radius-card-sm: 10px;
   --radius-button: var(--button-radius);
   --radius-input: var(--input-radius);
+  --radius-popover: var(--popover-radius);
   --radius-5px: 5px;
   --radius-9px: 9px;
   --radius-10px: 10px;
@@ -265,6 +271,8 @@
 
   --height-input: var(--input-height);
   --height-input-mobile: var(--input-height-mobile);
+  --height-icon-button: var(--input-height);
+  --width-icon-button: var(--input-height);
 
   --padding-input-xs: 0.6875rem;
   --padding-input-sm: 0.5625rem;
@@ -479,10 +487,6 @@ img {
   display: block;
   max-width: 100%;
   height: auto;
-}
-
-.hidden {
-  display: none;
 }
 
 .sr-only {

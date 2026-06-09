@@ -161,6 +161,7 @@ Example:
       'h-input-mobile',
       'md:h-input',
       'bg-input-bg',
+      'hover:shadow-mini',
       displayError ? 'border-destructive' : ''
     ]}
     bind:this={ref}

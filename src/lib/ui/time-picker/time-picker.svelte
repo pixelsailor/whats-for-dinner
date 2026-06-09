@@ -415,7 +415,7 @@ Segmented hours/minutes duration input styled like a digital clock; bound value 
   data-invalid={invalid ? '' : undefined}
   data-disabled={disabled ? '' : undefined}
   class={cn(
-    'time-picker h-input-mobile md:h-input rounded-input border-border-input bg-input-bg text-foreground focus-within:border-border-input-hover focus-within:shadow-date-field-focus hover:border-border-input-hover data-invalid:border-destructive flex w-fit select-none items-center border px-3 py-2',
+    'time-picker h-input-mobile md:h-input rounded-input border-border-input bg-input-bg text-foreground focus-within:shadow-date-field-focus data-invalid:border-destructive flex w-fit select-none items-center border px-3 py-2',
     disabled && 'pointer-events-none opacity-50',
     className
   )}

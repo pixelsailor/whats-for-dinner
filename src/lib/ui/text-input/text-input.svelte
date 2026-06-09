@@ -3,6 +3,7 @@
   import type { HTMLInputAttributes } from 'svelte/elements';
   import { Label, type WithElementRef } from 'bits-ui';
   import type { FormControlState } from '../form/types';
+  import { onMount } from 'svelte';
 
   type TextInputProps = WithElementRef<
     {
@@ -56,6 +57,12 @@
   let touched = $state<boolean | undefined>();
 
   let dirty = $state<boolean | undefined>();
+
+  onMount(() => {
+    if (control.value) {
+      runValidation();
+    }
+  });
 
   let onblur = (event: FocusEvent) => {
     onBlurFn?.(event);
@@ -142,7 +149,6 @@
     {disabled}
     class={[
       'textinput',
-      'border border-border-input shadow-mini',
       'body-medium',
       invalid ? 'invalid' : '',
     ]}

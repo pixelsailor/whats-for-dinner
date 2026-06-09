@@ -218,19 +218,23 @@
   @apply bg-accent text-accent-foreground inline-flex h-6 min-w-6 items-center justify-center rounded-full;
 
   &.danger {
-    @apply bg-destructive text-contrast;
+    @apply bg-destructive;
+    color: color-contrast(var(--destructive));
   }
 
   &.warn {
-    @apply bg-tertiary text-contrast;
+    @apply bg-tertiary;
+    color: color-contrast(var(--tertiary));
   }
 
   &.info {
-    @apply bg-info text-contrast;
+    @apply bg-info;
+    color: color-contrast(var(--info));
   }
 
   &.success {
-    @apply bg-success text-contrast;
+    @apply bg-success;
+    color: color-contrast(var(--success));
   }
 
   &.subtle {

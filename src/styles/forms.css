@@ -47,6 +47,12 @@ input.invalid {
     top: 4rem;
     left: 0;
     right: 0;
+    bottom: auto;
+  }
+
+  &.stretch .helper-text-container {
+    bottom: 0.375rem;
+    top: auto;
   }
 
   &.nolabel,
@@ -117,23 +123,26 @@ input.invalid {
   line-height: 1;
 }
 
-.textinput {
-  @apply h-input-mobile md:h-input bg-input-bg rounded-input;
+.textinput,
+input {
+  @apply h-input-mobile md:h-input bg-input-bg rounded-input border border-border-input hover:shadow-mini;
   padding: var(--padding-input-y) var(--padding-input-x);
 }
 
-.textarea {
-  /* @apply border-border-input hover:border-border-input-hover max-h-64 min-h-16 resize-y border bg-input-bg dark:border-gray-800; */
-  background-color: var(--input-bg);
-  border: 1px solid transparent;
-  border-radius: var(--radius-input);
+.textarea,
+textarea {
+  @apply bg-input-bg rounded-input border border-border-input resize-y hover:shadow-mini;
   padding: var(--padding-input-y) var(--padding-input-x);
 }
 
 .input-group {
-  @apply h-input-mobile md:h-input bg-input-bg rounded-input border border-border-input shadow-mini;
+  @apply h-input-mobile md:h-input bg-input-bg rounded-input border border-border-input hover:shadow-mini;
   display: flex;
   align-items: center;
+
+  .textinput {
+    @apply border-none shadow-none;
+  }
 
   & > input {
     background: transparent;

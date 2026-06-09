@@ -32,7 +32,7 @@
 }
 
 .button.outlined {
-  @apply border-dark-40 text-dark hover:bg-muted dark:border-contrast border-1 bg-transparent;
+  @apply border-dark-40 text-dark hover:bg-muted border-1 bg-transparent;
 
   &.primary {
     @apply border-dark hover:bg-muted text-current;
@@ -48,7 +48,7 @@
 }
 
 .button.text {
-  @apply hover:bg-muted dark:hover:bg-dark-04 bg-transparent text-current;
+  @apply hover:bg-muted dark:hover:bg-dark-10 bg-transparent text-current;
 
   &.primary {
     @apply text-dark hover:bg-muted;
@@ -63,8 +63,10 @@
   }
 }
 
+/* Icon buttons are round and slightly larger on small screens. On larger they appear similar to regular buttons. */
 .button.icon {
-  @apply relative h-11 w-11 rounded-full p-0;
+  @apply relative p-0 h-11 w-11 rounded-full md:h-icon-button md:w-icon-button md:rounded;
+
 
   .svg {
     color: currentColor;

@@ -4,8 +4,8 @@
 
   import Button from '$lib/ui/button.svelte';
   import { Card } from '$lib/ui/card';
+  import FormGroup from '$lib/ui/form-group/form-group';
   import Password from '$lib/ui/password/password.svelte';
-  import type { FormControlState } from '$lib/ui/form/types';
   import TextInput from '$lib/ui/text-input/text-input.svelte';
 
   let { form }: PageProps = $props();
@@ -13,46 +13,13 @@
   let loginError = $derived(form?.error ?? '');
   let submitting = $state(false);
 
-  /** This is what creating a `Form` instance should look like */
-  // const form = new Form({
-  //   email: ['', { required: true }],
-  //   password: ['', { required: true }],
-  //   remember_me: [false]
-  // });
-
-  const Form = $state({
-    state: {
-      invalid: null,
-      valid: null,
-      errors: [],
-      touched: false,
-      dirty: false,
-      disabled: false,
-    },
-    controls: <Record<string, FormControlState>>{
-      email: <FormControlState<string>>{
-        value: '',
-        invalid: false,
-        valid: false,
-        error: '',
-        pending: false,
-        touched: false,
-        dirty: false,
-      },
-      password: <FormControlState<string>>{
-        value: '',
-        invalid: null,
-        valid: null,
-        error: '',
-        pending: false,
-        touched: false,
-        dirty: false,
-      },
-    },
+  const formGroup = new FormGroup({
+    email: '',
+    password: '',
   });
 
   let formValid = $derived.by(() => {
-    return Object.values(Form.controls).every((control) => control.valid);
+    return Object.values(formGroup.controls).every((control) => control.valid);
   });
 
   // Reset submitting state if there is an error
@@ -87,7 +54,7 @@
         </div>
       {/if}
       <TextInput
-        bind:control={Form.controls.email}
+        control={formGroup.controls.email}
         type="email"
         name="email"
         labelText="Email"
@@ -96,7 +63,7 @@
         required
       />
       <Password
-        bind:control={Form.controls.password}
+        control={formGroup.controls.password}
         labelText="Password"
         name="password"
         validateOn="input"

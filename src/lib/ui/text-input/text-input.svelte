@@ -2,13 +2,13 @@
   /* eslint-disable svelte/no-at-html-tags */
   import type { HTMLInputAttributes } from 'svelte/elements';
   import { Label, type WithElementRef } from 'bits-ui';
-  import type { FormControlState } from '../form/types';
+  import type { FormControlStateWithValue } from '../form-group/types';
   import { onMount } from 'svelte';
 
   type TextInputProps = WithElementRef<
     {
       name: string;
-      control: FormControlState<string>;
+      control: FormControlStateWithValue<string>;
       labelText?: string | undefined;
       labelRef?: HTMLLabelElement | null;
       helperText?: string | undefined;

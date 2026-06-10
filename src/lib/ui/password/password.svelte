@@ -3,13 +3,12 @@
   import { Label, Toggle } from 'bits-ui';
   import ViewIcon from '../icons/View.svelte';
   import ViewOffIcon from '../icons/ViewOff.svelte';
-  import type { InputFieldProps } from '../forms/types';
-  import type { FormControlState } from '../form/types';
+  import type { FormControlStateWithValue, InputFieldProps } from '../form-group/types';
 
-  type Props = Omit<InputFieldProps, 'ref' | 'value'> & {
+  type Props = InputFieldProps & {
     /** Wrapper `.form-field` element; the `<input>` uses an internal ref. */
     ref?: HTMLElement | null;
-    control: FormControlState<string>;
+    control: FormControlStateWithValue<string>;
     showPassword?: boolean;
   };
 

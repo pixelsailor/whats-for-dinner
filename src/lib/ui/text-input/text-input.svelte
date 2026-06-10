@@ -7,8 +7,8 @@
 
   type TextInputProps = WithElementRef<
     {
-      name: string;
-      control: FormControlStateWithValue<string>;
+      control?: FormControlStateWithValue<string> | undefined;
+      value?: string | undefined;
       labelText?: string | undefined;
       labelRef?: HTMLLabelElement | null;
       helperText?: string | undefined;
@@ -21,12 +21,16 @@
       onchange?: (event: Event) => void;
       onfocus?: (event: FocusEvent) => void;
       oninput?: (event: Event) => void;
-    } & Omit<HTMLInputAttributes, 'value' | 'class' | 'name' | 'pattern' | 'minlength' | 'maxlength' | 'onblur' | 'oninput'>,
+    } & Omit<
+      HTMLInputAttributes,
+      'class' | 'id' | 'pattern' | 'minlength' | 'maxlength' | 'onblur' | 'oninput' | 'value'
+    >,
     HTMLInputElement
   >;
 
   let {
     control = $bindable(),
+    value = $bindable(),
     type = 'text',
     name,
     labelText,
@@ -59,27 +63,27 @@
   let dirty = $state<boolean | undefined>();
 
   onMount(() => {
-    if (control.value) {
+    if (getInputValue() !== '') {
       runValidation();
     }
   });
 
   let onblur = (event: FocusEvent) => {
     onBlurFn?.(event);
-  }
+  };
 
   let onchange = (event: Event) => {
     if (validateOn === 'change') {
       runValidation();
     }
     onChangeFn?.(event);
-  }
+  };
 
   let onfocus = (event: FocusEvent) => {
     touched = true;
     if (control) control.touched = true;
     onFocusFn?.(event);
-  }
+  };
 
   let oninput = (event: Event) => {
     dirty = true;
@@ -88,6 +92,17 @@
       runValidation();
     }
     onInputFn?.(event);
+  };
+
+  function getInputValue(): string {
+    return control?.value ?? value ?? '';
+  }
+
+  function setInputValue(nextValue: string) {
+    value = nextValue;
+    if (control) {
+      control.value = nextValue;
+    }
   }
 
   function runValidation() {
@@ -99,7 +114,7 @@
       }
       if (msg) break;
     }
-    
+
     setInvalid(!inputRef?.validity.valid);
     setValid(inputRef?.validity.valid ?? false);
     setErrorMessage(inputRef?.validationMessage ?? '');
@@ -121,6 +136,46 @@
   }
 </script>
 
+<!--
+@component
+A text input component with built in accessibility and optional validation.
+`TextInput` uses the `name` attribute to identify the formData element as well as to generate the `id` and `for` attributes for the label.
+
+Validation does not run until the configured interaction event fires (`validateOn`, default `change`).
+Pass `oninput` / `onblur` to hook the same events without replacing value binding.
+
+Basic example:
+```svelte
+<TextInput name="username" labelText="Username" />
+```
+
+Example with `value`:
+```svelte
+<TextInput
+  name="username"
+  labelText="Username"
+  bind:value={username}
+  minLength={(v) => (v.length < 3 ? 'Minimum 3 characters' : null)}
+/>
+```
+
+Example with `control` (requires `FormGroup`):
+```svelte
+<script>
+  const formGroup = new FormGroup({
+    email: '',
+  });
+</script>
+<TextInput
+  type="email"
+  name="email"
+  labelText="Email"
+  control={formGroup.controls.email}
+  validateOn="input"
+  required
+/>
+```
+-->
 <div
   class="form-field"
   data-valid={valid}
@@ -137,7 +192,7 @@
   </Label.Root>
   <input
     bind:this={inputRef}
-    bind:value={control.value}
+    bind:value={getInputValue, setInputValue}
     {type}
     id={name}
     {name}
@@ -147,11 +202,7 @@
     {onfocus}
     required={requiredText ? true : requiredProp ? true : undefined}
     {disabled}
-    class={[
-      'textinput',
-      'body-medium',
-      invalid ? 'invalid' : '',
-    ]}
+    class={['textinput', 'body-medium', invalid ? 'invalid' : '']}
     {...inputProps}
   />
   {#if helperText || errorMessage}

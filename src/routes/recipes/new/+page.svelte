@@ -15,12 +15,14 @@
   import { AppBar } from '$lib/ui/AppBar';
   import Button from '$lib/ui/button.svelte';
   import Dialog from '$lib/ui/Dialog.svelte';
-  import { Textarea, Textinput } from '$lib/ui/forms';
   import PageHeader from '$lib/ui/PageHeader.svelte';
   import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
   import Select from '$lib/ui/Select.svelte';
   import { TimePicker } from '$lib/ui/time-picker';
   import type { SelectOption } from '$lib/ui/types.js';
+  import { FormGroup } from '$lib/ui/form-group';
+  import TextInput from '$lib/ui/text-input/text-input.svelte';
+  import Textarea from '$lib/ui/textarea/textarea.svelte';
 
   let availableTags = $state<SelectOption[]>([]);
 
@@ -82,10 +84,19 @@
   /** Whether the user wants to use AI assistance for augmenting user recipes. */
   let useAiAssistance = $derived(preferences?.use_ai_assistance && canUseAI);
 
-  let recipeTitle = $state<string>('');
-  let shortDescription = $state<string>('');
-  let longDescription = $state<string>('');
-  let yields = $state<string>('');
+  let formGroup = new FormGroup({
+    title: '',
+    short_description: '',
+    description: '',
+    yields: '',
+    // prep_time: [],
+    // cook_time: [],
+    ingredients: '',
+    instructions: '',
+    notes: '',
+    // tags: [],
+  });
+
   /** The prep time in minutes for the recipe */
   let prepTimeStart = $state<number>(0);
   /** The max prep time in minutes when using a range */
@@ -94,9 +105,6 @@
   let cookTimeStart = $state<number>(0);
   /** The max cooking time in minutes when using a range */
   let cookTimeEnd = $state<number>(0);
-  let ingredients = $state<string>('');
-  let instructions = $state<string>('');
-  let notes = $state<string>('');
   let tags = $state<string[]>([]);
 
   /** Whether to use a range of time for the recipe */
@@ -110,6 +118,20 @@
   let recipeURL = $state<string>('');
 
   let markdownHelperText = $state<string>('You can use&nbsp;<a href="https://www.markdownguide.org/cheat-sheet/" target="_blank" class="underline">Markdown</a>&nbsp;here to make lists and add formatting');
+
+  let formValid = $derived.by(() => {
+    let requiredFields = ['title', 'short_description', 'ingredients', 'instructions'];
+    let tagsIsValid = false;
+    if (!useAiAssistance) {
+      // requiredFields.push('tags');
+      tagsIsValid = true;
+    } else {
+      if (tags.length > 0) {
+        tagsIsValid = true;
+      }
+    }
+    return requiredFields.every((field: string) => formGroup.controls[field as keyof typeof formGroup.controls].valid) && tagsIsValid;
+  });
 
   /**
    * Manage services for cloud and sync operations.
@@ -175,12 +197,6 @@
     event.preventDefault();
     const form = new FormData(event.target as HTMLFormElement, event.submitter as HTMLButtonElement);
 
-    validateForm();
-    if (validationErrors.hasErrors) {
-      status = 'error';
-      toast.error('Please fix the errors in the form');
-      return;
-    }
     status = 'saving';
 
     // Set the prep and cook time arrays
@@ -226,32 +242,6 @@
     status = 'saved';
     toast.success('Recipe saved');
     goto(resolve(`/recipes/${savedRecipe.id}`), { replaceState: true });
-  }
-
-  /**
-   * Validate the form fields and set the validation errors.
-   */
-  function validateForm() {
-    let errors: {
-      title?: string;
-      shortDescription?: string;
-      ingredients?: string;
-      instructions?: string;
-      tags?: string;
-    } = {};
-    if (!recipeTitle.trim()) errors.title = 'Title is required';
-    if (!ingredients.trim()) errors.ingredients = 'Ingredients are required';
-    if (!instructions.trim()) errors.instructions = 'Instructions are required';
-    if (!useAiAssistance && !shortDescription.trim()) errors.shortDescription = 'Short description is required';
-    if (!useAiAssistance && !tags.length) errors.tags = 'Tags are required';
-
-    if (Object.keys(errors).length > 0) {
-      validationErrors.hasErrors = true;
-      validationErrors.errors = errors;
-    } else {
-      validationErrors.hasErrors = false;
-      validationErrors.errors = undefined;
-    }
   }
 
   /**
@@ -372,35 +362,32 @@
       {/if}
     </p>
     <div class="flex flex-col gap-5">
-      <Textinput
+      <TextInput
         name="title"
-        bind:value={recipeTitle}
-        label="Recipe title"
+        control={formGroup.controls.title}
+        labelText="Recipe title"
         required
         autocomplete="off"
-        error={validationErrors.errors?.title}
       />
-      <Textinput
+      <TextInput
         name="short_description"
-        bind:value={shortDescription}
+        control={formGroup.controls.short_description}
+        labelText="Short description"
         required={!useAiAssistance}
-        error={validationErrors.errors?.shortDescription}
-        label="Short description"
         autocomplete="off"
         helperText="Shown in recipe list and search results."
       />
       <Textarea
-        id="description"
         name="description"
-        bind:value={longDescription}
-        label="Long-form description"
+        control={formGroup.controls.description}
+        labelText="Long-form description"
         helperText="A longer description with additional commentary or suggested pairings. Included in recipe details."
       >
       </Textarea>
-      <Textinput
+      <TextInput
         name="yields"
-        bind:value={yields}
-        label="Yields"
+        control={formGroup.controls.yields}
+        labelText="Yields"
         helperText="Enter the number of servings or total amount for sauces, dressings or similar"
         placeholder="E.g. 2 servings, 4 cups"
       />
@@ -452,32 +439,29 @@
         {/if}
       </div>
       <Textarea
-        id="ingredients"
         name="ingredients"
-        label="Ingredients"
-        bind:value={ingredients}
+        control={formGroup.controls.ingredients}
+        labelText="Ingredients"
+        class="min-h-36!"
         required
-        error={validationErrors.errors?.ingredients}
         placeholder="Enter the ingredients for your recipe"
         helperText={markdownHelperText}
       >
       </Textarea>
       <Textarea
-        id="instructions"
         name="instructions"
-        label="Instructions"
-        bind:value={instructions}
+        control={formGroup.controls.instructions}
+        labelText="Instructions"
+        class="min-h-36!"
         required
-        error={validationErrors.errors?.instructions}
         placeholder="Enter the instructions for your recipe"
         helperText={markdownHelperText}
       >
       </Textarea>
       <Textarea
-        id="notes"
         name="notes"
-        bind:value={notes}
-        label="Notes"
+        control={formGroup.controls.notes}
+        labelText="Notes"
         placeholder="Enter any additional notes for your recipe"
         helperText={markdownHelperText}
       >
@@ -496,13 +480,13 @@
         />
       </div>
       <div class="border-line my-4 border-t pt-4">
-        <Button type="submit" class="primary" disabled={status === 'saving'}>Save</Button>
+        <Button type="submit" class="primary" disabled={status === 'saving' || !formValid}>Save</Button>
       </div>
     </div>
   </form>
 </div>
 
-<Dialog bind:open={openImportFromURLDialog}>
+<!-- <Dialog bind:open={openImportFromURLDialog}>
   {#snippet title()}
     <h2 class="text-lg font-semibold">Import from URL</h2>
   {/snippet}
@@ -511,10 +495,10 @@
     <p>Not all websites allow automated recipe extraction.</p>
   {/snippet}
   <form onsubmit={importRecipeFromURL}>
-    <Textinput
+    <TextInput
       name="recipe_url"
-      bind:value={recipeURL}
-      label="Recipe URL"
+      value={recipeURL}
+      labelText="Recipe URL"
       placeholder="Enter the URL of the recipe to import"
     />
     <div class="flex flex-row-reverse">
@@ -527,4 +511,4 @@
       </Button>
     </div>
   </form>
-</Dialog>
+</Dialog> -->

@@ -125,18 +125,18 @@ input.invalid {
 
 .textinput,
 input {
-  @apply h-input-mobile md:h-input bg-input-bg rounded-input border border-border-input hover:shadow-mini;
+  @apply h-input-mobile md:h-input bg-input rounded-input border border-input-border hover:shadow-mini;
   padding: var(--padding-input-y) var(--padding-input-x);
 }
 
 .textarea,
 textarea {
-  @apply bg-input-bg rounded-input border border-border-input resize-y hover:shadow-mini;
+  @apply bg-input rounded-input border border-input-border min-h-18 resize-y hover:shadow-mini;
   padding: var(--padding-input-y) var(--padding-input-x);
 }
 
 .input-group {
-  @apply h-input-mobile md:h-input bg-input-bg rounded-input border border-border-input hover:shadow-mini;
+  @apply h-input-mobile md:h-input bg-input rounded-input border border-input-border hover:shadow-mini;
   display: flex;
   align-items: center;
 
@@ -180,5 +180,5 @@ textarea {
 }
 
 input:is(:autofill, :-webkit-autofill) {
-  @apply bg-input-bg;
+  @apply bg-input;
 }

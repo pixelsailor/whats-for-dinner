@@ -157,10 +157,10 @@ Example:
     class={[
       'textinput',
       'body-medium',
-      'border-border-input',
+      'border-input-border',
       'h-input-mobile',
       'md:h-input',
-      'bg-input-bg',
+      'bg-input',
       'hover:shadow-mini',
       displayError ? 'border-destructive' : ''
     ]}

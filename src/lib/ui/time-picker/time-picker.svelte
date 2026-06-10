@@ -415,7 +415,7 @@ Segmented hours/minutes duration input styled like a digital clock; bound value 
   data-invalid={invalid ? '' : undefined}
   data-disabled={disabled ? '' : undefined}
   class={cn(
-    'time-picker h-input-mobile md:h-input rounded-input border-border-input bg-input-bg text-foreground focus-within:shadow-date-field-focus data-invalid:border-destructive flex w-fit select-none items-center border px-3 py-2',
+    'time-picker h-input-mobile md:h-input rounded-input border-input-border bg-input text-foreground focus-within:shadow-date-field-focus data-invalid:border-destructive flex w-fit select-none items-center border px-3 py-2',
     disabled && 'pointer-events-none opacity-50',
     className
   )}
@@ -436,7 +436,7 @@ Segmented hours/minutes duration input styled like a digital clock; bound value 
           enterkeyhint="next"
           contenteditable={disabled || readonly ? undefined : 'true'}
           class={cn(
-            'time-picker__segment rounded-5px tabular-nums px-1 py-0.5 outline-none focus-visible:ring-0',
+            'time-picker__segment rounded-input tabular-nums px-1 py-0.5 outline-none focus-visible:ring-0',
             activeSegment === 'hours' ? 'bg-muted text-foreground' : 'hover:bg-muted/60',
             isSegmentEmpty(segmentHours) && 'text-muted-foreground'
           )}
@@ -451,7 +451,7 @@ Segmented hours/minutes duration input styled like a digital clock; bound value 
           {hoursDisplay}
         </span>
       </div>
-      <span class="time-picker__unit text-muted-foreground" aria-hidden="true">h</span>
+      <span class="time-picker__unit text-placeholder" aria-hidden="true">h</span>
     </div>
 
     <div class="time-picker__unit-group inline-flex items-baseline gap-0.5">
@@ -480,7 +480,7 @@ Segmented hours/minutes duration input styled like a digital clock; bound value 
           {minutesDisplay}
         </span>
       </div>
-      <span class="time-picker__unit text-muted-foreground" aria-hidden="true">m</span>
+      <span class="time-picker__unit text-placeholder" aria-hidden="true">m</span>
     </div>
   </div>
 </div>

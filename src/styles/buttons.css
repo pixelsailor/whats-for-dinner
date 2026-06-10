@@ -1,8 +1,8 @@
 /* Button styles */
 
 .button {
-  @apply rounded-button bg-dark-10 text-label h-input-mobile md:h-input inline-flex cursor-pointer flex-row items-center justify-center gap-3 border border-transparent px-6 transition-all duration-200 ease-in-out;
-  color: color-contrast(var(--dark-40));
+  @apply rounded-button bg-dark-10 text-label h-input-mobile md:h-input inline-flex cursor-pointer flex-row items-center justify-center gap-3 border border-transparent px-6 transition-transform transition-colors duration-200 ease-in-out will-change-transform;
+  color: color-contrast(var(--background-alt));
 
   &:hover {
     @apply bg-dark-10/70 shadow-btn;
@@ -10,12 +10,15 @@
   }
 
   &:active {
-    @apply shadow-btn;
     transform: translateY(0);
   }
 
+  &:focus-visible {
+    @apply shadow-btn;
+  }
+
   &.primary {
-    @apply bg-dark hover:bg-dark/80 text-dark-foreground;
+    @apply bg-dark text-dark-foreground hover:bg-mauve-700 dark:hover:bg-mauve-300;
   }
 
   &.warn {
@@ -48,7 +51,7 @@
 }
 
 .button.text {
-  @apply hover:bg-muted dark:hover:bg-dark-10 bg-transparent text-current;
+  @apply hover:bg-muted bg-transparent text-current;
 
   &.primary {
     @apply text-dark hover:bg-muted;

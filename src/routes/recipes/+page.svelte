@@ -293,7 +293,7 @@
             bind:value={getSortOrder, setSortOrder}
           >
             <BitsSelect.Trigger
-              class="h-input data-placeholder:text-placeholder px-input inline-flex w-[296px] flex-auto cursor-pointer touch-none items-center border border-none text-sm transition-colors select-none"
+              class="textinput textinput--outlined body-medium h-input-mobile md:h-input bg-input data-placeholder:text-placeholder px-input inline-flex w-[296px] flex-auto cursor-pointer touch-none items-center border border-none text-sm transition-colors select-none"
             >
               <span class="body-medium">{selectedSortLabel}</span>
               <span class="flex-1"></span>

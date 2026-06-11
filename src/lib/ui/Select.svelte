@@ -76,8 +76,9 @@ _Reference: bits-ui [Select](https://bits-ui.com/docs/components/select/llms.txt
   <div
     class={[
       'body-medium',
-      'textinput textinput--outlined',
-      'pr-0! py-0!',
+      'h-input-mobile md:h-input bg-input',
+      'textinput',
+      'pl-1',
       'flex',
       'flex-row',
       'flex-nowrap',
@@ -87,7 +88,7 @@ _Reference: bits-ui [Select](https://bits-ui.com/docs/components/select/llms.txt
     bind:this={containerRef}
   >
     <Select.Trigger
-      class="inline-flex w-[296px] flex-auto cursor-pointer touch-none items-center border border-none text-sm transition-colors select-none"
+      class="inline-flex w-[296px] flex-auto cursor-pointer touch-none items-center border border-none text-sm transition-colors select-none rounded-input"
     >
       <div class="flex flex-row flex-wrap gap-1">
         {#if restProps.type === 'multiple'}

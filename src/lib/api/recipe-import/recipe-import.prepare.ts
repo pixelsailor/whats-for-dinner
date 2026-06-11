@@ -1,5 +1,5 @@
 /**
- * @fileoverview JSON-LD and HTML text preparation for recipe URL extraction.
+ * @fileoverview JSON-LD and DOMPurify body preparation for recipe URL extraction.
  * @module lib/api/recipe-import/recipe-import.prepare
  */
 
@@ -7,23 +7,24 @@ import {
   RECIPE_IMPORT_NO_RECIPE,
   RecipeImportError
 } from './recipe-import.errors';
+import { sanitizeRecipePageBody } from './recipe-import.sanitize';
 import type {
   FetchedPage,
-  PreparedImportContent,
-  PreparationSource
+  PreparationSource,
+  PreparedImportContent
 } from './recipe-import.types';
 
 /** Max characters for JSON-LD primary block in model input. */
 export const PRIMARY_BLOCK_MAX_CHARS = 32_000;
 
-/** Max characters for supplemental HTML text in model input. */
-export const SUPPLEMENTAL_TEXT_MAX_CHARS = 64_000;
+/** Max characters for sanitized body HTML in model input. */
+export const SANITIZED_BODY_MAX_CHARS = 64_000;
 
-/** Minimum supplemental text for weak keyword-only detection (no section headings). */
-const MIN_SUPPLEMENTAL_CHARS_WEAK_SIGNAL = 280;
+/** Minimum body text for weak keyword-only detection (no section headings). */
+const MIN_BODY_TEXT_CHARS_WEAK_SIGNAL = 280;
 
-/** Minimum supplemental text when ingredient and instruction sections are present. */
-const MIN_SUPPLEMENTAL_CHARS_STRUCTURED = 120;
+/** Minimum body text when ingredient and instruction sections are present. */
+const MIN_BODY_TEXT_CHARS_STRUCTURED = 120;
 
 const JSON_LD_SCRIPT_RE =
   /<script[^>]*type\s*=\s*["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
@@ -40,12 +41,13 @@ export function prepareImportContent(page: FetchedPage): PreparedImportContent {
     recipes.length > 0
       ? truncate(stringifyPrimaryBlock(recipes[0]), PRIMARY_BLOCK_MAX_CHARS)
       : '';
-  const supplementalText = truncate(
-    htmlToText(page.html),
-    SUPPLEMENTAL_TEXT_MAX_CHARS
+  const { sanitizedBodyHtml, bodyText } = sanitizeRecipePageBody(page.html);
+  const sanitizedBodyContent = truncate(
+    sanitizedBodyHtml,
+    SANITIZED_BODY_MAX_CHARS
   );
 
-  if (!hasRecipeSignal(primaryBlock, supplementalText)) {
+  if (!hasRecipeSignal(primaryBlock, bodyText)) {
     throw new RecipeImportError(
       'No recipe was found on that page. The site may load the recipe only in a browser, or the page may block import.',
       RECIPE_IMPORT_NO_RECIPE,
@@ -53,34 +55,31 @@ export function prepareImportContent(page: FetchedPage): PreparedImportContent {
     );
   }
 
-  const preparationSource = resolvePreparationSource(
-    primaryBlock,
-    supplementalText
-  );
+  const preparationSource = resolvePreparationSource(primaryBlock, bodyText);
 
   return {
     sourceUrl: page.url,
     primaryBlock,
-    supplementalText,
+    sanitizedBodyContent,
     preparationSource
   };
 }
 
 /**
  * @param primaryBlock - Serialized JSON-LD recipe
- * @param supplementalText - Stripped page text
+ * @param bodyText - Plain text from sanitized document body
  */
 export function hasRecipeSignal(
   primaryBlock: string,
-  supplementalText: string
+  bodyText: string
 ): boolean {
   if (primaryBlock.trim().length > 40) {
     return true;
   }
 
-  const text = supplementalText.trim();
+  const text = bodyText.trim();
 
-  if (text.length < MIN_SUPPLEMENTAL_CHARS_STRUCTURED) {
+  if (text.length < MIN_BODY_TEXT_CHARS_STRUCTURED) {
     return false;
   }
 
@@ -91,7 +90,7 @@ export function hasRecipeSignal(
     return true;
   }
 
-  if (text.length < MIN_SUPPLEMENTAL_CHARS_WEAK_SIGNAL) {
+  if (text.length < MIN_BODY_TEXT_CHARS_WEAK_SIGNAL) {
     return false;
   }
 
@@ -207,19 +206,19 @@ function stringifyPrimaryBlock(recipe: Record<string, unknown>): string {
 
 /**
  * @param primaryBlock - JSON-LD excerpt
- * @param supplementalText - HTML text excerpt
+ * @param bodyText - Plain text from sanitized body
  */
 function resolvePreparationSource(
   primaryBlock: string,
-  supplementalText: string
+  bodyText: string
 ): PreparationSource {
   const hasPrimary = primaryBlock.trim().length > 0;
-  const supplemental = supplementalText.trim();
+  const supplemental = bodyText.trim();
   const hasSupplemental =
-    supplemental.length >= MIN_SUPPLEMENTAL_CHARS_WEAK_SIGNAL ||
+    supplemental.length >= MIN_BODY_TEXT_CHARS_WEAK_SIGNAL ||
     (/\bingredients?\b/i.test(supplemental) &&
       /\b(instructions?|directions|method)\b/i.test(supplemental) &&
-      supplemental.length >= MIN_SUPPLEMENTAL_CHARS_STRUCTURED);
+      supplemental.length >= MIN_BODY_TEXT_CHARS_STRUCTURED);
 
   if (hasPrimary && hasSupplemental) {
     return 'json_ld_and_html';

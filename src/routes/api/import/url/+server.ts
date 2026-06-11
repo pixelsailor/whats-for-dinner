@@ -57,7 +57,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
       stage: 'prepared',
       source: prepared.preparationSource,
       primaryChars: prepared.primaryBlock.length,
-      supplementalChars: prepared.supplementalText.length
+      sanitizedBodyChars: prepared.sanitizedBodyContent.length
     });
 
     const raw = await importRecipeFromURL(prepared.sourceUrl, prepared);

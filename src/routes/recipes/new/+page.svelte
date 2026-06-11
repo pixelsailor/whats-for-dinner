@@ -188,26 +188,29 @@
    * @returns The saved recipe record written to Dexie
    */
   async function persistRecipe(recipe: Recipe): Promise<SavedRecipe> {
+    const localRecipe = _createSavedRecipe(recipe);
+
     if (hasCloudStorageAccess && cloudService) {
       try {
-        const savedRecipe = await cloudService.uploadLocalRecipe(recipe);
-        await db.recipes.add(savedRecipe);
-        return savedRecipe;
+        const cloudRecipe = await cloudService.uploadLocalRecipe(localRecipe);
+        await db.recipes.add(cloudRecipe);
+        return cloudRecipe;
       } catch (err) {
         console.error('Cloud save failed; continuing locally', err);
-        const candidate = _createSavedRecipe(
-          recipe,
-          err instanceof Error ? err.message : 'Unknown sync error'
-        );
+        const candidate: SavedRecipe = {
+          ...localRecipe,
+          synced: false,
+          sync_error:
+            err instanceof Error ? err.message : 'Unknown sync error'
+        };
         await db.recipes.add(candidate);
         toast.error('Recipe saved locally but failed to sync to cloud');
         return candidate;
       }
     }
 
-    const candidate = _createSavedRecipe(recipe);
-    await db.recipes.add(candidate);
-    return candidate;
+    await db.recipes.add(localRecipe);
+    return localRecipe;
   }
 
   /**

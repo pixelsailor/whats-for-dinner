@@ -239,18 +239,19 @@
     }
     checkoutTimer = window.setTimeout(async () => {
       try {
-        // Use untrack to read recipe properties without tracking them
-        const currentRecipe = untrack(() => recipe);
+        const currentRecipe = untrack(() =>
+          recipe ? ($state.snapshot(recipe) as SavedRecipe) : undefined
+        );
         const checkoutHistory = [
           ...(currentRecipe?.checkout_history ?? []),
           todaytz.toString()
         ];
 
-        if (hasCloudStorageAccess && syncService) {
-          const openedRecipe = {
+        if (hasCloudStorageAccess && syncService && currentRecipe) {
+          const openedRecipe: SavedRecipe = {
             ...currentRecipe,
             checkout_history: checkoutHistory
-          } as SavedRecipe;
+          };
           await syncService.uploadRecipeAndSyncLocal(openedRecipe);
         } else {
           await db.recipes.update(id, { checkout_history: checkoutHistory });

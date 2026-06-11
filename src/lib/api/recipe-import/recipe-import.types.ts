@@ -13,10 +13,10 @@ export type PreparationSource = 'json_ld' | 'html_text' | 'json_ld_and_html';
 export interface PreparedImportContent {
   /** Canonical recipe page URL. */
   sourceUrl: string;
-  /** JSON-LD Recipe block or empty when only HTML text is available. */
+  /** JSON-LD Recipe block or empty when only HTML body is available. */
   primaryBlock: string;
-  /** Stripped visible page text excerpt. */
-  supplementalText: string;
+  /** DOMPurify-sanitized document body innerHTML (supplemental AI input). */
+  sanitizedBodyContent: string;
   /** Which preparation paths contributed content. */
   preparationSource: PreparationSource;
 }

@@ -104,7 +104,7 @@ describe('hasRecipeSignal', () => {
     ).toBe(true);
   });
 
-  it('requires recipe-like supplemental text without JSON-LD', () => {
+  it('requires recipe-like body text without JSON-LD', () => {
     expect(hasRecipeSignal('', 'short')).toBe(false);
     expect(hasRecipeSignal('', 'x'.repeat(300))).toBe(false);
     expect(
@@ -123,6 +123,7 @@ describe('prepareImportContent', () => {
     expect(prepared.preparationSource).toBe('json_ld');
     expect(prepared.primaryBlock).toContain('Test Chocolate Chip Cookies');
     expect(prepared.primaryBlock).toContain('recipeIngredient');
+    expect(prepared.sanitizedBodyContent).toContain('<p>');
   });
 
   it('prepares html_text when article body has recipe cues', () => {
@@ -130,8 +131,13 @@ describe('prepareImportContent', () => {
 
     expect(prepared.preparationSource).toBe('html_text');
     expect(prepared.primaryBlock).toBe('');
-    expect(prepared.supplementalText.toLowerCase()).toContain('ingredients');
-    expect(prepared.supplementalText.toLowerCase()).toContain('instructions');
+    expect(prepared.sanitizedBodyContent.toLowerCase()).toContain(
+      'ingredients'
+    );
+    expect(prepared.sanitizedBodyContent.toLowerCase()).toContain(
+      'instructions'
+    );
+    expect(prepared.sanitizedBodyContent).toContain('<article>');
   });
 
   it('throws when CSR shell has no recipe signal', () => {

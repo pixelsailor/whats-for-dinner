@@ -1,0 +1,104 @@
+{
+  "manifest_version": "2.0.0",
+  "task_id": "recipe-import-dom-flow",
+  "objective": "Online-only URL recipe import (requires AI assistance): validate URL in New Recipe dialog, server-fetch page, DOMPurify-sanitize fetched HTML to extract body content, pass sanitized content to importRecipeFromURL for JSON recipe extraction, return Recipe to client, persist locally with normal cloud-sync error handling; Toast on all failures.",
+  "status": "complete",
+  "current_agent": "orchestrator",
+  "pipeline": ["planner", "builder", "tester", "validator"],
+  "risk_tier": {
+    "level": "medium",
+    "rationale": "AI provider boundary (ADR-007), server fetch (ADR-017), Dexie persistence (ADR-002), capability gating (ADR-001/004). DOMPurify on server via isomorphic-dompurify (ADR-006 runtime).",
+    "skipped_stages": []
+  },
+  "gate_status": {
+    "gate_0_intake": "complete",
+    "gate_1_requirements": "complete",
+    "gate_2_plan": "complete",
+    "gate_3_build": "complete",
+    "gate_4_tests": "complete",
+    "gate_5_validation": "complete",
+    "gate_6_human_approval": "complete"
+  },
+  "completed_stages": [
+    {
+      "agent": "orchestrator",
+      "completed_at": "2026-06-11T00:00:00.000Z",
+      "output_artifacts": ["task-manifest.json"],
+      "summary": "Gate 0 intake; ADR conflict resolved — server fetch + DOMPurify sanitization."
+    },
+    {
+      "agent": "planner",
+      "completed_at": "2026-06-11T00:00:00.000Z",
+      "output_artifacts": [
+        "plan.md",
+        "acceptance-criteria.md",
+        "test-matrix.md"
+      ],
+      "summary": "2-phase plan: JSON-LD primary + DOMPurify supplemental; 22 ACs; 13-file allowlist."
+    },
+    {
+      "agent": "builder",
+      "completed_at": "2026-06-11T00:00:00.000Z",
+      "output_artifacts": ["build-log.md"],
+      "summary": "Phases 1-2 complete; isomorphic-dompurify integrated; fetchDomBodyContent removed."
+    },
+    {
+      "agent": "tester",
+      "completed_at": "2026-06-11T00:00:00.000Z",
+      "output_artifacts": ["test-report.md"],
+      "summary": "91/91 tests pass; 3 boundary specs added; 6 manual-only ACs documented."
+    },
+    {
+      "agent": "validator",
+      "completed_at": "2026-06-11T00:00:00.000Z",
+      "output_artifacts": ["validation-report.md"],
+      "summary": "PASS_WITH_NOTES — all ACs met; MG-01–MG-05 green."
+    },
+    {
+      "agent": "orchestrator",
+      "completed_at": "2026-06-11T00:00:00.000Z",
+      "output_artifacts": ["human-approval.md"],
+      "summary": "Gate 6 approved; post-validation persistRecipe + DataCloneError fixes confirmed working."
+    }
+  ],
+  "loop_count": 0,
+  "max_loops": 2,
+  "rework_count": 0,
+  "rework_history": [],
+  "session_counts": {
+    "orchestrator": 6,
+    "planner": 1,
+    "builder": 1,
+    "tester": 1,
+    "validator": 1
+  },
+  "command_evidence": [
+    {
+      "agent": "builder",
+      "command": "pnpm run test",
+      "result": "pass",
+      "detail": "88/88"
+    },
+    {
+      "agent": "tester",
+      "command": "pnpm run test",
+      "result": "pass",
+      "detail": "91/91"
+    },
+    {
+      "agent": "orchestrator",
+      "command": "pnpm run test",
+      "result": "pass",
+      "detail": "91/91 after persistRecipe fix"
+    }
+  ],
+  "locked_artifacts": [],
+  "flags": [],
+  "human_approval": {
+    "status": "approved",
+    "approved_at": "2026-06-11T00:00:00.000Z",
+    "approver": "human",
+    "conditions": null,
+    "notes": "Import + cloud sync verified working after persistRecipe fix."
+  }
+}

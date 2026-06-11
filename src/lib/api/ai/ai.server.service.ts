@@ -329,7 +329,7 @@ notes: ${notes}
 /**
  * Extracts a recipe from prepared page content (ADR-017). Caller must fetch and prepare first.
  * @param url - Canonical source URL for attribution
- * @param prepared - Server-prepared JSON-LD and/or HTML text from the page
+ * @param prepared - Server-prepared JSON-LD and/or sanitized HTML body from the page
  * @returns Raw structured JSON string from the provider
  */
 export async function importRecipeFromURL(
@@ -343,7 +343,7 @@ You must NOT invent, improve, substitute, or complete missing steps from general
 
 Source priority within the provided content:
 1. PRIMARY SOURCE block (JSON-LD Recipe data) when present.
-2. SUPPLEMENTAL PAGE TEXT for any fields missing from the primary block.
+2. SUPPLEMENTAL BODY (sanitized HTML) for any fields missing from the primary block.
 
 Extraction rules:
 - title, ingredients, and instructions must come only from the provided content blocks, not from the URL path or your memory of a dish with a similar name.
@@ -352,7 +352,7 @@ Extraction rules:
 - description and short_description: use only text present in the provided content.
 - yield, prep_time, cook_time: copy from the provided content when present; do not guess typical values for the dish.
 - tags: infer only from explicit labels in the provided content; do not tag from guesswork.
-- Ignore ads, comments, related recipes, navigation, and author bios if they appear in supplemental text.
+- Ignore ads, comments, related recipes, navigation, and author bios if they appear in supplemental body HTML.
 
 ${formatInstructions}
 `;
@@ -362,8 +362,8 @@ ${formatInstructions}
 --- PRIMARY SOURCE (JSON-LD Recipe; prefer this) ---
 ${prepared.primaryBlock || '(none)'}
 
---- SUPPLEMENTAL PAGE TEXT ---
-${prepared.supplementalText || '(none)'}
+--- SUPPLEMENTAL BODY (sanitized HTML) ---
+${prepared.sanitizedBodyContent || '(none)'}
 --- END PAGE CONTENT ---`;
 
   try {

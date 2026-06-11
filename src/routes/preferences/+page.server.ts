@@ -33,7 +33,9 @@ export const actions: Actions = {
 
     /** Strip whitespace and filter out empty values. */
     const toFilteredArray = (values: FormDataEntryValue[]): string[] | null => {
-      const filtered = values.map((value) => value.toString().trim()).filter((value) => value.length > 0);
+      const filtered = values
+        .map((value) => value.toString().trim())
+        .filter((value) => value.length > 0);
       return filtered.length > 0 ? filtered : null;
     };
 
@@ -43,10 +45,13 @@ export const actions: Actions = {
       allergies: toFilteredArray(formData.getAll('allergies')) || null,
       dislikes: toFilteredArray(formData.getAll('dislikes')) || null,
       equipment: toFilteredArray(formData.getAll('equipment')) || null,
-      cuisine_preferences: toFilteredArray(formData.getAll('cuisine_preferences')) || null,
-      preferred_prep_time: (formData.get('preferred_prep_time') as string)?.trim() || null,
+      cuisine_preferences:
+        toFilteredArray(formData.getAll('cuisine_preferences')) || null,
+      preferred_prep_time:
+        (formData.get('preferred_prep_time') as string)?.trim() || null,
       skill_level: (formData.get('skill_level') as string)?.trim() || null,
-      use_ai_assistance: formData.get('use_ai_assistance') === 'on' ? true : false
+      use_ai_assistance:
+        formData.get('use_ai_assistance') === 'on' ? true : false
     };
     try {
       await accountService.updateUserPreferences(preferences);

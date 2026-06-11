@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { AccountParseError, hasPermission, parseUserPreferencesResponse, parseUserPreferencesUpdate, parseUserProfile } from './account.model';
+import {
+  AccountParseError,
+  hasPermission,
+  parseUserPreferencesResponse,
+  parseUserPreferencesUpdate,
+  parseUserProfile
+} from './account.model';
 
 const sampleProfile = {
   id: '550e8400-e29b-41d4-a716-446655440000',
@@ -31,7 +37,9 @@ describe('parseUserProfile', () => {
   });
 
   it('throws AccountParseError for invalid rows', () => {
-    expect(() => parseUserProfile({ user_id: 'not-a-uuid' })).toThrow(AccountParseError);
+    expect(() => parseUserProfile({ user_id: 'not-a-uuid' })).toThrow(
+      AccountParseError
+    );
   });
 });
 
@@ -57,7 +65,9 @@ describe('parseUserPreferencesResponse', () => {
   });
 
   it('throws AccountParseError for invalid rows', () => {
-    expect(() => parseUserPreferencesResponse({ user_id: 'bad' })).toThrow(AccountParseError);
+    expect(() => parseUserPreferencesResponse({ user_id: 'bad' })).toThrow(
+      AccountParseError
+    );
   });
 });
 
@@ -77,7 +87,9 @@ describe('parseUserPreferencesUpdate', () => {
   });
 
   it('rejects invalid preference field types', () => {
-    expect(() => parseUserPreferencesUpdate({ diet: 'vegetarian' })).toThrow(AccountParseError);
+    expect(() => parseUserPreferencesUpdate({ diet: 'vegetarian' })).toThrow(
+      AccountParseError
+    );
   });
 });
 

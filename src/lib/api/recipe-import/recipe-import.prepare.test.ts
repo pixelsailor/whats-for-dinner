@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { RECIPE_IMPORT_NO_RECIPE, RecipeImportError } from './recipe-import.errors';
+import {
+  RECIPE_IMPORT_NO_RECIPE,
+  RecipeImportError
+} from './recipe-import.errors';
 import {
   extractJsonLdRecipes,
   hasRecipeSignal,
@@ -80,7 +83,9 @@ describe('extractJsonLdRecipes', () => {
 
 describe('htmlToText', () => {
   it('strips scripts and tags', () => {
-    const text = htmlToText('<html><script>alert(1)</script><p>Hello <b>world</b></p></html>');
+    const text = htmlToText(
+      '<html><script>alert(1)</script><p>Hello <b>world</b></p></html>'
+    );
 
     expect(text).toContain('Hello');
     expect(text).toContain('world');
@@ -91,7 +96,12 @@ describe('htmlToText', () => {
 
 describe('hasRecipeSignal', () => {
   it('accepts non-empty JSON-LD primary block', () => {
-    expect(hasRecipeSignal('{"@type":"Recipe","name":"X","recipeIngredient":["a"]}', '')).toBe(true);
+    expect(
+      hasRecipeSignal(
+        '{"@type":"Recipe","name":"X","recipeIngredient":["a"]}',
+        ''
+      )
+    ).toBe(true);
   });
 
   it('requires recipe-like supplemental text without JSON-LD', () => {
@@ -125,7 +135,9 @@ describe('prepareImportContent', () => {
   });
 
   it('throws when CSR shell has no recipe signal', () => {
-    expect(() => prepareImportContent(page(CSR_SHELL_FIXTURE))).toThrow(RecipeImportError);
+    expect(() => prepareImportContent(page(CSR_SHELL_FIXTURE))).toThrow(
+      RecipeImportError
+    );
 
     try {
       prepareImportContent(page(CSR_SHELL_FIXTURE));

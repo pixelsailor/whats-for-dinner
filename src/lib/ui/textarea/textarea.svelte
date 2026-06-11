@@ -21,7 +21,16 @@
       onchange?: (event: Event) => void;
       onfocus?: (event: FocusEvent) => void;
       oninput?: (event: Event) => void;
-    } & Omit<HTMLTextareaAttributes, 'id' | 'value' | 'pattern' | 'minlength' | 'maxlength' | 'onblur' | 'oninput'>,
+    } & Omit<
+      HTMLTextareaAttributes,
+      | 'id'
+      | 'value'
+      | 'pattern'
+      | 'minlength'
+      | 'maxlength'
+      | 'onblur'
+      | 'oninput'
+    >,
     HTMLTextAreaElement
   >;
 
@@ -67,20 +76,20 @@
 
   let onblur = (event: FocusEvent) => {
     onBlurFn?.(event);
-  }
+  };
 
   let onchange = (event: Event) => {
     if (validateOn === 'change') {
       runValidation();
     }
     onChangeFn?.(event);
-  }
+  };
 
   let onfocus = (event: FocusEvent) => {
     touched = true;
     if (control) control.touched = true;
     onFocusFn?.(event);
-  }
+  };
 
   let oninput = (event: Event) => {
     dirty = true;
@@ -89,7 +98,7 @@
       runValidation();
     }
     onInputFn?.(event);
-  }
+  };
 
   function getInputValue(): string {
     return control?.value ?? value ?? '';
@@ -111,7 +120,7 @@
       }
       if (msg) break;
     }
-    
+
     setInvalid(!inputRef?.validity.valid);
     setValid(inputRef?.validity.valid ?? false);
     setErrorMessage(inputRef?.validationMessage ?? '');
@@ -186,12 +195,7 @@ Example with `control` (requires `FormGroup`):
     {onfocus}
     required={requiredText ? true : requiredProp ? true : undefined}
     {disabled}
-    class={[
-      'textinput',
-      'body-medium',
-      className,
-      invalid ? 'invalid' : '',
-    ]}
+    class={['textinput', 'body-medium', className, invalid ? 'invalid' : '']}
     {...inputProps}
   >
   </textarea>

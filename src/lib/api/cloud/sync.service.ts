@@ -52,7 +52,10 @@ export class SyncService {
    * @returns The sync plan.
    */
   async buildPlan(): Promise<SyncPlan> {
-    const [localRecipes, remoteRecipes] = await Promise.all([this.getLocalSyncableRecipes(), this.getRemoteSyncableRecipes()]);
+    const [localRecipes, remoteRecipes] = await Promise.all([
+      this.getLocalSyncableRecipes(),
+      this.getRemoteSyncableRecipes()
+    ]);
 
     return buildSyncPlan(localRecipes, remoteRecipes);
   }
@@ -93,7 +96,7 @@ export class SyncService {
    */
   async uploadRecipe(recipe: SavedRecipe): Promise<string | null> {
     const response = await this.syncRecipeToCloud(recipe);
-    return response.success ? response.data : response.data ?? null;
+    return response.success ? response.data : (response.data ?? null);
   }
 
   /**
@@ -119,7 +122,9 @@ export class SyncService {
     if (!recipes.length) return;
 
     try {
-      const payload = recipes.map((recipe) => this.cloud.prepareRecipeForUpload(recipe));
+      const payload = recipes.map((recipe) =>
+        this.cloud.prepareRecipeForUpload(recipe)
+      );
       const uploaded = await this.cloud.uploadAllLocalRecipes(payload);
       if (!uploaded) return;
 
@@ -146,7 +151,9 @@ export class SyncService {
    * @param recipeData - The recipe data to update.
    * @returns The updated recipe.
    */
-  async updateRecipeAndSyncLocal(recipeData: Partial<SavedRecipe> & { id: string }): Promise<ApiResponse<string>> {
+  async updateRecipeAndSyncLocal(
+    recipeData: Partial<SavedRecipe> & { id: string }
+  ): Promise<ApiResponse<string>> {
     if (!recipeData.id) throw new Error('Recipe ID is required');
     try {
       const updated = await this.cloud.updateRecipe(recipeData);
@@ -258,7 +265,9 @@ export class SyncService {
    * @param sharedId - Share token on `recipes.shared_id`.
    * @returns The recipe after merge into local storage, or null if not found.
    */
-  async downloadRecipeBySharedId(sharedId: string): Promise<SavedRecipe | null> {
+  async downloadRecipeBySharedId(
+    sharedId: string
+  ): Promise<SavedRecipe | null> {
     const remote = await this.cloud.downloadRecipeBySharedId(sharedId);
     if (!remote) return null;
     await this.downloadRecipes([remote]);
@@ -271,7 +280,10 @@ export class SyncService {
    * @param conflict - The conflict to resolve.
    * @param action - The action to take.
    */
-  async resolveConflict(conflict: SyncConflict, action: 'upload' | 'download'): Promise<void> {
+  async resolveConflict(
+    conflict: SyncConflict,
+    action: 'upload' | 'download'
+  ): Promise<void> {
     if (action === 'upload') {
       await this.uploadRecipes([conflict.local]);
     } else {
@@ -282,10 +294,16 @@ export class SyncService {
   /**
    * Resolve conflicts automatically when an action is already chosen.
    */
-  async resolveConflictsAutomatically(conflicts: ConflictResolution[]): Promise<void> {
+  async resolveConflictsAutomatically(
+    conflicts: ConflictResolution[]
+  ): Promise<void> {
     if (!conflicts.length) return;
-    const uploads = conflicts.filter((item) => item.action === 'upload').map((item) => item.conflict.local);
-    const downloads = conflicts.filter((item) => item.action === 'download').map((item) => item.conflict.cloud);
+    const uploads = conflicts
+      .filter((item) => item.action === 'upload')
+      .map((item) => item.conflict.local);
+    const downloads = conflicts
+      .filter((item) => item.action === 'download')
+      .map((item) => item.conflict.cloud);
 
     if (uploads.length) {
       await this.uploadRecipes(uploads);
@@ -321,7 +339,10 @@ export class SyncService {
    * @param recipe - Recipe that failed to upload.
    * @param message - User-visible sync error message.
    */
-  private async markSyncFailed(recipe: SavedRecipe, message: string): Promise<void> {
+  private async markSyncFailed(
+    recipe: SavedRecipe,
+    message: string
+  ): Promise<void> {
     await db.recipes.put({
       ...recipe,
       updated_at: new Date().toISOString(),

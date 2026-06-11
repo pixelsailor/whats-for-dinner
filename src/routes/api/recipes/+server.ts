@@ -56,23 +56,33 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         break;
       case PromptContextEnum.ASSISTANCE: {
         if (!recipe) {
-          return error(400, { message: 'The request is missing a valid recipe string.' });
+          return error(400, {
+            message: 'The request is missing a valid recipe string.'
+          });
         }
         response = await askCookingQuestionWithContext(prompt, recipe);
         break;
       }
       case PromptContextEnum.DETAIL: {
         if (!recipe) {
-          return error(400, { message: 'The request is missing a short description.' });
+          return error(400, {
+            message: 'The request is missing a short description.'
+          });
         }
         response = await getFullRecipe(prompt, recipe, preferences);
         break;
       }
       case PromptContextEnum.REVISION: {
         if (!recipe) {
-          return error(400, { message: 'The request is missing a valid recipe string.' });
+          return error(400, {
+            message: 'The request is missing a valid recipe string.'
+          });
         }
-        response = await requestRecipeModificationsWithContext(prompt, recipe, preferences);
+        response = await requestRecipeModificationsWithContext(
+          prompt,
+          recipe,
+          preferences
+        );
         break;
       }
       case PromptContextEnum.SUMMARIES:
@@ -85,11 +95,20 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     return json({ success: true, data: response });
   } catch (err) {
     if (err instanceof AiParseError) {
-      return json({ error: err.message, code: 'AI_PARSE_ERROR' }, { status: 502 });
+      return json(
+        { error: err.message, code: 'AI_PARSE_ERROR' },
+        { status: 502 }
+      );
     }
 
     if (err instanceof Error && err.message === OPENAI_DISABLED_ERROR) {
-      return json({ error: 'AI service is unavailable right now', code: 'AI_UNAVAILABLE' }, { status: 503 });
+      return json(
+        {
+          error: 'AI service is unavailable right now',
+          code: 'AI_UNAVAILABLE'
+        },
+        { status: 503 }
+      );
     }
 
     console.error('API Error:', err);

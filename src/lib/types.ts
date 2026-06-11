@@ -8,7 +8,11 @@ export type IconSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
  * Internal layout state used by the viewport helper.
  * Mobile/desktop and collapsed/expanded are represented as unique tokens.
  */
-type Layout = 'mobile--collapsed' | 'mobile--expanded' | 'desktop--collapsed' | 'desktop--expanded';
+type Layout =
+  | 'mobile--collapsed'
+  | 'mobile--expanded'
+  | 'desktop--collapsed'
+  | 'desktop--expanded';
 
 /**
  * Viewport information derived from the current window size and app UI state.
@@ -40,7 +44,8 @@ export const PromptContextEnum = {
   SUMMARIES: 'summaries'
 } as const;
 
-export type PromptContext = (typeof PromptContextEnum)[keyof typeof PromptContextEnum];
+export type PromptContext =
+  (typeof PromptContextEnum)[keyof typeof PromptContextEnum];
 
 /**
  * Generic API response envelope used by server routes.

@@ -14,7 +14,9 @@ import { parseImportUrl } from './recipe-import.url';
  * @returns Prepared content for extraction
  * @throws {RecipeImportError} On invalid URL, fetch failure, or missing recipe signal
  */
-export async function fetchAndPrepareRecipeImport(urlString: string): Promise<PreparedImportContent> {
+export async function fetchAndPrepareRecipeImport(
+  urlString: string
+): Promise<PreparedImportContent> {
   const url = parseImportUrl(urlString);
   const page = await fetchRecipePage(url);
 

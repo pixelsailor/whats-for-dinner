@@ -3,7 +3,10 @@
   import { Label, Toggle } from 'bits-ui';
   import ViewIcon from '../icons/View.svelte';
   import ViewOffIcon from '../icons/ViewOff.svelte';
-  import type { FormControlStateWithValue, InputFieldProps } from '../form-group/types';
+  import type {
+    FormControlStateWithValue,
+    InputFieldProps
+  } from '../form-group/types';
 
   type Props = InputFieldProps & {
     /** Wrapper `.form-field` element; the `<input>` uses an internal ref. */
@@ -43,27 +46,27 @@
   let errorMessage = $state<string | undefined>(undefined);
 
   let touched = $state<boolean | undefined>();
-  
+
   let dirty = $state<boolean | undefined>();
 
   let pressed = $derived(showPassword);
 
   let onblur = (event: FocusEvent) => {
     onBlurFn?.(event);
-  }
+  };
 
   let onchange = (event: Event) => {
     if (validateOn === 'change') {
       runValidation();
     }
     onChangeFn?.(event);
-  }
+  };
 
   let onfocus = (event: FocusEvent) => {
     touched = true;
     if (control) control.touched = true;
     onFocusFn?.(event);
-  }
+  };
 
   let oninput = (event: Event) => {
     dirty = true;
@@ -72,7 +75,7 @@
       runValidation();
     }
     onInputFn?.(event);
-  }
+  };
 
   function runValidation() {
     let msg: string | null = null;
@@ -136,7 +139,7 @@ Minimum length validator:
       <span class="label-large text-destructive">*</span>
     {/if}
   </Label.Root>
-  <div class={['input-group', invalid ? 'invalid' : '',]}>
+  <div class={['input-group', invalid ? 'invalid' : '']}>
     <input
       type={pressed ? 'text' : 'password'}
       id={name}

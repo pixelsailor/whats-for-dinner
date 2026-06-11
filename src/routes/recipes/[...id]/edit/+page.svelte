@@ -7,7 +7,11 @@
   import { page } from '$app/state';
 
   import { CloudService, SyncService } from '$lib/api/cloud';
-  import { CATEGORY_TAGS, RecipeSchema, type SavedRecipe } from '$lib/api/recipe';
+  import {
+    CATEGORY_TAGS,
+    RecipeSchema,
+    type SavedRecipe
+  } from '$lib/api/recipe';
   import type { ZodIssue } from 'zod';
   import { db } from '$lib/db';
   import { getRecipeStore } from '$lib/stores/recipes';
@@ -29,7 +33,9 @@
   let isShared = $derived(pathParam.startsWith('shared/'));
   let id = $derived(isShared ? pathParam.split('/')[1]! : pathParam);
 
-  let hasCloudStorageAccess = $derived(data.permissions?.cloudSync.allowed ?? false);
+  let hasCloudStorageAccess = $derived(
+    data.permissions?.cloudSync.allowed ?? false
+  );
 
   let currentUserId = $state<string | undefined>(undefined);
   let cloudService: CloudService | undefined = $state(undefined);
@@ -67,7 +73,9 @@
     return () => unsubscribe();
   });
 
-  let recipe = $derived<SavedRecipe | undefined>(recipeStoreValue.data ?? undefined);
+  let recipe = $derived<SavedRecipe | undefined>(
+    recipeStoreValue.data ?? undefined
+  );
 
   $effect(() => {
     const userId = data.user?.id;
@@ -197,7 +205,8 @@
     for (const issue of issues) {
       const field = issue.path[0];
       if (field === 'title') errors.title = issue.message;
-      else if (field === 'short_description') errors.shortDescription = issue.message;
+      else if (field === 'short_description')
+        errors.shortDescription = issue.message;
       else if (field === 'ingredients') errors.ingredients = issue.message;
       else if (field === 'instructions') errors.instructions = issue.message;
       else if (field === 'tags') errors.tags = issue.message;
@@ -206,7 +215,10 @@
     if (Object.keys(errors).length > 0) {
       validationErrors = { hasErrors: true, errors };
     } else {
-      validationErrors = { hasErrors: true, errors: { title: 'Please fix the errors in the form' } };
+      validationErrors = {
+        hasErrors: true,
+        errors: { title: 'Please fix the errors in the form' }
+      };
     }
   }
 
@@ -227,7 +239,11 @@
     status = 'saving';
     const base = $state.snapshot(recipe);
     const updatedAt = new Date().toISOString();
-    const merged: SavedRecipe = { ...base, ...parsed.data, updated_at: updatedAt };
+    const merged: SavedRecipe = {
+      ...base,
+      ...parsed.data,
+      updated_at: updatedAt
+    };
 
     try {
       if (hasCloudStorageAccess && syncService) {
@@ -242,7 +258,10 @@
           await syncService.uploadRecipeAndSyncLocal(merged);
         }
       } else {
-        await db.recipes.update(recipe.id, { ...parsed.data, updated_at: updatedAt });
+        await db.recipes.update(recipe.id, {
+          ...parsed.data,
+          updated_at: updatedAt
+        });
       }
       status = 'saved';
       toast.success('Recipe saved');
@@ -278,7 +297,9 @@
   {#if isShared}
     <div class="mx-auto grid w-full max-w-3xl gap-4">
       <h1 class="display-small mb-4">Editing unavailable</h1>
-      <p class="helper-text">Shared recipes are not supported for editing yet.</p>
+      <p class="helper-text">
+        Shared recipes are not supported for editing yet.
+      </p>
       <Button type="button" onclick={cancelEdit}>Back to recipe</Button>
     </div>
   {:else if recipeStoreValue.loading}
@@ -299,7 +320,9 @@
     <form method="POST" class="form" onsubmit={saveRecipe}>
       <h1 class="display-small mb-4">Edit recipe</h1>
       <p class="helper-text italic">
-        Required fields are marked with an asterisk (<span class="text-destructive">*</span>).
+        Required fields are marked with an asterisk (<span
+          class="text-destructive">*</span
+        >).
       </p>
       <div class="flex flex-col gap-5">
         <Textinput
@@ -324,8 +347,7 @@
           bind:value={longDescription}
           label="Long-form description"
           helperText="A longer description with additional commentary or suggested pairings. Included in recipe details."
-        >
-        </Textarea>
+        ></Textarea>
         <Textinput
           name="yields"
           bind:value={yields}
@@ -341,7 +363,9 @@
             <div class="flex flex-row gap-4">
               <TimePicker bind:value={prepTimeStart} />
               {#if !usePrepTimeRange}
-                <Button onclick={() => (usePrepTimeRange = true)}>Use range</Button>
+                <Button onclick={() => (usePrepTimeRange = true)}
+                  >Use range</Button
+                >
               {/if}
             </div>
           </div>
@@ -351,7 +375,9 @@
               <label for="prepTimeEnd" class="label-large">Prep time</label>
               <TimePicker bind:value={prepTimeEnd} />
             </div>
-            <Button onclick={() => (usePrepTimeRange = false)}>Use single time</Button>
+            <Button onclick={() => (usePrepTimeRange = false)}
+              >Use single time</Button
+            >
           {/if}
         </div>
 
@@ -363,7 +389,9 @@
               <div class="flex flex-row gap-4">
                 <TimePicker bind:value={cookTimeStart} />
                 {#if !useCookTimeRange}
-                  <Button onclick={() => (useCookTimeRange = true)}>Use range</Button>
+                  <Button onclick={() => (useCookTimeRange = true)}
+                    >Use range</Button
+                  >
                 {/if}
               </div>
             </div>
@@ -373,7 +401,9 @@
                 <label for="cookTimeEnd" class="label-large">Cook time</label>
                 <TimePicker bind:value={cookTimeEnd} />
               </div>
-              <Button onclick={() => (useCookTimeRange = false)}>Use single time</Button>
+              <Button onclick={() => (useCookTimeRange = false)}
+                >Use single time</Button
+              >
             {/if}
           </div>
         </div>
@@ -386,8 +416,7 @@
           error={validationErrors.errors?.ingredients}
           placeholder="Enter the ingredients for your recipe"
           helperText={markdownHelperText}
-        >
-        </Textarea>
+        ></Textarea>
         <Textarea
           id="instructions"
           name="instructions"
@@ -397,8 +426,7 @@
           error={validationErrors.errors?.instructions}
           placeholder="Enter the instructions for your recipe"
           helperText={markdownHelperText}
-        >
-        </Textarea>
+        ></Textarea>
         <Textarea
           id="notes"
           name="notes"
@@ -406,8 +434,7 @@
           label="Notes"
           placeholder="Enter any additional notes for your recipe"
           helperText={markdownHelperText}
-        >
-        </Textarea>
+        ></Textarea>
         <div class="form-field">
           <label for="tags" class="label-large"
             >Tags <span class="label-large text-destructive">*</span></label
@@ -421,15 +448,23 @@
           />
         </div>
         <div class="border-line my-4 flex flex-wrap gap-3 border-t pt-4">
-          <Button type="submit" class="primary" disabled={status === 'saving'}>Save</Button>
-          <Button type="button" disabled={status === 'saving'} onclick={cancelEdit}>Cancel</Button>
+          <Button type="submit" class="primary" disabled={status === 'saving'}
+            >Save</Button
+          >
+          <Button
+            type="button"
+            disabled={status === 'saving'}
+            onclick={cancelEdit}>Cancel</Button
+          >
         </div>
       </div>
     </form>
   {:else}
     <div class="mx-auto grid w-full max-w-3xl gap-4">
       <h1 class="display-small mb-4">Recipe not found</h1>
-      <Button type="button" onclick={() => goto(resolve('/recipes'))}>All recipes</Button>
+      <Button type="button" onclick={() => goto(resolve('/recipes'))}
+        >All recipes</Button
+      >
     </div>
   {/if}
 </div>

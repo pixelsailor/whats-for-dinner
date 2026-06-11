@@ -11,7 +11,8 @@
     originalValue: Recipe[keyof Recipe] | null;
   }
 
-  let { recipe, locked = false }: { recipe: Recipe; locked?: boolean } = $props();
+  let { recipe, locked = false }: { recipe: Recipe; locked?: boolean } =
+    $props();
 
   // State
   let editState = $state<EditState>({ field: null, originalValue: null });
@@ -19,8 +20,12 @@
 
   // Inferred total time
   let totalTime = $derived.by<string>(() => {
-    const minDuration = parseInt(recipe.prep_time?.[0] ?? '0') + parseInt(recipe.cook_time?.[0] ?? '0');
-    const maxDuration = parseInt(recipe.prep_time?.[1] ?? '0') + parseInt(recipe.cook_time?.[1] ?? '0');
+    const minDuration =
+      parseInt(recipe.prep_time?.[0] ?? '0') +
+      parseInt(recipe.cook_time?.[0] ?? '0');
+    const maxDuration =
+      parseInt(recipe.prep_time?.[1] ?? '0') +
+      parseInt(recipe.cook_time?.[1] ?? '0');
 
     if (maxDuration > 0) {
       return humanizeTime([minDuration.toString(), maxDuration.toString()]);
@@ -82,7 +87,10 @@
     if (!editState.field) return;
 
     const field = editState.field;
-    const mutableRecipe = recipe as Record<keyof Recipe, Recipe[keyof Recipe] | null>;
+    const mutableRecipe = recipe as Record<
+      keyof Recipe,
+      Recipe[keyof Recipe] | null
+    >;
     mutableRecipe[field] = editState.originalValue;
 
     dispatch('cancel', { field, value: editState.originalValue });
@@ -94,7 +102,12 @@
   function handleKeydown(event: KeyboardEvent, field: keyof Recipe) {
     if (locked) return;
 
-    if (event.key === 'Enter' && !event.shiftKey && field !== 'ingredients' && field !== 'instructions') {
+    if (
+      event.key === 'Enter' &&
+      !event.shiftKey &&
+      field !== 'ingredients' &&
+      field !== 'instructions'
+    ) {
       event.preventDefault();
       commitEdit();
     } else if (event.key === 'Escape') {
@@ -122,7 +135,11 @@
 
     // Check if focus moved to commit/cancel buttons
     const relatedTarget = event.relatedTarget as HTMLElement;
-    if (relatedTarget && (relatedTarget.classList.contains('commit-btn') || relatedTarget.classList.contains('cancel-btn'))) {
+    if (
+      relatedTarget &&
+      (relatedTarget.classList.contains('commit-btn') ||
+        relatedTarget.classList.contains('cancel-btn'))
+    ) {
       return; // Don't commit yet, let button handle it
     }
     commitEdit();
@@ -171,9 +188,17 @@
       return humanizeDuration(parseInt(time[0]));
     } else {
       if (parseInt(time[1]) < 60) {
-        return humanizeDuration(parseInt(time[0]), false) + '-' + humanizeDuration(parseInt(time[1]));
+        return (
+          humanizeDuration(parseInt(time[0]), false) +
+          '-' +
+          humanizeDuration(parseInt(time[1]))
+        );
       } else {
-        return humanizeDuration(parseInt(time[0])) + ' to ' + humanizeDuration(parseInt(time[1]));
+        return (
+          humanizeDuration(parseInt(time[0])) +
+          ' to ' +
+          humanizeDuration(parseInt(time[1]))
+        );
       }
     }
   }
@@ -200,16 +225,41 @@
     <header class="recipe-header">
       {#if editState.field === 'title'}
         <div class="edit-container">
-          <input type="text" class="display-small title-input" bind:value={recipe.title} onkeydown={(e) => handleKeydown(e, 'title')} onblur={handleBlur} />
+          <input
+            type="text"
+            class="display-small title-input"
+            bind:value={recipe.title}
+            onkeydown={(e) => handleKeydown(e, 'title')}
+            onblur={handleBlur}
+          />
           <div class="button-group">
-            <Button cue="filled" primary size="sm" class="commit-btn" onClick={commitEdit}>Save</Button>
-            <Button cue="outlined" size="sm" class="cancel-btn" onClick={cancelEdit}>Cancel</Button>
+            <Button
+              cue="filled"
+              primary
+              size="sm"
+              class="commit-btn"
+              onClick={commitEdit}>Save</Button
+            >
+            <Button
+              cue="outlined"
+              size="sm"
+              class="cancel-btn"
+              onClick={cancelEdit}>Cancel</Button
+            >
           </div>
         </div>
       {:else}
         <div class="editable-field-shell">
           {#if !locked}
-            <Button icon size="xs" cue="text" label="Edit title" title="Edit title" class="edit-btn" onClick={() => startEdit('title')}>
+            <Button
+              icon
+              size="xs"
+              cue="text"
+              label="Edit title"
+              title="Edit title"
+              class="edit-btn"
+              onClick={() => startEdit('title')}
+            >
               <EditIcon size="xs" />
             </Button>
           {/if}
@@ -232,8 +282,19 @@
               placeholder="Enter short description..."
             ></textarea>
             <div class="button-group">
-              <Button cue="filled" primary size="sm" class="commit-btn" onClick={commitEdit}>Save</Button>
-              <Button cue="outlined" size="sm" class="cancel-btn" onClick={cancelEdit}>Cancel</Button>
+              <Button
+                cue="filled"
+                primary
+                size="sm"
+                class="commit-btn"
+                onClick={commitEdit}>Save</Button
+              >
+              <Button
+                cue="outlined"
+                size="sm"
+                class="cancel-btn"
+                onClick={cancelEdit}>Cancel</Button
+              >
             </div>
           </div>
         {:else}
@@ -270,14 +331,33 @@
             placeholder="Enter recipe description..."
           ></textarea>
           <div class="button-group">
-            <Button cue="filled" primary size="sm" class="commit-btn" onClick={commitEdit}>Save</Button>
-            <Button cue="outlined" size="sm" class="cancel-btn" onClick={cancelEdit}>Cancel</Button>
+            <Button
+              cue="filled"
+              primary
+              size="sm"
+              class="commit-btn"
+              onClick={commitEdit}>Save</Button
+            >
+            <Button
+              cue="outlined"
+              size="sm"
+              class="cancel-btn"
+              onClick={cancelEdit}>Cancel</Button
+            >
           </div>
         </div>
       {:else}
         <div class="editable-field-shell">
           {#if !locked}
-            <Button icon size="xs" cue="text" label="Edit description" title="Edit description" class="edit-btn" onClick={() => startEdit('description')}>
+            <Button
+              icon
+              size="xs"
+              cue="text"
+              label="Edit description"
+              title="Edit description"
+              class="edit-btn"
+              onClick={() => startEdit('description')}
+            >
               <EditIcon size="xs" />
             </Button>
           {/if}
@@ -293,7 +373,9 @@
       <span class="body-medium">{humanizeTime(recipe.prep_time)}</span>
       <span class="label-large">Cook time:</span>
       <span class="body-medium">{humanizeTime(recipe.cook_time)}</span>
-      <span class="label-large">Total time:</span><span class="body-medium">{totalTime}</span>
+      <span class="label-large">Total time:</span><span class="body-medium"
+        >{totalTime}</span
+      >
     </div>
   </div>
 
@@ -312,15 +394,36 @@
           placeholder="Enter ingredients in markdown format..."
         ></textarea>
         <div class="button-group">
-          <Button cue="filled" primary size="sm" class="commit-btn" onClick={commitEdit}>Save</Button>
-          <Button cue="outlined" size="sm" class="cancel-btn" onClick={cancelEdit}>Cancel</Button>
+          <Button
+            cue="filled"
+            primary
+            size="sm"
+            class="commit-btn"
+            onClick={commitEdit}>Save</Button
+          >
+          <Button
+            cue="outlined"
+            size="sm"
+            class="cancel-btn"
+            onClick={cancelEdit}>Cancel</Button
+          >
         </div>
-        <small class="hint"> Tip: Use markdown format (e.g., - 2 cups flour). Ctrl+Enter to save. </small>
+        <small class="hint">
+          Tip: Use markdown format (e.g., - 2 cups flour). Ctrl+Enter to save.
+        </small>
       </div>
     {:else}
       <div class="editable-field-shell">
         {#if !locked}
-          <Button icon size="xs" cue="text" label="Edit ingredients" title="Edit ingredients" class="edit-btn" onClick={() => startEdit('ingredients')}>
+          <Button
+            icon
+            size="xs"
+            cue="text"
+            label="Edit ingredients"
+            title="Edit ingredients"
+            class="edit-btn"
+            onClick={() => startEdit('ingredients')}
+          >
             <EditIcon size="xs" />
           </Button>
         {/if}
@@ -352,15 +455,37 @@
           placeholder="Enter step-by-step instructions in markdown format..."
         ></textarea>
         <div class="button-group">
-          <Button cue="filled" primary size="sm" class="commit-btn" onClick={commitEdit}>Save</Button>
-          <Button cue="outlined" size="sm" class="cancel-btn" onClick={cancelEdit}>Cancel</Button>
+          <Button
+            cue="filled"
+            primary
+            size="sm"
+            class="commit-btn"
+            onClick={commitEdit}>Save</Button
+          >
+          <Button
+            cue="outlined"
+            size="sm"
+            class="cancel-btn"
+            onClick={cancelEdit}>Cancel</Button
+          >
         </div>
-        <small class="hint">Tip: Use numbered lists (1., 2., 3.) or bullets (-). Ctrl+Enter to save.</small>
+        <small class="hint"
+          >Tip: Use numbered lists (1., 2., 3.) or bullets (-). Ctrl+Enter to
+          save.</small
+        >
       </div>
     {:else}
       <div class="editable-field-shell">
         {#if !locked}
-          <Button icon size="xs" cue="text" label="Edit instructions" title="Edit instructions" class="edit-btn" onClick={() => startEdit('instructions')}>
+          <Button
+            icon
+            size="xs"
+            cue="text"
+            label="Edit instructions"
+            title="Edit instructions"
+            class="edit-btn"
+            onClick={() => startEdit('instructions')}
+          >
             <EditIcon size="xs" />
           </Button>
         {/if}
@@ -391,14 +516,33 @@
           placeholder="Enter notes in markdown format..."
         ></textarea>
         <div class="button-group">
-          <Button cue="filled" primary size="sm" class="commit-btn" onClick={commitEdit}>Save</Button>
-          <Button cue="outlined" size="sm" class="cancel-btn" onClick={cancelEdit}>Cancel</Button>
+          <Button
+            cue="filled"
+            primary
+            size="sm"
+            class="commit-btn"
+            onClick={commitEdit}>Save</Button
+          >
+          <Button
+            cue="outlined"
+            size="sm"
+            class="cancel-btn"
+            onClick={cancelEdit}>Cancel</Button
+          >
         </div>
       </div>
     {:else}
       <div class="editable-field-shell">
         {#if !locked}
-          <Button icon size="xs" cue="text" label="Edit notes" title="Edit notes" class="edit-btn" onClick={() => startEdit('notes')}>
+          <Button
+            icon
+            size="xs"
+            cue="text"
+            label="Edit notes"
+            title="Edit notes"
+            class="edit-btn"
+            onClick={() => startEdit('notes')}
+          >
             <EditIcon size="xs" />
           </Button>
         {/if}

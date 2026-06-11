@@ -15,7 +15,15 @@ import { z } from 'zod';
  * @deprecated Use the tags from $lib/api/recipe instead.
  */
 const CATEGORY_TAGS = {
-  course: ['breakfast', 'brunch', 'lunch', 'dinner', 'dessert', 'snack', 'beverage'],
+  course: [
+    'breakfast',
+    'brunch',
+    'lunch',
+    'dinner',
+    'dessert',
+    'snack',
+    'beverage'
+  ],
   cuisine: [
     'american',
     'brazillian',
@@ -54,8 +62,31 @@ const CATEGORY_TAGS = {
     'eastern european',
     'south asian'
   ],
-  diet: ['vegan', 'vegetarian', 'pescatarian', 'gluten-free', 'dairy-free', 'low-carb', 'keto', 'paleo', 'whole30', 'diabetic-friendly', 'low-fat'],
-  cookingmethod: ['baking', 'roasting', 'grilling', 'broiling', 'steaming', 'frying', 'slow cooker', 'pressure cooker', 'sous vide', 'air fryer'],
+  diet: [
+    'vegan',
+    'vegetarian',
+    'pescatarian',
+    'gluten-free',
+    'dairy-free',
+    'low-carb',
+    'keto',
+    'paleo',
+    'whole30',
+    'diabetic-friendly',
+    'low-fat'
+  ],
+  cookingmethod: [
+    'baking',
+    'roasting',
+    'grilling',
+    'broiling',
+    'steaming',
+    'frying',
+    'slow cooker',
+    'pressure cooker',
+    'sous vide',
+    'air fryer'
+  ],
   occasion: ['holiday', 'birthday', 'party', 'picnic', 'weeknight', 'romantic']
 };
 
@@ -70,9 +101,23 @@ const TAG_LOOKUP = new Map(ALL_TAGS.map((tag) => [tag.toLowerCase(), tag]));
  * @see $lib/api/recipe/recipe.schemas.ts
  */
 export const RecipeSchema = z.object({
-  title: z.string().min(1).describe('Recipe title in plain text, no headings or formating.'),
-  short_description: z.string().min(1).describe('Single sentence describing the recipe. Used in short form summaries.'),
-  description: z.string().nullable().optional().describe('Two to three sentence description with additional commentary or suggested pairings'),
+  title: z
+    .string()
+    .min(1)
+    .describe('Recipe title in plain text, no headings or formating.'),
+  short_description: z
+    .string()
+    .min(1)
+    .describe(
+      'Single sentence describing the recipe. Used in short form summaries.'
+    ),
+  description: z
+    .string()
+    .nullable()
+    .optional()
+    .describe(
+      'Two to three sentence description with additional commentary or suggested pairings'
+    ),
   ingredients: z
     .string()
     .min(1)
@@ -92,7 +137,10 @@ export const RecipeSchema = z.object({
       (tags: string[]) => {
         return tags.some((t) => {
           const clean = t.trim().toLowerCase();
-          return TAG_LOOKUP.has(clean) || ALL_TAGS.some((tag) => tag.toLowerCase().includes(clean));
+          return (
+            TAG_LOOKUP.has(clean) ||
+            ALL_TAGS.some((tag) => tag.toLowerCase().includes(clean))
+          );
         });
       },
       { message: 'At least one recognized tag from any category is required.' }
@@ -100,14 +148,20 @@ export const RecipeSchema = z.object({
     .transform((tags: string[]) =>
       tags.map((t) => {
         const clean = t.trim().toLowerCase();
-        return TAG_LOOKUP.get(clean) || ALL_TAGS.find((tag) => tag.toLowerCase().includes(clean)) || t;
+        return (
+          TAG_LOOKUP.get(clean) ||
+          ALL_TAGS.find((tag) => tag.toLowerCase().includes(clean)) ||
+          t
+        );
       })
     ),
   yield: z
     .string()
     .nullable()
     .optional()
-    .describe("Number of servings for meals (e.g. 2 to 4 servings) or volume for sauces, dressings or similar, e.g. '2 cups"),
+    .describe(
+      "Number of servings for meals (e.g. 2 to 4 servings) or volume for sauces, dressings or similar, e.g. '2 cups"
+    ),
   prep_time: z
     .array(z.string())
     .optional()
@@ -117,8 +171,13 @@ export const RecipeSchema = z.object({
   cook_time: z
     .array(z.string())
     .optional()
-    .describe('Cooking time in minutes. Use a tuple for range values, e.g. "10-15 minutes" is represented as ["10", "15"]'),
-  notes: z.string().optional().describe('Plain Markdown. DO NOT use "Notes" as the heading.')
+    .describe(
+      'Cooking time in minutes. Use a tuple for range values, e.g. "10-15 minutes" is represented as ["10", "15"]'
+    ),
+  notes: z
+    .string()
+    .optional()
+    .describe('Plain Markdown. DO NOT use "Notes" as the heading.')
 });
 
 export type Recipe = z.infer<typeof RecipeSchema>;

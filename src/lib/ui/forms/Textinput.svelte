@@ -14,7 +14,7 @@
    *   }
    *   return null;
    * };
-  */
+   */
   type Validator<T> = (value: T) => null | string;
 
   /** When built-in validators run and surface errors. */
@@ -48,7 +48,14 @@
         | 'week';
     } & Omit<
       HTMLInputAttributes,
-      'value' | 'class' | 'name' | 'pattern' | 'minlength' | 'maxlength' | 'onblur' | 'oninput'
+      | 'value'
+      | 'class'
+      | 'name'
+      | 'pattern'
+      | 'minlength'
+      | 'maxlength'
+      | 'onblur'
+      | 'oninput'
     >,
     HTMLInputElement
   >;

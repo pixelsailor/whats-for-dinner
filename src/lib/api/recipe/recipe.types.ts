@@ -20,7 +20,9 @@ export type Recipe = z.infer<typeof RecipeSchema>;
 export type SavedRecipe = z.infer<typeof SavedRecipeSchema>;
 export type CloudRecipe = z.infer<typeof CloudRecipeSchema>;
 /** Recipe summary row from Supabase `recipes` used during sync planning. */
-export type CloudRecipeSyncSummary = z.infer<typeof CloudRecipeSyncSummarySchema>;
+export type CloudRecipeSyncSummary = z.infer<
+  typeof CloudRecipeSyncSummarySchema
+>;
 export type Suggestion = z.infer<typeof SuggestionSchema>;
 
 /** @deprecated Use Recipe instead */

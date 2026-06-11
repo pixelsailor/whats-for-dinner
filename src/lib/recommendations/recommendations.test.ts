@@ -2,11 +2,18 @@ import { describe, expect, it } from 'vitest';
 
 import type { SavedRecipe } from '$lib/api/recipe';
 
-import { categorizeRecipes, filterRecommendableRecipes, getLastCheckoutMs, shuffleAndTake } from './recommendations';
+import {
+  categorizeRecipes,
+  filterRecommendableRecipes,
+  getLastCheckoutMs,
+  shuffleAndTake
+} from './recommendations';
 
 const msPerDay = 1000 * 60 * 60 * 24;
 
-function recipe(partial: Partial<SavedRecipe> & Pick<SavedRecipe, 'id' | 'title'>): SavedRecipe {
+function recipe(
+  partial: Partial<SavedRecipe> & Pick<SavedRecipe, 'id' | 'title'>
+): SavedRecipe {
   return {
     short_description: null,
     tags: [],
@@ -25,7 +32,12 @@ describe('filterRecommendableRecipes', () => {
   it('excludes soft-deleted and non-current rows', () => {
     const rows = [
       recipe({ id: '1', title: 'A', deleted_at: null, is_current: true }),
-      recipe({ id: '2', title: 'B', deleted_at: '2020-01-01T00:00:00.000Z', is_current: true }),
+      recipe({
+        id: '2',
+        title: 'B',
+        deleted_at: '2020-01-01T00:00:00.000Z',
+        is_current: true
+      }),
       recipe({ id: '3', title: 'C', deleted_at: null, is_current: false })
     ];
     const out = filterRecommendableRecipes(rows);
@@ -42,15 +54,28 @@ describe('getLastCheckoutMs', () => {
   });
 
   it('returns null when there is no history', () => {
-    expect(getLastCheckoutMs(recipe({ id: '1', title: 'X', checkout_history: [] }))).toBeNull();
+    expect(
+      getLastCheckoutMs(recipe({ id: '1', title: 'X', checkout_history: [] }))
+    ).toBeNull();
   });
 });
 
 describe('categorizeRecipes', () => {
   it('does not mutate the input array when ranking popular', () => {
     const rows = [
-      recipe({ id: '1', title: 'Low', checkout_history: ['2020-01-01T00:00:00.000Z'] }),
-      recipe({ id: '2', title: 'High', checkout_history: ['2020-01-01T00:00:00.000Z', '2020-02-01T00:00:00.000Z'] })
+      recipe({
+        id: '1',
+        title: 'Low',
+        checkout_history: ['2020-01-01T00:00:00.000Z']
+      }),
+      recipe({
+        id: '2',
+        title: 'High',
+        checkout_history: [
+          '2020-01-01T00:00:00.000Z',
+          '2020-02-01T00:00:00.000Z'
+        ]
+      })
     ];
     const orderBefore = rows.map((r) => r.id);
     categorizeRecipes(rows, { mealTag: null, useMealContext: false });
@@ -63,8 +88,12 @@ describe('categorizeRecipes', () => {
       recipe({ id: 'unset', title: 'Unset', is_favorite: null }),
       recipe({ id: 'off', title: 'Off', is_favorite: false })
     ];
-    const cats = categorizeRecipes(rows, { mealTag: null, useMealContext: false });
-    const favoriteIds = cats.find((c) => c.id === 'favorites')?.recipes.map((r) => r.id) ?? [];
+    const cats = categorizeRecipes(rows, {
+      mealTag: null,
+      useMealContext: false
+    });
+    const favoriteIds =
+      cats.find((c) => c.id === 'favorites')?.recipes.map((r) => r.id) ?? [];
     expect(favoriteIds).toEqual(['fav']);
   });
 
@@ -77,8 +106,12 @@ describe('categorizeRecipes', () => {
       checkout_history: [fiveMonthsAgo],
       created_at: new Date(now - 400 * msPerDay).toISOString()
     });
-    const cats = categorizeRecipes([r], { mealTag: null, useMealContext: false });
-    const ids = (title: string) => cats.find((c) => c.title === title)?.recipes.map((x) => x.id) ?? [];
+    const cats = categorizeRecipes([r], {
+      mealTag: null,
+      useMealContext: false
+    });
+    const ids = (title: string) =>
+      cats.find((c) => c.title === title)?.recipes.map((x) => x.id) ?? [];
     expect(ids("Haven't Made in 2–6 Months")).toContain('stale');
     expect(ids("Haven't Made in Over 6 Months")).not.toContain('stale');
   });
@@ -92,8 +125,12 @@ describe('categorizeRecipes', () => {
       checkout_history: [eightMonthsAgo],
       created_at: new Date(now - 400 * msPerDay).toISOString()
     });
-    const cats = categorizeRecipes([r], { mealTag: null, useMealContext: false });
-    const ids = (title: string) => cats.find((c) => c.title === title)?.recipes.map((x) => x.id) ?? [];
+    const cats = categorizeRecipes([r], {
+      mealTag: null,
+      useMealContext: false
+    });
+    const ids = (title: string) =>
+      cats.find((c) => c.title === title)?.recipes.map((x) => x.id) ?? [];
     expect(ids("Haven't Made in Over 6 Months")).toContain('very');
     expect(ids("Haven't Made in 2–6 Months")).not.toContain('very');
   });
@@ -107,8 +144,15 @@ describe('categorizeRecipes', () => {
       title: 'Mixed history',
       checkout_history: [ancient, recent]
     });
-    const cats = categorizeRecipes([r], { mealTag: null, useMealContext: false });
-    const inStaleBucket = cats.some((c) => (c.id === 'not-made-2-months' || c.id === 'not-made-6-months') && c.recipes.some((x) => x.id === 'mixed'));
+    const cats = categorizeRecipes([r], {
+      mealTag: null,
+      useMealContext: false
+    });
+    const inStaleBucket = cats.some(
+      (c) =>
+        (c.id === 'not-made-2-months' || c.id === 'not-made-6-months') &&
+        c.recipes.some((x) => x.id === 'mixed')
+    );
     expect(inStaleBucket).toBe(false);
   });
 });

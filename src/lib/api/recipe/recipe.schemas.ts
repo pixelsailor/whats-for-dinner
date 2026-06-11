@@ -18,7 +18,18 @@ import { supabaseTimestamptzSchema } from '$lib/api/common/common.schemas';
 import { z } from 'zod';
 
 export const CATEGORY_TAGS = {
-  course: ['breakfast', 'brunch', 'lunch', 'dinner', 'dessert', 'snack', 'beverage', 'main', 'side', 'light meal'],
+  course: [
+    'breakfast',
+    'brunch',
+    'lunch',
+    'dinner',
+    'dessert',
+    'snack',
+    'beverage',
+    'main',
+    'side',
+    'light meal'
+  ],
   cuisine: [
     'american',
     'brazillian',
@@ -57,8 +68,31 @@ export const CATEGORY_TAGS = {
     'eastern european',
     'south asian'
   ],
-  diet: ['vegan', 'vegetarian', 'pescatarian', 'gluten-free', 'dairy-free', 'low-carb', 'keto', 'paleo', 'whole30', 'diabetic friendly', 'low-fat'],
-  cookingmethod: ['baking', 'roasting', 'grilling', 'broiling', 'steaming', 'frying', 'slow cooker', 'pressure cooker', 'sous vide', 'air fryer'],
+  diet: [
+    'vegan',
+    'vegetarian',
+    'pescatarian',
+    'gluten-free',
+    'dairy-free',
+    'low-carb',
+    'keto',
+    'paleo',
+    'whole30',
+    'diabetic friendly',
+    'low-fat'
+  ],
+  cookingmethod: [
+    'baking',
+    'roasting',
+    'grilling',
+    'broiling',
+    'steaming',
+    'frying',
+    'slow cooker',
+    'pressure cooker',
+    'sous vide',
+    'air fryer'
+  ],
   occasion: ['holiday', 'birthday', 'party', 'picnic', 'weeknight', 'romantic']
 };
 
@@ -67,8 +101,15 @@ const ALL_TAGS = Object.values(CATEGORY_TAGS).flat();
 // const TAG_LOOKUP = new Map(ALL_TAGS.map((tag) => [tag.toLowerCase(), tag]));
 
 export const RecipeRootSchema = z.object({
-  title: z.string().describe('Recipe title in plain text, no headings or formating.'),
-  short_description: z.string().nullable().describe('Single sentence describing the recipe. Used in short form summaries.')
+  title: z
+    .string()
+    .describe('Recipe title in plain text, no headings or formating.'),
+  short_description: z
+    .string()
+    .nullable()
+    .describe(
+      'Single sentence describing the recipe. Used in short form summaries.'
+    )
 });
 
 /**
@@ -87,7 +128,11 @@ export const RecipeSummarySchema = RecipeRootSchema.extend({
  * Use `describe` to enforce zodResponseFormat for OpenAI responses.
  */
 export const RecipeSchema = RecipeRootSchema.extend({
-  description: z.string().describe('Two to three sentence description with additional commentary or suggested pairings'),
+  description: z
+    .string()
+    .describe(
+      'Two to three sentence description with additional commentary or suggested pairings'
+    ),
   ingredients: z
     .string()
     .describe(
@@ -103,7 +148,11 @@ export const RecipeSchema = RecipeRootSchema.extend({
     .describe(
       `Use at least one tag from the following course tags: ${CATEGORY_TAGS.course.join(', ')}. Additional tags encouraged. Available tags include: ${ALL_TAGS.join(', ')}. DO NOT use capital letters.`
     ),
-  yield: z.string().describe("Number of servings for meals (e.g. 2 to 4 servings) or volume for sauces, dressings or similar, e.g. '2 cups"),
+  yield: z
+    .string()
+    .describe(
+      "Number of servings for meals (e.g. 2 to 4 servings) or volume for sauces, dressings or similar, e.g. '2 cups"
+    ),
   prep_time: z
     .array(z.string())
     .describe(
@@ -111,8 +160,13 @@ export const RecipeSchema = RecipeRootSchema.extend({
     ),
   cook_time: z
     .array(z.string())
-    .describe('Cooking time in minutes. Use a second value for a range, e.g. "10-15 minutes" is represented as ["10", "15"]'),
-  notes: z.string().nullable().describe('Plain Markdown. DO NOT use "Notes" as the heading.')
+    .describe(
+      'Cooking time in minutes. Use a second value for a range, e.g. "10-15 minutes" is represented as ["10", "15"]'
+    ),
+  notes: z
+    .string()
+    .nullable()
+    .describe('Plain Markdown. DO NOT use "Notes" as the heading.')
 });
 
 /**

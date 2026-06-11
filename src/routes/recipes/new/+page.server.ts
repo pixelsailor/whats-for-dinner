@@ -14,6 +14,9 @@ export const load: PageServerLoad = async ({ locals }) => {
     return { preferences, preferencesLoadError: null };
   } catch (error) {
     console.error('Failed to load user preferences', error);
-    return { preferences: null, preferencesLoadError: 'Unable to load preferences' };
+    return {
+      preferences: null,
+      preferencesLoadError: 'Unable to load preferences'
+    };
   }
 };

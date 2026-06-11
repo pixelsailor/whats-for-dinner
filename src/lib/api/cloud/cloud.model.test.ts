@@ -141,13 +141,19 @@ describe('parseCloudRecipe', () => {
     } catch (err) {
       expect(err).toBeInstanceOf(CloudParseError);
       expect((err as CloudParseError).recipeId).toBe(sampleCloudRecipe.id);
-      expect((err as CloudParseError).recipeTitle).toBe(sampleCloudRecipe.title);
-      expect((err as CloudParseError).fieldErrors).toMatchObject({ tags: expect.any(Array) });
+      expect((err as CloudParseError).recipeTitle).toBe(
+        sampleCloudRecipe.title
+      );
+      expect((err as CloudParseError).fieldErrors).toMatchObject({
+        tags: expect.any(Array)
+      });
     }
   });
 
   it('throws CloudParseError when owner_id is null', () => {
-    expect(() => parseCloudRecipe({ ...sampleCloudRecipe, owner_id: null })).toThrow(CloudParseError);
+    expect(() =>
+      parseCloudRecipe({ ...sampleCloudRecipe, owner_id: null })
+    ).toThrow(CloudParseError);
   });
 });
 
@@ -206,17 +212,23 @@ describe('parseCloudRecipeSyncSummaryRows', () => {
 
 describe('parseCloudRecipeUpload', () => {
   it('requires owner_id on upload payloads', () => {
-    expect(parseCloudRecipeUpload(sampleCloudRecipe)).toEqual(sampleCloudRecipe);
+    expect(parseCloudRecipeUpload(sampleCloudRecipe)).toEqual(
+      sampleCloudRecipe
+    );
   });
 
   it('throws CloudParseError when owner_id is missing', () => {
-    expect(() => parseCloudRecipeUpload({ ...sampleCloudRecipe, owner_id: null })).toThrow(CloudParseError);
+    expect(() =>
+      parseCloudRecipeUpload({ ...sampleCloudRecipe, owner_id: null })
+    ).toThrow(CloudParseError);
   });
 });
 
 describe('parseCloudRecipeUpdate', () => {
   it('accepts partial updates with id', () => {
-    expect(parseCloudRecipeUpdate({ id: sampleCloudRecipe.id, title: 'Renamed' })).toEqual({
+    expect(
+      parseCloudRecipeUpdate({ id: sampleCloudRecipe.id, title: 'Renamed' })
+    ).toEqual({
       id: sampleCloudRecipe.id,
       title: 'Renamed'
     });
@@ -302,7 +314,10 @@ describe('buildSyncPlan tombstones', () => {
     const plan = buildSyncPlan([local], [cloud]);
 
     expect(plan.conflicts).toHaveLength(1);
-    expect(plan.autoResolvable[0]).toMatchObject({ action: 'upload', reason: 'local-tombstone-newer' });
+    expect(plan.autoResolvable[0]).toMatchObject({
+      action: 'upload',
+      reason: 'local-tombstone-newer'
+    });
   });
 });
 
@@ -319,7 +334,10 @@ describe('categorizeConflict tombstones', () => {
       })
     });
 
-    expect(resolution).toMatchObject({ action: 'upload', reason: 'local-tombstone-newer' });
+    expect(resolution).toMatchObject({
+      action: 'upload',
+      reason: 'local-tombstone-newer'
+    });
   });
 
   it('downloads a newer cloud tombstone over an active local row', () => {
@@ -334,7 +352,10 @@ describe('categorizeConflict tombstones', () => {
       })
     });
 
-    expect(resolution).toMatchObject({ action: 'download', reason: 'cloud-tombstone-newer' });
+    expect(resolution).toMatchObject({
+      action: 'download',
+      reason: 'cloud-tombstone-newer'
+    });
   });
 
   it('uploads a local restore when the active row is newer than a cloud tombstone', () => {
@@ -349,7 +370,10 @@ describe('categorizeConflict tombstones', () => {
       })
     });
 
-    expect(resolution).toMatchObject({ action: 'upload', reason: 'local-active-or-restored-newer' });
+    expect(resolution).toMatchObject({
+      action: 'upload',
+      reason: 'local-active-or-restored-newer'
+    });
   });
 
   it('downloads a cloud restore when the active row is newer than a local tombstone', () => {
@@ -364,6 +388,9 @@ describe('categorizeConflict tombstones', () => {
       })
     });
 
-    expect(resolution).toMatchObject({ action: 'download', reason: 'cloud-active-or-restored-newer' });
+    expect(resolution).toMatchObject({
+      action: 'download',
+      reason: 'cloud-active-or-restored-newer'
+    });
   });
 });

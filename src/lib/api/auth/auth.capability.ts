@@ -29,7 +29,12 @@ export type AICapability = {
  * @param args - Session, permissions, feature flags, and browser online hint
  * @returns Whether AI can be used and the first blocking reason when unavailable
  */
-export function deriveAICapability({ session, permissions, featureFlags, online }: CapabilityArgs): AICapability {
+export function deriveAICapability({
+  session,
+  permissions,
+  featureFlags,
+  online
+}: CapabilityArgs): AICapability {
   let reason: AICapability['reason'] = null;
 
   if (!online) {

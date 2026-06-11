@@ -1,10 +1,21 @@
 {
   "task_id": "recipe-url-extraction",
   "objective": "Implement ADR-017 server fetch/prepare pipeline for URL recipe import; resolve GAP-025.",
-  "risk_tier": { "level": "medium", "rationale": "AI boundary, server fetch, SSRF surface" },
+  "risk_tier": {
+    "level": "medium",
+    "rationale": "AI boundary, server fetch, SSRF surface"
+  },
   "status": "complete",
   "current_agent": "orchestrator",
-  "gate_status": { "0": "pass", "1": "pass", "2": "pass", "3": "pass", "4": "pass", "5": "pass", "6": "pass" },
+  "gate_status": {
+    "0": "pass",
+    "1": "pass",
+    "2": "pass",
+    "3": "pass",
+    "4": "pass",
+    "5": "pass",
+    "6": "pass"
+  },
   "human_approval": {
     "status": "approved",
     "approved_at": "2026-05-31",

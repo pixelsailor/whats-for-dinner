@@ -38,12 +38,16 @@ export const GET: RequestHandler = async ({ url, locals, params }) => {
       return json({ recipe });
     }
 
-    throw error(400, 'Provide a recipe id (path or query) or a shared token (?shared=).');
+    throw error(
+      400,
+      'Provide a recipe id (path or query) or a shared token (?shared=).'
+    );
   } catch (err) {
     if (err && typeof err === 'object' && 'status' in err) {
       throw err;
     }
-    const message = err instanceof Error ? err.message : 'Internal server error';
+    const message =
+      err instanceof Error ? err.message : 'Internal server error';
     return json({ error: message }, { status: 500 });
   }
 };

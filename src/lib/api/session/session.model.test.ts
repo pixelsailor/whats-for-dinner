@@ -28,7 +28,10 @@ describe('isSessionSerializedResponseHeader', () => {
 describe('session client factories', () => {
   it('createRequestServerClient returns a Supabase client with auth and from', () => {
     const setAll = () => {};
-    const client = createRequestServerClient({ getAll: () => [], setAll }, testConfig);
+    const client = createRequestServerClient(
+      { getAll: () => [], setAll },
+      testConfig
+    );
 
     expect(client.auth).toBeDefined();
     expect(typeof client.from).toBe('function');
@@ -42,7 +45,11 @@ describe('session client factories', () => {
   });
 
   it('createLayoutServerClient returns a Supabase client with auth and from', () => {
-    const client = createLayoutServerClient({ getAll: () => [] }, fetch, testConfig);
+    const client = createLayoutServerClient(
+      { getAll: () => [] },
+      fetch,
+      testConfig
+    );
 
     expect(client.auth).toBeDefined();
     expect(typeof client.from).toBe('function');

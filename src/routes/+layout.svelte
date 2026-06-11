@@ -10,7 +10,13 @@
   import { browser } from '$app/environment';
   import { invalidate } from '$app/navigation';
 
-  import { CloudService, type ConflictResolution, type SyncConflict, type SyncPlan, SyncService } from '$lib/api/cloud';
+  import {
+    CloudService,
+    type ConflictResolution,
+    type SyncConflict,
+    type SyncPlan,
+    SyncService
+  } from '$lib/api/cloud';
   import { MIN_DESKTOP_SIZE } from '$lib/constants';
   import { recentlyOpenedStore } from '$lib/stores/recipes';
   import { networkStore } from '$lib/stores/network';
@@ -28,10 +34,14 @@
   import { resetSyncStore, syncStore, updateSyncStore } from '$lib/stores/sync';
   import DocumentAddIcon from '$lib/ui/icons/DocumentAddIcon.svelte';
   import TimeIcon from '$lib/ui/icons/Time.svelte';
-  
+
   import '../app.css';
 
-  type Layout = 'mobile--collapsed' | 'mobile--expanded' | 'desktop--collapsed' | 'desktop--expanded';
+  type Layout =
+    | 'mobile--collapsed'
+    | 'mobile--expanded'
+    | 'desktop--collapsed'
+    | 'desktop--expanded';
 
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -140,20 +150,22 @@
   }
 
   onMount(() => {
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, newSession) => {
-      if (
-        event === 'SIGNED_OUT' ||
-        event === 'SIGNED_IN' ||
-        event === 'TOKEN_REFRESHED' ||
-        event === 'USER_UPDATED'
-      ) {
-        invalidate('supabase:auth');
-      }
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, newSession) => {
+        if (
+          event === 'SIGNED_OUT' ||
+          event === 'SIGNED_IN' ||
+          event === 'TOKEN_REFRESHED' ||
+          event === 'USER_UPDATED'
+        ) {
+          invalidate('supabase:auth');
+        }
 
-      if (event === 'SIGNED_IN' && newSession?.user) {
-        runSync(newSession.user.id);
+        if (event === 'SIGNED_IN' && newSession?.user) {
+          runSync(newSession.user.id);
+        }
       }
-    });
+    );
 
     function onVisibilityChange() {
       if (document.visibilityState === 'visible' && session) {
@@ -240,7 +252,11 @@
         progress: {
           uploaded: 0,
           downloaded: 0,
-          total: plan.localOnly.length + plan.cloudOnly.length + (plan.autoResolvable?.length ?? 0) + (plan.manualConflicts?.length ?? 0)
+          total:
+            plan.localOnly.length +
+            plan.cloudOnly.length +
+            (plan.autoResolvable?.length ?? 0) +
+            (plan.manualConflicts?.length ?? 0)
         }
       });
 
@@ -271,7 +287,9 @@
     }
 
     if (plan.scenario === 'download-only') {
-      await performDownload(plan.cloudOnly, syncService, { withCancelToast: true });
+      await performDownload(plan.cloudOnly, syncService, {
+        withCancelToast: true
+      });
       return;
     }
 
@@ -308,7 +326,10 @@
     finishSync();
   }
 
-  async function performUpload(recipes: SavedRecipe[], syncService: SyncService) {
+  async function performUpload(
+    recipes: SavedRecipe[],
+    syncService: SyncService
+  ) {
     if (!recipes.length) return;
     await syncService.uploadRecipes(recipes);
     updateSyncStore((state) => ({
@@ -320,7 +341,11 @@
     }));
   }
 
-  async function performDownload(recipes: SavedRecipe[], syncService: SyncService, options?: { withCancelToast?: boolean }) {
+  async function performDownload(
+    recipes: SavedRecipe[],
+    syncService: SyncService,
+    options?: { withCancelToast?: boolean }
+  ) {
     if (!recipes.length) return;
 
     let toastId: string | number | undefined;
@@ -360,22 +385,32 @@
     if (!syncPlan || !session?.user) return;
     updateSyncStore({ status: 'syncing' });
     openCloudSyncDialog = false;
-    const syncService = new SyncService(new CloudService(supabase, session.user.id));
+    const syncService = new SyncService(
+      new CloudService(supabase, session.user.id)
+    );
     await performUpload(syncPlan.localOnly, syncService);
     finishSync();
   }
 
   async function resolveCurrentConflict(action: 'upload' | 'download') {
     if (!currentConflict || !session) return;
-    const syncService = new SyncService(new CloudService(supabase, session.user.id));
+    const syncService = new SyncService(
+      new CloudService(supabase, session.user.id)
+    );
     await syncService.resolveConflict(currentConflict, action);
     conflictQueue = conflictQueue.slice(1);
     updateSyncStore((state) => ({
       ...state,
       progress: {
         ...state.progress,
-        uploaded: action === 'upload' ? state.progress.uploaded + 1 : state.progress.uploaded,
-        downloaded: action === 'download' ? state.progress.downloaded + 1 : state.progress.downloaded
+        uploaded:
+          action === 'upload'
+            ? state.progress.uploaded + 1
+            : state.progress.uploaded,
+        downloaded:
+          action === 'download'
+            ? state.progress.downloaded + 1
+            : state.progress.downloaded
       }
     }));
 
@@ -398,12 +433,17 @@
     syncing = false;
   }
 
-  async function resolveAutoConflicts(conflicts: ConflictResolution[], syncService: SyncService) {
+  async function resolveAutoConflicts(
+    conflicts: ConflictResolution[],
+    syncService: SyncService
+  ) {
     if (!conflicts.length) return;
     await syncService.resolveConflictsAutomatically(conflicts);
 
     const uploads = conflicts.filter((item) => item.action === 'upload').length;
-    const downloads = conflicts.filter((item) => item.action === 'download').length;
+    const downloads = conflicts.filter(
+      (item) => item.action === 'download'
+    ).length;
     updateSyncStore((state) => ({
       ...state,
       progress: {
@@ -413,13 +453,16 @@
       }
     }));
 
-    toast.success(`Automatically resolved ${conflicts.length} conflict${conflicts.length === 1 ? '' : 's'}`);
+    toast.success(
+      `Automatically resolved ${conflicts.length} conflict${conflicts.length === 1 ? '' : 's'}`
+    );
   }
 
   /**
    * Format sync time using
    */
-  const formatSyncTime = (value?: number | string | Date | null) => (value ? new Date(value).toLocaleString() : 'Never synced');
+  const formatSyncTime = (value?: number | string | Date | null) =>
+    value ? new Date(value).toLocaleString() : 'Never synced';
 </script>
 
 {#snippet sidenav()}
@@ -432,7 +475,11 @@
     <AppBar.Text primary="" />
     <AppBar.End>
       <div class="mr-4">
-        <Button class="text icon" onclick={toggleSidenav} tooltip="Minimize navigation panel">
+        <Button
+          class="text icon"
+          onclick={toggleSidenav}
+          tooltip="Minimize navigation panel"
+        >
           <CollapseSidenavIcon size="sm" />
         </Button>
       </div>
@@ -444,25 +491,37 @@
       <NavigationMenu.List>
         {#if session}
           <NavigationMenu.Item>
-            <NavigationMenu.Link href="/" class="sidenav-link h-input-mobile md:h-input hover:bg-dark-04">
+            <NavigationMenu.Link
+              href="/"
+              class="sidenav-link h-input-mobile md:h-input hover:bg-dark-04"
+            >
               <ChatbotIcon size="xs" />
               <span class="sidenav-link__text">What's For Dinner?</span>
             </NavigationMenu.Link>
           </NavigationMenu.Item>
         {/if}
         <NavigationMenu.Item>
-          <NavigationMenu.Link href="/recommendations" class="sidenav-link h-input-mobile md:h-input hover:bg-dark-04">
+          <NavigationMenu.Link
+            href="/recommendations"
+            class="sidenav-link h-input-mobile md:h-input hover:bg-dark-04"
+          >
             <TimeIcon size="xs" ariaLabel="Recommendations" />
             <span class="sidenav-link__text">Recommendations</span>
           </NavigationMenu.Link>
         </NavigationMenu.Item>
         <NavigationMenu.Item class="rounded-button hover:bg-dark-04/70">
           <div class="button-group">
-            <NavigationMenu.Link href="/recipes" class="sidenav-link flex-grow h-input-mobile md:h-input hover:bg-dark-04 rounded-r-none">
+            <NavigationMenu.Link
+              href="/recipes"
+              class="sidenav-link flex-grow h-input-mobile md:h-input hover:bg-dark-04 rounded-r-none"
+            >
               <RecipesIcon size="xs" />
               <span class="sidenav-link__text">My Recipes</span>
             </NavigationMenu.Link>
-            <NavigationMenu.Link href="/recipes/new" class="sidenav-link flex-none min-content h-input-mobile md:h-input hover:bg-dark-04 rounded-l-none">
+            <NavigationMenu.Link
+              href="/recipes/new"
+              class="sidenav-link flex-none min-content h-input-mobile md:h-input hover:bg-dark-04 rounded-l-none"
+            >
               <DocumentAddIcon size="xs" />
             </NavigationMenu.Link>
           </div>
@@ -474,13 +533,19 @@
     </div>
 
     {#if recentlyOpened.length === 0}
-      <p class="helper-text m-3 italic">Your recently viewed recipes will appear here.</p>
+      <p class="helper-text m-3 italic">
+        Your recently viewed recipes will appear here.
+      </p>
     {:else if recentlyOpened.length > 0}
       <NavigationMenu.Root orientation="vertical">
         <NavigationMenu.List>
           {#each recentlyOpened as recipe (recipe.id)}
             <NavigationMenu.Item>
-              <NavigationMenu.Link href="/recipes/{recipe.id}" title={recipe.title} class="sidenav-link h-input-mobile md:h-input hover:bg-dark-04">
+              <NavigationMenu.Link
+                href="/recipes/{recipe.id}"
+                title={recipe.title}
+                class="sidenav-link h-input-mobile md:h-input hover:bg-dark-04"
+              >
                 <span class="sidenav-link__text">{recipe.title}</span>
               </NavigationMenu.Link>
             </NavigationMenu.Item>
@@ -501,20 +566,29 @@
       <NavigationMenu.List>
         {#if session}
           <NavigationMenu.Item>
-            <NavigationMenu.Link class="sidenav-link h-input-mobile md:h-input hover:bg-gray-200 dark:hover:bg-gray-800" href="/preferences">
+            <NavigationMenu.Link
+              class="sidenav-link h-input-mobile md:h-input hover:bg-gray-200 dark:hover:bg-gray-800"
+              href="/preferences"
+            >
               <SettingsIcon size="xs" />
               <span class="sidenav-link__text">Preferences</span>
             </NavigationMenu.Link>
           </NavigationMenu.Item>
           <NavigationMenu.Item>
-            <button class="sidenav-link w-full h-input-mobile md:h-input hover:bg-gray-200 dark:hover:bg-gray-800 hover:cursor-pointer" onclick={handleSignOut}>
+            <button
+              class="sidenav-link w-full h-input-mobile md:h-input hover:bg-gray-200 dark:hover:bg-gray-800 hover:cursor-pointer"
+              onclick={handleSignOut}
+            >
               <LogoutIcon size="xs" />
               <span class="sidenav-link__text">{session.user.email}</span>
             </button>
           </NavigationMenu.Item>
         {:else}
           <NavigationMenu.Item>
-            <NavigationMenu.Link class="sidenav-link h-input-mobile md:h-input hover:bg-gray-200 dark:hover:bg-gray-800" href="/auth">
+            <NavigationMenu.Link
+              class="sidenav-link h-input-mobile md:h-input hover:bg-gray-200 dark:hover:bg-gray-800"
+              href="/auth"
+            >
               <LoginIcon size="xs" />
               <span class="sidenav-link__text">Log in</span>
             </NavigationMenu.Link>
@@ -530,60 +604,80 @@
 
 <QueryClientProvider client={queryClient}>
   <Tooltip.Provider>
-  <div class="layout-container flex h-full w-full flex-row">
-    <div
-      class="relative w-0 flex-none"
-      style:width={vp.layout === 'desktop--collapsed' ? 'calc(4rem + 1px)' : vp.layout === 'desktop--expanded' ? 'calc(18rem + 1px)' : ''}
-    >
-      {#if vp.layout === 'mobile--expanded'}
-        <!-- Layout when mobile sidenav is expanded -->
-        <div class="sidebar fixed inset-0 z-10 backdrop-blur-md">
-          <div class="h-full w-2xs bg-background-alt border-border shadow-md dark:border-gray-700 dark:bg-gray-900">
+    <div class="layout-container flex h-full w-full flex-row">
+      <div
+        class="relative w-0 flex-none"
+        style:width={vp.layout === 'desktop--collapsed'
+          ? 'calc(4rem + 1px)'
+          : vp.layout === 'desktop--expanded'
+            ? 'calc(18rem + 1px)'
+            : ''}
+      >
+        {#if vp.layout === 'mobile--expanded'}
+          <!-- Layout when mobile sidenav is expanded -->
+          <div class="sidebar fixed inset-0 z-10 backdrop-blur-md">
+            <div
+              class="h-full w-2xs bg-background-alt border-border shadow-md dark:border-gray-700 dark:bg-gray-900"
+            >
+              {@render sidenav()}
+            </div>
+          </div>
+        {:else if vp.layout === 'mobile--collapsed'}
+          <!-- Layout when mobile sidenav is collapsed/hidden -->
+        {:else if vp.layout === 'desktop--collapsed'}
+          <!-- Layout when desktop sidenav is minimized -->
+          <div
+            class="fixed h-full min-h-screen w-min flex-none border-r border-border bg-background-alt"
+          >
+            <AppBar.Root>
+              <AppBar.Start>
+                <div class="ml-1">
+                  <Button
+                    class="text icon"
+                    onclick={toggleSidenav}
+                    tooltip="Toggle side-nav"
+                  >
+                    <OpenPanelLeftIcon size="xs" />
+                  </Button>
+                </div>
+              </AppBar.Start>
+            </AppBar.Root>
+            <div class="flex flex-col gap-2 p-1">
+              <Button href="/" class="text icon" tooltip="Home">
+                <ChatbotIcon size="xs" />
+              </Button>
+              <Button href="/recipes" class="text icon" tooltip="My Recipes">
+                <RecipesIcon size="xs" />
+              </Button>
+            </div>
+            <div class="fixed bottom-0 px-1 py-2">
+              <Button
+                href="/preferences"
+                class="text icon"
+                tooltip="Preferences"
+              >
+                <SettingsIcon size="xs" />
+              </Button>
+            </div>
+          </div>
+        {:else}
+          <!-- Standard desktop Layout with sidenav expanded -->
+          <div
+            class="fixed h-full min-h-screen w-2xs flex-none border-r border-border bg-background-alt shadow-xs"
+          >
             {@render sidenav()}
           </div>
-        </div>
-      {:else if vp.layout === 'mobile--collapsed'}
-        <!-- Layout when mobile sidenav is collapsed/hidden -->
-      {:else if vp.layout === 'desktop--collapsed'}
-        <!-- Layout when desktop sidenav is minimized -->
-        <div class="fixed h-full min-h-screen w-min flex-none border-r border-border bg-background-alt">
-          <AppBar.Root>
-            <AppBar.Start>
-              <div class="ml-1">
-                <Button class="text icon" onclick={toggleSidenav} tooltip="Toggle side-nav">
-                  <OpenPanelLeftIcon size="xs" />
-                </Button>
-              </div>
-            </AppBar.Start>
-          </AppBar.Root>
-          <div class="flex flex-col gap-2 p-1">
-            <Button href="/" class="text icon" tooltip="Home">
-              <ChatbotIcon size="xs" />
-            </Button>
-            <Button href="/recipes" class="text icon" tooltip="My Recipes">
-              <RecipesIcon size="xs" />
-            </Button>
-          </div>
-          <div class="fixed bottom-0 px-1 py-2">
-            <Button href="/preferences" class="text icon" tooltip="Preferences">
-              <SettingsIcon size="xs" />
-            </Button>
-          </div>
-        </div>
-      {:else}
-        <!-- Standard desktop Layout with sidenav expanded -->
-        <div class="fixed h-full min-h-screen w-2xs flex-none border-r border-border bg-background-alt shadow-xs">
-          {@render sidenav()}
-        </div>
-      {/if}
+        {/if}
+      </div>
+
+      <main
+        class="main-content body relative h-full min-h-screen w-full flex-1"
+      >
+        {@render children()}
+      </main>
+
+      <div class="saim-drawer"></div>
     </div>
-
-    <main class="main-content body relative h-full min-h-screen w-full flex-1">
-      {@render children()}
-    </main>
-
-    <div class="saim-drawer"></div>
-  </div>
   </Tooltip.Provider>
 
   <!-- Cloud sync dialog -->
@@ -600,11 +694,13 @@
     {#snippet description()}
       {#if syncDialogMode === 'first-sync'}
         <p>
-          We found {syncPlan?.localOnly.length ?? 0} recipe(s) on this device. Upload them to your cloud account?
+          We found {syncPlan?.localOnly.length ?? 0} recipe(s) on this device. Upload
+          them to your cloud account?
         </p>
       {:else if syncDialogMode === 'per-recipe' && currentConflict}
         <p>
-          {currentConflict.local.title} has changes in both places. Choose the copy you want to keep.
+          {currentConflict.local.title} has changes in both places. Choose the copy
+          you want to keep.
         </p>
       {:else}
         <p>Manage cloud sync.</p>
@@ -616,14 +712,18 @@
           <p class="font-semibold">Device version</p>
           <p class="text-sm">{currentConflict.local.title}</p>
           <p class="text-xs text-gray-500">
-            Last synced: {formatSyncTime(currentConflict.local.last_synced_at ?? null)}
+            Last synced: {formatSyncTime(
+              currentConflict.local.last_synced_at ?? null
+            )}
           </p>
         </div>
         <div class="rounded border border-gray-200 p-3 dark:border-gray-800">
           <p class="font-semibold">Cloud version</p>
           <p class="text-sm">{currentConflict.cloud.title}</p>
           <p class="text-xs text-gray-500">
-            Last synced: {formatSyncTime(currentConflict.cloud.last_synced_at ?? null)}
+            Last synced: {formatSyncTime(
+              currentConflict.cloud.last_synced_at ?? null
+            )}
           </p>
         </div>
       </div>
@@ -631,16 +731,28 @@
     {#snippet actions()}
       {#if syncDialogMode === 'first-sync'}
         <div class="flex justify-end gap-2">
-          <Button class="text" onclick={() => (openCloudSyncDialog = false)}>Skip</Button>
-          <Button class="text" onclick={handleFirstSyncConfirm}>Upload to cloud</Button>
+          <Button class="text" onclick={() => (openCloudSyncDialog = false)}
+            >Skip</Button
+          >
+          <Button class="text" onclick={handleFirstSyncConfirm}
+            >Upload to cloud</Button
+          >
         </div>
       {:else if syncDialogMode === 'per-recipe' && currentConflict}
         <div class="flex flex-col gap-2">
-          <Button class="text" onclick={() => resolveCurrentConflict('download')}>Download cloud version</Button>
-          <Button onclick={() => resolveCurrentConflict('upload')}>Upload device version</Button>
+          <Button
+            class="text"
+            onclick={() => resolveCurrentConflict('download')}
+            >Download cloud version</Button
+          >
+          <Button onclick={() => resolveCurrentConflict('upload')}
+            >Upload device version</Button
+          >
         </div>
       {:else}
-        <Button class="text" onclick={() => (openCloudSyncDialog = false)}>Close</Button>
+        <Button class="text" onclick={() => (openCloudSyncDialog = false)}
+          >Close</Button
+        >
       {/if}
     {/snippet}
   </Dialog>

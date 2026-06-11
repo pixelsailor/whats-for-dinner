@@ -14,7 +14,13 @@
 
   const SEGMENT_CONFIG: Record<SegmentId, SegmentConfig> = {
     hours: { min: 0, max: 23, padZero: true, label: 'h', ariaLabel: 'Hours' },
-    minutes: { min: 0, max: 59, padZero: true, label: 'm', ariaLabel: 'Minutes' }
+    minutes: {
+      min: 0,
+      max: 59,
+      padZero: true,
+      label: 'm',
+      ariaLabel: 'Minutes'
+    }
   };
 
   type Props = {
@@ -65,7 +71,10 @@
    * @param raw - Segment digits or null when empty
    * @param config - Segment bounds and padding rules
    */
-  function formatSegmentDisplay(raw: string | null, config: SegmentConfig): string {
+  function formatSegmentDisplay(
+    raw: string | null,
+    config: SegmentConfig
+  ): string {
     if (raw === null) return config.padZero ? '00' : '';
     if (config.padZero && raw.length === 1) return `0${raw}`;
     return raw;
@@ -76,7 +85,10 @@
    * @param hours - Hours segment value
    * @param minutes - Minutes segment value
    */
-  function segmentsToMinutes(hours: string | null, minutes: string | null): number {
+  function segmentsToMinutes(
+    hours: string | null,
+    minutes: string | null
+  ): number {
     const h = hours === null ? 0 : Number.parseInt(hours, 10);
     const m = minutes === null ? 0 : Number.parseInt(minutes, 10);
     if (Number.isNaN(h) || Number.isNaN(m)) return 0;
@@ -167,7 +179,10 @@
    * @param segment - Segment to update
    * @param updater - Receives the previous segment string
    */
-  function updateSegment(segment: SegmentId, updater: (prev: string | null) => string | null): void {
+  function updateSegment(
+    segment: SegmentId,
+    updater: (prev: string | null) => string | null
+  ): void {
     if (disabled || readonly) return;
     if (segment === 'hours') segmentHours = updater(segmentHours);
     else segmentMinutes = updater(segmentMinutes);
@@ -179,7 +194,11 @@
    * @param config - Segment configuration
    * @param forDisplay - Whether to apply zero-padding for display
    */
-  function formatSegmentValue(value: number, config: SegmentConfig, forDisplay = true): string {
+  function formatSegmentValue(
+    value: number,
+    config: SegmentConfig,
+    forDisplay = true
+  ): string {
     const str = String(value);
     if (forDisplay && config.padZero && str.length === 1) return `0${value}`;
     return str;
@@ -309,7 +328,10 @@
    * @param segment - Active segment
    * @param event - Keyboard event
    */
-  function handleSegmentKeydown(segment: SegmentId, event: KeyboardEvent): void {
+  function handleSegmentKeydown(
+    segment: SegmentId,
+    event: KeyboardEvent
+  ): void {
     if (disabled || readonly) return;
     if (event.ctrlKey || event.metaKey) return;
 
@@ -363,7 +385,10 @@
     if (!digits) return;
 
     for (const char of digits) {
-      if (handleDigit(segment, Number.parseInt(char, 10)) && segment === 'hours') {
+      if (
+        handleDigit(segment, Number.parseInt(char, 10)) &&
+        segment === 'hours'
+      ) {
         focusSegment('minutes');
       }
     }
@@ -381,7 +406,8 @@
       'aria-valuenow': parsed ?? undefined,
       'aria-valuemin': config.min,
       'aria-valuemax': config.max,
-      'aria-valuetext': raw === null ? 'Empty' : formatSegmentDisplay(raw, config)
+      'aria-valuetext':
+        raw === null ? 'Empty' : formatSegmentDisplay(raw, config)
     };
   }
 
@@ -393,8 +419,12 @@
     return raw === null;
   }
 
-  const hoursDisplay = $derived(formatSegmentDisplay(segmentHours, SEGMENT_CONFIG.hours));
-  const minutesDisplay = $derived(formatSegmentDisplay(segmentMinutes, SEGMENT_CONFIG.minutes));
+  const hoursDisplay = $derived(
+    formatSegmentDisplay(segmentHours, SEGMENT_CONFIG.hours)
+  );
+  const minutesDisplay = $derived(
+    formatSegmentDisplay(segmentMinutes, SEGMENT_CONFIG.minutes)
+  );
   const hiddenValue = $derived(String(Math.max(0, value)));
 </script>
 
@@ -437,7 +467,9 @@ Segmented hours/minutes duration input styled like a digital clock; bound value 
           contenteditable={disabled || readonly ? undefined : 'true'}
           class={cn(
             'time-picker__segment rounded-input tabular-nums px-1 py-0.5 outline-none focus-visible:ring-0',
-            activeSegment === 'hours' ? 'bg-muted text-foreground' : 'hover:bg-muted/60',
+            activeSegment === 'hours'
+              ? 'bg-muted text-foreground'
+              : 'hover:bg-muted/60',
             isSegmentEmpty(segmentHours) && 'text-muted-foreground'
           )}
           style="caret-color: transparent"
@@ -451,7 +483,9 @@ Segmented hours/minutes duration input styled like a digital clock; bound value 
           {hoursDisplay}
         </span>
       </div>
-      <span class="time-picker__unit text-placeholder" aria-hidden="true">h</span>
+      <span class="time-picker__unit text-placeholder" aria-hidden="true"
+        >h</span
+      >
     </div>
 
     <div class="time-picker__unit-group inline-flex items-baseline gap-0.5">
@@ -466,7 +500,9 @@ Segmented hours/minutes duration input styled like a digital clock; bound value 
           contenteditable={disabled || readonly ? undefined : 'true'}
           class={cn(
             'time-picker__segment rounded-5px tabular-nums px-1 py-0.5 outline-none focus-visible:ring-0',
-            activeSegment === 'minutes' ? 'bg-muted text-foreground' : 'hover:bg-muted/60',
+            activeSegment === 'minutes'
+              ? 'bg-muted text-foreground'
+              : 'hover:bg-muted/60',
             isSegmentEmpty(segmentMinutes) && 'text-muted-foreground'
           )}
           style="caret-color: transparent"
@@ -480,7 +516,9 @@ Segmented hours/minutes duration input styled like a digital clock; bound value 
           {minutesDisplay}
         </span>
       </div>
-      <span class="time-picker__unit text-placeholder" aria-hidden="true">m</span>
+      <span class="time-picker__unit text-placeholder" aria-hidden="true"
+        >m</span
+      >
     </div>
   </div>
 </div>

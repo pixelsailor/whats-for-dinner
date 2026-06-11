@@ -35,7 +35,9 @@
         <Button.Root class="button outlined warn">Warn</Button.Root>
         <Button.Root class="button outlined danger">Danger</Button.Root>
         <Button.Root class="button outlined raised">Raised</Button.Root>
-        <Button.Root class="button outlined primary" disabled>Disabled</Button.Root>
+        <Button.Root class="button outlined primary" disabled
+          >Disabled</Button.Root
+        >
       </div>
     </section>
 
@@ -54,9 +56,12 @@
     <section class="my-8 flex flex-col gap-4">
       <h2 class="fluid-heading-05">Icon</h2>
       <p class="body">
-        Icon buttons are designed to be used with svg icons only, without any text. To visually balance their circular shape, they have a slightly larger height
-        than regular buttons, along with a width equal to their height. SVG icons are absolutely centered within the button. They inherit the properties of any
-        other button modifier class, e.g. primary, outlined, text, etc.
+        Icon buttons are designed to be used with svg icons only, without any
+        text. To visually balance their circular shape, they have a slightly
+        larger height than regular buttons, along with a width equal to their
+        height. SVG icons are absolutely centered within the button. They
+        inherit the properties of any other button modifier class, e.g. primary,
+        outlined, text, etc.
       </p>
       <div class="flex flex-row flex-wrap gap-4">
         <Button.Root class="button icon">
@@ -141,9 +146,11 @@
     <section class="my-8 flex flex-col gap-4">
       <h2 class="fluid-heading-05">Narrow</h2>
       <p class="body">
-        Narrow buttons have a smaller padding on the left and right sides; specifically designed for buttons featuring both text and icons where the visibility
-        of the text is dependent on the available space. When text is hidden, the button will be reduced to a square with the icon centered, without the need to
-        adjust alignment.
+        Narrow buttons have a smaller padding on the left and right sides;
+        specifically designed for buttons featuring both text and icons where
+        the visibility of the text is dependent on the available space. When
+        text is hidden, the button will be reduced to a square with the icon
+        centered, without the need to adjust alignment.
       </p>
       <div class="flex flex-row flex-wrap gap-4">
         <Button.Root class="button narrow">Default</Button.Root>

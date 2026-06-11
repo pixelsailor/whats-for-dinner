@@ -19,7 +19,9 @@
   let cloudService: CloudService | undefined = $state(undefined);
   let syncService: SyncService | undefined = $state(undefined);
 
-  let hasCloudStorageAccess = $derived(data.permissions?.cloudSync.allowed ?? false);
+  let hasCloudStorageAccess = $derived(
+    data.permissions?.cloudSync.allowed ?? false
+  );
 
   let app = $state({
     status: 'loading' as ViewState,
@@ -59,9 +61,14 @@
     if (!id) return;
     app.status = 'loading';
     if (hasCloudStorageAccess && syncService) {
-      const response = await syncService.updateRecipeAndSyncLocal({ id, deleted_at: undefined });
+      const response = await syncService.updateRecipeAndSyncLocal({
+        id,
+        deleted_at: undefined
+      });
       if (!response.success) {
-        toast.error('The recipe was restored locally but failed to sync to the server.');
+        toast.error(
+          'The recipe was restored locally but failed to sync to the server.'
+        );
         return;
       }
     } else {
@@ -80,8 +87,13 @@
     if (hasCloudStorageAccess && syncService) {
       const response = await syncService.deleteRecipeAndSyncLocal(id);
       if (!response.success) {
-        toast.error('The server encountered a problem trying to delete the recipe.');
-        await db.recipes.update(id, { synced: false, sync_error: response.error?.message });
+        toast.error(
+          'The server encountered a problem trying to delete the recipe.'
+        );
+        await db.recipes.update(id, {
+          synced: false,
+          sync_error: response.error?.message
+        });
         app.status = 'error';
         return;
       }
@@ -98,7 +110,9 @@
     if (hasCloudStorageAccess && syncService) {
       const response = await syncService.deleteDeletedRecipesAndSyncLocal(all);
       if (!response.success) {
-        toast.error('The server encountered a problem trying to delete the recipes.');
+        toast.error(
+          'The server encountered a problem trying to delete the recipes.'
+        );
         app.status = 'error';
         return;
       }
@@ -119,7 +133,11 @@
         </div>
       {/if}
       {#if $deletedRecipesStore.data && $deletedRecipesStore.data.length}
-        <Button.Root onclick={deleteAll} class="button text narrow danger" title="Permanently delete all recipes">
+        <Button.Root
+          onclick={deleteAll}
+          class="button text narrow danger"
+          title="Permanently delete all recipes"
+        >
           <TrashIcon size="xs" />
           <span>Empty trash</span>
         </Button.Root>
@@ -134,15 +152,21 @@
       <ProgressSpinner size="lg" />
     </div>
   {:else if $deletedRecipesStore.error}
-    <div class="mx-auto grid h-screen w-full max-w-3xl place-content-center gap-6">
+    <div
+      class="mx-auto grid h-screen w-full max-w-3xl place-content-center gap-6"
+    >
       <h1 class="display-medium">Ah donkey-spittle! There was a problem.</h1>
       <p class="flex items-center gap-3">
-        <span class="fluid-heading-03">{$deletedRecipesStore.error.name}</span><span>|</span><span>{$deletedRecipesStore.error?.message}</span>
+        <span class="fluid-heading-03">{$deletedRecipesStore.error.name}</span
+        ><span>|</span><span>{$deletedRecipesStore.error?.message}</span>
       </p>
     </div>
   {:else if $deletedRecipesStore.data}
     <h1 class="display-small mb-3">Trash Bin</h1>
-    <p class="body-large mb-8 italic">Deleted recipes are kept for 30 days, after which they are permanently deleted.</p>
+    <p class="body-large mb-8 italic">
+      Deleted recipes are kept for 30 days, after which they are permanently
+      deleted.
+    </p>
     {#if $deletedRecipesStore.data.length > 0}
       <div class="list">
         {#each $deletedRecipesStore.data as recipe (recipe.id)}
@@ -150,13 +174,24 @@
           <div class="listitem">
             <span class="listitem__content">
               <span class="title-medium">{recipe.title}</span>
-              <span class="body-medium text-foreground-alt dark:text-foreground-alt">{recipe.short_description}</span>
+              <span
+                class="body-medium text-foreground-alt dark:text-foreground-alt"
+                >{recipe.short_description}</span
+              >
             </span>
             <span class="listitem__end">
-              <Button.Root title="Restore recipe" onclick={() => restoreRecipe(recipe.id)} class="button icon text">
+              <Button.Root
+                title="Restore recipe"
+                onclick={() => restoreRecipe(recipe.id)}
+                class="button icon text"
+              >
                 <RevertIcon size="xs" />
               </Button.Root>
-              <Button.Root title="Delete permanently" onclick={() => deleteRecipe(recipe.id)} class="button icon text danger">
+              <Button.Root
+                title="Delete permanently"
+                onclick={() => deleteRecipe(recipe.id)}
+                class="button icon text danger"
+              >
                 <TrashIcon size="xs" />
               </Button.Root>
             </span>

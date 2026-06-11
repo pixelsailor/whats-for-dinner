@@ -6,8 +6,12 @@
 
   // Inferred total time
   let totalTime = $derived.by<string>(() => {
-    const minDuration = parseInt(recipe.prep_time?.[0] ?? '0') + parseInt(recipe.cook_time?.[0] ?? '0');
-    const maxDuration = parseInt(recipe.prep_time?.[1] ?? '0') + parseInt(recipe.cook_time?.[1] ?? '0');
+    const minDuration =
+      parseInt(recipe.prep_time?.[0] ?? '0') +
+      parseInt(recipe.cook_time?.[0] ?? '0');
+    const maxDuration =
+      parseInt(recipe.prep_time?.[1] ?? '0') +
+      parseInt(recipe.cook_time?.[1] ?? '0');
 
     if (maxDuration > 0) {
       return humanizeTime([minDuration.toString(), maxDuration.toString()]);
@@ -26,9 +30,17 @@
       return humanizeDuration(parseInt(time[0]));
     } else {
       if (parseInt(time[1]) < 60) {
-        return humanizeDuration(parseInt(time[0]), false) + '-' + humanizeDuration(parseInt(time[1]));
+        return (
+          humanizeDuration(parseInt(time[0]), false) +
+          '-' +
+          humanizeDuration(parseInt(time[1]))
+        );
       } else {
-        return humanizeDuration(parseInt(time[0])) + ' to ' + humanizeDuration(parseInt(time[1]));
+        return (
+          humanizeDuration(parseInt(time[0])) +
+          ' to ' +
+          humanizeDuration(parseInt(time[1]))
+        );
       }
     }
   }
@@ -57,7 +69,9 @@
   <span class="body-medium">{humanizeTime(recipe.prep_time ?? [])}</span>
   <span class="label-large">Cook time:</span>
   <span class="body-medium">{humanizeTime(recipe.cook_time ?? [])}</span>
-  <span class="label-large">Total time:</span><span class="body-medium">{totalTime}</span>
+  <span class="label-large">Total time:</span><span class="body-medium"
+    >{totalTime}</span
+  >
 </div>
 <div class="ingredients my-8">
   <h2 class="title-large my-2">Ingredients:</h2>

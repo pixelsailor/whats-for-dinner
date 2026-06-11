@@ -25,7 +25,10 @@ const cookieOptions = {
 function isPermissionFlags(value: unknown): value is PermissionFlags {
   if (!value || typeof value !== 'object') return false;
   const flags = value as Record<string, unknown>;
-  return typeof flags.ai_assistance === 'boolean' && typeof flags.cloud_storage === 'boolean';
+  return (
+    typeof flags.ai_assistance === 'boolean' &&
+    typeof flags.cloud_storage === 'boolean'
+  );
 }
 
 /**
@@ -33,7 +36,9 @@ function isPermissionFlags(value: unknown): value is PermissionFlags {
  * @param cookies - SvelteKit request cookies
  * @returns Parsed flags, or null when missing or invalid
  */
-export function getSessionPermissions(cookies: Cookies): PermissionFlags | null {
+export function getSessionPermissions(
+  cookies: Cookies
+): PermissionFlags | null {
   const raw = cookies.get(PERMISSIONS_COOKIE);
   if (!raw) return null;
 
@@ -51,7 +56,10 @@ export function getSessionPermissions(cookies: Cookies): PermissionFlags | null 
  * @param cookies - SvelteKit response cookies
  * @param permissions - Profile-derived `ai_assistance` and `cloud_storage` flags
  */
-export function setSessionPermissions(cookies: Cookies, permissions: PermissionFlags): void {
+export function setSessionPermissions(
+  cookies: Cookies,
+  permissions: PermissionFlags
+): void {
   cookies.set(PERMISSIONS_COOKIE, JSON.stringify(permissions), cookieOptions);
 }
 

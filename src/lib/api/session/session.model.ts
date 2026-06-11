@@ -3,21 +3,33 @@
  * @module lib/api/session/session.model
  */
 
-import { PUBLIC_SUPABASE_PUBLISHABLE_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public';
+import {
+  PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+  PUBLIC_SUPABASE_URL
+} from '$env/static/public';
 import { createBrowserClient, createServerClient } from '@supabase/ssr';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-import type { SessionClientConfig, SessionCookieAdapter, SessionCookieStore } from './session.types';
+import type {
+  SessionClientConfig,
+  SessionCookieAdapter,
+  SessionCookieStore
+} from './session.types';
 
 /** Response headers Supabase session clients may emit that SvelteKit must pass through. */
-export const SESSION_SERIALIZED_RESPONSE_HEADERS = ['content-range', 'x-supabase-api-version'] as const;
+export const SESSION_SERIALIZED_RESPONSE_HEADERS = [
+  'content-range',
+  'x-supabase-api-version'
+] as const;
 
 /**
  * Returns whether a response header name should be forwarded by SvelteKit SSR.
  * @param name - Header name from `filterSerializedResponseHeaders`
  */
 export function isSessionSerializedResponseHeader(name: string): boolean {
-  return (SESSION_SERIALIZED_RESPONSE_HEADERS as readonly string[]).includes(name);
+  return (SESSION_SERIALIZED_RESPONSE_HEADERS as readonly string[]).includes(
+    name
+  );
 }
 
 /**

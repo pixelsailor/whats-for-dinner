@@ -1,5 +1,6 @@
 <script lang="ts">
-  let { primary, secondary }: { primary: string; secondary?: string } = $props();
+  let { primary, secondary }: { primary: string; secondary?: string } =
+    $props();
 </script>
 
 <div class="pxl-app-bar__text grow">

@@ -55,7 +55,10 @@ export const suggestionHistory = readable<Suggestion[]>([], (suggestions) => {
 
 export const suggestionsStore = createLiveQueryStore(async () => {
   // await migrateIdsToSids();
-  return (await db.suggestions.orderBy('created_at').reverse().toArray()) as Suggestion[];
+  return (await db.suggestions
+    .orderBy('created_at')
+    .reverse()
+    .toArray()) as Suggestion[];
 });
 
 /**
@@ -84,7 +87,11 @@ export async function saveSuggestions(suggestions: RecipeSummary[]) {
   const ids = suggestions.map((s) => s.id);
   // Fetch existing suggestions by primary key (id)
   const existing = await db.suggestions.bulkGet(ids);
-  const existingMap = new Map(existing.filter((s): s is Suggestion => s !== undefined).map((s) => [s.id, s]));
+  const existingMap = new Map(
+    existing
+      .filter((s): s is Suggestion => s !== undefined)
+      .map((s) => [s.id, s])
+  );
 
   const enriched: Suggestion[] = suggestions.map((raw) => {
     const existingRow = existingMap.get(raw.id);
@@ -120,7 +127,9 @@ export async function saveSuggestions(suggestions: RecipeSummary[]) {
       .limit(count - MAX_SUGGESTIONS)
       .toArray();
 
-    const extraIds = extras.filter((s): s is Suggestion => s !== undefined).map((s) => s.id);
+    const extraIds = extras
+      .filter((s): s is Suggestion => s !== undefined)
+      .map((s) => s.id);
     if (!extraIds?.length) return;
     await db.suggestions.bulkDelete(extraIds as string[]);
   }
@@ -150,13 +159,20 @@ export async function bulkDeleteSuggestions() {
  * @param prompt - The sanitized prompt string to look up
  * @returns The most recent PromptRequest or null if not found
  */
-export async function getPromptRequest(prompt: string): Promise<PromptRequest | null> {
-  const requests = await db.prompt_requests.where('prompt').equals(prompt).toArray();
+export async function getPromptRequest(
+  prompt: string
+): Promise<PromptRequest | null> {
+  const requests = await db.prompt_requests
+    .where('prompt')
+    .equals(prompt)
+    .toArray();
 
   if (requests.length === 0) return null;
 
   // Return the most recent request (highest request_id)
-  return requests.reduce((latest, current) => (current.request_id > latest.request_id ? current : latest));
+  return requests.reduce((latest, current) =>
+    current.request_id > latest.request_id ? current : latest
+  );
 }
 
 /**
@@ -167,7 +183,10 @@ export async function getPromptRequest(prompt: string): Promise<PromptRequest | 
  * @param thresholdMs - Time threshold in milliseconds (default 5000ms / 5 seconds)
  * @returns The existing request if within threshold, null otherwise
  */
-export async function getPromptRequestWithThrottle(prompt: string, thresholdMs: number = 5000): Promise<PromptRequest | null> {
+export async function getPromptRequestWithThrottle(
+  prompt: string,
+  thresholdMs: number = 5000
+): Promise<PromptRequest | null> {
   const request = await getPromptRequest(prompt);
   if (!request) return null;
 
@@ -183,7 +202,11 @@ export async function getPromptRequestWithThrottle(prompt: string, thresholdMs: 
  * @param prompt - The sanitized prompt string
  * @param suggestions - Array of RecipeSummary objects returned by the API
  */
-export async function savePromptRequest(requestId: number, prompt: string, suggestions: RecipeSummary[]): Promise<void> {
+export async function savePromptRequest(
+  requestId: number,
+  prompt: string,
+  suggestions: RecipeSummary[]
+): Promise<void> {
   const promptRequest: PromptRequest = {
     request_id: requestId,
     prompt,
@@ -224,7 +247,9 @@ export function suggestionsByPromptStore(prompt: string | null) {
  * @param prompt - The prompt string to get suggestions for
  * @returns Array of suggestions associated with the prompt
  */
-export async function getSuggestionsForPrompt(prompt: string): Promise<Suggestion[]> {
+export async function getSuggestionsForPrompt(
+  prompt: string
+): Promise<Suggestion[]> {
   const request = await getPromptRequest(prompt);
   if (!request || request.suggestion_ids.length === 0) {
     return [];
@@ -255,7 +280,10 @@ export const suggestionStoreById = (id: string) =>
  * @param recipeTitle - The recipe title to check in TanStack Query cache
  * @returns Object with isViewed (session or persisted) and isPersisted (DB only) flags
  */
-export function getViewedStatus(suggestion: Suggestion | RecipeSummary, recipeTitle?: string): { isViewed: boolean; isPersisted: boolean } {
+export function getViewedStatus(
+  suggestion: Suggestion | RecipeSummary,
+  recipeTitle?: string
+): { isViewed: boolean; isPersisted: boolean } {
   // Check if persisted to database
   const isPersisted = 'last_opened' in suggestion && !!suggestion.last_opened;
 

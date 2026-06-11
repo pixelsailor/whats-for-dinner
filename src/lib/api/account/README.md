@@ -40,8 +40,8 @@ Validated with `UserPreferencesSchema` (payload) and `UserPreferencesRepsonseSch
 
 ## Schemas
 
-| Schema | Maps to |
-| ------ | ------- |
-| `UserProfileSchema` | `user_profiles` row (includes legacy `preferences` jsonb until column drop) |
-| `UserPreferencesSchema` | Preference fields on `user_preferences` |
-| `UserPreferencesRepsonseSchema` | Full `user_preferences` row |
+| Schema                          | Maps to                                                                     |
+| ------------------------------- | --------------------------------------------------------------------------- |
+| `UserProfileSchema`             | `user_profiles` row (includes legacy `preferences` jsonb until column drop) |
+| `UserPreferencesSchema`         | Preference fields on `user_preferences`                                     |
+| `UserPreferencesRepsonseSchema` | Full `user_preferences` row                                                 |

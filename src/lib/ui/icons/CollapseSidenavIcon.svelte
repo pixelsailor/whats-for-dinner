@@ -7,7 +7,13 @@
 
 <IconRoot {size}>
   {#snippet children(iconSize: number | string)}
-    <svg width={iconSize} height={iconSize} viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <svg
+      width={iconSize}
+      height={iconSize}
+      viewBox="0 0 16 16"
+      version="1.1"
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <path
         fill-rule="evenodd"
         clip-rule="evenodd"

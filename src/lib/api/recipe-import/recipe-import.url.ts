@@ -19,7 +19,11 @@ export function parseImportUrl(raw: string): URL {
   const trimmed = raw.trim();
 
   if (!trimmed) {
-    throw new RecipeImportError('A valid URL is required', RECIPE_IMPORT_INVALID_URL, 400);
+    throw new RecipeImportError(
+      'A valid URL is required',
+      RECIPE_IMPORT_INVALID_URL,
+      400
+    );
   }
 
   let parsed: URL;
@@ -31,7 +35,11 @@ export function parseImportUrl(raw: string): URL {
   }
 
   if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-    throw new RecipeImportError('Only http and https URLs are supported', RECIPE_IMPORT_INVALID_URL, 400);
+    throw new RecipeImportError(
+      'Only http and https URLs are supported',
+      RECIPE_IMPORT_INVALID_URL,
+      400
+    );
   }
 
   if (!parsed.hostname) {
@@ -50,7 +58,11 @@ export function parseImportUrl(raw: string): URL {
  */
 export function assertPublicImportUrl(url: URL): void {
   if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-    throw new RecipeImportError('Only http and https URLs are supported', RECIPE_IMPORT_BLOCKED_URL, 400);
+    throw new RecipeImportError(
+      'Only http and https URLs are supported',
+      RECIPE_IMPORT_BLOCKED_URL,
+      400
+    );
   }
 
   assertPublicHostname(url.hostname);
@@ -63,26 +75,55 @@ function assertPublicHostname(hostname: string): void {
   const host = hostname.toLowerCase();
 
   if (host === 'localhost' || host.endsWith('.localhost')) {
-    throw new RecipeImportError('This URL cannot be imported', RECIPE_IMPORT_BLOCKED_URL, 400);
+    throw new RecipeImportError(
+      'This URL cannot be imported',
+      RECIPE_IMPORT_BLOCKED_URL,
+      400
+    );
   }
 
-  if (host === '0.0.0.0' || host.endsWith('.local') || host.endsWith('.internal')) {
-    throw new RecipeImportError('This URL cannot be imported', RECIPE_IMPORT_BLOCKED_URL, 400);
+  if (
+    host === '0.0.0.0' ||
+    host.endsWith('.local') ||
+    host.endsWith('.internal')
+  ) {
+    throw new RecipeImportError(
+      'This URL cannot be imported',
+      RECIPE_IMPORT_BLOCKED_URL,
+      400
+    );
   }
 
   if (host.includes('metadata.google') || host === 'metadata') {
-    throw new RecipeImportError('This URL cannot be imported', RECIPE_IMPORT_BLOCKED_URL, 400);
+    throw new RecipeImportError(
+      'This URL cannot be imported',
+      RECIPE_IMPORT_BLOCKED_URL,
+      400
+    );
   }
 
   if (isIpv4(host) && isPrivateOrReservedIpv4(host)) {
-    throw new RecipeImportError('This URL cannot be imported', RECIPE_IMPORT_BLOCKED_URL, 400);
+    throw new RecipeImportError(
+      'This URL cannot be imported',
+      RECIPE_IMPORT_BLOCKED_URL,
+      400
+    );
   }
 
   if (host.startsWith('[') && host.endsWith(']')) {
     const inner = host.slice(1, -1);
 
-    if (inner === '::1' || inner.startsWith('fe80:') || inner.startsWith('fc') || inner.startsWith('fd')) {
-      throw new RecipeImportError('This URL cannot be imported', RECIPE_IMPORT_BLOCKED_URL, 400);
+    if (
+      inner === '::1' ||
+      inner.startsWith('fe80:') ||
+      inner.startsWith('fc') ||
+      inner.startsWith('fd')
+    ) {
+      throw new RecipeImportError(
+        'This URL cannot be imported',
+        RECIPE_IMPORT_BLOCKED_URL,
+        400
+      );
     }
   }
 }

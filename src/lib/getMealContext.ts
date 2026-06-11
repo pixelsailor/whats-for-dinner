@@ -1,4 +1,9 @@
-export function getMealContext(): 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'dessert' {
+export function getMealContext():
+  | 'breakfast'
+  | 'lunch'
+  | 'dinner'
+  | 'snack'
+  | 'dessert' {
   const hour = new Date().getHours();
   if (hour < 10) return 'breakfast';
   if (hour < 13) return 'lunch';

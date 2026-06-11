@@ -10,11 +10,11 @@ Remote backup, sync, and sharing use [`../cloud/`](../cloud/README.md) (`CloudSe
 
 ## Layout
 
-| File | Role |
-| ---- | ---- |
+| File                | Role                                            |
+| ------------------- | ----------------------------------------------- |
 | `recipe.schemas.ts` | Zod validation for recipe entities and payloads |
-| `recipe.types.ts` | `z.infer` types from schemas |
-| `index.ts` | Public barrel (schemas + types only) |
+| `recipe.types.ts`   | `z.infer` types from schemas                    |
+| `index.ts`          | Public barrel (schemas + types only)            |
 
 ## By design: no `*.service.ts`
 
@@ -28,9 +28,9 @@ Cloud-driven Dexie updates remain in `SyncService` ([`../cloud/sync.service.ts`]
 
 ## Related
 
-| Topic | Location |
-| ----- | -------- |
-| API layer overview | [`../README.md`](../README.md) |
-| Store read model | [`../../stores/README.md`](../../stores/README.md) |
-| Frontend data flow | [ADR-016](../../../../adrs/ADR-016-frontend-data-flow-and-svelte-dx.md) |
-| Filename audit | [`docs/api-layer-filename-alignment-gaps.md`](../../../../docs/api-layer-filename-alignment-gaps.md) |
+| Topic              | Location                                                                                             |
+| ------------------ | ---------------------------------------------------------------------------------------------------- |
+| API layer overview | [`../README.md`](../README.md)                                                                       |
+| Store read model   | [`../../stores/README.md`](../../stores/README.md)                                                   |
+| Frontend data flow | [ADR-016](../../../../adrs/ADR-016-frontend-data-flow-and-svelte-dx.md)                              |
+| Filename audit     | [`docs/api-layer-filename-alignment-gaps.md`](../../../../docs/api-layer-filename-alignment-gaps.md) |

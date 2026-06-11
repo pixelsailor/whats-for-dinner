@@ -3,7 +3,10 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
 
-  import { createSuggestionsQuery, type RecipeSuggestionsResponse } from '$lib/api/ai';
+  import {
+    createSuggestionsQuery,
+    type RecipeSuggestionsResponse
+  } from '$lib/api/ai';
   import type { RecipeSummary, Suggestion } from '$lib/api/recipe';
 
   import { networkStore } from '$lib/stores/network';
@@ -101,7 +104,11 @@
    */
   $effect(() => {
     if (!sanitizedPrompt) {
-      existingRequestState = { checked: true, hasExisting: false, requestId: null };
+      existingRequestState = {
+        checked: true,
+        hasExisting: false,
+        requestId: null
+      };
       return;
     }
 
@@ -116,23 +123,36 @@
     }
 
     // Check Dexie for existing request (with 5-second throttle)
-    existingRequestState = { checked: false, hasExisting: false, requestId: null };
+    existingRequestState = {
+      checked: false,
+      hasExisting: false,
+      requestId: null
+    };
 
-    getPromptRequestWithThrottle(sanitizedPrompt, 5000).then((existingRequest) => {
-      if (existingRequest) {
-        existingRequestState = {
-          checked: true,
-          hasExisting: true,
-          requestId: existingRequest.request_id
-        };
-        // Update URL with the existing request_id
-        const url = new URL(page.url);
-        url.searchParams.set('request_id', existingRequest.request_id.toString());
-        goto(url.toString(), { replaceState: true, noScroll: true });
-      } else {
-        existingRequestState = { checked: true, hasExisting: false, requestId: null };
+    getPromptRequestWithThrottle(sanitizedPrompt, 5000).then(
+      (existingRequest) => {
+        if (existingRequest) {
+          existingRequestState = {
+            checked: true,
+            hasExisting: true,
+            requestId: existingRequest.request_id
+          };
+          // Update URL with the existing request_id
+          const url = new URL(page.url);
+          url.searchParams.set(
+            'request_id',
+            existingRequest.request_id.toString()
+          );
+          goto(url.toString(), { replaceState: true, noScroll: true });
+        } else {
+          existingRequestState = {
+            checked: true,
+            hasExisting: false,
+            requestId: null
+          };
+        }
       }
-    });
+    );
   });
 
   // =============================================================================
@@ -142,7 +162,11 @@
 
   /** Determine if we should make an API request */
   let shouldRequestFromApi = $derived(
-    hasPrompt && sanitizedPrompt && canRequestSuggestions && existingRequestState.checked && !existingRequestState.hasExisting
+    hasPrompt &&
+      sanitizedPrompt &&
+      canRequestSuggestions &&
+      existingRequestState.checked &&
+      !existingRequestState.hasExisting
   );
 
   /** Create TanStack query only when needed */
@@ -150,7 +174,9 @@
     if (!shouldRequestFromApi || !sanitizedPrompt) return null;
 
     try {
-      return createSuggestionsQuery({ prompt: encodeURIComponent(sanitizedPrompt) });
+      return createSuggestionsQuery({
+        prompt: encodeURIComponent(sanitizedPrompt)
+      });
     } catch (error) {
       console.error('Failed to create suggestions query:', error);
       return null;
@@ -184,21 +210,35 @@
    * This effect handles the write-through to IndexedDB.
    */
   $effect(() => {
-    if (!suggestionsResult?.isSuccess || !suggestionsResult.data || !sanitizedPrompt || !prompt) {
+    if (
+      !suggestionsResult?.isSuccess ||
+      !suggestionsResult.data ||
+      !sanitizedPrompt ||
+      !prompt
+    ) {
       return;
     }
 
     const raw = suggestionsResult.data as unknown;
     let requestId = Date.now();
-    let suggestionsPayload: { title: string; short_description: string }[] | null = null;
+    let suggestionsPayload:
+      | { title: string; short_description: string }[]
+      | null = null;
 
-    if (raw && typeof raw === 'object' && 'suggestions' in (raw as Record<string, unknown>)) {
+    if (
+      raw &&
+      typeof raw === 'object' &&
+      'suggestions' in (raw as Record<string, unknown>)
+    ) {
       const response = raw as RecipeSuggestionsResponse;
       requestId = response.request_id ?? requestId;
       suggestionsPayload = response.suggestions;
     } else if (Array.isArray(raw)) {
       // Backward compatibility if API returned an array directly
-      suggestionsPayload = raw as { title: string; short_description: string }[];
+      suggestionsPayload = raw as {
+        title: string;
+        short_description: string;
+      }[];
     }
 
     if (!suggestionsPayload || suggestionsPayload.length === 0) {
@@ -219,7 +259,10 @@
     }));
 
     // Save to Dexie: both suggestions and prompt request
-    Promise.all([saveSuggestions(suggestions), savePromptRequest(requestId, sanitizedPrompt, suggestions)]).then(() => {
+    Promise.all([
+      saveSuggestions(suggestions),
+      savePromptRequest(requestId, sanitizedPrompt, suggestions)
+    ]).then(() => {
       // Update URL with request_id for future reference
       const url = new URL(page.url);
       url.searchParams.set('request_id', requestId.toString());
@@ -232,7 +275,9 @@
   // =============================================================================
 
   /** Computed view state based on all conditions */
-  let viewState = $derived.by<'loading' | 'error' | 'idle-prompt' | 'idle-history'>(() => {
+  let viewState = $derived.by<
+    'loading' | 'error' | 'idle-prompt' | 'idle-history'
+  >(() => {
     // No prompt = show history
     if (!hasPrompt) return 'idle-history';
 
@@ -259,7 +304,9 @@
   $effect(() => {
     if (viewState === 'error') {
       app.status = 'error';
-      app.error = (suggestionsResult?.error as unknown as { body: { message: string } })?.body?.message ?? 'Unknown error';
+      app.error =
+        (suggestionsResult?.error as unknown as { body: { message: string } })
+          ?.body?.message ?? 'Unknown error';
     } else if (viewState === 'loading') {
       app.status = 'loading';
     } else {
@@ -302,7 +349,11 @@
   // Filter suggestions
   function filterSuggestions(value: string) {
     const lower = value.toLowerCase();
-    return $suggestionHistory.filter((s) => s.title.toLowerCase().includes(lower) || s.short_description.toLowerCase().includes(lower));
+    return $suggestionHistory.filter(
+      (s) =>
+        s.title.toLowerCase().includes(lower) ||
+        s.short_description.toLowerCase().includes(lower)
+    );
   }
 
   /** Navigate to full recipe page */
@@ -329,7 +380,13 @@
   }
 </script>
 
-<div class="grid h-screen" style:place-content={viewState === 'idle-prompt' || viewState === 'idle-history' ? 'start stretch' : 'center'}>
+<div
+  class="grid h-screen"
+  style:place-content={viewState === 'idle-prompt' ||
+  viewState === 'idle-history'
+    ? 'start stretch'
+    : 'center'}
+>
   {#if aiRestrictionMessage && hasPrompt}
     <div
       class="mb-6 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-500 dark:bg-amber-950 dark:text-amber-100"
@@ -349,7 +406,10 @@
             </div>
           {/if}
           {#if $suggestionHistory.length > 0}
-            <Button.Root onclick={clearSuggestions} class="button text narrow mr-2">
+            <Button.Root
+              onclick={clearSuggestions}
+              class="button text narrow mr-2"
+            >
               <TrashIcon size="xs" />
               <span>Clear history</span>
             </Button.Root>
@@ -359,7 +419,9 @@
     </PageHeader>
     <div class="mx-auto w-full max-w-5xl px-4 py-8 lg:px-8">
       <h1 class="display-small mb-4">Suggestion History</h1>
-      <p class="body-medium mb-10">Suggestions are not synced between devices and are limited to 100.</p>
+      <p class="body-medium mb-10">
+        Suggestions are not synced between devices and are limited to 100.
+      </p>
       {#if $suggestionHistory.length > 0}
         <div class="w-full">
           <input
@@ -373,7 +435,9 @@
       {#if filteredSuggestions.length > 0}
         {#each groupedSuggestions as group (group.date)}
           <div class="list my-6">
-            <h3 class="label-large text-foreground-alt m-3"><strong>{group.date}</strong></h3>
+            <h3 class="label-large text-foreground-alt m-3">
+              <strong>{group.date}</strong>
+            </h3>
             {#each group.suggestions as summary (summary.id)}
               <hr />
               <Button.Root
@@ -383,10 +447,15 @@
               >
                 <span class="listitem__content">
                   <span class="title-medium">{summary.title}</span>
-                  <span class="body-medium text-foreground-alt dark:text-foreground-alt">{summary.short_description}</span>
+                  <span
+                    class="body-medium text-foreground-alt dark:text-foreground-alt"
+                    >{summary.short_description}</span
+                  >
                 </span>
                 <span class="listitem__end">
-                  <ViewedBadge viewed={getViewedStatus(summary, summary.title).isViewed} />
+                  <ViewedBadge
+                    viewed={getViewedStatus(summary, summary.title).isViewed}
+                  />
                   <Button.Root
                     onclick={(event: MouseEvent) => {
                       event.stopPropagation();
@@ -402,7 +471,10 @@
           </div>
         {/each}
       {:else}
-        <p class="body-large my-24 text-center">Your suggestion history will appear here after you start requesting recipe suggestions.</p>
+        <p class="body-large my-24 text-center">
+          Your suggestion history will appear here after you start requesting
+          recipe suggestions.
+        </p>
       {/if}
     </div>
   {:else if viewState === 'error'}
@@ -410,9 +482,16 @@
     <div class="flex flex-col gap-6">
       <h1 class="display-medium">Ah donkey-spittle! There was a problem.</h1>
       <p class="text-dark flex items-center gap-3">
-        <span class="fluid-heading-03">{(suggestionsResult?.error as unknown as { status: number })?.status}</span>
+        <span class="fluid-heading-03"
+          >{(suggestionsResult?.error as unknown as { status: number })
+            ?.status}</span
+        >
         <span>|</span>
-        <span>{(suggestionsResult?.error as unknown as { body: { message: string } })?.body?.message}</span>
+        <span
+          >{(
+            suggestionsResult?.error as unknown as { body: { message: string } }
+          )?.body?.message}</span
+        >
       </p>
     </div>
   {:else if viewState === 'idle-prompt'}
@@ -439,13 +518,22 @@
       <div class="list">
         {#each suggestionsFromDexie as summary (summary.id)}
           <hr />
-          <Button.Root onclick={() => getFullRecipe(summary)} disabled={app.status === 'loading' || !canRequestSuggestions} class="listitem button text narrow">
+          <Button.Root
+            onclick={() => getFullRecipe(summary)}
+            disabled={app.status === 'loading' || !canRequestSuggestions}
+            class="listitem button text narrow"
+          >
             <span class="listitem__content">
               <span class="title-medium">{summary.title}</span>
-              <span class="body-medium text-foreground-alt dark:text-foreground-alt">{summary.short_description}</span>
+              <span
+                class="body-medium text-foreground-alt dark:text-foreground-alt"
+                >{summary.short_description}</span
+              >
             </span>
             <span class="listitem__end">
-              <ViewedBadge viewed={getViewedStatus(summary, summary.title).isViewed} />
+              <ViewedBadge
+                viewed={getViewedStatus(summary, summary.title).isViewed}
+              />
             </span>
           </Button.Root>
         {/each}

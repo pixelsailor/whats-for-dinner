@@ -3,7 +3,8 @@
   import type { IconSize } from '$lib/types';
   import IconRoot from './IconRoot.svelte';
 
-  let { size, ...restProps }: { size?: IconSize | number; [x: string]: any } = $props();
+  let { size, ...restProps }: { size?: IconSize | number; [x: string]: any } =
+    $props();
 </script>
 
 <IconRoot {size}>

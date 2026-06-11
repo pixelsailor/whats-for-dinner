@@ -1,4 +1,5 @@
 # Handling multiple users in offline mode
+
 _Exported on 6/5/2026 at 09:22:00 CDT from Cursor (3.6.31)_
 
 ---
@@ -144,4 +145,3 @@ For existing IndexedDB rows:
 - If existing rows contain multiple cloud `owner_id` values, split them into separate local profiles immediately.
 
 This is worth tracking as an ADR/alignment gap: current implementation lacks a local identity model, and `owner_id` alone cannot satisfy both offline continuity and multi-user isolation.
-

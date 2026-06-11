@@ -3,8 +3,15 @@
  * @module lib/api/recipe-import/recipe-import.prepare
  */
 
-import { RECIPE_IMPORT_NO_RECIPE, RecipeImportError } from './recipe-import.errors';
-import type { FetchedPage, PreparedImportContent, PreparationSource } from './recipe-import.types';
+import {
+  RECIPE_IMPORT_NO_RECIPE,
+  RecipeImportError
+} from './recipe-import.errors';
+import type {
+  FetchedPage,
+  PreparedImportContent,
+  PreparationSource
+} from './recipe-import.types';
 
 /** Max characters for JSON-LD primary block in model input. */
 export const PRIMARY_BLOCK_MAX_CHARS = 32_000;
@@ -29,8 +36,14 @@ const JSON_LD_SCRIPT_RE =
  */
 export function prepareImportContent(page: FetchedPage): PreparedImportContent {
   const recipes = extractJsonLdRecipes(page.html);
-  const primaryBlock = recipes.length > 0 ? truncate(stringifyPrimaryBlock(recipes[0]), PRIMARY_BLOCK_MAX_CHARS) : '';
-  const supplementalText = truncate(htmlToText(page.html), SUPPLEMENTAL_TEXT_MAX_CHARS);
+  const primaryBlock =
+    recipes.length > 0
+      ? truncate(stringifyPrimaryBlock(recipes[0]), PRIMARY_BLOCK_MAX_CHARS)
+      : '';
+  const supplementalText = truncate(
+    htmlToText(page.html),
+    SUPPLEMENTAL_TEXT_MAX_CHARS
+  );
 
   if (!hasRecipeSignal(primaryBlock, supplementalText)) {
     throw new RecipeImportError(
@@ -40,7 +53,10 @@ export function prepareImportContent(page: FetchedPage): PreparedImportContent {
     );
   }
 
-  const preparationSource = resolvePreparationSource(primaryBlock, supplementalText);
+  const preparationSource = resolvePreparationSource(
+    primaryBlock,
+    supplementalText
+  );
 
   return {
     sourceUrl: page.url,
@@ -54,7 +70,10 @@ export function prepareImportContent(page: FetchedPage): PreparedImportContent {
  * @param primaryBlock - Serialized JSON-LD recipe
  * @param supplementalText - Stripped page text
  */
-export function hasRecipeSignal(primaryBlock: string, supplementalText: string): boolean {
+export function hasRecipeSignal(
+  primaryBlock: string,
+  supplementalText: string
+): boolean {
   if (primaryBlock.trim().length > 40) {
     return true;
   }
@@ -133,7 +152,10 @@ export function htmlToText(html: string): string {
   return text.trim();
 }
 
-function collectRecipeNodes(node: unknown, out: Record<string, unknown>[]): void {
+function collectRecipeNodes(
+  node: unknown,
+  out: Record<string, unknown>[]
+): void {
   if (!node) {
     return;
   }
@@ -187,7 +209,10 @@ function stringifyPrimaryBlock(recipe: Record<string, unknown>): string {
  * @param primaryBlock - JSON-LD excerpt
  * @param supplementalText - HTML text excerpt
  */
-function resolvePreparationSource(primaryBlock: string, supplementalText: string): PreparationSource {
+function resolvePreparationSource(
+  primaryBlock: string,
+  supplementalText: string
+): PreparationSource {
   const hasPrimary = primaryBlock.trim().length > 0;
   const supplemental = supplementalText.trim();
   const hasSupplemental =

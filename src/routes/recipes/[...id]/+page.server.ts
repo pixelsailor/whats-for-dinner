@@ -46,7 +46,10 @@ export const actions: Actions = {
           message
         });
       }
-      if (error instanceof Error && error.message === OPENAI_INVALID_KEY_FORMAT_ERROR) {
+      if (
+        error instanceof Error &&
+        error.message === OPENAI_INVALID_KEY_FORMAT_ERROR
+      ) {
         return fail(503, {
           error: 'AI service configuration is invalid right now',
           message

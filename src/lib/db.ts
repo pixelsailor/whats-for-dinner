@@ -35,13 +35,15 @@ class MealDexie extends Dexie {
 
     // Version 1: Original schema
     this.version(1).stores({
-      recipes: 'id, title, created_at, deleted_at, last_opened, owner_id, shared_id, synced, last_synced_at',
+      recipes:
+        'id, title, created_at, deleted_at, last_opened, owner_id, shared_id, synced, last_synced_at',
       suggestions: 'id, sid, created_at, last_opened'
     });
 
     // Version 2: Add prompt_requests table for request deduplication
     this.version(2).stores({
-      recipes: 'id, title, created_at, deleted_at, last_opened, owner_id, shared_id, synced, last_synced_at',
+      recipes:
+        'id, title, created_at, deleted_at, last_opened, owner_id, shared_id, synced, last_synced_at',
       suggestions: 'id, sid, created_at, last_opened',
       prompt_requests: 'request_id, prompt, created_at'
     });
@@ -49,7 +51,8 @@ class MealDexie extends Dexie {
     // Version 3: Remove sid index, add recipe_id index, reset prompt_requests (sid-based mapping)
     this.version(3)
       .stores({
-        recipes: 'id, title, created_at, deleted_at, last_opened, owner_id, shared_id, synced, last_synced_at',
+        recipes:
+          'id, title, created_at, deleted_at, last_opened, owner_id, shared_id, synced, last_synced_at',
         suggestions: 'id, created_at, last_opened, recipe_id',
         prompt_requests: 'request_id, prompt, created_at'
       })
@@ -58,7 +61,9 @@ class MealDexie extends Dexie {
         await tx.table('prompt_requests').clear();
 
         const suggestions = await tx.table('suggestions').toArray();
-        for (const suggestion of suggestions as Array<Record<string, unknown>>) {
+        for (const suggestion of suggestions as Array<
+          Record<string, unknown>
+        >) {
           const id = suggestion.id;
           if (typeof id !== 'string' || id.length === 0) {
             suggestion.id = crypto.randomUUID();

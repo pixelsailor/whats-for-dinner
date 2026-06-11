@@ -23,7 +23,14 @@
       oninput?: (event: Event) => void;
     } & Omit<
       HTMLInputAttributes,
-      'class' | 'id' | 'pattern' | 'minlength' | 'maxlength' | 'onblur' | 'oninput' | 'value'
+      | 'class'
+      | 'id'
+      | 'pattern'
+      | 'minlength'
+      | 'maxlength'
+      | 'onblur'
+      | 'oninput'
+      | 'value'
     >,
     HTMLInputElement
   >;

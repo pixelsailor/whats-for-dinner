@@ -3,7 +3,13 @@ import { writable } from 'svelte/store';
 import type { SyncConflict, SyncScenario } from '$lib/api/cloud';
 import type { SavedRecipe } from '$lib/api/recipe/recipe.types';
 
-export type SyncStatus = 'idle' | 'checking' | 'awaiting-confirmation' | 'syncing' | 'complete' | 'error';
+export type SyncStatus =
+  | 'idle'
+  | 'checking'
+  | 'awaiting-confirmation'
+  | 'syncing'
+  | 'complete'
+  | 'error';
 
 export type SyncState = {
   status: SyncStatus;
@@ -41,5 +47,9 @@ export const syncStore = writable<SyncState>(initialState);
 
 export const resetSyncStore = () => syncStore.set(initialState);
 
-export const updateSyncStore = (patch: Partial<SyncState> | ((state: SyncState) => SyncState)) =>
-  syncStore.update((state) => (typeof patch === 'function' ? patch(state) : { ...state, ...patch }));
+export const updateSyncStore = (
+  patch: Partial<SyncState> | ((state: SyncState) => SyncState)
+) =>
+  syncStore.update((state) =>
+    typeof patch === 'function' ? patch(state) : { ...state, ...patch }
+  );

@@ -7,8 +7,16 @@ import { createQuery } from '@tanstack/svelte-query';
 
 import { sanitizePromptInput } from './ai.model';
 
-import { AI_ENDPOINTS, postAiJson, postSuggestedRecipe, postSuggestions } from './ai.service';
-import type { RecipeSuggestionsResponse, SuggestedRecipeResponse } from './ai.types';
+import {
+  AI_ENDPOINTS,
+  postAiJson,
+  postSuggestedRecipe,
+  postSuggestions
+} from './ai.service';
+import type {
+  RecipeSuggestionsResponse,
+  SuggestedRecipeResponse
+} from './ai.types';
 
 type Endpoint = keyof typeof AI_ENDPOINTS;
 
@@ -44,7 +52,9 @@ export function createSuggestionsQuery({
   }
 
   const sanitizedPrompt = sanitizePromptInput(decodeURIComponent(prompt));
-  const prefs = preferences ? sanitizePromptInput(preferences) : 'No preferences or dietary restrictions provided.';
+  const prefs = preferences
+    ? sanitizePromptInput(preferences)
+    : 'No preferences or dietary restrictions provided.';
 
   return createQuery<RecipeSuggestionsResponse>(() => ({
     queryKey: ['suggestions', sanitizedPrompt],
@@ -89,13 +99,22 @@ export function createFullRecipeQuery({
   endpoint?: Endpoint;
 }) {
   if (!title || !description) {
-    throw new Error('A title and description are required to create a full recipe query');
+    throw new Error(
+      'A title and description are required to create a full recipe query'
+    );
   }
 
   const sanitizedTitle = sanitizePromptInput(decodeURIComponent(title));
-  const sanitizedDescription = sanitizePromptInput(decodeURIComponent(description));
-  const prompt = JSON.stringify({ title: sanitizedTitle, description: sanitizedDescription });
-  const prefs = preferences ? sanitizePromptInput(preferences) : 'No preferences or dietary restrictions provided.';
+  const sanitizedDescription = sanitizePromptInput(
+    decodeURIComponent(description)
+  );
+  const prompt = JSON.stringify({
+    title: sanitizedTitle,
+    description: sanitizedDescription
+  });
+  const prefs = preferences
+    ? sanitizePromptInput(preferences)
+    : 'No preferences or dietary restrictions provided.';
 
   return createQuery<SuggestedRecipeResponse>(() => ({
     queryKey: ['suggestedrecipe', sanitizedTitle],
@@ -104,7 +123,10 @@ export function createFullRecipeQuery({
         return postSuggestedRecipe(prompt, prefs);
       }
 
-      return postAiJson<SuggestedRecipeResponse>(AI_ENDPOINTS[endpoint], { prompt, preferences: prefs });
+      return postAiJson<SuggestedRecipeResponse>(AI_ENDPOINTS[endpoint], {
+        prompt,
+        preferences: prefs
+      });
     },
     enabled: Boolean(sanitizedTitle.length) && (options?.enabled ?? true),
     staleTime: Infinity

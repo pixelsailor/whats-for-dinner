@@ -11,7 +11,10 @@ const baseArgs = {
 
 describe('deriveAICapability', () => {
   it('allows AI when all gates pass', () => {
-    expect(deriveAICapability(baseArgs)).toEqual({ canUseAI: true, reason: null });
+    expect(deriveAICapability(baseArgs)).toEqual({
+      canUseAI: true,
+      reason: null
+    });
   });
 
   it('blocks when offline', () => {
@@ -22,7 +25,9 @@ describe('deriveAICapability', () => {
   });
 
   it('blocks when OpenAI feature flag is off', () => {
-    expect(deriveAICapability({ ...baseArgs, featureFlags: { openai: false } })).toEqual({
+    expect(
+      deriveAICapability({ ...baseArgs, featureFlags: { openai: false } })
+    ).toEqual({
       canUseAI: false,
       reason: 'disabled'
     });

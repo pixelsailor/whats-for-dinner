@@ -5,7 +5,12 @@
 
 import { SupabaseClient } from '@supabase/supabase-js';
 
-import type { CloudRecipe, CloudRecipeSyncSummary, Recipe, SavedRecipe } from '../recipe/recipe.types';
+import type {
+  CloudRecipe,
+  CloudRecipeSyncSummary,
+  Recipe,
+  SavedRecipe
+} from '../recipe/recipe.types';
 import {
   generateShareToken,
   parseCloudRecipe,
@@ -81,7 +86,10 @@ export class CloudService {
    * @param recipe - The recipe to create a shared link for.
    * @returns The shared link.
    */
-  async createSharedRecipeUrl(recipe: SavedRecipe, expiresAt?: string): Promise<{ token: string; url: string }> {
+  async createSharedRecipeUrl(
+    recipe: SavedRecipe,
+    expiresAt?: string
+  ): Promise<{ token: string; url: string }> {
     if (recipe.shared_id) {
       return { token: recipe.shared_id, url: `/share/${recipe.shared_id}` };
     }
@@ -113,7 +121,10 @@ export class CloudService {
    * @param token - The token of the shared recipe link to delete.
    */
   async deleteSharedRecipeUrl(token: string): Promise<void> {
-    const { error } = await this.supabase.from('recipes').update({ shared_id: null }).eq('shared_id', token);
+    const { error } = await this.supabase
+      .from('recipes')
+      .update({ shared_id: null })
+      .eq('shared_id', token);
 
     if (error) throw error;
   }
@@ -179,7 +190,11 @@ export class CloudService {
    */
   async uploadLocalRecipe(recipe: Recipe | SavedRecipe): Promise<CloudRecipe> {
     const payload = this.prepareRecipeForUpload(recipe);
-    const { data, error } = await this.supabase.from('recipes').upsert(payload).select().single();
+    const { data, error } = await this.supabase
+      .from('recipes')
+      .upsert(payload)
+      .select()
+      .single();
 
     if (error) throw error;
 
@@ -191,9 +206,16 @@ export class CloudService {
    *
    * @param recipes - The recipes to sync.
    */
-  async uploadAllLocalRecipes(recipes: SavedRecipe[]): Promise<CloudRecipe[] | null> {
-    const payload = recipes.map((recipe) => this.prepareRecipeForUpload(recipe));
-    const { data, error } = await this.supabase.from('recipes').upsert(payload).select();
+  async uploadAllLocalRecipes(
+    recipes: SavedRecipe[]
+  ): Promise<CloudRecipe[] | null> {
+    const payload = recipes.map((recipe) =>
+      this.prepareRecipeForUpload(recipe)
+    );
+    const { data, error } = await this.supabase
+      .from('recipes')
+      .upsert(payload)
+      .select();
 
     if (error) throw error;
 
@@ -206,7 +228,9 @@ export class CloudService {
    * @param recipeData - The recipe data to update.
    * @returns The updated recipe.
    */
-  async updateRecipe(recipeData: Partial<SavedRecipe> & { id: string }): Promise<CloudRecipe> {
+  async updateRecipe(
+    recipeData: Partial<SavedRecipe> & { id: string }
+  ): Promise<CloudRecipe> {
     const validatedUpdate = parseCloudRecipeUpdate(recipeData);
     const { data, error } = await this.supabase
       .from('recipes')
@@ -219,7 +243,9 @@ export class CloudService {
     if (error) throw error;
 
     if (!data) {
-      throw new Error('Recipe not found in cloud or not owned by the current user');
+      throw new Error(
+        'Recipe not found in cloud or not owned by the current user'
+      );
     }
 
     return parseCloudRecipe(data);
@@ -268,7 +294,9 @@ export class CloudService {
    * @param sharedId - Token stored on `recipes.shared_id` (synced from `shared_links`).
    * @returns The recipe row, or null when none matches.
    */
-  async downloadRecipeBySharedId(sharedId: string): Promise<CloudRecipe | null> {
+  async downloadRecipeBySharedId(
+    sharedId: string
+  ): Promise<CloudRecipe | null> {
     const { data, error } = await this.supabase
       .from('recipes')
       .select('*')
@@ -311,7 +339,12 @@ export class CloudService {
    * @param recipeId - The id of the recipe to delete.
    */
   async deleteRecipe(recipeId: string): Promise<void> {
-    const { error } = await this.supabase.from('recipes').delete().eq('id', recipeId).eq('owner_id', this._userId).not('deleted_at', 'is', null);
+    const { error } = await this.supabase
+      .from('recipes')
+      .delete()
+      .eq('id', recipeId)
+      .eq('owner_id', this._userId)
+      .not('deleted_at', 'is', null);
 
     if (error) throw error;
   }
@@ -326,7 +359,12 @@ export class CloudService {
    * @param recipeIds - The ids of the recipes to delete.
    */
   async deleteDeletedRecipes(recipeIds: string[]): Promise<void> {
-    const { error } = await this.supabase.from('recipes').delete().in('id', recipeIds).eq('owner_id', this._userId).not('deleted_at', 'is', null);
+    const { error } = await this.supabase
+      .from('recipes')
+      .delete()
+      .in('id', recipeIds)
+      .eq('owner_id', this._userId)
+      .not('deleted_at', 'is', null);
 
     if (error) throw error;
   }

@@ -90,13 +90,13 @@ Details: [`.cursor/agents/orchestrator.md`](./orchestrator.md) rules 19–20; [`
 
 Each agent has a **contract** (`.cursor/agents/*.md`) and a matching **Cursor rule** (`.cursor/rules/*.mdc`, `alwaysApply: false` — invoke manually or `@` when running that role). Topic rules still apply by path and `alwaysApply`. When workflow semantics change, update the agent contract and its `.mdc` rule in the same pass.
 
-| Agent        | Cursor rule            | Topic rules (representative)                                                                                                              |
-| ------------ | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| Orchestrator | `orchestrator.mdc`     | `orchestration-artifacts.mdc`, `workflow-gates.mdc`, `adr-compliance.mdc`                                                                 |
-| Planner      | `planner.mdc`          | `orchestration-artifacts.mdc`, `workflow-gates.mdc`, `test-matrix.mdc`, `adr-compliance.mdc`                                              |
-| Builder      | `builder.mdc`          | `orchestration-artifacts.mdc`, `workflow-gates.mdc`, `adr-compliance.mdc`, `lint-and-code-quality.mdc`, domain rules per touched paths    |
-| Tester       | `tester.mdc`           | `orchestration-artifacts.mdc`, `workflow-gates.mdc`, `test-matrix.mdc`, `adr-compliance.mdc`, `lint-and-code-quality.mdc` for `*.test.ts` |
-| Validator    | `validator.mdc`        | `orchestration-artifacts.mdc`, `workflow-gates.mdc`, `validation-checklist.mdc`, `adr-compliance.mdc`                                     |
+| Agent        | Cursor rule        | Topic rules (representative)                                                                                                              |
+| ------------ | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Orchestrator | `orchestrator.mdc` | `orchestration-artifacts.mdc`, `workflow-gates.mdc`, `adr-compliance.mdc`                                                                 |
+| Planner      | `planner.mdc`      | `orchestration-artifacts.mdc`, `workflow-gates.mdc`, `test-matrix.mdc`, `adr-compliance.mdc`                                              |
+| Builder      | `builder.mdc`      | `orchestration-artifacts.mdc`, `workflow-gates.mdc`, `adr-compliance.mdc`, `lint-and-code-quality.mdc`, domain rules per touched paths    |
+| Tester       | `tester.mdc`       | `orchestration-artifacts.mdc`, `workflow-gates.mdc`, `test-matrix.mdc`, `adr-compliance.mdc`, `lint-and-code-quality.mdc` for `*.test.ts` |
+| Validator    | `validator.mdc`    | `orchestration-artifacts.mdc`, `workflow-gates.mdc`, `validation-checklist.mdc`, `adr-compliance.mdc`                                     |
 
 Catalog: [`.cursor/rules/index.md`](../rules/index.md).
 
@@ -109,7 +109,7 @@ When sources conflict: **Accepted ADRs + GOVERNANCE** → **workflow-gates.mdc**
 | Area                    | Reference                                                                                                                            |
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
 | Role contracts          | `.cursor/agents/orchestrator.md`, `planner.md`, `builder.md`, `tester.md`, `validator.md`                                            |
-| Per-role Cursor rules   | `.cursor/rules/orchestrator.mdc`, `planner.mdc`, `builder.mdc`, `tester.mdc`, `validator.mdc`                                       |
+| Per-role Cursor rules   | `.cursor/rules/orchestrator.mdc`, `planner.mdc`, `builder.mdc`, `tester.mdc`, `validator.mdc`                                        |
 | Artifact edit ownership | `.cursor/rules/orchestration-artifacts.mdc`                                                                                          |
 | ADR authority           | `adrs/INDEX.md`, `adrs/GOVERNANCE.md`                                                                                                |
 | Project conventions     | `.cursor/rules/project-best-practices.mdc`, `.cursor/rules/documentation-conventions.mdc`, `.cursor/rules/lint-and-code-quality.mdc` |

@@ -10,7 +10,13 @@
     [x: string]: any;
   };
 
-  let { title, size = 'sm', onClick, children, ...props }: IconButtonProps = $props();
+  let {
+    title,
+    size = 'sm',
+    onClick,
+    children,
+    ...props
+  }: IconButtonProps = $props();
 
   let iconSize = $derived.by(() => {
     const sizes = {
@@ -33,7 +39,11 @@
   disabled={props.disabled}
   title={props.title}
 >
-  <span class="icon-button__icon" style:width={iconSize} style:height={iconSize}>
+  <span
+    class="icon-button__icon"
+    style:width={iconSize}
+    style:height={iconSize}
+  >
     {@render children()}
   </span>
   <span class="sr-only">{title}</span>

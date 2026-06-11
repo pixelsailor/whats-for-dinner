@@ -33,55 +33,55 @@ Audit of `src/lib/api/**` against the layer conventions in [`src/lib/api/README.
 
 ### `account/account.service.ts`
 
-|              |                                                                                                                                                                                                                                              |
-| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Expected** | Supabase I/O with **Zod `safeParse`** on inputs/outputs per README.                                                                                                                                                                          |
+|              |                                                                                                                                                                                                                     |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Expected** | Supabase I/O with **Zod `safeParse`** on inputs/outputs per README.                                                                                                                                                 |
 | **Actual**   | ~~Raw Supabase calls; returns untyped/`any`-ish rows; no schema validation at boundary.~~ **Resolved (ACCT-1):** `account.model.ts` parsers validate profile/preferences at boundaries; service returns typed rows. |
-| **Impact**   | ~~Drift from schema-led contract (ADR-008).~~ Boundary validation aligned for profile and preferences I/O.                                                                                                                                   |
+| **Impact**   | ~~Drift from schema-led contract (ADR-008).~~ Boundary validation aligned for profile and preferences I/O.                                                                                                          |
 
 ### `account/account.model.ts`
 
-|              |                                                                                                                                            |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Expected** | Pure helpers only.                                                                                                                         |
+|              |                                                                                                                                                                                                |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Expected** | Pure helpers only.                                                                                                                                                                             |
 | **Actual**   | ~~`hasPermission` unused; duplicate async DB `hasPermission` on service.~~ **Resolved (ACCT-3):** `hasPermission(profile, …)` seeds session flags after login; service DB-only helper removed. |
-| **Impact**   | ~~Duplicate concept, wrong layer for the live code path.~~ Single pure permission check on validated profile rows.                         |
+| **Impact**   | ~~Duplicate concept, wrong layer for the live code path.~~ Single pure permission check on validated profile rows.                                                                             |
 
 ### `account/account.schemas.ts` (profile vs preferences)
 
-|              |                                                                                                                                                                                                                                                              |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Expected** | `UserProfileSchema` mirrors `user_profiles`; live preferences use `user_preferences` via `UserPreferencesSchema`.                                                                                                                                              |
+|              |                                                                                                                                                                                                                                                                                                                    |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Expected** | `UserProfileSchema` mirrors `user_profiles`; live preferences use `user_preferences` via `UserPreferencesSchema`.                                                                                                                                                                                                  |
 | **Actual**   | ~~Confusion: nested `preferences` on `UserProfileSchema` looked like the live store.~~ **Clarified (ACCT-2):** jsonb is legacy/unused; `user_preferences` is canonical. Field stays on `UserProfileSchema` until Supabase drops the column. Documented in [`account/README.md`](../src/lib/api/account/README.md). |
-| **Impact**   | Application code must not read/write profile jsonb; remove from schema only after DB migration.                                                                                                                                                             |
+| **Impact**   | Application code must not read/write profile jsonb; remove from schema only after DB migration.                                                                                                                                                                                                                    |
 
 ### `common/common.model.ts`
 
-|              |                                                                                                                                                                     |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Expected** | Shared pure utilities.                                                                                                                                              |
+|              |                                                                                                                                                                                     |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Expected** | Shared pure utilities.                                                                                                                                                              |
 | **Actual**   | ~~Instantiates and exports a **Supabase browser client** (`createClient` + public env).~~ **Removed (COM-3).** Documented in [`common/README.md`](../src/lib/api/common/README.md). |
 
 ### `common/common.schemas.ts` + `common/common.types.ts` vs `ai/ai.types.ts`
 
-|              |                                                                                                                    |
-| ------------ | ------------------------------------------------------------------------------------------------------------------ |
-| **Expected** | Single `ApiResponse` envelope in `common`.                                                                         |
+|              |                                                                                                                                                     |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Expected** | Single `ApiResponse` envelope in `common`.                                                                                                          |
 | **Actual**   | ~~`ApiResponse` / `ApiResponseSchema` defined in both **common** and **ai**; `sync.service.ts` imports from `../ai`.~~ **Resolved (COM-1, COM-2).** |
 
 ### `cloud/cloud.service.ts` + `cloud.schemas.ts`
 
-|              |                                                                                                                                                                                                                                              |
-| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Expected** | Service validates shared-link and recipe payloads with Zod at the boundary.                                                                                                                                                                    |
+|              |                                                                                                                                                                                                                                                      |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Expected** | Service validates shared-link and recipe payloads with Zod at the boundary.                                                                                                                                                                          |
 | **Actual**   | ~~`SharedRecipeSchema` exists; service does not `safeParse` responses.~~ **Resolved (CLD-2):** `cloud.model.ts` parsers validate `SharedRecipeSchema` and canonical `CloudRecipeSchema`; `CloudService` calls parsers on all recipe/shared-link I/O. |
-| **Impact**   | ~~Schemas file underused at the boundary named for integration.~~ Boundary validation aligned; recipe rows use `$lib/api/recipe` schemas (no cloud shadow row schema).                                                                          |
+| **Impact**   | ~~Schemas file underused at the boundary named for integration.~~ Boundary validation aligned; recipe rows use `$lib/api/recipe` schemas (no cloud shadow row schema).                                                                               |
 
 ### `cloud/sync.service.ts`
 
-|              |                                                                                 |
-| ------------ | ------------------------------------------------------------------------------- |
-| **Expected** | Dexie + `CloudService` orchestration (largely **aligned**).                     |
+|              |                                                                                      |
+| ------------ | ------------------------------------------------------------------------------------ |
+| **Expected** | Dexie + `CloudService` orchestration (largely **aligned**).                          |
 | **Actual**   | ~~Imports `ApiResponse` from `../ai` instead of `../common`.~~ **Resolved (COM-2).** |
 
 ---
@@ -138,51 +138,51 @@ Use this as a sequenced backlog. Items may be combined in one PR when touching t
 
 ### Account module (2026-06-04)
 
-| Item | Resolution |
-| ---- | ---------- |
-| **ACCT-1** / service boundaries | `account.model.ts` exposes `parseUserProfile`, `parseUserProfileUpdate`, `parseUserProfileRows`, `parseUserPreferencesResponse`, `parseUserPreferencesUpdate`, and `parseUserPreferencesResponseRows` (Zod `safeParse`). `AccountService` validates all profile and preferences read/write paths; throws `AccountParseError` on contract mismatch. Covered by `account.model.test.ts`. |
+| Item                                | Resolution                                                                                                                                                                                                                                                                                                                                                                                                     |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **ACCT-1** / service boundaries     | `account.model.ts` exposes `parseUserProfile`, `parseUserProfileUpdate`, `parseUserProfileRows`, `parseUserPreferencesResponse`, `parseUserPreferencesUpdate`, and `parseUserPreferencesResponseRows` (Zod `safeParse`). `AccountService` validates all profile and preferences read/write paths; throws `AccountParseError` on contract mismatch. Covered by `account.model.test.ts`.                         |
 | **ACCT-2** / profile vs preferences | Both Supabase tables are real: `user_profiles` holds permission flags plus legacy unused `preferences` jsonb; `user_preferences` holds live preference rows. Schema and docs clarified in [`account/README.md`](../src/lib/api/account/README.md). Remove `preferences` from `UserProfileSchema` only after the jsonb column is dropped. On `/recipes/new`, only `use_ai_assistance` is read from preferences. |
-| **ACCT-3** / `hasPermission` | Pure `hasPermission(profile, …)` in `account.model.ts` (`ProfilePermissionFlag`) seeds `wfd-permissions` in `auth/+page.server.ts` after `getUserProfile()`. Removed redundant async `AccountService.hasPermission` DB round-trip. |
+| **ACCT-3** / `hasPermission`        | Pure `hasPermission(profile, …)` in `account.model.ts` (`ProfilePermissionFlag`) seeds `wfd-permissions` in `auth/+page.server.ts` after `getUserProfile()`. Removed redundant async `AccountService.hasPermission` DB round-trip.                                                                                                                                                                             |
 
 ### Common module (2026-06-03)
 
-| Item | Resolution |
-| ---- | ---------- |
-| **COM-1** / `ApiResponse` | Single source in `common/common.schemas.ts` and `common/common.types.ts`; `ai/ai.types.ts` re-exports from `$lib/api/common`. Added `common/index.ts` barrel. |
-| **COM-2** / sync imports | `sync.service.ts` imports `ApiResponse` from `$lib/api/common` instead of `../ai`. |
+| Item                        | Resolution                                                                                                                                                                                                                           |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **COM-1** / `ApiResponse`   | Single source in `common/common.schemas.ts` and `common/common.types.ts`; `ai/ai.types.ts` re-exports from `$lib/api/common`. Added `common/index.ts` barrel.                                                                        |
+| **COM-2** / sync imports    | `sync.service.ts` imports `ApiResponse` from `$lib/api/common` instead of `../ai`.                                                                                                                                                   |
 | **COM-3** / Supabase client | Removed unused `common.model.ts` singleton. [`common/README.md`](../src/lib/api/common/README.md) documents that Supabase clients come from `locals.supabase`, layout `data.supabase`, or service injection — not `$lib/api/common`. |
 
 ### Cloud module (2026-06-04)
 
-| Item | Resolution |
-| ---- | ---------- |
+| Item                           | Resolution                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **CLD-2** / service boundaries | `cloud.model.ts` exposes `parseSharedRecipe`, `parseCloudRecipe`, `parseCloudRecipeMaybe`, `parseCloudRecipeRows`, `parseCloudRecipeUpload`, `parseCloudRecipeUpdate`, and `parseCloudRecipeSyncSummaryRows` (Zod `safeParse`). `CloudService` validates all recipe and `shared_links` read/write paths; upload stamps `owner_id` from session. Recipe rows use canonical `CloudRecipeSchema` from `recipe.schemas.ts`; `CloudParseError` carries `recipeId`, `recipeTitle`, and `fieldErrors` for failing rows. Legacy repair UI tracked as **CLD-4**. Covered by `cloud.model.test.ts`. |
-| **CLD-1** / share tokens | `generateShareToken` and `encodeShareToken` live in `cloud.model.ts`; `CloudService.createSharedRecipeUrl` calls the helper then inserts into `shared_links`. Covered by `cloud.model.test.ts`. |
+| **CLD-1** / share tokens       | `generateShareToken` and `encodeShareToken` live in `cloud.model.ts`; `CloudService.createSharedRecipeUrl` calls the helper then inserts into `shared_links`. Covered by `cloud.model.test.ts`.                                                                                                                                                                                                                                                                                                                                                                                           |
 
 ### Cloud module (2026-06-05)
 
-| Item | Resolution |
-| ---- | ---------- |
+| Item                       | Resolution                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **CLD-3** / tombstone sync | `isSyncable` includes tombstoned rows in sync planning (archived still excluded). `SyncService.buildPlan` reads syncable local and remote rows via `getLocalSyncableRecipes` / `getRemoteSyncableRecipes`. `categorizeConflict` resolves delete/restore drift: newer tombstone wins over older active row; newer active row wins over older tombstone (restore). Remediates **GAP-002**. Covered by `cloud.model.test.ts`. |
 
 ### Recipe module and API README (2026-06-03)
 
-| Item | Resolution |
-| ---- | ---------- |
-| **REC-1** / `recipe/` | **No** `recipe.service.ts`. `$lib/api/recipe` exports schemas + types only; Dexie reads via [`src/lib/stores/recipes.ts`](../src/lib/stores/recipes.ts); writes via routes/store/`db` helpers. Documented in [`src/lib/api/recipe/README.md`](../src/lib/api/recipe/README.md) and Local Recipe Management in [`src/lib/api/README.md`](../src/lib/api/README.md). |
-| **DOC-1** / API README | `*.service.ts` pattern documents `async`/`Promise` (not Observables), TanStack in `*.queries.ts`, and explicit exclusion of Dexie from service files. |
+| Item                   | Resolution                                                                                                                                                                                                                                                                                                                                                         |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **REC-1** / `recipe/`  | **No** `recipe.service.ts`. `$lib/api/recipe` exports schemas + types only; Dexie reads via [`src/lib/stores/recipes.ts`](../src/lib/stores/recipes.ts); writes via routes/store/`db` helpers. Documented in [`src/lib/api/recipe/README.md`](../src/lib/api/recipe/README.md) and Local Recipe Management in [`src/lib/api/README.md`](../src/lib/api/README.md). |
+| **DOC-1** / API README | `*.service.ts` pattern documents `async`/`Promise` (not Observables), TanStack in `*.queries.ts`, and explicit exclusion of Dexie from service files.                                                                                                                                                                                                              |
 
 ### AI module (2026-05-19)
 
-| Item | Resolution |
-| ---- | ---------- |
-| `ai.service.ts` | Same-origin HTTP client (`postSuggestions`, `postSuggestedRecipe`, `AI_ENDPOINTS`). |
-| `ai.server.service.ts` | Server-only OpenAI Responses API (not barrel-exported). |
-| `ai.model.ts` | Pure `parseStructuredOutput` / `safeParse` helpers and `AiParseError`. |
-| `ai.queries.ts` | TanStack `createQuery` wrappers delegating to `ai.service.ts`. |
-| `ai/index.ts` | Exports model, schemas, types, service, queries. |
-| Dual provider paths | `/api/recipes` and recipe form actions migrated to Responses API; `src/lib/server/openai.ts` is a deprecated re-export shim. |
-| GAP-006 (partial) | Suggestion/recipe/new routes validate bodies and provider JSON with Zod; legacy Chat Completions removed from active paths. |
+| Item                   | Resolution                                                                                                                   |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `ai.service.ts`        | Same-origin HTTP client (`postSuggestions`, `postSuggestedRecipe`, `AI_ENDPOINTS`).                                          |
+| `ai.server.service.ts` | Server-only OpenAI Responses API (not barrel-exported).                                                                      |
+| `ai.model.ts`          | Pure `parseStructuredOutput` / `safeParse` helpers and `AiParseError`.                                                       |
+| `ai.queries.ts`        | TanStack `createQuery` wrappers delegating to `ai.service.ts`.                                                               |
+| `ai/index.ts`          | Exports model, schemas, types, service, queries.                                                                             |
+| Dual provider paths    | `/api/recipes` and recipe form actions migrated to Responses API; `src/lib/server/openai.ts` is a deprecated re-export shim. |
+| GAP-006 (partial)      | Suggestion/recipe/new routes validate bodies and provider JSON with Zod; legacy Chat Completions removed from active paths.  |
 
 ---
 

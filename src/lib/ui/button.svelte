@@ -46,13 +46,20 @@ Includes built-in tooltip support. A `Tooltip.Provider` is required in the paren
   <Tooltip.Root bind:open>
     <Tooltip.Trigger {...triggerProps}>
       {#snippet child({ props })}
-        <Button.Root {...props} class={clsx('button', klass)} aria-label={tooltip} {...buttonProps}>
+        <Button.Root
+          {...props}
+          class={clsx('button', klass)}
+          aria-label={tooltip}
+          {...buttonProps}
+        >
           {@render children?.()}
         </Button.Root>
       {/snippet}
     </Tooltip.Trigger>
     <Tooltip.Portal>
-      <Tooltip.Content class="helper-text rounded-sm border border-gray-600 bg-gray-600/80 px-2 py-1 text-gray-50 shadow-sm dark:border-gray-300 dark:bg-gray-300/80 dark:text-gray-900 z-100">
+      <Tooltip.Content
+        class="helper-text rounded-sm border border-gray-600 bg-gray-600/80 px-2 py-1 text-gray-50 shadow-sm dark:border-gray-300 dark:bg-gray-300/80 dark:text-gray-900 z-100"
+      >
         <Tooltip.Arrow class="text-gray-600 dark:text-gray-300" />
         {tooltip}
       </Tooltip.Content>

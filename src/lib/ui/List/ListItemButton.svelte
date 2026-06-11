@@ -8,7 +8,8 @@
     onClick: MouseEventHandler<HTMLButtonElement>;
     label?: string;
   };
-  let { children, disabled, onClick, label, ...props }: ListItemLinkProps = $props();
+  let { children, disabled, onClick, label, ...props }: ListItemLinkProps =
+    $props();
 
   let size = getContext('pxl-list');
 </script>

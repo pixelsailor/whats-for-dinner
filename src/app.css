@@ -6,7 +6,9 @@
 
 :root {
   --base-font-size: 16px;
-  --base-font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  --base-font-family:
+    system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+    Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   --base-font-weight: 300;
 
   /* Colors */
@@ -23,69 +25,69 @@
   --mauve-950: oklch(14.5% 0.008 326);
 
   --p-zinc-50: hsl(0 0% 98.04%);
-	--p-zinc-100: hsl(240 4.76% 95.88%);
-	--p-zinc-200: hsl(240 5.88% 90%);
-	--p-zinc-300: hsl(240 4.88% 83.92%);
-	--p-zinc-400: hsl(240 5.03% 64.9%);
-	--p-zinc-500: hsl(240 3.83% 46.08%);
-	--p-zinc-600: hsl(240 5.2% 33.92%);
-	--p-zinc-700: hsl(240 5.26% 26.08%);
-	--p-zinc-800: hsl(240 3.7% 15.88%);
-	--p-zinc-900: hsl(240 5.88% 10%);
-	--p-zinc-950: hsl(240 10% 3.92%);
+  --p-zinc-100: hsl(240 4.76% 95.88%);
+  --p-zinc-200: hsl(240 5.88% 90%);
+  --p-zinc-300: hsl(240 4.88% 83.92%);
+  --p-zinc-400: hsl(240 5.03% 64.9%);
+  --p-zinc-500: hsl(240 3.83% 46.08%);
+  --p-zinc-600: hsl(240 5.2% 33.92%);
+  --p-zinc-700: hsl(240 5.26% 26.08%);
+  --p-zinc-800: hsl(240 3.7% 15.88%);
+  --p-zinc-900: hsl(240 5.88% 10%);
+  --p-zinc-950: hsl(240 10% 3.92%);
 
-	--slate-50: hsl(210 40% 98%);
-	--slate-100: hsl(210 40% 96%);
-	--slate-200: hsl(214 32% 91%);
-	--slate-300: hsl(213 27% 84%);
-	--slate-400: hsl(215 20% 65%);
-	--slate-500: hsl(215.4 16.3% 46.9%);
-	--slate-600: hsl(215.3 19.3% 34.5%);
-	--slate-700: hsl(215.3 25% 27.7%);
-	--slate-800: hsl(217.2 32.6% 17.4%);
-	--slate-900: hsl(222.2 47.4% 11.2%);
-	--slate-950: hsl(228.6 84% 4.9%);
+  --slate-50: hsl(210 40% 98%);
+  --slate-100: hsl(210 40% 96%);
+  --slate-200: hsl(214 32% 91%);
+  --slate-300: hsl(213 27% 84%);
+  --slate-400: hsl(215 20% 65%);
+  --slate-500: hsl(215.4 16.3% 46.9%);
+  --slate-600: hsl(215.3 19.3% 34.5%);
+  --slate-700: hsl(215.3 25% 27.7%);
+  --slate-800: hsl(217.2 32.6% 17.4%);
+  --slate-900: hsl(222.2 47.4% 11.2%);
+  --slate-950: hsl(228.6 84% 4.9%);
 
-	--p-stone-50: hsl(60 9.09% 97.84%);
-	--p-stone-100: hsl(60 4.76% 95.88%);
-	--p-stone-200: hsl(20 5.88% 90%);
-	--p-stone-300: hsl(24 5.75% 82.94%);
-	--p-stone-400: hsl(24 5.43% 63.92%);
-	--p-stone-500: hsl(25 5.26% 44.71%);
-	--p-stone-600: hsl(33.33 5.45% 32.35%);
-	--p-stone-700: hsl(30 6.25% 25.1%);
-	--p-stone-800: hsl(12 6.49% 15.1%);
-	--p-stone-900: hsl(24 9.8% 10%);
-	--p-stone-950: hsl(20 14.29% 4.12%);
+  --p-stone-50: hsl(60 9.09% 97.84%);
+  --p-stone-100: hsl(60 4.76% 95.88%);
+  --p-stone-200: hsl(20 5.88% 90%);
+  --p-stone-300: hsl(24 5.75% 82.94%);
+  --p-stone-400: hsl(24 5.43% 63.92%);
+  --p-stone-500: hsl(25 5.26% 44.71%);
+  --p-stone-600: hsl(33.33 5.45% 32.35%);
+  --p-stone-700: hsl(30 6.25% 25.1%);
+  --p-stone-800: hsl(12 6.49% 15.1%);
+  --p-stone-900: hsl(24 9.8% 10%);
+  --p-stone-950: hsl(20 14.29% 4.12%);
 
   --fuchsia-800: #86198f;
 
-	--purple-800: #6b21a8;
+  --purple-800: #6b21a8;
 
-	--sky-800: #075985;
-	
-	--blue-800: #1e40af;
+  --sky-800: #075985;
 
-	--green-700: #15803d;
-	--green-800: #166534;
+  --blue-800: #1e40af;
 
-	--lime-800: #3f6212;
+  --green-700: #15803d;
+  --green-800: #166534;
 
-	--amber-600: #d97706;
-	--amber-700: #b45309;
+  --lime-800: #3f6212;
 
-	--red-800: #991b1b;
+  --amber-600: #d97706;
+  --amber-700: #b45309;
 
-	--pink-700: #be185d;
+  --red-800: #991b1b;
 
-	--white: hsl(0 0% 100%);
-	--black: hsl(0 0% 0%);
+  --pink-700: #be185d;
 
-	--warn: hsl(24.6 95% 53.1%);
-	--warn-text: hsl(20.5 90.2% 48.2%);
-	--danger: hsl(8 73.7% 41.8%);
-	--danger-text: hsl(8 73.7% 41.8%);
-  
+  --white: hsl(0 0% 100%);
+  --black: hsl(0 0% 0%);
+
+  --warn: hsl(24.6 95% 53.1%);
+  --warn-text: hsl(20.5 90.2% 48.2%);
+  --danger: hsl(8 73.7% 41.8%);
+  --danger-text: hsl(8 73.7% 41.8%);
+
   --destructive: var(--danger);
   --tertiary: hsl(37.7 92.1% 50.2%);
   --info: hsl(201 90% 50%);
@@ -131,7 +133,7 @@
   --button-radius: 0.25rem;
   --button-height: 2.25rem;
   --button-height-mobile: 2.75rem;
-  
+
   --input-radius: 0.25rem;
   --input-height: 2.25rem;
   --input-height-mobile: 2.75rem;
@@ -139,18 +141,18 @@
   --popover-radius: 0.5rem;
 
   /* Text sizes */
-  --text-xxs: 0.625rem;     /* 10px */
-  --text-xs: 0.75rem;       /* 12px */
-  --text-sm: 0.875rem;      /* 14px */
-  --text-base: 1rem;        /* 16px */
-  --text-lg: 1.125rem;      /* 18px */
-  --text-xl: 1.375rem;      /* 22px */
-  --text-2xl: 1.5rem;       /* 24px */
-  --text-3xl: 1.75rem;      /* 28px */
-  --text-4xl: 2rem;         /* 32px */
-  --text-5xl: 2.25rem;      /* 36px */
-  --text-6xl: 2.75rem;      /* 44px */
-  --text-7xl: 3.5rem;       /* 56px */
+  --text-xxs: 0.625rem; /* 10px */
+  --text-xs: 0.75rem; /* 12px */
+  --text-sm: 0.875rem; /* 14px */
+  --text-base: 1rem; /* 16px */
+  --text-lg: 1.125rem; /* 18px */
+  --text-xl: 1.375rem; /* 22px */
+  --text-2xl: 1.5rem; /* 24px */
+  --text-3xl: 1.75rem; /* 28px */
+  --text-4xl: 2rem; /* 32px */
+  --text-5xl: 2.25rem; /* 36px */
+  --text-6xl: 2.75rem; /* 44px */
+  --text-7xl: 3.5rem; /* 56px */
 
   --font-light: 300;
   --font-normal: 400;
@@ -423,13 +425,16 @@
     border-color: var(--color-border-card, currentColor);
   }
 
-  *, :after, :before, ::backdrop {
+  *,
+  :after,
+  :before,
+  ::backdrop {
     box-sizing: border-box;
     border: 0 solid;
     margin: 0;
     padding: 0;
   }
-  
+
   html {
     @apply bg-background text-foreground;
     font-size: var(--base-font-size, 14px);
@@ -437,7 +442,7 @@
     font-weight: var(--base-font-weight, 300);
     scroll-behavior: smooth;
   }
-  
+
   body {
     margin: 0;
     padding: 0;
@@ -465,7 +470,7 @@
   *:not(body):not(.focus-override) {
     outline: none !important;
     &:focus-visible {
-      @apply focus-visible:outline-hidden focus-visible:shadow-mini focus-visible:shadow-accent focus-visible:ring focus-visible:ring-accent/70;
+      @apply focus-visible:shadow-mini focus-visible:shadow-accent focus-visible:ring-accent/70 focus-visible:ring focus-visible:outline-hidden;
     }
     &.invalid:focus-visible {
       @apply focus-visible:ring-warn;

@@ -6,7 +6,11 @@
   import { resolve } from '$app/paths';
 
   import { type UserPreferencesResponse } from '$lib/api/account';
-  import { CATEGORY_TAGS, type Recipe, type SavedRecipe } from '$lib/api/recipe';
+  import {
+    CATEGORY_TAGS,
+    type Recipe,
+    type SavedRecipe
+  } from '$lib/api/recipe';
   import { CloudService } from '$lib/api/cloud';
   import { db } from '$lib/db.js';
   import { networkStore } from '$lib/stores/network';
@@ -78,8 +82,12 @@
    * This mechanism assumes local-first/offline by default.
    */
   // let hasAssistedRecipeAccess = $derived(data.permissions?.aiAssistedRecipe.allowed ?? false);
-  let hasCloudStorageAccess = $derived(data.permissions?.cloudSync.allowed ?? false);
-  let preferences = $derived<UserPreferencesResponse | null>(data.preferences ?? null);
+  let hasCloudStorageAccess = $derived(
+    data.permissions?.cloudSync.allowed ?? false
+  );
+  let preferences = $derived<UserPreferencesResponse | null>(
+    data.preferences ?? null
+  );
 
   /** Whether the user wants to use AI assistance for augmenting user recipes. */
   let useAiAssistance = $derived(preferences?.use_ai_assistance && canUseAI);
@@ -93,7 +101,7 @@
     // cook_time: [],
     ingredients: '',
     instructions: '',
-    notes: '',
+    notes: ''
     // tags: [],
   });
 
@@ -117,10 +125,17 @@
 
   let recipeURL = $state<string>('');
 
-  let markdownHelperText = $state<string>('You can use&nbsp;<a href="https://www.markdownguide.org/cheat-sheet/" target="_blank" class="underline">Markdown</a>&nbsp;here to make lists and add formatting');
+  let markdownHelperText = $state<string>(
+    'You can use&nbsp;<a href="https://www.markdownguide.org/cheat-sheet/" target="_blank" class="underline">Markdown</a>&nbsp;here to make lists and add formatting'
+  );
 
   let formValid = $derived.by(() => {
-    let requiredFields = ['title', 'short_description', 'ingredients', 'instructions'];
+    let requiredFields = [
+      'title',
+      'short_description',
+      'ingredients',
+      'instructions'
+    ];
     let tagsIsValid = false;
     if (!useAiAssistance) {
       // requiredFields.push('tags');
@@ -130,7 +145,12 @@
         tagsIsValid = true;
       }
     }
-    return requiredFields.every((field: string) => formGroup.controls[field as keyof typeof formGroup.controls].valid) && tagsIsValid;
+    return (
+      requiredFields.every(
+        (field: string) =>
+          formGroup.controls[field as keyof typeof formGroup.controls].valid
+      ) && tagsIsValid
+    );
   });
 
   /**
@@ -175,7 +195,10 @@
         return savedRecipe;
       } catch (err) {
         console.error('Cloud save failed; continuing locally', err);
-        const candidate = _createSavedRecipe(recipe, err instanceof Error ? err.message : 'Unknown sync error');
+        const candidate = _createSavedRecipe(
+          recipe,
+          err instanceof Error ? err.message : 'Unknown sync error'
+        );
         await db.recipes.add(candidate);
         toast.error('Recipe saved locally but failed to sync to cloud');
         return candidate;
@@ -195,7 +218,10 @@
    */
   async function saveRecipe(event: SubmitEvent) {
     event.preventDefault();
-    const form = new FormData(event.target as HTMLFormElement, event.submitter as HTMLButtonElement);
+    const form = new FormData(
+      event.target as HTMLFormElement,
+      event.submitter as HTMLButtonElement
+    );
 
     status = 'saving';
 
@@ -250,7 +276,10 @@
    * @param error - The error message to set for the saved recipe.
    * @returns The saved recipe object.
    */
-  function _createSavedRecipe(recipe: Recipe, error?: string | null): SavedRecipe {
+  function _createSavedRecipe(
+    recipe: Recipe,
+    error?: string | null
+  ): SavedRecipe {
     const userId = data.user?.id;
     const now = new Date().toISOString();
     const savedRecipe: SavedRecipe = {
@@ -329,7 +358,8 @@
 
   /** Test for http(s):// and append if missing */
   function _validateUrl(url: string): string {
-    const URL_RX = /^(https?:\/\/)?(www\.)?[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(\/\S*)?$/;
+    const URL_RX =
+      /^(https?:\/\/)?(www\.)?[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(\/\S*)?$/;
     return URL_RX.test(url) ? url : `https://${url}`;
   }
 </script>
@@ -346,9 +376,14 @@
           <ProgressSpinner size="xs" />
         </div>
       {/if}
-      <Button class="text narrow" onclick={() => (openImportFromURLDialog = true)} disabled={!canUseAI}>
-        <span class="hidden md:inline">Import from URL</span>
-      </Button>
+      {#if canUseAI}
+        <Button
+          class="text narrow"
+          onclick={() => (openImportFromURLDialog = true)}
+        >
+          <span class="hidden md:inline">Import from URL</span>
+        </Button>
+      {/if}
     </AppBar.End>
   </AppBar.Root>
 </PageHeader>
@@ -356,9 +391,13 @@
   <form method="POST" class="form" onsubmit={saveRecipe}>
     <h1 class="display-small mb-4">Create a new recipe</h1>
     <p class="helper-text italic">
-      Required fields are marked with an asterisk (<span class="text-destructive">*</span>).
+      Required fields are marked with an asterisk (<span
+        class="text-destructive">*</span
+      >).
       {#if useAiAssistance}
-        <span>The AI will use its best guess for any fields you leave blank.</span>
+        <span
+          >The AI will use its best guess for any fields you leave blank.</span
+        >
       {/if}
     </p>
     <div class="flex flex-col gap-5">
@@ -382,8 +421,7 @@
         control={formGroup.controls.description}
         labelText="Long-form description"
         helperText="A longer description with additional commentary or suggested pairings. Included in recipe details."
-      >
-      </Textarea>
+      ></Textarea>
       <TextInput
         name="yields"
         control={formGroup.controls.yields}
@@ -399,7 +437,9 @@
           <div class="flex flex-row gap-4">
             <TimePicker bind:value={prepTimeStart} />
             {#if !usePrepTimeRange}
-              <Button onclick={() => (usePrepTimeRange = true)}>Use range</Button>
+              <Button onclick={() => (usePrepTimeRange = true)}
+                >Use range</Button
+              >
             {/if}
           </div>
         </div>
@@ -409,7 +449,9 @@
             <label for="prepTimeEnd" class="label-large">Prep time</label>
             <TimePicker bind:value={prepTimeEnd} />
           </div>
-          <Button onclick={() => (usePrepTimeRange = false)}>Use single time</Button>
+          <Button onclick={() => (usePrepTimeRange = false)}
+            >Use single time</Button
+          >
         {/if}
       </div>
 
@@ -421,7 +463,9 @@
             <div class="flex flex-row gap-4">
               <TimePicker bind:value={cookTimeStart} />
               {#if !useCookTimeRange}
-                <Button onclick={() => (useCookTimeRange = true)}>Use range</Button>
+                <Button onclick={() => (useCookTimeRange = true)}
+                  >Use range</Button
+                >
               {/if}
             </div>
           </div>
@@ -431,11 +475,16 @@
               <label for="cookTimeEnd" class="label-large">Cook time</label>
               <TimePicker bind:value={cookTimeEnd} />
             </div>
-            <Button onclick={() => (useCookTimeRange = false)}>Use single time</Button>
+            <Button onclick={() => (useCookTimeRange = false)}
+              >Use single time</Button
+            >
           {/if}
         </div>
         {#if useAiAssistance}
-          <p class="helper-text mt-2 mb-1">The AI will use its best guess for the times if you leave either of these blank</p>
+          <p class="helper-text mt-2 mb-1">
+            The AI will use its best guess for the times if you leave either of
+            these blank
+          </p>
         {/if}
       </div>
       <Textarea
@@ -446,8 +495,7 @@
         required
         placeholder="Enter the ingredients for your recipe"
         helperText={markdownHelperText}
-      >
-      </Textarea>
+      ></Textarea>
       <Textarea
         name="instructions"
         control={formGroup.controls.instructions}
@@ -456,16 +504,14 @@
         required
         placeholder="Enter the instructions for your recipe"
         helperText={markdownHelperText}
-      >
-      </Textarea>
+      ></Textarea>
       <Textarea
         name="notes"
         control={formGroup.controls.notes}
         labelText="Notes"
         placeholder="Enter any additional notes for your recipe"
         helperText={markdownHelperText}
-      >
-      </Textarea>
+      ></Textarea>
       <div class="form-field">
         <label for="tags" class="label-large"
           >Tags {#if !useAiAssistance}
@@ -480,13 +526,17 @@
         />
       </div>
       <div class="border-line my-4 border-t pt-4">
-        <Button type="submit" class="primary" disabled={status === 'saving' || !formValid}>Save</Button>
+        <Button
+          type="submit"
+          class="primary"
+          disabled={status === 'saving' || !formValid}>Save</Button
+        >
       </div>
     </div>
   </form>
 </div>
 
-<!-- <Dialog bind:open={openImportFromURLDialog}>
+<Dialog bind:open={openImportFromURLDialog}>
   {#snippet title()}
     <h2 class="text-lg font-semibold">Import from URL</h2>
   {/snippet}
@@ -497,12 +547,22 @@
   <form onsubmit={importRecipeFromURL}>
     <TextInput
       name="recipe_url"
-      value={recipeURL}
+      bind:value={recipeURL}
       labelText="Recipe URL"
       placeholder="Enter the URL of the recipe to import"
     />
-    <div class="flex flex-row-reverse">
-      <Button type="submit" class="primary" disabled={dialogStatus === 'importing' || !recipeURL.trim()}>
+    <p>{recipeURL}</p>
+    <div class="flex justify-between">
+      <Button
+        type="button"
+        class="text narrow"
+        onclick={() => (openImportFromURLDialog = false)}>Cancel</Button
+      >
+      <Button
+        type="submit"
+        class="primary narrow"
+        disabled={dialogStatus === 'importing' || !recipeURL.trim()}
+      >
         {#if dialogStatus === 'importing'}
           <ProgressSpinner size="xs" />
         {:else}
@@ -511,4 +571,4 @@
       </Button>
     </div>
   </form>
-</Dialog> -->
+</Dialog>

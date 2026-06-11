@@ -39,7 +39,7 @@
   let app = $state({
     input: '',
     view: 'idle' as 'idle' | 'detail' | 'suggestions' | 'loading' | 'error',
-    error: '',
+    error: ''
   });
 
   // Show request status without changing app.view
@@ -56,7 +56,10 @@
   }
 </script>
 
-<div class="mx-auto flex h-screen max-w-5xl items-center px-4 lg:px-8" style:height={app.view === 'suggestions' ? 'auto' : ''}>
+<div
+  class="mx-auto flex h-screen max-w-5xl items-center px-4 lg:px-8"
+  style:height={app.view === 'suggestions' ? 'auto' : ''}
+>
   {#if app.view === 'loading'}
     <div class="absolute inset-0 grid place-content-center">
       <ProgressSpinner size="lg" />
@@ -75,7 +78,11 @@
               placeholder="Ask for event ideas, regional recipes, or just list ingredients"
               disabled={working}
             />
-            <Button.Root type="submit" class="button text narrow" disabled={working || !app.input.trim()}>
+            <Button.Root
+              type="submit"
+              class="button text narrow"
+              disabled={working || !app.input.trim()}
+            >
               {working ? 'Thinking...' : 'Get ideas'}
             </Button.Root>
           </form>
@@ -84,14 +91,22 @@
         <p class="text-center text-gray-500">{aiRestrictionMessage}</p>
       {/if}
       <div class="mt-2 flex flex-row justify-center gap-4">
-        <Button.Root href="/suggestions" class="button text">Recent Suggestions</Button.Root>
-        <Button.Root href="/recommendations" class="button text">Recommended</Button.Root>
-        <Button.Root href="/recipes" class="button text">Surprise Me!</Button.Root>
+        <Button.Root href="/suggestions" class="button text"
+          >Recent Suggestions</Button.Root
+        >
+        <Button.Root href="/recommendations" class="button text"
+          >Recommended</Button.Root
+        >
+        <Button.Root href="/recipes" class="button text"
+          >Surprise Me!</Button.Root
+        >
       </div>
     </div>
   {:else if app.view === 'error'}
     <div class="error">
-      <h1 class="headline-medium my-4">Ah donkeyspittle! There was a problem.</h1>
+      <h1 class="headline-medium my-4">
+        Ah donkeyspittle! There was a problem.
+      </h1>
       <p class="my-4">Refresh the browser and try again.</p>
       <p>{app.error}</p>
     </div>

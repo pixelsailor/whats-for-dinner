@@ -7,7 +7,13 @@
     triggerProps?: Tooltip.TriggerProps;
   };
 
-  let { open = $bindable(false), children, trigger, triggerProps = {}, ...restProps }: Props = $props();
+  let {
+    open = $bindable(false),
+    children,
+    trigger,
+    triggerProps = {},
+    ...restProps
+  }: Props = $props();
 </script>
 
 <!--

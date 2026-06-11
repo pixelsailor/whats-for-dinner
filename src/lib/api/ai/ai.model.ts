@@ -32,7 +32,11 @@ export class AiParseError extends Error {
  * @returns Validated payload
  * @throws {AiParseError} When JSON is invalid or validation fails
  */
-export function parseStructuredOutput<T>(raw: string, schema: z.ZodType<T>, context: string): T {
+export function parseStructuredOutput<T>(
+  raw: string,
+  schema: z.ZodType<T>,
+  context: string
+): T {
   let json: unknown;
 
   try {
@@ -45,7 +49,10 @@ export function parseStructuredOutput<T>(raw: string, schema: z.ZodType<T>, cont
   const result = schema.safeParse(json);
 
   if (!result.success) {
-    console.error(`AI output validation failed for "${context}".`, result.error.flatten());
+    console.error(
+      `AI output validation failed for "${context}".`,
+      result.error.flatten()
+    );
     throw new AiParseError(`AI output failed validation for "${context}".`);
   }
 
@@ -56,7 +63,9 @@ export function parseStructuredOutput<T>(raw: string, schema: z.ZodType<T>, cont
  * Validates OpenAI suggestion list output (without `request_id`).
  * @param raw - Provider `output_text`
  */
-export function parseSuggestionsOutput(raw: string): z.infer<typeof AiSuggestionsOutputSchema> {
+export function parseSuggestionsOutput(
+  raw: string
+): z.infer<typeof AiSuggestionsOutputSchema> {
   return parseStructuredOutput(raw, AiSuggestionsOutputSchema, 'suggestions');
 }
 
@@ -84,7 +93,11 @@ export function buildSuggestionsResponse(
  * @param raw - Provider `output_text`
  */
 export function parseRecipeDetail(raw: string): Recipe {
-  return parseStructuredOutput(raw, RecipeDetailResponseSchema, 'recipe detail');
+  return parseStructuredOutput(
+    raw,
+    RecipeDetailResponseSchema,
+    'recipe detail'
+  );
 }
 
 /**
@@ -92,7 +105,11 @@ export function parseRecipeDetail(raw: string): Recipe {
  * @param raw - Provider `output_text`
  */
 export function parseRecipeRevision(raw: string): Recipe {
-  return parseStructuredOutput(raw, RecipeDetailResponseSchema, 'recipe revision');
+  return parseStructuredOutput(
+    raw,
+    RecipeDetailResponseSchema,
+    'recipe revision'
+  );
 }
 
 /**
@@ -100,7 +117,11 @@ export function parseRecipeRevision(raw: string): Recipe {
  * @param raw - Provider `output_text`
  */
 export function parseRecipeAddendum(raw: string): RecipeAddendum {
-  return parseStructuredOutput(raw, RecipeAddendumResponseSchema, 'recipe addendum');
+  return parseStructuredOutput(
+    raw,
+    RecipeAddendumResponseSchema,
+    'recipe addendum'
+  );
 }
 
 /**
@@ -108,7 +129,11 @@ export function parseRecipeAddendum(raw: string): RecipeAddendum {
  * @param raw - Provider `output_text`
  */
 export function parseAssistanceAnswer(raw: string): string {
-  const parsed = parseStructuredOutput(raw, RecipeAssistanceOutputSchema, 'recipe assistance');
+  const parsed = parseStructuredOutput(
+    raw,
+    RecipeAssistanceOutputSchema,
+    'recipe assistance'
+  );
   return parsed.answer;
 }
 

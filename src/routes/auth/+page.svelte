@@ -15,7 +15,7 @@
 
   const formGroup = new FormGroup({
     email: '',
-    password: '',
+    password: ''
   });
 
   let formValid = $derived.by(() => {
@@ -40,11 +40,16 @@
       method="POST"
       action="?/login"
       class="form"
-      use:enhance={() => { submitting = true; }}
+      use:enhance={() => {
+        submitting = true;
+      }}
     >
       <h1 class="p-0 headline-small">Log In</h1>
       {#if loginError}
-        <div class="banner alert-5 bg-red-100 rounded border border-red-300 p-2" role="alert">
+        <div
+          class="banner alert-5 bg-red-100 rounded border border-red-300 p-2"
+          role="alert"
+        >
           <div class="banner-icon">
             <!-- <Icon name="alert-circle" /> -->
           </div>
@@ -76,7 +81,11 @@
           checked={rememberMe}
         />
       </div> -->
-      <Button type="submit" class="primary w-full" disabled={!formValid || submitting}>
+      <Button
+        type="submit"
+        class="primary w-full"
+        disabled={!formValid || submitting}
+      >
         {submitting ? 'Signing in…' : 'Sign in'}
       </Button>
     </form>

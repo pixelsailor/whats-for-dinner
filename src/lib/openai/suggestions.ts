@@ -12,7 +12,10 @@ import { RecipeSummarySchema } from './schema';
  * @deprecated
  * @see $lib/queries/recipes.ts
  */
-export async function getRecipeSuggestions(input: string, userPreferences: string): Promise<[PromptContext, string | null]> {
+export async function getRecipeSuggestions(
+  input: string,
+  userPreferences: string
+): Promise<[PromptContext, string | null]> {
   const systemPrompt = `
 You are a helpful meal planning assistant. The user will provide a request, which could be about 
 meal recipes or a more specific, non-meal recipe (e.g., spice blends, sauces, beverages, condiments).

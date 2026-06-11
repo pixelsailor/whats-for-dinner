@@ -8,7 +8,11 @@
   import { page } from '$app/state';
 
   import { db } from '$lib/db';
-  import { type RecipeListSort, applyRecipeListFiltersToUrl, parseRecipeListSearchParams } from '$lib/recipes/recipeListFiltersUrl';
+  import {
+    type RecipeListSort,
+    applyRecipeListFiltersToUrl,
+    parseRecipeListSearchParams
+  } from '$lib/recipes/recipeListFiltersUrl';
   import { recipesStore } from '$lib/stores/recipes';
 
   import { AppBar } from '$lib/ui/AppBar';
@@ -39,7 +43,9 @@
 
   const commonTags = new SvelteSet<string>();
 
-  let tags = $derived.by<SelectOption[]>(() => Array.from(commonTags).map((t) => ({ value: t, label: t })) || []);
+  let tags = $derived.by<SelectOption[]>(
+    () => Array.from(commonTags).map((t) => ({ value: t, label: t })) || []
+  );
 
   let selectedTags = $state<string[]>([]);
 
@@ -54,12 +60,12 @@
   let sortDirection = $state<'asc' | 'desc'>('asc');
   let selectedSortLabel = $derived.by(() => {
     let options = {
-      'title': 'Title',
-      'created_at': 'Created',
-      'last_made': 'Last made'
-    }
+      title: 'Title',
+      created_at: 'Created',
+      last_made: 'Last made'
+    };
     return options[selectedSort] || selectedSort;
-  })
+  });
 
   const recipesListPath = resolve('/recipes');
 
@@ -83,7 +89,10 @@
     const current = `${page.url.pathname}${page.url.search}`;
     if (target === current) return;
     // eslint-disable-next-line svelte/no-navigation-without-resolve -- query string appended to resolve('/recipes')
-    goto(`${resolve('/recipes')}${next.search}`, { replaceState: true, noScroll: true });
+    goto(`${resolve('/recipes')}${next.search}`, {
+      replaceState: true,
+      noScroll: true
+    });
   }
 
   afterNavigate(({ to }) => {
@@ -102,16 +111,25 @@
 
     return recipes
       .filter((r) => {
-        const searchMatches = !hasSearch || r.title.toLowerCase().includes(titleSearch);
-        const tagMatches = !hasFilters || selectedTags.every((t) => r.tags.map((t) => t.toLowerCase()).includes(t.toLowerCase()));
+        const searchMatches =
+          !hasSearch || r.title.toLowerCase().includes(titleSearch);
+        const tagMatches =
+          !hasFilters ||
+          selectedTags.every((t) =>
+            r.tags.map((t) => t.toLowerCase()).includes(t.toLowerCase())
+          );
         return searchMatches && tagMatches;
       })
       .sort((a, b) => {
         if (selectedSort === 'title') {
-          return sortDirection === 'asc' ? a.title.localeCompare(b.title) : b.title.localeCompare(a.title);
+          return sortDirection === 'asc'
+            ? a.title.localeCompare(b.title)
+            : b.title.localeCompare(a.title);
         }
         if (selectedSort === 'created_at') {
-          return sortDirection === 'asc' ? a.created_at.localeCompare(b.created_at) : b.created_at.localeCompare(a.created_at);
+          return sortDirection === 'asc'
+            ? a.created_at.localeCompare(b.created_at)
+            : b.created_at.localeCompare(a.created_at);
         }
         if (selectedSort === 'last_made') {
           const aMs = lastCheckoutMillis(a.checkout_history?.at(-1));
@@ -145,7 +163,8 @@
   }
 
   function setSortOrder(value: string) {
-    if (value !== 'title' && value !== 'created_at' && value !== 'last_made') return;
+    if (value !== 'title' && value !== 'created_at' && value !== 'last_made')
+      return;
     selectedSort = value;
     if (selectedSort === 'title') {
       sortDirection = 'asc';
@@ -199,7 +218,12 @@
         <DocumentAddIcon size="xs" />
         <span class="hidden md:inline">Add a recipe</span>
       </Button>
-      <Button href="/recipes/trash" aria-label="Open trash" class="text icon" tooltip="Open trash">
+      <Button
+        href="/recipes/trash"
+        aria-label="Open trash"
+        class="text icon"
+        tooltip="Open trash"
+      >
         <TrashIcon size="xs" />
       </Button>
       <!-- {#if data.session}
@@ -217,10 +241,14 @@
       <ProgressSpinner size="lg" />
     </div>
   {:else if $recipesStore.error}
-    <div class="mx-auto grid h-screen w-full max-w-3xl place-content-center gap-6">
+    <div
+      class="mx-auto grid h-screen w-full max-w-3xl place-content-center gap-6"
+    >
       <h1 class="display-medium">Ah donkey-spittle! There was a problem.</h1>
       <p class="flex items-center gap-3">
-        <span class="fluid-heading-03">{$recipesStore.error.name}</span><span>|</span><span>{$recipesStore.error?.message}</span>
+        <span class="fluid-heading-03">{$recipesStore.error.name}</span><span
+          >|</span
+        ><span>{$recipesStore.error?.message}</span>
       </p>
     </div>
   {:else if $recipesStore.data}
@@ -243,15 +271,27 @@
         />
       </div> -->
       <div class="form-field">
-        <Label.Root for="tag-filter" class="label-large">Filter by tags</Label.Root>
-        <Select type="multiple" id="tag-filter" items={tags} bind:value={selectedTags} onValueChange={syncFiltersToUrl} />
+        <Label.Root for="tag-filter" class="label-large"
+          >Filter by tags</Label.Root
+        >
+        <Select
+          type="multiple"
+          id="tag-filter"
+          items={tags}
+          bind:value={selectedTags}
+          onValueChange={syncFiltersToUrl}
+        />
       </div>
       <div class="form-field">
         <Label.Root for="sort-order" class="label-large">Sort by</Label.Root>
         <div
           class="body-medium textinput p-0! flex flex-row flex-nowrap items-stretch"
         >
-          <BitsSelect.Root type="single" items={sortOptions} bind:value={getSortOrder, setSortOrder}>
+          <BitsSelect.Root
+            type="single"
+            items={sortOptions}
+            bind:value={getSortOrder, setSortOrder}
+          >
             <BitsSelect.Trigger
               class="h-input data-placeholder:text-placeholder px-input inline-flex w-[296px] flex-auto cursor-pointer touch-none items-center border border-none text-sm transition-colors select-none"
             >
@@ -306,11 +346,19 @@
                         {#if selected}
                           <span class="flex-none text-green-500">
                             {#if sortDirection === 'asc'}
-                              <Button class="text narrow -mr-1" onclick={(event: MouseEvent) => toggleSortDirection(event)}>
+                              <Button
+                                class="text narrow -mr-1"
+                                onclick={(event: MouseEvent) =>
+                                  toggleSortDirection(event)}
+                              >
                                 <ArrowUpIcon size="xs" />
                               </Button>
                             {:else}
-                              <Button class="text narrow -mr-1" onclick={(event: MouseEvent) => toggleSortDirection(event)}>
+                              <Button
+                                class="text narrow -mr-1"
+                                onclick={(event: MouseEvent) =>
+                                  toggleSortDirection(event)}
+                              >
                                 <ArrowDownIcon size="xs" />
                               </Button>
                             {/if}
@@ -338,7 +386,9 @@
         <Button href="/recipes/{recipe.id}" class="listitem text narrow">
           <span class="listitem__content">
             <span class="title-medium">{recipe.title}</span>
-            <span class="body-medium text-foreground-alt">{recipe.short_description}</span>
+            <span class="body-medium text-foreground-alt"
+              >{recipe.short_description}</span
+            >
           </span>
           <span class="listitem__end">
             <Button

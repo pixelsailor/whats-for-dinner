@@ -14,7 +14,10 @@ import { OPENAI_API_KEY } from '$env/static/private';
 import { RecipeSchema } from '$lib/api/recipe';
 import type { PreparedImportContent } from '$lib/api/recipe-import/recipe-import.types';
 
-import { AiSuggestionsOutputSchema, RecipeAssistanceOutputSchema } from './ai.schemas';
+import {
+  AiSuggestionsOutputSchema,
+  RecipeAssistanceOutputSchema
+} from './ai.schemas';
 import {
   parseAssistanceAnswer,
   parseRecipeAddendum,
@@ -66,7 +69,10 @@ function getOpenAI(): OpenAI {
     throw new Error(OPENAI_DISABLED_ERROR);
   }
 
-  const normalizedApiKey = OPENAI_API_KEY.replace(/[\u200B-\u200D\uFEFF]/g, '').trim();
+  const normalizedApiKey = OPENAI_API_KEY.replace(
+    /[\u200B-\u200D\uFEFF]/g,
+    ''
+  ).trim();
 
   if ([...normalizedApiKey].some((char) => (char.codePointAt(0) ?? -1) > 255)) {
     throw new Error(OPENAI_INVALID_KEY_FORMAT_ERROR);
@@ -93,7 +99,10 @@ function preferencesClause(userPreferences?: string): string {
  * @param userPreferences - Serialized preferences for the model
  * @returns Raw structured JSON string from the provider
  */
-export async function generateRecipeSuggestions(input: string, userPreferences: string): Promise<string> {
+export async function generateRecipeSuggestions(
+  input: string,
+  userPreferences: string
+): Promise<string> {
   const instructions = `
 		You are an expert meal planner. Respond with a JSON array of 4 to 10 recipe ideas based on the users's input. DO NOT include anything outside of the JSON response.
 		The recipes should take into consideration the user's preferences and dietary restrictions as follows: ${preferencesClause(userPreferences)}
@@ -123,8 +132,14 @@ export async function generateRecipeSuggestions(input: string, userPreferences: 
  * @param userPreferences - Serialized preferences for the model
  * @returns Raw structured JSON string from the provider
  */
-export async function generateRecipe(prompt: string, userPreferences?: string): Promise<string> {
-  const { title, description } = JSON.parse(prompt) as { title: string; description: string };
+export async function generateRecipe(
+  prompt: string,
+  userPreferences?: string
+): Promise<string> {
+  const { title, description } = JSON.parse(prompt) as {
+    title: string;
+    description: string;
+  };
 
   const instructions = `You are an expert culinary assistant. You are thoughtful about flavor profiles,
 ingredients and traditional preparation methods. Consider the steps necessary during preparation
@@ -209,7 +224,10 @@ Here is the user's modification request:
  * @param recipeJson - Serialized recipe context
  * @returns Raw structured JSON string from the provider
  */
-export async function askCookingQuestion(question: string, recipeJson: string): Promise<string> {
+export async function askCookingQuestion(
+  question: string,
+  recipeJson: string
+): Promise<string> {
   const instructions = `
 You are a helpful, experienced culinary assistant.
 Keep responses concise, friendly, and informative.
@@ -248,7 +266,10 @@ ${recipeJson}
  * @param userPreferences - Optional preferences text for the model
  * @returns Raw structured JSON string from the provider
  */
-export async function appendRecipeDetails(recipe: string, userPreferences?: string): Promise<string> {
+export async function appendRecipeDetails(
+  recipe: string,
+  userPreferences?: string
+): Promise<string> {
   const {
     title,
     short_description,
@@ -311,7 +332,10 @@ notes: ${notes}
  * @param prepared - Server-prepared JSON-LD and/or HTML text from the page
  * @returns Raw structured JSON string from the provider
  */
-export async function importRecipeFromURL(url: string, prepared: PreparedImportContent): Promise<string> {
+export async function importRecipeFromURL(
+  url: string,
+  prepared: PreparedImportContent
+): Promise<string> {
   const instructions = `You are a recipe extraction assistant, not a recipe author.
 
 Your job is to copy the recipe from the PROVIDED PAGE CONTENT below into the required JSON shape.
@@ -382,7 +406,10 @@ export async function getFullRecipe(
   desc: string,
   userPreferences?: string
 ): Promise<LegacyRecipeDetailResponse> {
-  const raw = await generateRecipe(JSON.stringify({ title, description: desc }), userPreferences);
+  const raw = await generateRecipe(
+    JSON.stringify({ title, description: desc }),
+    userPreferences
+  );
   const recipe = parseRecipeDetail(raw);
   return [PromptContextEnum.DETAIL, recipe];
 }

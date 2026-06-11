@@ -18,7 +18,8 @@ export const RECIPE_IMPORT_FETCH_TIMEOUT_MS = 10_000;
 /** Maximum response body size (bytes). */
 export const RECIPE_IMPORT_MAX_BYTES = 2 * 1024 * 1024;
 
-const USER_AGENT = 'WhatsForDinner/1.0 (recipe-import; +https://github.com/whats-for-dinner)';
+const USER_AGENT =
+  'WhatsForDinner/1.0 (recipe-import; +https://github.com/whats-for-dinner)';
 
 const MAX_REDIRECTS = 3;
 
@@ -80,7 +81,11 @@ export async function fetchRecipePage(startUrl: URL): Promise<FetchedPage> {
     const contentType = response.headers.get('content-type');
     const html = await readResponseText(response);
 
-    if (contentType && !contentType.toLowerCase().includes('text/html') && !looksLikeHtml(html)) {
+    if (
+      contentType &&
+      !contentType.toLowerCase().includes('text/html') &&
+      !looksLikeHtml(html)
+    ) {
       throw new RecipeImportError(
         'That URL did not return a web page. Try a link to a recipe article.',
         RECIPE_IMPORT_NOT_HTML,
@@ -127,7 +132,11 @@ async function readResponseText(response: Response): Promise<string> {
 
     if (total > RECIPE_IMPORT_MAX_BYTES) {
       await reader.cancel();
-      throw new RecipeImportError('That page is too large to import', RECIPE_IMPORT_PAGE_TOO_LARGE, 413);
+      throw new RecipeImportError(
+        'That page is too large to import',
+        RECIPE_IMPORT_PAGE_TOO_LARGE,
+        413
+      );
     }
 
     chunks.push(value);

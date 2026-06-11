@@ -18,7 +18,11 @@
 
 <div class="flex h-16 flex-row items-center py-2">
   {#if isMobile && !disableMobileNav}
-    <Button.Root title="Show navigation" onclick={toggleMobileNav} class="button icon text">
+    <Button.Root
+      title="Show navigation"
+      onclick={toggleMobileNav}
+      class="button icon text"
+    >
       <OpenPanelLeftIcon size="xs" />
     </Button.Root>
   {/if}

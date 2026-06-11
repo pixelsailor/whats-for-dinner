@@ -68,7 +68,9 @@ Suggestions are always displayed from Dexie via a LiveQuery subscription:
 
 ```typescript
 // LiveQuery store - automatically updates when Dexie changes
-let promptSuggestionsStore = $derived.by(() => suggestionsByPromptStore(sanitizedPrompt));
+let promptSuggestionsStore = $derived.by(() =>
+  suggestionsByPromptStore(sanitizedPrompt)
+);
 
 // Subscribe to get reactive updates
 let promptSuggestionsResult = $derived($promptSuggestionsStore);
@@ -380,6 +382,10 @@ stateDiagram-v2
   "request_id": 1704369600000,
   "prompt": "quick pasta dishes",
   "created_at": "2024-01-04T12:00:00.000Z",
-  "suggestion_ids": ["a1b2c3d4-e5f6-7890-abcd-ef1234567890", "b2c3d4e5-f6a7-8901-bcde-f12345678901", "c3d4e5f6-a7b8-9012-cdef-123456789012"]
+  "suggestion_ids": [
+    "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+    "c3d4e5f6-a7b8-9012-cdef-123456789012"
+  ]
 }
 ```

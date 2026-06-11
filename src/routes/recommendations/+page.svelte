@@ -18,7 +18,8 @@
   let loading = $derived($unsortedRecipesStore.loading);
   let storeError = $derived($unsortedRecipesStore.error);
 
-  let currentMealContext = $state<ReturnType<typeof getMealContext>>(getMealContext());
+  let currentMealContext =
+    $state<ReturnType<typeof getMealContext>>(getMealContext());
 
   let useMealContext = $state(true);
 
@@ -42,14 +43,20 @@
   }
 </script>
 
-<div class="grid" style:height={$unsortedRecipesStore.data ? 'auto' : '100vh'} style:place-content={$unsortedRecipesStore.data ? 'start stretch' : 'center'}>
+<div
+  class="grid"
+  style:height={$unsortedRecipesStore.data ? 'auto' : '100vh'}
+  style:place-content={$unsortedRecipesStore.data ? 'start stretch' : 'center'}
+>
   {#if loading}
     <ProgressSpinner size="lg" />
   {:else if storeError}
     <div class="flex max-w-3xl flex-col gap-6">
       <h1 class="display-medium">Ah donkey-spittle! There was a problem.</h1>
       <p class="flex items-center gap-3">
-        <span class="fluid-heading-03">Error</span><span>|</span><span>{storeError}</span>
+        <span class="fluid-heading-03">Error</span><span>|</span><span
+          >{storeError}</span
+        >
       </p>
     </div>
   {:else}
@@ -57,11 +64,19 @@
       <AppBar.Root>
         <!-- <AppBar.Text primary="Recommendations" /> -->
         <AppBar.End>
-          <Button href="/recipes/new" aria-label="Add a recipe" class="text narrow">
+          <Button
+            href="/recipes/new"
+            aria-label="Add a recipe"
+            class="text narrow"
+          >
             <DocumentAddIcon size="xs" />
             <span class="hidden md:inline">Add a recipe</span>
           </Button>
-          <Button class="text narrow" onclick={refreshRecommendations} disabled={loading}>
+          <Button
+            class="text narrow"
+            onclick={refreshRecommendations}
+            disabled={loading}
+          >
             <ArrowsClockwiseIcon size="xs" />
             <span class="hidden md:inline">Refresh</span>
           </Button>
@@ -74,8 +89,10 @@
         <div class="mb-8">
           <h1 class="display-small mb-2">Recipe Recommendations</h1>
           <p class="body-medium mb-2">
-            Discover recipes from your saved collection using checkout history, favorites, and meal tags. This list does not re-apply your account dietary or
-            preference settings—those apply when you add recipes or use AI suggestions.
+            Discover recipes from your saved collection using checkout history,
+            favorites, and meal tags. This list does not re-apply your account
+            dietary or preference settings—those apply when you add recipes or
+            use AI suggestions.
           </p>
         </div>
         {#each categories as category (category.id)}
@@ -83,7 +100,9 @@
             <div class="mb-2 flex items-center justify-between">
               <h2 class="title-medium">{category.title}</h2>
               <span class="tag subtle label-medium">
-                {category.recipes.length} recipe{category.recipes.length !== 1 ? 's' : ''}
+                {category.recipes.length} recipe{category.recipes.length !== 1
+                  ? 's'
+                  : ''}
               </span>
             </div>
             <div class="list">
@@ -91,10 +110,16 @@
                 {#if index > 0}
                   <hr class="border-gray-200 dark:border-gray-700" />
                 {/if}
-                <Button href="/recipes/{recipe.id}" class="listitem button text narrow">
+                <Button
+                  href="/recipes/{recipe.id}"
+                  class="listitem button text narrow"
+                >
                   <span class="listitem__content">
                     <span class="title-medium">{recipe.title}</span>
-                    <span class="body-medium text-foreground-alt dark:text-foreground-alt">{recipe.short_description}</span>
+                    <span
+                      class="body-medium text-foreground-alt dark:text-foreground-alt"
+                      >{recipe.short_description}</span
+                    >
                   </span>
                 </Button>
               {/each}
@@ -106,20 +131,28 @@
       <aside class="w-72">
         <nav class="sticky top-24">
           <div class="mb-6 flex flex-col gap-2">
-            <p class="label-large text-gray-500 dark:text-gray-400">Currently showing:</p>
+            <p class="label-large text-gray-500 dark:text-gray-400">
+              Currently showing:
+            </p>
             <Toggle.Root
               bind:pressed={useMealContext}
               class="h-input bg-background rounded-input border-border flex flex-nowrap items-stretch justify-start gap-1 border px-1 py-1"
             >
               <Button
                 onclick={() => (useMealContext = false)}
-                class={['button free narrow label-medium', !useMealContext ? 'text' : 'primary cursor-default!']}
+                class={[
+                  'button free narrow label-medium',
+                  !useMealContext ? 'text' : 'primary cursor-default!'
+                ]}
               >
                 <span>{sentenceCase(currentMealContext ?? '')} recipes</span>
               </Button>
               <Button
                 onclick={() => (useMealContext = true)}
-                class={['button free narrow label-medium', useMealContext ? 'text' : 'primary cursor-default!']}
+                class={[
+                  'button free narrow label-medium',
+                  useMealContext ? 'text' : 'primary cursor-default!'
+                ]}
               >
                 <span>All recipes</span>
               </Button>
@@ -128,9 +161,14 @@
           <ul class="my-6">
             {#each categories as category (category.id)}
               <li>
-                <button class="button text narrow w-full justify-between" onclick={() => scrollToCategory(category.id)}>
+                <button
+                  class="button text narrow w-full justify-between"
+                  onclick={() => scrollToCategory(category.id)}
+                >
                   {category.title}
-                  <span class="badge subtle label-small">{category.recipes.length}</span>
+                  <span class="badge subtle label-small"
+                    >{category.recipes.length}</span
+                  >
                 </button>
               </li>
             {/each}

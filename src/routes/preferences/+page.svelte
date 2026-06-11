@@ -10,10 +10,16 @@
   // import PageHeader from '$lib/ui/PageHeader.svelte';
   import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
   import Select from '$lib/ui/Select.svelte';
-  import type { UserPreferences, UserPreferencesResponse } from '$lib/api/account';
+  import type {
+    UserPreferences,
+    UserPreferencesResponse
+  } from '$lib/api/account';
   import Textinput from '$lib/ui/forms/Textinput.svelte';
 
-  const options: Record<string, { value: string; label: string; disabled?: boolean }[]> = {
+  const options: Record<
+    string,
+    { value: string; label: string; disabled?: boolean }[]
+  > = {
     diet: [
       { value: 'dairy-free', label: 'Dairy-free' },
       { value: 'diabetic-friendly', label: 'Diabetic-friendly' },
@@ -46,7 +52,10 @@
       { value: 'cast-iron-skillet', label: 'Cast iron skillet' },
       { value: 'food-processor', label: 'Food processor' },
       { value: 'grill', label: 'Grill' },
-      { value: 'instant-pot-pressure-cooker', label: 'Instant Pot / Pressure cooker' },
+      {
+        value: 'instant-pot-pressure-cooker',
+        label: 'Instant Pot / Pressure cooker'
+      },
       { value: 'microwave', label: 'Microwave' },
       { value: 'oven', label: 'Oven' },
       { value: 'slow-cooker', label: 'Slow cooker' },
@@ -132,7 +141,9 @@
 
   let isDirty = $state(false);
 
-  let preferences = $derived<UserPreferencesResponse | null>(data.preferences ?? null);
+  let preferences = $derived<UserPreferencesResponse | null>(
+    data.preferences ?? null
+  );
   let dislikes = $derived(toTextFromArray(preferences?.dislikes ?? []));
 
   let diet = $derived(preferences?.diet ?? []);
@@ -153,7 +164,9 @@
       if (result.type === 'success') {
         toast.success('Preferences saved');
       } else if (result.type === 'failure') {
-        app.error = (result.data as { error?: string })?.error ?? 'Failed to save preferences';
+        app.error =
+          (result.data as { error?: string })?.error ??
+          'Failed to save preferences';
         toast.error(app.error);
       }
     };
@@ -185,33 +198,72 @@
 
 <div class="mx-auto max-w-5xl px-4 py-8 lg:px-8">
   {#if data.loadError}
-    <p class="body-large text-destructive mb-4" role="alert">{data.loadError}</p>
+    <p class="body-large text-destructive mb-4" role="alert">
+      {data.loadError}
+    </p>
   {/if}
-  <form class="form" method="POST" use:enhance={submitPreferences} oninput={() => isDirty = true}>
+  <form
+    class="form"
+    method="POST"
+    use:enhance={submitPreferences}
+    oninput={() => (isDirty = true)}
+  >
     <h1 class="display-small mb-4">AI Recipe Preferences</h1>
     <p class="body-large">
-      Set your recipe preferences here. These choices will affect every suggested recipe. If you want to modify recipes only occasionally, rather than setting a
-      preference, just be specific when asking for ideas. You can modify recipes however you like when asking.
+      Set your recipe preferences here. These choices will affect every
+      suggested recipe. If you want to modify recipes only occasionally, rather
+      than setting a preference, just be specific when asking for ideas. You can
+      modify recipes however you like when asking.
     </p>
 
     <hr />
 
     <div class="form-field">
       <label for="diet" class="label-large">Dietary considerations</label>
-      <Select type="multiple" items={options.diet} name="diet" bind:value={diet} placeholder="Select diet restrictions" onValueChange={() => { isDirty = true; }} />
+      <Select
+        type="multiple"
+        items={options.diet}
+        name="diet"
+        bind:value={diet}
+        placeholder="Select diet restrictions"
+        onValueChange={() => {
+          isDirty = true;
+        }}
+      />
     </div>
 
     <div class="form-field">
       <label for="allergies" class="label-large">Allergies</label>
-      <Select type="multiple" items={options.allergies} name="allergies" bind:value={allergies} placeholder="Select common allergies" onValueChange={() => { isDirty = true; }} />
+      <Select
+        type="multiple"
+        items={options.allergies}
+        name="allergies"
+        bind:value={allergies}
+        placeholder="Select common allergies"
+        onValueChange={() => {
+          isDirty = true;
+        }}
+      />
     </div>
 
     <div class="form-field">
-      <label class="label-large" for="equipment">Kitchen equipment to avoid</label>
-      <Select type="multiple" items={options.equipment} name="equipment" bind:value={equipment} placeholder="Select kitchen equipment" onValueChange={() => { isDirty = true; }} />
+      <label class="label-large" for="equipment"
+        >Kitchen equipment to avoid</label
+      >
+      <Select
+        type="multiple"
+        items={options.equipment}
+        name="equipment"
+        bind:value={equipment}
+        placeholder="Select kitchen equipment"
+        onValueChange={() => {
+          isDirty = true;
+        }}
+      />
       <div class="helper-text-container">
         <p class="helper-text">
-          If you don't have something, include it here. The AI will make an attempt to avoid recipes that use these items.
+          If you don't have something, include it here. The AI will make an
+          attempt to avoid recipes that use these items.
         </p>
       </div>
     </div>
@@ -226,25 +278,41 @@
 
     <div class="my-3 grid grid-cols-1 gap-8 md:grid-cols-2">
       <div class="form-field">
-        <label for="preferred_prep_time" class="label-large">Preferred prep time</label>
+        <label for="preferred_prep_time" class="label-large"
+          >Preferred prep time</label
+        >
         <Select
           type="single"
           name="preferred_prep_time"
           items={options.prepTime}
           placeholder="Select preferred cooking time"
           bind:value={preferredPrepTime}
-          onValueChange={() => { isDirty = true; }}
+          onValueChange={() => {
+            isDirty = true;
+          }}
         />
       </div>
 
       <div class="form-field">
         <label for="skill_level" class="label-large">Skill level</label>
-        <Select type="single" name="skill_level" items={options.skillLevel} bind:value={skillLevel} placeholder="How comfortable are you in the kitchen?" onValueChange={() => { isDirty = true; }} />
+        <Select
+          type="single"
+          name="skill_level"
+          items={options.skillLevel}
+          bind:value={skillLevel}
+          placeholder="How comfortable are you in the kitchen?"
+          onValueChange={() => {
+            isDirty = true;
+          }}
+        />
       </div>
 
       <div>
         <p class="label-large mb-1">Measurement system</p>
-        <RadioGroup.Root name="measurement_system" bind:value={measurementSystem}>
+        <RadioGroup.Root
+          name="measurement_system"
+          bind:value={measurementSystem}
+        >
           <RadioGroup.Item value="metric">Metric</RadioGroup.Item>
           <RadioGroup.Item value="imperial">Imperial</RadioGroup.Item>
         </RadioGroup.Root>
@@ -252,7 +320,12 @@
 
       <div>
         <p class="label-large mb-1">Use AI assistance</p>
-        <input type="checkbox" name="use_ai_assistance" id="useAiAssistance" bind:checked={useAiAssistance} />
+        <input
+          type="checkbox"
+          name="use_ai_assistance"
+          id="useAiAssistance"
+          bind:checked={useAiAssistance}
+        />
       </div>
     </div>
 
@@ -260,11 +333,18 @@
       <p class="text-sm text-red-600 dark:text-red-400">{app.error}</p>
     {/if}
 
-    <p class="helper-text text-foreground-alt">Select the cuisines you prefer. The AI will make an attempt to suggest recipes in these cuisines.</p>
+    <p class="helper-text text-foreground-alt">
+      Select the cuisines you prefer. The AI will make an attempt to suggest
+      recipes in these cuisines.
+    </p>
     <hr />
 
     <div>
-      <Button type="submit" class="primary" disabled={app.status === 'loading' || !isDirty}>
+      <Button
+        type="submit"
+        class="primary"
+        disabled={app.status === 'loading' || !isDirty}
+      >
         {#if app.status === 'loading'}
           <ProgressSpinner size="sm" />
           Saving…

@@ -15,7 +15,9 @@ export interface FormControlState {
   readonly: boolean;
 }
 
-export interface FormControlStateWithValue<TValue extends FormControlValue = string> extends FormControlState {
+export interface FormControlStateWithValue<
+  TValue extends FormControlValue = string
+> extends FormControlState {
   value: TValue;
 }
 

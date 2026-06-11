@@ -18,7 +18,9 @@
 
 <TimeField.Root hourCycle={24} bind:value bind:placeholder {...restProps}>
   <div class="recipe-time mb-3 flex min-h-24 w-fit flex-col gap-1">
-    <TimeField.Label class="label mb-1 block select-none">{labelText}</TimeField.Label>
+    <TimeField.Label class="label mb-1 block select-none"
+      >{labelText}</TimeField.Label
+    >
     <TimeField.Input>
       {#snippet children({ segments })}
         {#each segments as { part, value }, i (part + value + i)}

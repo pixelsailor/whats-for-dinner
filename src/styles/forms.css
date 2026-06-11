@@ -94,8 +94,8 @@ input.invalid {
   &.inline {
     display: grid;
     grid-template:
-      "a b" var(--input-height)
-      ". c" 1.125rem / min-content auto;
+      'a b' var(--input-height)
+      '. c' 1.125rem / min-content auto;
     gap: 0.5rem 0.5rem;
 
     & > label,
@@ -125,18 +125,18 @@ input.invalid {
 
 .textinput,
 input {
-  @apply h-input-mobile md:h-input bg-input rounded-input border border-input-border hover:shadow-mini;
+  @apply h-input-mobile md:h-input bg-input rounded-input border-input-border hover:shadow-mini border;
   padding: var(--padding-input-y) var(--padding-input-x);
 }
 
 .textarea,
 textarea {
-  @apply bg-input rounded-input border border-input-border min-h-18 resize-y hover:shadow-mini;
+  @apply bg-input rounded-input border-input-border hover:shadow-mini min-h-18 resize-y border;
   padding: var(--padding-input-y) var(--padding-input-x);
 }
 
 .input-group {
-  @apply h-input-mobile md:h-input bg-input rounded-input border border-input-border hover:shadow-mini;
+  @apply h-input-mobile md:h-input bg-input rounded-input border-input-border hover:shadow-mini border;
   display: flex;
   align-items: center;
 
@@ -161,7 +161,7 @@ textarea {
   }
 
   &:has(input:focus, input:focus-visible) {
-    @apply outline-hidden shadow-sm shadow-accent ring ring-accent/70;
+    @apply shadow-accent ring-accent/70 shadow-sm ring outline-hidden;
   }
 
   &.invalid {

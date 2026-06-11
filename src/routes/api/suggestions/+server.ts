@@ -1,11 +1,18 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
-import { AiParseError, buildSuggestionsResponse, parseSuggestionsOutput } from '$lib/api/ai/ai.model';
+import {
+  AiParseError,
+  buildSuggestionsResponse,
+  parseSuggestionsOutput
+} from '$lib/api/ai/ai.model';
 import { generateRecipeSuggestions } from '$lib/api/ai/ai.server.service';
 import { SuggestionsPostBodySchema } from '$lib/api/ai/ai.schemas';
 
-export const POST: RequestHandler = async ({ request, locals }): Promise<Response> => {
+export const POST: RequestHandler = async ({
+  request,
+  locals
+}): Promise<Response> => {
   const { permissions } = locals;
 
   const bodyResult = SuggestionsPostBodySchema.safeParse(await request.json());
@@ -35,6 +42,9 @@ export const POST: RequestHandler = async ({ request, locals }): Promise<Respons
     }
 
     console.error('Failed to get recipe suggestions', err);
-    return json({ error: (err as Error)?.message || 'Failed to get recipe suggestions' }, { status: 500 });
+    return json(
+      { error: (err as Error)?.message || 'Failed to get recipe suggestions' },
+      { status: 500 }
+    );
   }
 };

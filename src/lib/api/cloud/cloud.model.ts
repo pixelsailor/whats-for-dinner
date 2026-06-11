@@ -5,15 +5,30 @@
 
 import { z } from 'zod';
 
-import { CloudRecipeSchema, CloudRecipeSyncSummarySchema, SavedRecipeSchema } from '../recipe/recipe.schemas';
-import type { CloudRecipe, CloudRecipeSyncSummary, SavedRecipe } from '../recipe/recipe.types';
+import {
+  CloudRecipeSchema,
+  CloudRecipeSyncSummarySchema,
+  SavedRecipeSchema
+} from '../recipe/recipe.schemas';
+import type {
+  CloudRecipe,
+  CloudRecipeSyncSummary,
+  SavedRecipe
+} from '../recipe/recipe.types';
 import { SharedRecipeSchema } from './cloud.schemas';
-import type { ConflictResolution, SharedRecipe, SyncConflict, SyncPlan, SyncScenario } from './cloud.types';
+import type {
+  ConflictResolution,
+  SharedRecipe,
+  SyncConflict,
+  SyncPlan,
+  SyncScenario
+} from './cloud.types';
 import randomBytes from '$lib/utils/randombytes';
 import toMillis from '$lib/utils/toMilliseconds';
 
 /** Base58 alphabet for public share link tokens (excludes 0, O, I, l). */
-export const SHARE_TOKEN_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+export const SHARE_TOKEN_ALPHABET =
+  '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 
 /** Number of random bytes encoded into a share link token. */
 export const SHARE_TOKEN_BYTE_LENGTH = 8;
@@ -41,7 +56,12 @@ export class CloudParseError extends Error {
   /** Zod field errors for the failing row, when applicable. */
   readonly fieldErrors?: Record<string, string[]>;
 
-  constructor(message: string, details?: Omit<CloudRecipeParseFailure, 'fieldErrors'> & { fieldErrors?: Record<string, string[]> }) {
+  constructor(
+    message: string,
+    details?: Omit<CloudRecipeParseFailure, 'fieldErrors'> & {
+      fieldErrors?: Record<string, string[]>;
+    }
+  ) {
     super(message);
     this.name = 'CloudParseError';
     this.recipeId = details?.recipeId;
@@ -54,7 +74,10 @@ export class CloudParseError extends Error {
  * Extracts id/title from a raw Supabase `recipes` row for error reporting.
  * @param data - Unvalidated row JSON
  */
-function cloudRecipeRowIdentity(data: unknown): { recipeId?: string; recipeTitle?: string } {
+function cloudRecipeRowIdentity(data: unknown): {
+  recipeId?: string;
+  recipeTitle?: string;
+} {
   if (typeof data !== 'object' || data === null) {
     return {};
   }
@@ -71,7 +94,10 @@ function cloudRecipeRowIdentity(data: unknown): { recipeId?: string; recipeTitle
  * @param identity - Recipe id/title when known
  * @returns Suffix for error messages
  */
-function formatRecipeIdentitySuffix(identity: { recipeId?: string; recipeTitle?: string }): string {
+function formatRecipeIdentitySuffix(identity: {
+  recipeId?: string;
+  recipeTitle?: string;
+}): string {
   if (identity.recipeId && identity.recipeTitle) {
     return ` (recipe "${identity.recipeTitle}", id ${identity.recipeId})`;
   }
@@ -99,11 +125,18 @@ function parseCloudRecipeOrThrow(data: unknown, context: string): CloudRecipe {
   if (!result.success) {
     const identity = cloudRecipeRowIdentity(data);
     const fieldErrors = result.error.flatten().fieldErrors;
-    console.error(`Cloud data validation failed for "${context}".`, fieldErrors, identity);
-    throw new CloudParseError(`Cloud data failed validation for "${context}"${formatRecipeIdentitySuffix(identity)}.`, {
-      ...identity,
-      fieldErrors
-    });
+    console.error(
+      `Cloud data validation failed for "${context}".`,
+      fieldErrors,
+      identity
+    );
+    throw new CloudParseError(
+      `Cloud data failed validation for "${context}"${formatRecipeIdentitySuffix(identity)}.`,
+      {
+        ...identity,
+        fieldErrors
+      }
+    );
   }
 
   return result.data;
@@ -117,7 +150,10 @@ function parseCloudRecipeOrThrow(data: unknown, context: string): CloudRecipe {
  */
 function parseOrThrow<T>(result: z.ZodSafeParseResult<T>, context: string): T {
   if (!result.success) {
-    console.error(`Cloud data validation failed for "${context}".`, result.error.flatten());
+    console.error(
+      `Cloud data validation failed for "${context}".`,
+      result.error.flatten()
+    );
     throw new CloudParseError(`Cloud data failed validation for "${context}".`);
   }
 
@@ -141,7 +177,10 @@ export function parseSharedRecipe(data: unknown): SharedRecipe {
  * @throws {CloudParseError} When any row fails validation
  */
 export function parseSharedRecipeRows(data: unknown): SharedRecipe[] {
-  return parseOrThrow(z.array(SharedRecipeSchema).safeParse(data), 'shared link rows');
+  return parseOrThrow(
+    z.array(SharedRecipeSchema).safeParse(data),
+    'shared link rows'
+  );
 }
 
 /**
@@ -180,10 +219,15 @@ export function parseCloudRecipeRows(data: unknown): CloudRecipe[] | null {
   }
 
   if (!Array.isArray(data)) {
-    return parseOrThrow(z.array(CloudRecipeSchema).safeParse(data), 'cloud recipe rows');
+    return parseOrThrow(
+      z.array(CloudRecipeSchema).safeParse(data),
+      'cloud recipe rows'
+    );
   }
 
-  return data.map((row, index) => parseCloudRecipeOrThrow(row, `cloud recipe rows[${index}]`));
+  return data.map((row, index) =>
+    parseCloudRecipeOrThrow(row, `cloud recipe rows[${index}]`)
+  );
 }
 
 /**
@@ -202,8 +246,13 @@ export function parseCloudRecipeUpload(data: unknown): CloudRecipe {
  * @returns Typed update payload
  * @throws {CloudParseError} When fields are invalid
  */
-export function parseCloudRecipeUpdate(data: unknown): Partial<CloudRecipe> & { id: string } {
-  return parseOrThrow(CloudRecipeUpdateSchema.safeParse(data), 'cloud recipe update');
+export function parseCloudRecipeUpdate(
+  data: unknown
+): Partial<CloudRecipe> & { id: string } {
+  return parseOrThrow(
+    CloudRecipeUpdateSchema.safeParse(data),
+    'cloud recipe update'
+  );
 }
 
 /**
@@ -212,15 +261,21 @@ export function parseCloudRecipeUpdate(data: unknown): Partial<CloudRecipe> & { 
  * @returns Typed summary rows
  * @throws {CloudParseError} When any row fails validation
  */
-export function parseCloudRecipeSyncSummaryRows(data: unknown): CloudRecipeSyncSummary[] {
-  return parseOrThrow(z.array(CloudRecipeSyncSummarySchema).safeParse(data), 'cloud recipe summaries');
+export function parseCloudRecipeSyncSummaryRows(
+  data: unknown
+): CloudRecipeSyncSummary[] {
+  return parseOrThrow(
+    z.array(CloudRecipeSyncSummarySchema).safeParse(data),
+    'cloud recipe summaries'
+  );
 }
 
 /**
  * Whether a recipe is visible in active recipe lists (not archived, not soft-deleted).
  * @param recipe - Local or cloud recipe row.
  */
-export const isActive = (recipe: SavedRecipe): boolean => !recipe.archived && !recipe.deleted_at;
+export const isActive = (recipe: SavedRecipe): boolean =>
+  !recipe.archived && !recipe.deleted_at;
 
 /**
  * Whether a recipe participates in sync planning (active or tombstoned, but not archived).
@@ -243,22 +298,28 @@ export const encodeShareToken = (bytes: Uint8Array): string =>
  * Generate a short random share link token for `shared_links.token`.
  * @returns Base58-style token suitable for `/share/{token}` URLs.
  */
-export const generateShareToken = (): string => encodeShareToken(randomBytes(SHARE_TOKEN_BYTE_LENGTH));
+export const generateShareToken = (): string =>
+  encodeShareToken(randomBytes(SHARE_TOKEN_BYTE_LENGTH));
 
 /**
  * Whether a local recipe still needs to be pushed to or reconciled with the cloud.
  * @param recipe - Local recipe row from Dexie.
  * @returns True when the row is marked unsynced or carries a prior sync failure.
  */
-export const needsCloudSync = (recipe: SavedRecipe): boolean => recipe.synced === false || Boolean(recipe.sync_error);
+export const needsCloudSync = (recipe: SavedRecipe): boolean =>
+  recipe.synced === false || Boolean(recipe.sync_error);
 
 const CONFLICT_TIMESTAMP_WINDOW_MS = 2 * 60 * 1000; // 2 minutes
 
-const compareMillis = (value: string | number | Date | null | undefined): number => {
+const compareMillis = (
+  value: string | number | Date | null | undefined
+): number => {
   return toMillis(value ?? '');
 };
 
-export const categorizeConflict = (conflict: SyncConflict): ConflictResolution => {
+export const categorizeConflict = (
+  conflict: SyncConflict
+): ConflictResolution => {
   const { local, cloud } = conflict;
 
   const localUpdated = compareMillis(local.updated_at ?? '');
@@ -276,10 +337,18 @@ export const categorizeConflict = (conflict: SyncConflict): ConflictResolution =
       }
 
       if (cloudUpdated > localUpdated) {
-        return { conflict, action: 'download', reason: 'cloud-active-or-restored-newer' };
+        return {
+          conflict,
+          action: 'download',
+          reason: 'cloud-active-or-restored-newer'
+        };
       }
 
-      return { conflict, action: 'manual', reason: 'delete-state-mismatch-equal-timestamps' };
+      return {
+        conflict,
+        action: 'manual',
+        reason: 'delete-state-mismatch-equal-timestamps'
+      };
     }
 
     if (cloudUpdated > localUpdated) {
@@ -287,10 +356,18 @@ export const categorizeConflict = (conflict: SyncConflict): ConflictResolution =
     }
 
     if (localUpdated > cloudUpdated) {
-      return { conflict, action: 'upload', reason: 'local-active-or-restored-newer' };
+      return {
+        conflict,
+        action: 'upload',
+        reason: 'local-active-or-restored-newer'
+      };
     }
 
-    return { conflict, action: 'manual', reason: 'delete-state-mismatch-equal-timestamps' };
+    return {
+      conflict,
+      action: 'manual',
+      reason: 'delete-state-mismatch-equal-timestamps'
+    };
   }
 
   const localNeverSynced = !local.last_synced_at;
@@ -317,7 +394,11 @@ export const categorizeConflict = (conflict: SyncConflict): ConflictResolution =
   }
 
   if (localSyncError && cloudNewer) {
-    return { conflict, action: 'download', reason: 'local-sync-error-cloud-newer' };
+    return {
+      conflict,
+      action: 'download',
+      reason: 'local-sync-error-cloud-newer'
+    };
   }
 
   if (localNewer && cloudSynced >= localSynced) {
@@ -325,11 +406,23 @@ export const categorizeConflict = (conflict: SyncConflict): ConflictResolution =
   }
 
   if (cloudNewer && cloudSynced > localSynced) {
-    return { conflict, action: 'download', reason: 'cloud-updated-more-recent' };
+    return {
+      conflict,
+      action: 'download',
+      reason: 'cloud-updated-more-recent'
+    };
   }
 
-  if (localUpdatedAfterSync && cloudUpdatedAfterSync && updatedDiff <= CONFLICT_TIMESTAMP_WINDOW_MS) {
-    return { conflict, action: 'manual', reason: 'both-updated-close-timestamps' };
+  if (
+    localUpdatedAfterSync &&
+    cloudUpdatedAfterSync &&
+    updatedDiff <= CONFLICT_TIMESTAMP_WINDOW_MS
+  ) {
+    return {
+      conflict,
+      action: 'manual',
+      reason: 'both-updated-close-timestamps'
+    };
   }
 
   if (localNewer) {
@@ -352,8 +445,13 @@ export const categorizeConflict = (conflict: SyncConflict): ConflictResolution =
  * @param remoteRecipes - Syncable remote rows (active and tombstoned; archived excluded).
  * @returns The sync plan.
  */
-export const buildSyncPlan = (localRecipes: SavedRecipe[], remoteRecipes: SavedRecipe[]): SyncPlan => {
-  const remoteById = new Map(remoteRecipes.map((recipe) => [recipe.id, recipe]));
+export const buildSyncPlan = (
+  localRecipes: SavedRecipe[],
+  remoteRecipes: SavedRecipe[]
+): SyncPlan => {
+  const remoteById = new Map(
+    remoteRecipes.map((recipe) => [recipe.id, recipe])
+  );
 
   const localOnly: SavedRecipe[] = [];
   const conflicts: SyncConflict[] = [];
@@ -393,7 +491,9 @@ export const buildSyncPlan = (localRecipes: SavedRecipe[], remoteRecipes: SavedR
 
   const categorized = conflicts.map(categorizeConflict);
   const autoResolvable = categorized.filter((item) => item.action !== 'manual');
-  const manualConflicts = categorized.filter((item) => item.action === 'manual').map((item) => item.conflict);
+  const manualConflicts = categorized
+    .filter((item) => item.action === 'manual')
+    .map((item) => item.conflict);
 
   return {
     scenario,

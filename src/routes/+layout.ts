@@ -1,6 +1,9 @@
 import { isBrowser } from '@supabase/ssr';
 import { AuthService } from '$lib/api/auth';
-import { createLayoutBrowserClient, createLayoutServerClient } from '$lib/api/session';
+import {
+  createLayoutBrowserClient,
+  createLayoutServerClient
+} from '$lib/api/session';
 import type { LayoutLoad } from './$types';
 
 export const load: LayoutLoad = async ({ data, depends, fetch }) => {

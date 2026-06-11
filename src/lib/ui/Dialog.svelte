@@ -5,6 +5,7 @@
   import type { ClassValue } from 'clsx';
 
   import '../../app.css';
+  import CloseIcon from './icons/CloseIcon.svelte';
 
   type Props = Dialog.RootProps & {
     buttonText?: string;
@@ -47,7 +48,10 @@ See [ui-bits Dialog](https://ui-bits.dev/docs/components/dialog/llms.txt) for mo
 
 <Dialog.Root bind:open {...restProps}>
   {#if trigger}
-    <Dialog.Trigger class={clsx('button', triggerProps?.class)} {...triggerProps}>
+    <Dialog.Trigger
+      class={clsx('button', triggerProps?.class)}
+      {...triggerProps}
+    >
       {@render trigger?.()}
     </Dialog.Trigger>
   {/if}
@@ -66,33 +70,33 @@ See [ui-bits Dialog](https://ui-bits.dev/docs/components/dialog/llms.txt) for mo
     />
     <Dialog.Content
       class={[
-        "shadow-dialog",
-        "data-[state=open]:animate-in",
-        "data-[state=closed]:animate-out",
-        "data-[state=closed]:fade-out-0",
-        "data-[state=open]:fade-in-0",
-        "data-[state=closed]:zoom-out-95",
-        "data-[state=open]:zoom-in-95",
-        "fixed",
-        "top-[50%]",
-        "left-[50%]",
-        "z-50",
-        "w-full",
-        "max-w-[calc(100%-2rem)]",
-        "translate-x-[-50%]",
-        "translate-y-[-50%]",
-        "rounded",
-        "border",
-        "bg-gray-50",
-        "p-5",
-        "outline-hidden",
-        "sm:max-w-[490px]",
-        "md:w-full",
-        "dark:bg-gray-900",
-        "grid",
-        "grid-cols-1",
-        "gap-4",
-        ]}
+        'shadow-dialog',
+        'data-[state=open]:animate-in',
+        'data-[state=closed]:animate-out',
+        'data-[state=closed]:fade-out-0',
+        'data-[state=open]:fade-in-0',
+        'data-[state=closed]:zoom-out-95',
+        'data-[state=open]:zoom-in-95',
+        'fixed',
+        'top-[50%]',
+        'left-[50%]',
+        'z-50',
+        'w-full',
+        'max-w-[calc(100%-2rem)]',
+        'translate-x-[-50%]',
+        'translate-y-[-50%]',
+        'rounded',
+        'border',
+        'bg-gray-50',
+        'p-5',
+        'outline-hidden',
+        'sm:max-w-[490px]',
+        'md:w-full',
+        'dark:bg-gray-900',
+        'grid',
+        'grid-cols-1',
+        'gap-4'
+      ]}
       {...contentProps}
     >
       <Dialog.Title class="title-large text-center">
@@ -109,9 +113,12 @@ See [ui-bits Dialog](https://ui-bits.dev/docs/components/dialog/llms.txt) for mo
         {@render actions()}
       {:else}
         <Dialog.Close
-          class="focus-visible:ring-foreground focus-visible:ring-offset-background focus-visible:outline-hidden absolute right-5 top-5 rounded-md focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98]"
-          >Close</Dialog.Close
+          class="button icon text absolute! right-2 top-4"
+          aria-label="Close dialog"
         >
+          <CloseIcon size="sm" />
+          <span class="sr-only">Close</span>
+        </Dialog.Close>
       {/if}
     </Dialog.Content>
   </Dialog.Portal>
@@ -119,6 +126,5 @@ See [ui-bits Dialog](https://ui-bits.dev/docs/components/dialog/llms.txt) for mo
 
 <style lang="postcss">
   :global(.dialog-description) {
-
   }
 </style>

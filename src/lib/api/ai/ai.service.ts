@@ -5,7 +5,10 @@
 
 import { error } from '@sveltejs/kit';
 
-import type { RecipeSuggestionsResponse, SuggestedRecipeResponse } from './ai.types';
+import type {
+  RecipeSuggestionsResponse,
+  SuggestedRecipeResponse
+} from './ai.types';
 
 /** Same-origin AI route paths used by TanStack query factories. */
 export const AI_ENDPOINTS = {
@@ -42,7 +45,10 @@ export async function postAiJson<T>(url: string, body: PostAiBody): Promise<T> {
   });
 
   if (!response.ok) {
-    error(response.status || 500, response.statusText || 'An unknown error occurred');
+    error(
+      response.status || 500,
+      response.statusText || 'An unknown error occurred'
+    );
   }
 
   return response.json() as Promise<T>;
@@ -53,8 +59,14 @@ export async function postAiJson<T>(url: string, body: PostAiBody): Promise<T> {
  * @param prompt - Sanitized user prompt
  * @param preferences - Serialized user preferences text
  */
-export async function postSuggestions(prompt: string, preferences?: string): Promise<RecipeSuggestionsResponse> {
-  return postAiJson<RecipeSuggestionsResponse>(AI_ENDPOINTS.suggestions, { prompt, preferences });
+export async function postSuggestions(
+  prompt: string,
+  preferences?: string
+): Promise<RecipeSuggestionsResponse> {
+  return postAiJson<RecipeSuggestionsResponse>(AI_ENDPOINTS.suggestions, {
+    prompt,
+    preferences
+  });
 }
 
 /**
@@ -62,6 +74,12 @@ export async function postSuggestions(prompt: string, preferences?: string): Pro
  * @param prompt - JSON string `{ title, description }`
  * @param preferences - Serialized user preferences text
  */
-export async function postSuggestedRecipe(prompt: string, preferences?: string): Promise<SuggestedRecipeResponse> {
-  return postAiJson<SuggestedRecipeResponse>(AI_ENDPOINTS.recipe, { prompt, preferences });
+export async function postSuggestedRecipe(
+  prompt: string,
+  preferences?: string
+): Promise<SuggestedRecipeResponse> {
+  return postAiJson<SuggestedRecipeResponse>(AI_ENDPOINTS.recipe, {
+    prompt,
+    preferences
+  });
 }

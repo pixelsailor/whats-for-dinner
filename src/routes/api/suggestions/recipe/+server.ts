@@ -10,10 +10,15 @@ import { SuggestedRecipePostBodySchema } from '$lib/api/ai/ai.schemas';
  *
  * AI assisted modifications should be handled by Page Actions.
  */
-export const POST: RequestHandler = async ({ request, locals }): Promise<Response> => {
+export const POST: RequestHandler = async ({
+  request,
+  locals
+}): Promise<Response> => {
   const { permissions } = locals;
 
-  const bodyResult = SuggestedRecipePostBodySchema.safeParse(await request.json());
+  const bodyResult = SuggestedRecipePostBodySchema.safeParse(
+    await request.json()
+  );
 
   if (!bodyResult.success) {
     return error(400, { message: 'Prompt is required' });
@@ -37,6 +42,9 @@ export const POST: RequestHandler = async ({ request, locals }): Promise<Respons
     }
 
     console.error('Failed to get recipe suggestions', err);
-    return json({ error: (err as Error)?.message || 'Failed to get recipe suggestions' }, { status: 500 });
+    return json(
+      { error: (err as Error)?.message || 'Failed to get recipe suggestions' },
+      { status: 500 }
+    );
   }
 };

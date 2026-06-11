@@ -5,7 +5,10 @@
 
 import { hasPermission } from '$lib/api/account/account.model';
 import { AccountService } from '$lib/api/account/account.service';
-import { clearSessionPermissions, setSessionPermissions } from '$lib/api/auth/auth.permissions';
+import {
+  clearSessionPermissions,
+  setSessionPermissions
+} from '$lib/api/auth/auth.permissions';
 import { fail, redirect } from '@sveltejs/kit';
 
 import type { Actions } from './$types';
@@ -39,7 +42,10 @@ export const actions: Actions = {
       return fail(401, { error: 'Nice try ;) but that login is not allowed.' });
     }
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
 
     if (error || !data.user) {
       clearSessionPermissions(cookies);
@@ -49,7 +55,9 @@ export const actions: Actions = {
       }
 
       return fail(401, {
-        error: error ? loginErrorMessage(error.message) : 'Invalid email or password.'
+        error: error
+          ? loginErrorMessage(error.message)
+          : 'Invalid email or password.'
       });
     }
 
@@ -62,7 +70,10 @@ export const actions: Actions = {
         cloud_storage: hasPermission(profile, 'cloud_storage')
       });
     } catch (profileError) {
-      console.error('Failed to load user permissions after login', profileError);
+      console.error(
+        'Failed to load user permissions after login',
+        profileError
+      );
       clearSessionPermissions(cookies);
     }
 

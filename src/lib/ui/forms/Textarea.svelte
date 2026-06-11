@@ -61,7 +61,10 @@ A textarea component incorporating a label and wrapping form field.
     oninput={autoResize}
     {required}
     bind:value
-    class={['textarea body-medium border-border-input', error ? 'border-destructive' : '']}
+    class={[
+      'textarea body-medium border-border-input',
+      error ? 'border-destructive' : ''
+    ]}
     {...restProps}
   ></textarea>
   <div class="helper-text-container">

@@ -5,7 +5,8 @@ import { goto } from '$app/navigation';
 import { deriveAICapability } from '$lib/api/auth/auth.capability';
 import { getGreeting } from '$lib/greetings';
 
-const PROMPT_PLACEHOLDER = 'Ask for event ideas, regional recipes, or just list ingredients';
+const PROMPT_PLACEHOLDER =
+  'Ask for event ideas, regional recipes, or just list ingredients';
 const SUBMIT_BUTTON_LABEL = 'Get ideas';
 const WORKING_BUTTON_LABEL = 'Thinking...';
 
@@ -68,7 +69,9 @@ describe('/+page.svelte', () => {
     const promptInput = screen.getByPlaceholder(PROMPT_PLACEHOLDER);
     await expect.element(promptInput).toBeInTheDocument();
 
-    const submitButton = screen.getByRole('button', { name: SUBMIT_BUTTON_LABEL });
+    const submitButton = screen.getByRole('button', {
+      name: SUBMIT_BUTTON_LABEL
+    });
     await expect.element(submitButton).toBeDisabled();
 
     expect(mockedGreeting).toHaveBeenCalled();
@@ -81,14 +84,20 @@ describe('/+page.svelte', () => {
     const promptInput = screen.getByPlaceholder(PROMPT_PLACEHOLDER);
     await promptInput.fill('chili + rice');
 
-    const submitButton = screen.getByRole('button', { name: SUBMIT_BUTTON_LABEL });
+    const submitButton = screen.getByRole('button', {
+      name: SUBMIT_BUTTON_LABEL
+    });
     await expect.element(submitButton).toBeEnabled();
 
     await submitButton.click();
 
-    expect(mockedGoto).toHaveBeenCalledWith('/suggestions?prompt=chili%20%2B%20rice');
+    expect(mockedGoto).toHaveBeenCalledWith(
+      '/suggestions?prompt=chili%20%2B%20rice'
+    );
 
-    const workingButton = screen.getByRole('button', { name: WORKING_BUTTON_LABEL });
+    const workingButton = screen.getByRole('button', {
+      name: WORKING_BUTTON_LABEL
+    });
     await expect.element(workingButton).toBeDisabled();
     await expect.element(workingButton).toBeInTheDocument();
   });
@@ -101,7 +110,9 @@ describe('/+page.svelte', () => {
 
     const screen = render(PageHarness, { data: createPageData() });
 
-    const message = screen.getByText('AI suggestions are unavailable in this build.');
+    const message = screen.getByText(
+      'AI suggestions are unavailable in this build.'
+    );
     await expect.element(message).toBeInTheDocument();
   });
 });

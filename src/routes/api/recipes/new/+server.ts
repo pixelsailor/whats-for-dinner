@@ -11,12 +11,16 @@ export const POST: RequestHandler = async ({ request, locals }) => {
   const bodyResult = RecipeNewPostBodySchema.safeParse(await request.json());
 
   if (!bodyResult.success) {
-    return json({ success: false, data: null, error: 'Invalid request body' }, { status: 400 });
+    return json(
+      { success: false, data: null, error: 'Invalid request body' },
+      { status: 400 }
+    );
   }
 
   const { recipe, preferences } = bodyResult.data;
 
-  const useAiAssistance = preferences?.use_ai_assistance && permissions?.ai_assistance;
+  const useAiAssistance =
+    preferences?.use_ai_assistance && permissions?.ai_assistance;
 
   if (useAiAssistance) {
     try {
@@ -28,7 +32,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
       });
     } catch (err) {
       if (err instanceof AiParseError) {
-        return json({ success: false, data: recipe, error: err.message }, { status: 502 });
+        return json(
+          { success: false, data: recipe, error: err.message },
+          { status: 502 }
+        );
       }
 
       throw err;

@@ -49,11 +49,11 @@ URL import **will** follow this sequence on every request:
 
 Preparation runs **only on the server** after fetch. Priority:
 
-| Priority | Source | Notes |
-| -------- | ------ | ----- |
-| 1 | **JSON-LD** `Recipe` | Parse `<script type="application/ld+json">` blocks; accept `@type` `Recipe` or `schema.org/Recipe`, including objects inside `@graph`. Map `recipeIngredient`, `recipeInstructions`, `name`, `description`, `recipeYield`, `prepTime`, `cookTime` when present. |
-| 2 | **Visible HTML text** | Strip tags/scripts/styles; retain main article text when heuristics allow; cap length (implementation chooses limit, e.g. 32–80 KiB of text) to stay within model context. |
-| 3 | **Failure** | No recipe signal → stop; return user-visible error (CSR shell, bot block, empty body, non-HTML). |
+| Priority | Source                | Notes                                                                                                                                                                                                                                                           |
+| -------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1        | **JSON-LD** `Recipe`  | Parse `<script type="application/ld+json">` blocks; accept `@type` `Recipe` or `schema.org/Recipe`, including objects inside `@graph`. Map `recipeIngredient`, `recipeInstructions`, `name`, `description`, `recipeYield`, `prepTime`, `cookTime` when present. |
+| 2        | **Visible HTML text** | Strip tags/scripts/styles; retain main article text when heuristics allow; cap length (implementation chooses limit, e.g. 32–80 KiB of text) to stay within model context.                                                                                      |
+| 3        | **Failure**           | No recipe signal → stop; return user-visible error (CSR shell, bot block, empty body, non-HTML).                                                                                                                                                                |
 
 **SSR vs CSR:** Preparation uses the **first HTTP response body only**. Single-page apps that render recipe content only after client JavaScript **will often fail** import unless JSON-LD or SSR HTML already contains the recipe. The API **will** surface distinct copy for “page loaded but no recipe found” vs generic provider errors.
 
@@ -80,11 +80,11 @@ Preparation runs **only on the server** after fetch. Priority:
 
 Server logic **will** live outside the generic AI service where possible:
 
-| Module | Responsibility |
-| ------ | ---------------- |
-| `src/lib/api/recipe-import/` | Fetch, URL safety checks, JSON-LD parse, HTML-to-text, `PreparedImportContent`, preparation errors |
-| `src/lib/api/ai/ai.server.service.ts` | `importRecipeFromURL(url, prepared)` — provider call + extraction prompt only |
-| `src/routes/api/import/url/+server.ts` | Orchestration, permission gate, HTTP mapping |
+| Module                                 | Responsibility                                                                                     |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `src/lib/api/recipe-import/`           | Fetch, URL safety checks, JSON-LD parse, HTML-to-text, `PreparedImportContent`, preparation errors |
+| `src/lib/api/ai/ai.server.service.ts`  | `importRecipeFromURL(url, prepared)` — provider call + extraction prompt only                      |
+| `src/routes/api/import/url/+server.ts` | Orchestration, permission gate, HTTP mapping                                                       |
 
 **We will not** re-export recipe-import server helpers from client-safe barrels.
 
@@ -119,13 +119,13 @@ Server logic **will** live outside the generic AI service where possible:
 
 ### Risks and mitigations
 
-| Risk | Mitigation |
-| ---- | ---------- |
+| Risk                                              | Mitigation                                                                                                         |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | Model still hallucinates when source text is thin | Fail preparation when content is below threshold; extraction prompt forbids invention; review golden URLs in tests |
-| SSRF via user-supplied URL | Allowlist `http`/`https`; block private IPs/hostnames in implementation; cap response size |
-| Token overflow | Truncate supplemental text; prefer compact JSON-LD block as primary |
-| Schema `.describe()` encourages generation | Tighten import prompt; optional `RecipeImportSchema` fork in a follow-up PR |
-| Publisher ToS / robots | Document as user-provided URL; no aggressive crawling (single page, one request) |
+| SSRF via user-supplied URL                        | Allowlist `http`/`https`; block private IPs/hostnames in implementation; cap response size                         |
+| Token overflow                                    | Truncate supplemental text; prefer compact JSON-LD block as primary                                                |
+| Schema `.describe()` encourages generation        | Tighten import prompt; optional `RecipeImportSchema` fork in a follow-up PR                                        |
+| Publisher ToS / robots                            | Document as user-provided URL; no aggressive crawling (single page, one request)                                   |
 
 ## Operational impact
 

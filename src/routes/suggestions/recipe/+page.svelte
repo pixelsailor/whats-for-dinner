@@ -8,7 +8,11 @@
   import { db } from '$lib/db';
   import { sanitizePromptInput } from '$lib/api/ai/ai.model';
   import { createFullRecipeQuery } from '$lib/api/ai';
-  import type { Recipe as FullRecipe, SavedRecipe, Suggestion } from '$lib/api/recipe';
+  import type {
+    Recipe as FullRecipe,
+    SavedRecipe,
+    Suggestion
+  } from '$lib/api/recipe';
   import { suggestionStoreById } from '$lib/stores/suggestions';
 
   import { AppBar } from '$lib/ui/AppBar';
@@ -69,7 +73,9 @@
     }
   });
 
-  let hasCloudStorageAccess = $derived(data.permissions?.cloudSync.allowed ?? false);
+  let hasCloudStorageAccess = $derived(
+    data.permissions?.cloudSync.allowed ?? false
+  );
 
   // =============================================================================
   // URL Parameters
@@ -115,14 +121,22 @@
   // =============================================================================
 
   /** Determine if we should make an API request */
-  let shouldRequestFromApi = $derived(hasTitleAndDescription && canUseAI && !suggestionLoading && !hasFullRecipeInDexie && !suggestionError);
+  let shouldRequestFromApi = $derived(
+    hasTitleAndDescription &&
+      canUseAI &&
+      !suggestionLoading &&
+      !hasFullRecipeInDexie &&
+      !suggestionError
+  );
 
   /** Create TanStack query only when needed */
   let recipeQueryStore = $derived.by(() => {
     if (!shouldRequestFromApi || !title || !description) return null;
 
     const sanitizedTitle = sanitizePromptInput(encodeURIComponent(title));
-    const sanitizedDescription = sanitizePromptInput(encodeURIComponent(description));
+    const sanitizedDescription = sanitizePromptInput(
+      encodeURIComponent(description)
+    );
 
     try {
       return createFullRecipeQuery({
@@ -137,7 +151,9 @@
 
   /** TanStack Query v6 returns a reactive result object (not a `$store`). */
   let recipeQueryResult = $derived(recipeQueryStore);
-  let recipeFromApi = $derived((recipeQueryResult?.data as unknown as FullRecipe) ?? null);
+  let recipeFromApi = $derived(
+    (recipeQueryResult?.data as unknown as FullRecipe) ?? null
+  );
 
   // =============================================================================
   // Recipe Display - Always prefer Dexie, fallback to API response
@@ -160,7 +176,11 @@
   let hasRecipe = $derived(!!recipe);
 
   /** Check if the recipe has been viewed (has last_opened set) */
-  let isViewed = $derived(suggestionFromDexie && 'last_opened' in suggestionFromDexie && !!suggestionFromDexie.last_opened);
+  let isViewed = $derived(
+    suggestionFromDexie &&
+      'last_opened' in suggestionFromDexie &&
+      !!suggestionFromDexie.last_opened
+  );
 
   // =============================================================================
   // Save API Response to Dexie
@@ -182,7 +202,10 @@
   });
 
   /** Save full recipe to suggestion in Dexie */
-  async function saveFullRecipeToDexie(suggestionId: string, fullRecipe: FullRecipe) {
+  async function saveFullRecipeToDexie(
+    suggestionId: string,
+    fullRecipe: FullRecipe
+  ) {
     try {
       await db.suggestions.update(suggestionId, {
         ...fullRecipe,
@@ -225,7 +248,11 @@
   $effect(() => {
     if (viewState === 'error') {
       app.status = 'error';
-      app.error = suggestionError?.message ?? (recipeQueryResult?.error as unknown as { body: { message: string } })?.body?.message ?? 'Unknown error';
+      app.error =
+        suggestionError?.message ??
+        (recipeQueryResult?.error as unknown as { body: { message: string } })
+          ?.body?.message ??
+        'Unknown error';
     } else if (viewState === 'loading') {
       app.status = 'loading';
     } else {
@@ -285,7 +312,10 @@
         goto(resolve(`/recipes/${candidate.id}`), { replaceState: true });
       } catch (err) {
         console.error('Cloud save failed; continuing locally', err);
-        candidate = createSavedRecipe(recipe as FullRecipe, err instanceof Error ? err.message : 'Unknown sync error');
+        candidate = createSavedRecipe(
+          recipe as FullRecipe,
+          err instanceof Error ? err.message : 'Unknown sync error'
+        );
         await db.recipes.put(candidate);
         if (id) {
           await db.suggestions.update(id, { recipe_id: candidate.id });
@@ -389,7 +419,10 @@
   // });
 </script>
 
-<div class="grid h-screen" style:place-content={viewState === 'idle' ? 'start stretch' : 'center'}>
+<div
+  class="grid h-screen"
+  style:place-content={viewState === 'idle' ? 'start stretch' : 'center'}
+>
   {#if viewState === 'no-ai'}
     <!-- AI Not Available -->
     <div
@@ -400,7 +433,9 @@
   {:else if viewState === 'error'}
     <!-- Error View -->
     <div class="mx-auto grid h-max w-full max-w-3xl place-content-center">
-      <h1 class="display-medium my-8">Ah donkey-spittle! There was a problem.</h1>
+      <h1 class="display-medium my-8">
+        Ah donkey-spittle! There was a problem.
+      </h1>
       <p class="flex items-center gap-3">
         {#if suggestionError}
           {suggestionError.message}

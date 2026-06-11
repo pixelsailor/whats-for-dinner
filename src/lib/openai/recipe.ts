@@ -16,7 +16,11 @@ import { RecipeSchema } from './schema';
  * @deprecated
  * @see $lib/queries/recipes.ts
  */
-export async function getFullRecipe(title: string, desc: string, userPreferences?: string): Promise<['detail', string | null]> {
+export async function getFullRecipe(
+  title: string,
+  desc: string,
+  userPreferences?: string
+): Promise<['detail', string | null]> {
   const systemPrompt = `
 You are an expert culinary assistant. You are thoughtful about flavor profiles, ingredients and 
 traditional preparation methods. When listing ingredients, group by role (e.g. "For the Sauce") and
@@ -55,7 +59,10 @@ ${userPreferences || '_none_'}
       model: 'gpt-5-nano',
       input: [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: `Give me the full recipe for "${title}", described as "${desc}".` }
+        {
+          role: 'user',
+          content: `Give me the full recipe for "${title}", described as "${desc}".`
+        }
       ],
       // temperature,
       text: {

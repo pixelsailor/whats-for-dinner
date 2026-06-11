@@ -1,6 +1,11 @@
 <script lang="ts">
   import SvelteMarkdown from '@humanspeak/svelte-markdown';
-  import { getLocalTimeZone, parseDate, parseTime, today } from '@internationalized/date';
+  import {
+    getLocalTimeZone,
+    parseDate,
+    parseTime,
+    today
+  } from '@internationalized/date';
   import { getContext, onDestroy, onMount, untrack } from 'svelte';
   import { slide } from 'svelte/transition';
   import { toast } from 'svelte-sonner';
@@ -78,7 +83,9 @@
     }
   });
 
-  let hasCloudStorageAccess = $derived(data.permissions?.cloudSync.allowed ?? false);
+  let hasCloudStorageAccess = $derived(
+    data.permissions?.cloudSync.allowed ?? false
+  );
   // let hasAIAssistanceAccess = $derived(data.permissions?.aiAssistedRecipe.allowed ?? false);
 
   let path = $derived(page.params.id as string);
@@ -147,13 +154,17 @@
   });
 
   /** The current recipe from the store */
-  let recipe = $derived<SavedRecipe | undefined>(recipeStoreValue.data ?? undefined);
-  
+  let recipe = $derived<SavedRecipe | undefined>(
+    recipeStoreValue.data ?? undefined
+  );
+
   /** Responsible for passing the recipe to the FormData */
   let recipeJson = $derived(recipe ? JSON.stringify(recipe) : '');
 
   /** The last date the recipe was opened. ISO string format: "2026-01-05T00:00:00+00:00" */
-  let lastCheckoutDateTime = $derived(recipe?.checkout_history?.[recipe?.checkout_history.length - 1] ?? undefined);
+  let lastCheckoutDateTime = $derived(
+    recipe?.checkout_history?.[recipe?.checkout_history.length - 1] ?? undefined
+  );
 
   let promptRef = $state<HTMLElement>();
   let left = $derived.by(() => {
@@ -214,7 +225,10 @@
     // If the recipe was last opened today, set the iMadeThisToday flag and return
     // Because CalendarDate is a date-only object, we need to compare the date portion of the ISO string
     const lastCheckoutDate = lastCheckoutDateTime?.split('T')[0] ?? undefined;
-    if (lastCheckoutDate && parseDate(lastCheckoutDate).toString() === todaytz.toString()) {
+    if (
+      lastCheckoutDate &&
+      parseDate(lastCheckoutDate).toString() === todaytz.toString()
+    ) {
       iMadeThisToday = true;
       return;
     }
@@ -227,10 +241,16 @@
       try {
         // Use untrack to read recipe properties without tracking them
         const currentRecipe = untrack(() => recipe);
-        const checkoutHistory = [...(currentRecipe?.checkout_history ?? []), todaytz.toString()];
+        const checkoutHistory = [
+          ...(currentRecipe?.checkout_history ?? []),
+          todaytz.toString()
+        ];
 
         if (hasCloudStorageAccess && syncService) {
-          const openedRecipe = { ...currentRecipe, checkout_history: checkoutHistory } as SavedRecipe;
+          const openedRecipe = {
+            ...currentRecipe,
+            checkout_history: checkoutHistory
+          } as SavedRecipe;
           await syncService.uploadRecipeAndSyncLocal(openedRecipe);
         } else {
           await db.recipes.update(id, { checkout_history: checkoutHistory });
@@ -273,12 +293,14 @@
   // React to user prompts
   $effect(() => {
     if (form && form.error === undefined) {
-      const assistantResponseData = JSON.parse(form.message) as RecipeAssistanceResponse;
+      const assistantResponseData = JSON.parse(
+        form.message
+      ) as RecipeAssistanceResponse;
       if (assistantResponseData?.answer) {
         conversationMsg = assistantResponseData.answer;
       }
       if (assistantResponseData?.recipe && recipe) {
-        recipe = {...recipe, ...assistantResponseData.recipe };
+        recipe = { ...recipe, ...assistantResponseData.recipe };
       }
       waiting = false;
 
@@ -341,7 +363,9 @@
    */
   function toggleFavorite() {
     if (!recipe) return;
-    saveChanges(true, { is_favorite: recipe.is_favorite === true ? false : true });
+    saveChanges(true, {
+      is_favorite: recipe.is_favorite === true ? false : true
+    });
   }
 
   /** Revert the user's indication of whether they made this today */
@@ -356,7 +380,10 @@
       checkoutHistory = recipe.checkout_history?.slice(0, -1) ?? null;
     } else {
       // User indicates they made this today
-      checkoutHistory = [...(recipe.checkout_history ?? []), todaytz.toString()];
+      checkoutHistory = [
+        ...(recipe.checkout_history ?? []),
+        todaytz.toString()
+      ];
       iMadeThisToday = true;
       iDidntMakeThisToday = false;
       // Override the timer if currently running
@@ -377,7 +404,10 @@
    * @param changes - Optional changes to the recipe to save. Reduces payload size if provided.
    * If not provided, the entire recipe object will be saved.
    */
-  async function saveChanges(disableToast: boolean = false, changes?: Partial<SavedRecipe>) {
+  async function saveChanges(
+    disableToast: boolean = false,
+    changes?: Partial<SavedRecipe>
+  ) {
     if (!recipe) return;
     app.status = 'loading';
 
@@ -386,15 +416,20 @@
         // Ensure entire recipe is included if the recipe isn't synced.
         // Unsynced recipes may not exist in the cloud yet; using PATCH/UPDATE can 406.
         if (recipe.synced) {
-          const candidate: Partial<SavedRecipe> & { id: string } = changes ? { ...changes, id: recipe.id } : $state.snapshot(recipe);
-          const response = await syncService.updateRecipeAndSyncLocal(candidate);
+          const candidate: Partial<SavedRecipe> & { id: string } = changes
+            ? { ...changes, id: recipe.id }
+            : $state.snapshot(recipe);
+          const response =
+            await syncService.updateRecipeAndSyncLocal(candidate);
           if (!response.success) {
             toast.error(response.error?.message ?? 'Failed to save recipe');
             return;
           }
         } else {
           const snapshot = $state.snapshot(recipe) as SavedRecipe;
-          const fullCandidate = (changes ? { ...snapshot, ...changes } : snapshot) as SavedRecipe;
+          const fullCandidate = (
+            changes ? { ...snapshot, ...changes } : snapshot
+          ) as SavedRecipe;
           const response = await syncService.syncRecipeToCloud(fullCandidate);
           if (!response.success) {
             toast.error(response.error?.message ?? 'Failed to save recipe');
@@ -411,7 +446,9 @@
       }
     } else {
       try {
-        const candidate: Partial<SavedRecipe> & { id: string } = changes ? { ...changes, id: recipe.id } : $state.snapshot(recipe);
+        const candidate: Partial<SavedRecipe> & { id: string } = changes
+          ? { ...changes, id: recipe.id }
+          : $state.snapshot(recipe);
         await db.recipes.update(recipe.id, candidate);
         if (!disableToast) {
           toast.success('Recipe saved');
@@ -432,7 +469,10 @@
     if (!id) return;
     const now = new Date().toISOString();
     if (hasCloudStorageAccess && syncService) {
-      const response = await syncService.updateRecipeAndSyncLocal({ id, deleted_at: now });
+      const response = await syncService.updateRecipeAndSyncLocal({
+        id,
+        deleted_at: now
+      });
       if (!response.success) {
         toast.error('There was a problem trying to restore the recipe.');
         return;
@@ -476,8 +516,12 @@
         if (timerRecipe.id !== timerId) return;
 
         // Soft guard: if already opened today, mark as done and stop (prevents daily background writes).
-        const lastOpenedDate = timerRecipe.last_opened?.split('T')[0] ?? undefined;
-        if (lastOpenedDate && parseDate(lastOpenedDate).toString() === todaytz.toString()) {
+        const lastOpenedDate =
+          timerRecipe.last_opened?.split('T')[0] ?? undefined;
+        if (
+          lastOpenedDate &&
+          parseDate(lastOpenedDate).toString() === todaytz.toString()
+        ) {
           markedAsOpenedRecipeId = timerId;
           return;
         }
@@ -575,14 +619,23 @@
 						<CloudBackupIcon size="xs" />
 					</PxlIconButton>
 				{/if} -->
-        <Button.Root class="button icon text" aria-label="I made this today" onclick={() => {
-          toggleLastPreparedDate();
-        }}>
-          <CalendarHeatMapIcon size="xs" class={iMadeThisToday ? 'currentColor' : 'text-dark-40'} />
+        <Button.Root
+          class="button icon text"
+          aria-label="I made this today"
+          onclick={() => {
+            toggleLastPreparedDate();
+          }}
+        >
+          <CalendarHeatMapIcon
+            size="xs"
+            class={iMadeThisToday ? 'currentColor' : 'text-dark-40'}
+          />
         </Button.Root>
         <Button.Root
           class="button icon text"
-          aria-label={recipe?.is_favorite ? 'Remove from favorites' : 'Add to favorites'}
+          aria-label={recipe?.is_favorite
+            ? 'Remove from favorites'
+            : 'Add to favorites'}
           onclick={toggleFavorite}
         >
           {#if recipe?.is_favorite}
@@ -594,7 +647,12 @@
         <DropdownMenu.Root>
           <DropdownMenu.Trigger>
             {#snippet child({ props })}
-              <Button.Root {...props} type="button" class="button icon text" aria-label="Recipe actions">
+              <Button.Root
+                {...props}
+                type="button"
+                class="button icon text"
+                aria-label="Recipe actions"
+              >
                 <KebabIcon size="xs" />
               </Button.Root>
             {/snippet}
@@ -617,7 +675,10 @@
                   {/snippet}
                 </DropdownMenu.Item>
                 {#if hasCloudStorageAccess && syncService}
-                  <DropdownMenu.Item textValue="Sync recipe" onclick={() => syncRecipe(recipe!.id)}>
+                  <DropdownMenu.Item
+                    textValue="Sync recipe"
+                    onclick={() => syncRecipe(recipe!.id)}
+                  >
                     Sync recipe
                   </DropdownMenu.Item>
                 {/if}
@@ -642,7 +703,10 @@
   </AppBar.Root>
 </PageHeader>
 
-<article class="mx-auto max-w-5xl px-4 py-8 lg:px-8" style:padding-bottom={`calc(${promptHeight}px + 1.5rem)`}>
+<article
+  class="mx-auto max-w-5xl px-4 py-8 lg:px-8"
+  style:padding-bottom={`calc(${promptHeight}px + 1.5rem)`}
+>
   {#if recipeStoreValue.loading}
     <div class="absolute inset-0 grid place-content-center">
       <ProgressSpinner size="lg" />
@@ -651,7 +715,9 @@
     <div class="mx-auto grid w-full max-w-3xl place-content-center gap-6">
       <h1 class="fluid-heading-05">Ah donkey-spittle! There was a problem.</h1>
       <p class="flex items-center gap-3">
-        <span class="fluid-heading-03">{recipeStoreValue.error.name}</span><span>|</span><span>{recipeStoreValue.error?.message}</span>
+        <span class="fluid-heading-03">{recipeStoreValue.error.name}</span><span
+          >|</span
+        ><span>{recipeStoreValue.error?.message}</span>
       </p>
     </div>
   {:else if recipe}
@@ -660,11 +726,18 @@
       <div class="fixed right-0 bottom-0 px-4" style:left bind:this={promptRef}>
         <Prompt>
           {#if conversationMsg}
-            <div class="flex flex-row items-start gap-2" transition:slide={{ duration: 500, axis: 'y' }}>
+            <div
+              class="flex flex-row items-start gap-2"
+              transition:slide={{ duration: 500, axis: 'y' }}
+            >
               <div class="markdown mb-4 self-center text-sm">
                 <SvelteMarkdown source={conversationMsg} />
               </div>
-              <Button.Root class="button text icon" title="Clear" onclick={() => (conversationMsg = '')}>
+              <Button.Root
+                class="button text icon"
+                title="Clear"
+                onclick={() => (conversationMsg = '')}
+              >
                 <CloseIcon size="xs" />
               </Button.Root>
             </div>
@@ -684,7 +757,11 @@
               placeholder="Make changes or ask a recipe related question"
             />
             <input type="hidden" name="recipe" bind:value={recipeJson} />
-            <Button.Root type="submit" disabled={waiting || !promptInput?.trim()} class="button text narrow">
+            <Button.Root
+              type="submit"
+              disabled={waiting || !promptInput?.trim()}
+              class="button text narrow"
+            >
               {waiting ? 'Thinking...' : 'Submit'}
             </Button.Root>
           </form>

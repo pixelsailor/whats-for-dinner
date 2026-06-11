@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { RECIPE_IMPORT_BLOCKED_URL, RECIPE_IMPORT_INVALID_URL, RecipeImportError } from './recipe-import.errors';
+import {
+  RECIPE_IMPORT_BLOCKED_URL,
+  RECIPE_IMPORT_INVALID_URL,
+  RecipeImportError
+} from './recipe-import.errors';
 import { parseImportUrl } from './recipe-import.url';
 
 describe('parseImportUrl', () => {
@@ -12,7 +16,9 @@ describe('parseImportUrl', () => {
   });
 
   it('rejects non-http schemes', () => {
-    expect(() => parseImportUrl('file:///etc/passwd')).toThrow(RecipeImportError);
+    expect(() => parseImportUrl('file:///etc/passwd')).toThrow(
+      RecipeImportError
+    );
 
     try {
       parseImportUrl('file:///etc/passwd');
@@ -22,7 +28,9 @@ describe('parseImportUrl', () => {
   });
 
   it('blocks localhost', () => {
-    expect(() => parseImportUrl('http://localhost/recipe')).toThrow(RecipeImportError);
+    expect(() => parseImportUrl('http://localhost/recipe')).toThrow(
+      RecipeImportError
+    );
 
     try {
       parseImportUrl('http://localhost/recipe');
@@ -32,7 +40,11 @@ describe('parseImportUrl', () => {
   });
 
   it('blocks private IPv4 addresses', () => {
-    expect(() => parseImportUrl('http://192.168.1.10/recipe')).toThrow(RecipeImportError);
-    expect(() => parseImportUrl('http://127.0.0.1/recipe')).toThrow(RecipeImportError);
+    expect(() => parseImportUrl('http://192.168.1.10/recipe')).toThrow(
+      RecipeImportError
+    );
+    expect(() => parseImportUrl('http://127.0.0.1/recipe')).toThrow(
+      RecipeImportError
+    );
   });
 });

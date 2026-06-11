@@ -1,7 +1,7 @@
 /* Button styles */
 
 .button {
-  @apply rounded-button bg-dark-10 text-label h-input-mobile md:h-input inline-flex cursor-pointer flex-row items-center justify-center gap-3 border border-transparent px-6 transition-transform transition-colors duration-200 ease-in-out will-change-transform;
+  @apply rounded-button bg-dark-10 text-label h-input-mobile md:h-input inline-flex cursor-pointer flex-row items-center justify-center gap-3 border border-transparent px-6 transition-colors transition-transform duration-200 ease-in-out will-change-transform;
   color: color-contrast(var(--background-alt));
 
   &:hover {
@@ -68,8 +68,7 @@
 
 /* Icon buttons are round and slightly larger on small screens. On larger they appear similar to regular buttons. */
 .button.icon {
-  @apply relative p-0 h-11 w-11 rounded-full md:h-icon-button md:w-icon-button md:rounded;
-
+  @apply md:h-icon-button md:w-icon-button relative h-11 w-11 rounded-full p-0 md:rounded;
 
   .svg {
     color: currentColor;

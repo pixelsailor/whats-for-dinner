@@ -1,7 +1,11 @@
 import type { Cookies } from '@sveltejs/kit';
 import { describe, expect, it } from 'vitest';
 
-import { clearSessionPermissions, getSessionPermissions, setSessionPermissions } from './auth.permissions';
+import {
+  clearSessionPermissions,
+  getSessionPermissions,
+  setSessionPermissions
+} from './auth.permissions';
 
 function createCookieJar(): Cookies & { jar: Map<string, string> } {
   const jar = new Map<string, string>();
@@ -43,14 +47,20 @@ describe('session permission cookies', () => {
 
   it('returns null for invalid shape', () => {
     const cookies = createCookieJar();
-    cookies.jar.set('wfd-permissions', JSON.stringify({ ai_assistance: 'yes' }));
+    cookies.jar.set(
+      'wfd-permissions',
+      JSON.stringify({ ai_assistance: 'yes' })
+    );
 
     expect(getSessionPermissions(cookies)).toBeNull();
   });
 
   it('clears the permission cookie', () => {
     const cookies = createCookieJar();
-    setSessionPermissions(cookies, { ai_assistance: true, cloud_storage: true });
+    setSessionPermissions(cookies, {
+      ai_assistance: true,
+      cloud_storage: true
+    });
 
     clearSessionPermissions(cookies);
 

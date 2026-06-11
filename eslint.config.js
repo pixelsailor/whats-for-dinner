@@ -43,7 +43,10 @@ export default [
           allowSeparatedGroups: false
         }
       ],
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', destructuredArrayIgnorePattern: '^_' }]
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        { argsIgnorePattern: '^_', destructuredArrayIgnorePattern: '^_' }
+      ]
     }
   }
 ];

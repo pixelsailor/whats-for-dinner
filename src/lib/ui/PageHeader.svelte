@@ -17,6 +17,9 @@
 
 Structural component for placing items at the top of the page.
 -->
-<div class={`${position} top-0 right-0 z-100 px-4 backdrop-blur-sm lg:px-8`} style:left>
+<div
+  class={`${position} top-0 right-0 z-100 px-4 backdrop-blur-sm lg:px-8`}
+  style:left
+>
   {@render children()}
 </div>

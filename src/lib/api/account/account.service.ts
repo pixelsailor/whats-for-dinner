@@ -52,7 +52,11 @@ export class AccountService {
    * @throws Supabase or {@link AccountParseError} when the row is missing or invalid
    */
   async getUserProfile(): Promise<UserProfile> {
-    const { data, error } = await this.supabase.from('user_profiles').select('*').eq('user_id', this.userId).single();
+    const { data, error } = await this.supabase
+      .from('user_profiles')
+      .select('*')
+      .eq('user_id', this.userId)
+      .single();
 
     if (error) throw error;
 
@@ -106,7 +110,9 @@ export class AccountService {
    * @returns Validated preference rows returned from `.select()`
    * @throws Supabase or {@link AccountParseError} on failure or invalid response
    */
-  async updateUserPreferences(preferences: Partial<UserPreferencesResponse>): Promise<UserPreferencesResponse[]> {
+  async updateUserPreferences(
+    preferences: Partial<UserPreferencesResponse>
+  ): Promise<UserPreferencesResponse[]> {
     const validatedPreferences = parseUserPreferencesUpdate(preferences);
 
     const { data, error } = await this.supabase

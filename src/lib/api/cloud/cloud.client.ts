@@ -3,7 +3,10 @@
  * @module lib/api/cloud/cloud.client
  */
 
-import { PUBLIC_SUPABASE_PUBLISHABLE_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public';
+import {
+  PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+  PUBLIC_SUPABASE_URL
+} from '$env/static/public';
 import { type SupabaseClient, createClient } from '@supabase/supabase-js';
 
 /** Browser-safe Supabase project URL and publishable key pair. */

@@ -20,7 +20,9 @@ import { RecipeSchema } from '../recipe';
  */
 export const AiSuggestionSchema = z.object({
   title: z.string().describe('The title of the recipe.'),
-  short_description: z.string().describe('A short, single sentence description of the recipe.')
+  short_description: z
+    .string()
+    .describe('A short, single sentence description of the recipe.')
 });
 
 /** Model output for suggestion lists (no API-layer `request_id`). */
@@ -38,8 +40,14 @@ export const RecipeAddendumSchema = AiSuggestionSchema.extend({
 
 /** Structured output for conversational cooking help. */
 export const RecipeAssistanceOutputSchema = z.object({
-  answer: z.string().describe('Helpful, conversational cooking advice without altering the recipe.'),
-  recipe: RecipeSchema.optional().nullable().describe('The recipe with any modifications made by the user.')
+  answer: z
+    .string()
+    .describe(
+      'Helpful, conversational cooking advice without altering the recipe.'
+    ),
+  recipe: RecipeSchema.optional()
+    .nullable()
+    .describe('The recipe with any modifications made by the user.')
 });
 
 /** Full recipe JSON from OpenAI (detail, revision, addendum). */
@@ -71,7 +79,13 @@ export const SuggestedRecipePostBodySchema = z
 
 export const RecipesApiPostBodySchema = z
   .object({
-    action: z.enum(['addendum', 'assistance', 'detail', 'revision', 'summaries']),
+    action: z.enum([
+      'addendum',
+      'assistance',
+      'detail',
+      'revision',
+      'summaries'
+    ]),
     prompt: z.string().min(1),
     recipe: z.string().optional(),
     preferences: z.string().optional()

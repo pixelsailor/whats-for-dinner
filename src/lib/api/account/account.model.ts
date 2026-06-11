@@ -10,7 +10,11 @@ import {
   UserPreferencesSchema,
   UserProfileSchema
 } from './account.schemas';
-import type { UserPreferences, UserPreferencesResponse, UserProfile } from './account.types';
+import type {
+  UserPreferences,
+  UserPreferencesResponse,
+  UserProfile
+} from './account.types';
 
 export type { UserProfile, UserPreferences } from './account.types';
 
@@ -41,8 +45,13 @@ export class AccountParseError extends Error {
  */
 function parseOrThrow<T>(result: z.ZodSafeParseResult<T>, context: string): T {
   if (!result.success) {
-    console.error(`Account data validation failed for "${context}".`, result.error.flatten());
-    throw new AccountParseError(`Account data failed validation for "${context}".`);
+    console.error(
+      `Account data validation failed for "${context}".`,
+      result.error.flatten()
+    );
+    throw new AccountParseError(
+      `Account data failed validation for "${context}".`
+    );
   }
 
   return result.data;
@@ -65,7 +74,10 @@ export function parseUserProfile(data: unknown): UserProfile {
  * @throws {AccountParseError} When fields are invalid
  */
 export function parseUserProfileUpdate(data: unknown): Partial<UserProfile> {
-  return parseOrThrow(UserProfileUpdateSchema.safeParse(data), 'user profile update');
+  return parseOrThrow(
+    UserProfileUpdateSchema.safeParse(data),
+    'user profile update'
+  );
 }
 
 /**
@@ -75,7 +87,10 @@ export function parseUserProfileUpdate(data: unknown): Partial<UserProfile> {
  * @throws {AccountParseError} When any row fails validation
  */
 export function parseUserProfileRows(data: unknown): UserProfile[] {
-  return parseOrThrow(z.array(UserProfileSchema).safeParse(data), 'user profile rows');
+  return parseOrThrow(
+    z.array(UserProfileSchema).safeParse(data),
+    'user profile rows'
+  );
 }
 
 /**
@@ -84,8 +99,13 @@ export function parseUserProfileRows(data: unknown): UserProfile[] {
  * @returns Typed preferences row
  * @throws {AccountParseError} When the row does not match {@link UserPreferencesRepsonseSchema}
  */
-export function parseUserPreferencesResponse(data: unknown): UserPreferencesResponse {
-  return parseOrThrow(UserPreferencesRepsonseSchema.safeParse(data), 'user preferences');
+export function parseUserPreferencesResponse(
+  data: unknown
+): UserPreferencesResponse {
+  return parseOrThrow(
+    UserPreferencesRepsonseSchema.safeParse(data),
+    'user preferences'
+  );
 }
 
 /**
@@ -94,8 +114,13 @@ export function parseUserPreferencesResponse(data: unknown): UserPreferencesResp
  * @returns Typed update payload
  * @throws {AccountParseError} When fields are invalid
  */
-export function parseUserPreferencesUpdate(data: unknown): Partial<UserPreferencesResponse> {
-  return parseOrThrow(UserPreferencesUpdateSchema.safeParse(data), 'user preferences update');
+export function parseUserPreferencesUpdate(
+  data: unknown
+): Partial<UserPreferencesResponse> {
+  return parseOrThrow(
+    UserPreferencesUpdateSchema.safeParse(data),
+    'user preferences update'
+  );
 }
 
 /**
@@ -104,8 +129,13 @@ export function parseUserPreferencesUpdate(data: unknown): Partial<UserPreferenc
  * @returns Typed preference rows
  * @throws {AccountParseError} When any row fails validation
  */
-export function parseUserPreferencesResponseRows(data: unknown): UserPreferencesResponse[] {
-  return parseOrThrow(z.array(UserPreferencesRepsonseSchema).safeParse(data), 'user preferences rows');
+export function parseUserPreferencesResponseRows(
+  data: unknown
+): UserPreferencesResponse[] {
+  return parseOrThrow(
+    z.array(UserPreferencesRepsonseSchema).safeParse(data),
+    'user preferences rows'
+  );
 }
 
 /** Boolean permission columns on `user_profiles`. */
@@ -116,6 +146,9 @@ export type ProfilePermissionFlag = 'ai_assistance' | 'cloud_storage';
  * @param user - Validated user profile from {@link parseUserProfile} or {@link AccountService.getUserProfile}
  * @param permission - Permission column on `user_profiles`
  */
-export function hasPermission(user: UserProfile, permission: ProfilePermissionFlag): boolean {
+export function hasPermission(
+  user: UserProfile,
+  permission: ProfilePermissionFlag
+): boolean {
   return user[permission] === true;
 }

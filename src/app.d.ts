@@ -8,7 +8,10 @@ declare global {
     // interface Error {}
     interface Locals {
       user: User | null;
-      safeGetSession: () => Promise<{ session: Session | null; user: User | null }>;
+      safeGetSession: () => Promise<{
+        session: Session | null;
+        user: User | null;
+      }>;
       session: Session | null;
       supabase: SupabaseClient;
       permissions: { ai_assistance: boolean; cloud_storage: boolean } | null;
@@ -20,7 +23,10 @@ declare global {
         cloudSync: PolicyResult;
         aiAssistedRecipe: PolicyResult;
       };
-      permissionFlags?: { ai_assistance: boolean; cloud_storage: boolean } | null;
+      permissionFlags?: {
+        ai_assistance: boolean;
+        cloud_storage: boolean;
+      } | null;
       featureFlags?: {
         openai: boolean;
       };

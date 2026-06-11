@@ -9,6 +9,18 @@
   let { children, class: className, ...props }: CardProps = $props();
 </script>
 
-<div class={['card', 'rounded-card', 'bg-background-alt', 'shadow-card', 'p-card', 'border', 'border-border-card', className]} {...props}>
+<div
+  class={[
+    'card',
+    'rounded-card',
+    'bg-background-alt',
+    'shadow-card',
+    'p-card',
+    'border',
+    'border-border-card',
+    className
+  ]}
+  {...props}
+>
   {@render children()}
 </div>

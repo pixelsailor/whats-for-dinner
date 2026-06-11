@@ -26,7 +26,9 @@ import { createLiveQueryStore } from './_utils';
 
 /** Returns all active recipes sorted by title */
 export const recipesStore = createLiveQueryStore(async () => {
-  const all = (await db.recipes.toArray()) as unknown as SavedRecipe[] | undefined;
+  const all = (await db.recipes.toArray()) as unknown as
+    | SavedRecipe[]
+    | undefined;
   if (!all) {
     return [];
   }
@@ -35,7 +37,9 @@ export const recipesStore = createLiveQueryStore(async () => {
 });
 
 export const unsortedRecipesStore = createLiveQueryStore(async () => {
-  const all = (await db.recipes.toArray()) as unknown as SavedRecipe[] | undefined;
+  const all = (await db.recipes.toArray()) as unknown as
+    | SavedRecipe[]
+    | undefined;
   if (!all) {
     return [];
   }
@@ -64,13 +68,18 @@ export const getRecipeStore = (id: string) =>
 
 /** Returns recipes that have been deleted */
 export const deletedRecipesStore = createLiveQueryStore(async () => {
-  const all = (await db.recipes.toArray()) as unknown as SavedRecipe[] | undefined;
+  const all = (await db.recipes.toArray()) as unknown as
+    | SavedRecipe[]
+    | undefined;
   if (!all) {
     return [];
   }
   const deleted = all.filter((r) => r.deleted_at != null);
   if (deleted.length > 0) {
-    return deleted.sort((a, b) => new Date(b.deleted_at!).getTime() - new Date(a.deleted_at!).getTime());
+    return deleted.sort(
+      (a, b) =>
+        new Date(b.deleted_at!).getTime() - new Date(a.deleted_at!).getTime()
+    );
   } else {
     return deleted;
   }
@@ -85,7 +94,10 @@ export const recentlyOpened = readable<SavedRecipe[]>([], (recipes) => {
     const all = await db.recipes.toArray();
     return all
       .filter((r) => r.deleted_at == null)
-      .sort((a, b) => new Date(b.last_opened).getTime() - new Date(a.last_opened).getTime())
+      .sort(
+        (a, b) =>
+          new Date(b.last_opened).getTime() - new Date(a.last_opened).getTime()
+      )
       .slice(0, 9);
   }).subscribe(recipes);
   return () => subscription.unsubscribe();
@@ -93,12 +105,17 @@ export const recentlyOpened = readable<SavedRecipe[]>([], (recipes) => {
 
 /** Returns the 10 most recently opened recipes */
 export const recentlyOpenedStore = createLiveQueryStore(async () => {
-  const all = (await db.recipes.toArray()) as unknown as SavedRecipe[] | undefined;
+  const all = (await db.recipes.toArray()) as unknown as
+    | SavedRecipe[]
+    | undefined;
   if (!all) {
     return [];
   }
   return all
     .filter((r) => r.deleted_at == null)
-    .sort((a, b) => new Date(b.last_opened).getTime() - new Date(a.last_opened).getTime())
+    .sort(
+      (a, b) =>
+        new Date(b.last_opened).getTime() - new Date(a.last_opened).getTime()
+    )
     .slice(0, 9);
 });

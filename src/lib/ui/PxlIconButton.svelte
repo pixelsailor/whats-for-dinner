@@ -57,7 +57,11 @@ _Reference: bits-ui [Tooltip](https://bits-ui.com/docs/components/tooltip/llms.t
 {#if tooltip}
   <Tooltip.Provider delayDuration={300} ignoreNonKeyboardFocus={true}>
     <Tooltip.Root {open}>
-      <Tooltip.Trigger class="button icon text z-0" style={`border-radius: ${shape === 'circle' ? '9999px' : '0.125rem'};`} {...triggerProps}>
+      <Tooltip.Trigger
+        class="button icon text z-0"
+        style={`border-radius: ${shape === 'circle' ? '9999px' : '0.125rem'};`}
+        {...triggerProps}
+      >
         {@render children()}
       </Tooltip.Trigger>
       <Tooltip.Portal>

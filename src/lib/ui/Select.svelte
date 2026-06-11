@@ -18,11 +18,22 @@
     error?: string;
   };
 
-  let { value = $bindable(), items, contentProps, placeholder, onReset, error, onValueChange, ...restProps }: Props = $props();
+  let {
+    value = $bindable(),
+    items,
+    contentProps,
+    placeholder,
+    onReset,
+    error,
+    onValueChange,
+    ...restProps
+  }: Props = $props();
 
   let containerRef = $state<HTMLElement>();
 
-  let selected = $derived(items?.find((item) => item.value === value)?.label ?? null);
+  let selected = $derived(
+    items?.find((item) => item.value === value)?.label ?? null
+  );
 
   /** Remove a tag from the selected values. Only available for multiple select. */
   function removeTag(label: string) {
@@ -46,7 +57,11 @@ _Reference: bits-ui [Select](https://bits-ui.com/docs/components/select/llms.txt
 ```
 -->
 {#snippet tag(label: string)}
-  <button type="button" class="tag label-medium cursor-pointer" onclick={() => removeTag(label)}>
+  <button
+    type="button"
+    class="tag label-medium cursor-pointer"
+    onclick={() => removeTag(label)}
+  >
     <span>{label}</span>
   </button>
 {/snippet}
@@ -149,7 +164,9 @@ _Reference: bits-ui [Select](https://bits-ui.com/docs/components/select/llms.txt
         {#each items as item (item.value)}
           {#if item.items}
             <Select.Group>
-              <Select.GroupHeading class="label-medium px-2 py-1 text-foreground-alt uppercase bg-dark-04/50">
+              <Select.GroupHeading
+                class="label-medium px-2 py-1 text-foreground-alt uppercase bg-dark-04/50"
+              >
                 {item.label}
               </Select.GroupHeading>
               {#each item.items as subItem (subItem.value)}

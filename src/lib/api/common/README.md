@@ -16,10 +16,10 @@ Cross-domain validation schemas and TypeScript types shared by multiple API slic
 
 Supabase clients are created at wiring boundaries and passed into services:
 
-| Surface                           | Factory                                                  | Module                                                             |
-| --------------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------ |
-| `event.locals.supabase`           | `createRequestServerClient`                              | [`session/`](../session/)                                          |
-| `data.supabase` from `+layout.ts` | `createLayoutBrowserClient` / `createLayoutServerClient` | [`session/`](../session/)                                          |
-| Anonymous server routes           | `createAnonymousCloudClient`                             | [`cloud/cloud.client.ts`](../cloud/cloud.client.ts)                |
+| Surface                           | Factory                                                  | Module                                              |
+| --------------------------------- | -------------------------------------------------------- | --------------------------------------------------- |
+| `event.locals.supabase`           | `createRequestServerClient`                              | [`session/`](../session/)                           |
+| `data.supabase` from `+layout.ts` | `createLayoutBrowserClient` / `createLayoutServerClient` | [`session/`](../session/)                           |
+| Anonymous server routes           | `createAnonymousCloudClient`                             | [`cloud/cloud.client.ts`](../cloud/cloud.client.ts) |
 
 See [`.cursor/rules/supabase-enhancement-boundary.mdc`](../../../.cursor/rules/supabase-enhancement-boundary.mdc), [`src/lib/api/session/README.md`](../session/README.md), and [`src/lib/api/cloud/README.md`](../cloud/README.md).

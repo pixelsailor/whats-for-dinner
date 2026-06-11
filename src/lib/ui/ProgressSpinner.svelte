@@ -18,8 +18,18 @@
 
 <span class="pxl--progress-spinner">
   <svg width={pixelSize} height={pixelSize} viewBox="0 0 100 100">
-    <circle class="bg stroke-gray-50 dark:stroke-black" cx="50" cy="50" r="38" />
-    <circle class="loader stroke-gray-900 dark:stroke-gray-100" cx="50" cy="50" r="38" />
+    <circle
+      class="bg stroke-gray-50 dark:stroke-black"
+      cx="50"
+      cy="50"
+      r="38"
+    />
+    <circle
+      class="loader stroke-gray-900 dark:stroke-gray-100"
+      cx="50"
+      cy="50"
+      r="38"
+    />
   </svg>
 </span>
 

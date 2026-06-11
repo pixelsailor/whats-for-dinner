@@ -1,5 +1,8 @@
 import { AuthService } from '$lib/api/auth';
-import { createRequestServerClient, isSessionSerializedResponseHeader } from '$lib/api/session';
+import {
+  createRequestServerClient,
+  isSessionSerializedResponseHeader
+} from '$lib/api/session';
 import { getSessionPermissions } from '$lib/api/auth/auth.permissions';
 import { type Handle, redirect } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
@@ -29,7 +32,8 @@ const supabase: Handle = async ({ event, resolve }) => {
    * validating the JWT, this function also calls `getUser()` to validate the
    * JWT before returning the session.
    */
-  event.locals.safeGetSession = () => new AuthService(event.locals.supabase).getValidatedSession();
+  event.locals.safeGetSession = () =>
+    new AuthService(event.locals.supabase).getValidatedSession();
 
   return resolve(event, {
     filterSerializedResponseHeaders(name) {
@@ -52,7 +56,9 @@ const authGuard: Handle = async ({ event, resolve }) => {
   const { session, user } = await event.locals.safeGetSession();
   event.locals.session = session;
   event.locals.user = user;
-  event.locals.permissions = session ? getSessionPermissions(event.cookies) : null;
+  event.locals.permissions = session
+    ? getSessionPermissions(event.cookies)
+    : null;
 
   if (event.locals.session && event.url.pathname === '/auth') {
     throw redirect(303, '/');

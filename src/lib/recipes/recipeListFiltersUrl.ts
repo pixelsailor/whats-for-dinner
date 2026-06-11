@@ -8,7 +8,9 @@ export type RecipeListSort = z.infer<typeof SortSchema>;
 const MAX_Q_LEN = 2000;
 
 /** Default direction when changing sort in the list UI (`setSortOrder`). */
-export function defaultSortDirection(sort: RecipeListSort): z.infer<typeof DirSchema> {
+export function defaultSortDirection(
+  sort: RecipeListSort
+): z.infer<typeof DirSchema> {
   return sort === 'title' ? 'asc' : 'desc';
 }
 
@@ -31,9 +33,16 @@ function normalizeTags(raw: string[]): string[] {
 /**
  * Read recipe list filters from URL search params. Invalid `sort` / `dir` fall back to defaults.
  */
-export function parseRecipeListSearchParams(params: URLSearchParams): RecipeListFiltersState {
+export function parseRecipeListSearchParams(
+  params: URLSearchParams
+): RecipeListFiltersState {
   const qRaw = params.get('q')?.trim() ?? '';
-  const q = qRaw.length === 0 ? undefined : qRaw.length > MAX_Q_LEN ? qRaw.slice(0, MAX_Q_LEN) : qRaw;
+  const q =
+    qRaw.length === 0
+      ? undefined
+      : qRaw.length > MAX_Q_LEN
+        ? qRaw.slice(0, MAX_Q_LEN)
+        : qRaw;
 
   const tags = normalizeTags(params.getAll('tag'));
 
@@ -49,13 +58,19 @@ export function parseRecipeListSearchParams(params: URLSearchParams): RecipeList
 /**
  * Build a URL with canonical query string for the given filters (pathname + search only).
  */
-export function applyRecipeListFiltersToUrl(base: URL, state: RecipeListFiltersState): URL {
+export function applyRecipeListFiltersToUrl(
+  base: URL,
+  state: RecipeListFiltersState
+): URL {
   const u = new URL(base);
   u.search = '';
 
   if (state.search != null && state.search.trim() !== '') {
     const trimmed = state.search.trim();
-    u.searchParams.set('q', trimmed.length > MAX_Q_LEN ? trimmed.slice(0, MAX_Q_LEN) : trimmed);
+    u.searchParams.set(
+      'q',
+      trimmed.length > MAX_Q_LEN ? trimmed.slice(0, MAX_Q_LEN) : trimmed
+    );
   }
 
   for (const t of normalizeTags(state.tags)) {

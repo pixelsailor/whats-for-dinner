@@ -76,7 +76,7 @@ _Reference: bits-ui [Select](https://bits-ui.com/docs/components/select/llms.txt
   <div
     class={[
       'body-medium',
-      'textinput',
+      'textinput textinput--outlined',
       'pr-0! py-0!',
       'flex',
       'flex-row',

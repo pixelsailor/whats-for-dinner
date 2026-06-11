@@ -285,7 +285,7 @@
       <div class="form-field">
         <Label.Root for="sort-order" class="label-large">Sort by</Label.Root>
         <div
-          class="body-medium textinput p-0! flex flex-row flex-nowrap items-stretch"
+          class="body-medium textinput textinput--outlined p-0! flex flex-row flex-nowrap items-stretch"
         >
           <BitsSelect.Root
             type="single"

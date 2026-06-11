@@ -107,7 +107,7 @@
   --dark-10: oklch(from var(--mauve-800) l c h / 0.1);
   --dark-04: oklch(from var(--mauve-800) l c h / 0.04);
   --border: var(--mauve-300);
-  --input: oklch(from var(--mauve-50) l c h / 0.75);
+  --input: var(--mauve-50);
   --input-text: var(--mauve-950);
   --input-border: oklch(from var(--mauve-200) l c h / 0.75);
   --input-border-hover: hsla(240 6% 10% / 0.4);
@@ -179,7 +179,7 @@
     --dark-04: hsl(0 0% 96% / 0.04);
     --border: oklch(from var(--mauve-800) l c h / 0.25);
     --border-card: hsla(0 0% 50% / 0.25);
-    --input: oklch(from var(--mauve-800) l c h / 0.75);
+    --input: var(--mauve-800);
     --input-text: var(--white);
     --input-border: oklch(from var(--mauve-500) l c h / 0.17);
     --input-border-hover: hsla(0 0% 96% / 0.4);

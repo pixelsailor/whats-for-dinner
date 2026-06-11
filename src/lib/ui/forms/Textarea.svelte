@@ -62,7 +62,7 @@ A textarea component incorporating a label and wrapping form field.
     {required}
     bind:value
     class={[
-      'textarea body-medium border-border-input',
+      'textarea textarea--outlined body-medium border-border-input',
       error ? 'border-destructive' : ''
     ]}
     {...restProps}

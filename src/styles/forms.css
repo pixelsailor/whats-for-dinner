@@ -125,7 +125,8 @@ input.invalid {
 
 .textinput,
 input {
-  @apply h-input-mobile md:h-input bg-input rounded-input border-input-border hover:shadow-mini border;
+  /* @apply h-input-mobile md:h-input bg-input rounded-input border-input-border hover:shadow-mini border; */
+  @apply h-input-mobile md:h-input bg-input;
   padding: var(--padding-input-y) var(--padding-input-x);
 }
 
@@ -181,4 +182,12 @@ textarea {
 
 input:is(:autofill, :-webkit-autofill) {
   @apply bg-input;
+}
+
+input.outlined,
+textarea.outlined,
+.textinput--outlined,
+.textarea--outlined,
+.input-group--outlined {
+  @apply rounded-input border-input-border hover:shadow-mini border;
 }

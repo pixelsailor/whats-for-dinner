@@ -163,6 +163,7 @@ Example:
     {name}
     class={[
       'textinput',
+      'textinput--outlined',
       'body-medium',
       'border-input-border',
       'h-input-mobile',

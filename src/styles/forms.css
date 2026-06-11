@@ -123,17 +123,18 @@ input.invalid {
   line-height: 1;
 }
 
-.textinput,
-input {
-  /* @apply h-input-mobile md:h-input bg-input rounded-input border-input-border hover:shadow-mini border; */
+input,
+textarea {
   @apply h-input-mobile md:h-input bg-input;
   padding: var(--padding-input-y) var(--padding-input-x);
 }
 
-.textarea,
-textarea {
-  @apply bg-input rounded-input border-input-border hover:shadow-mini min-h-18 resize-y border;
-  padding: var(--padding-input-y) var(--padding-input-x);
+.textinput {
+  @apply rounded-input border-input-border border hover:shadow-mini;
+}
+
+.textarea {
+  @apply rounded-input border-input-border min-h-18 resize-y border hover:shadow-mini;
 }
 
 .input-group {
@@ -184,10 +185,6 @@ input:is(:autofill, :-webkit-autofill) {
   @apply bg-input;
 }
 
-input.outlined,
-textarea.outlined,
-.textinput--outlined,
-.textarea--outlined,
 .input-group--outlined {
   @apply rounded-input border-input-border hover:shadow-mini border;
 }

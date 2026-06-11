@@ -9,6 +9,7 @@
   import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
   import { networkStore } from '$lib/stores/network';
   import { deriveAICapability } from '$lib/api/auth/auth.capability';
+  import ChatbotIcon from '$lib/ui/icons/ChatbotIcon.svelte';
 
   let { data } = $props();
   let network = $derived($networkStore);
@@ -45,6 +46,8 @@
   // Show request status without changing app.view
   let working = $state(false);
 
+  let promptInputRef = $state<HTMLInputElement>();
+
   /** Handles prompt form, sending input value as URL params */
   function getSuggestions(e: Event) {
     e.preventDefault();
@@ -68,12 +71,25 @@
     <div class="mx-auto w-full max-w-3xl">
       <h1 class="display-small mb-6 text-center">{getGreeting()}</h1>
       {#if canUseAI}
-        <Prompt style="margin-bottom: 0">
+        <Prompt
+          style="margin-bottom: 0"
+          tabindex="0"
+          onclick={() => {
+            promptInputRef?.focus();
+          }}
+          onfocus={() => {
+            promptInputRef?.focus();
+          }}
+        >
           <form class="flex w-full flex-row gap-2" onsubmit={getSuggestions}>
+            <div class="flex flex-row items-center gap-2">
+              <ChatbotIcon size="md" />
+            </div>
             <input
-              class="grow border-none bg-gray-100 p-1 placeholder:text-gray-500 dark:bg-gray-900 dark:placeholder:text-gray-400"
+              class="grow focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:shadow-none"
               type="text"
               name="input"
+              bind:this={promptInputRef}
               bind:value={app.input}
               placeholder="Ask for event ideas, regional recipes, or just list ingredients"
               disabled={working}

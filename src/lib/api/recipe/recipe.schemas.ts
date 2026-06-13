@@ -119,7 +119,7 @@ export const RecipeSummarySchema = RecipeRootSchema.extend({
   /** Primary id (UUID). Used to link to the suggestion in the suggestion history. */
   id: z.uuid(),
   created_at: supabaseTimestamptzSchema,
-  last_opened: supabaseTimestamptzSchema.optional()
+  last_opened: supabaseTimestamptzSchema.optional().nullable()
 });
 
 /**
@@ -154,11 +154,13 @@ export const RecipeSchema = RecipeRootSchema.extend({
     ),
   prep_time: z
     .array(z.string())
+    .nullable()
     .describe(
       'Preparation time in minutes, may include marinating or chilling. Use a second value for a range, e.g. "10-15 minutes" is represented as ["10", "15"]'
     ),
   cook_time: z
     .array(z.string())
+    .nullable()
     .describe(
       'Cooking time in minutes. Use a second value for a range, e.g. "10-15 minutes" is represented as ["10", "15"]'
     ),

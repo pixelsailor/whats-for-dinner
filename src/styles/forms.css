@@ -124,14 +124,18 @@ input.invalid {
 }
 
 input,
-select,
-textarea {
+select {
   @apply h-input-mobile md:h-input bg-input;
   padding: var(--padding-input-y) var(--padding-input-x);
 }
 
 .textinput {
   @apply rounded-input border-input-border border hover:shadow-mini;
+}
+
+textarea {
+  @apply min-h-input-mobile md:min-h-input bg-input;
+  padding: var(--padding-input-y) var(--padding-input-x);
 }
 
 .textarea {

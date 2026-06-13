@@ -86,7 +86,7 @@
               <ChatbotIcon size="md" />
             </div>
             <input
-              class="grow focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:shadow-none"
+              class="grow bg-transparent! focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:shadow-none"
               type="text"
               name="input"
               bind:this={promptInputRef}

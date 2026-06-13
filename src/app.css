@@ -93,27 +93,27 @@
   --info: hsl(201 90% 50%);
   --success: hsl(141 71% 48%);
 
-  --background: var(--mauve-100);
-  --background-alt: var(--mauve-200);
-  --foreground: var(--mauve-900);
-  --foreground-alt: var(--mauve-700);
-  --muted: oklch(from var(--mauve-200) l c h / 0.4);
-  --muted-foreground: oklch(from var(--mauve-900) l c h / 0.4);
+  --background: var(--mauve-100); /* primary background color */
+  --background-alt: var(--mauve-200); /* secondary background color -- panels, cards, drawers, etc. */
+  --foreground: var(--mauve-900); /* primary foreground color */
+  --foreground-alt: var(--mauve-700); /* secondary foreground color */
+  --muted: oklch(from var(--mauve-400) l c h / 0.2); /* muted background color -- used for disabled buttons, etc. */
+  --muted-foreground: oklch(from var(--mauve-900) l c h / 0.6); /* muted foreground color -- used for placeholder text, disabled buttons, etc. */
   --accent: AccentColor;
   --accent-foreground: AccentColorText;
-  --dark: var(--mauve-800);
+  --dark: var(--mauve-500);
   --dark-foreground: var(--white);
-  --dark-40: oklch(from var(--mauve-800) l c h / 0.4);
-  --dark-10: oklch(from var(--mauve-800) l c h / 0.1);
-  --dark-04: oklch(from var(--mauve-800) l c h / 0.04);
-  --border: var(--mauve-300);
+  --dark-40: oklch(from var(--mauve-500) l c h / 0.4);
+  --dark-10: oklch(from var(--mauve-500) l c h / 0.1);
+  --dark-04: oklch(from var(--mauve-500) l c h / 0.04);
+  --border: oklch(from var(--mauve-600) l c h / 0.25);
   --input: var(--mauve-50);
   --input-text: var(--mauve-950);
   --input-border: oklch(from var(--mauve-200) l c h / 0.75);
   --input-border-hover: hsla(240 6% 10% / 0.4);
-  --border-card: hsla(240 6% 10% / 0.1);
-  --line: hsl(0 0% 90.92%);
-  --card: var(--foreground-alt);
+  /* --border-card: hsla(240 6% 10% / 0.1); */
+  /* --dialog-border: oklch(from var(--mauve-800) l c h / 0.25); */
+  --line: oklch(from var(--mauve-600) l c h / 0.25);
   --popover: oklch(from var(--mauve-50) l c h / 0.85);
 
   /* Shadows */
@@ -169,21 +169,20 @@
     --background: var(--black);
     --background-alt: var(--mauve-900);
     --foreground: var(--mauve-50);
-    --foreground-alt: var(--mauve-300);
-    --muted: oklch(from var(--mauve-900) l c h / 0.2);
-    --muted-foreground: var(--mauve-400);
-    --dark: hsl(0 0% 96%);
+    --foreground-alt: var(--mauve-400);
+    --muted: oklch(from var(--mauve-700) l c h / 0.3);
+    --muted-foreground: oklch(from var(--mauve-50) l c h / 0.7);
+    --dark: var(--mauve-300);
     --dark-foreground: hsl(0 0% 5% / 0.8);
-    --dark-40: hsl(0 0% 96% / 0.4);
-    --dark-10: hsl(0 0% 96% / 0.1);
-    --dark-04: hsl(0 0% 96% / 0.04);
-    --border: oklch(from var(--mauve-800) l c h / 0.25);
-    --border-card: hsla(0 0% 50% / 0.25);
-    --input: var(--mauve-800);
+    --dark-40: oklch(from var(--mauve-300) l c h / 0.4);
+    --dark-10: oklch(from var(--mauve-300) l c h / 0.1);
+    --dark-04: oklch(from var(--mauve-300) l c h / 0.04);
+    --border: oklch(from var(--mauve-500) l c h / 0.25);
+    --input: oklch(from var(--mauve-800) l c h / 0.6);
     --input-text: var(--white);
     --input-border: oklch(from var(--mauve-500) l c h / 0.17);
     --input-border-hover: hsla(0 0% 96% / 0.4);
-    --line: hsl(0 0% 15%);
+    --line: oklch(from var(--mauve-500) l c h / 0.25);
     --ring-foreground: AccentColor;
     --popover: oklch(from var(--mauve-900) l c h / 0.85);
 
@@ -222,13 +221,14 @@
   --color-input: var(--input);
   --color-input-border: var(--input-border);
   --color-input-text: var(--input-text);
-  --color-border: var(--border-card);
+  --color-border: var(--border);
   --color-input-border-hover: var(--input-border-hover);
-  --color-border-card: var(--border-card);
+  --color-dialog-border: var(--border);
+  --color-border-card: var(--border);
   --color-border-destructive: var(--destructive);
   --color-ring: var(--accent);
   --color-line: var(--line);
-  --color-card: var(--card);
+  --color-card: var(--background-alt);
   --color-popover: var(--popover);
   --color-placeholder: var(--muted-foreground);
 
@@ -266,6 +266,7 @@
   --radius-button: var(--button-radius);
   --radius-input: var(--input-radius);
   --radius-popover: var(--popover-radius);
+  --radius-dialog: var(--popover-radius);
   --radius-5px: 5px;
   --radius-9px: 9px;
   --radius-10px: 10px;

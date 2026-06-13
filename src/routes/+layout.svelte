@@ -493,7 +493,7 @@
           <NavigationMenu.Item>
             <NavigationMenu.Link
               href="/"
-              class="sidenav-link h-input-mobile md:h-input hover:bg-dark-04"
+              class="sidenav-link h-input-mobile md:h-input hover:bg-dark-10"
             >
               <ChatbotIcon size="xs" />
               <span class="sidenav-link__text">What's For Dinner?</span>
@@ -503,24 +503,24 @@
         <NavigationMenu.Item>
           <NavigationMenu.Link
             href="/recommendations"
-            class="sidenav-link h-input-mobile md:h-input hover:bg-dark-04"
+            class="sidenav-link h-input-mobile md:h-input hover:bg-dark-10"
           >
             <TimeIcon size="xs" ariaLabel="Recommendations" />
             <span class="sidenav-link__text">Recommendations</span>
           </NavigationMenu.Link>
         </NavigationMenu.Item>
-        <NavigationMenu.Item class="rounded-button hover:bg-dark-04/70">
+        <NavigationMenu.Item class="rounded-button hover:bg-dark-04">
           <div class="button-group">
             <NavigationMenu.Link
               href="/recipes"
-              class="sidenav-link flex-grow h-input-mobile md:h-input hover:bg-dark-04 rounded-r-none"
+              class="sidenav-link flex-grow h-input-mobile md:h-input hover:bg-dark-10 rounded-r-none"
             >
               <RecipesIcon size="xs" />
               <span class="sidenav-link__text">My Recipes</span>
             </NavigationMenu.Link>
             <NavigationMenu.Link
               href="/recipes/new"
-              class="sidenav-link flex-none min-content h-input-mobile md:h-input hover:bg-dark-04 rounded-l-none"
+              class="sidenav-link flex-none min-content h-input-mobile md:h-input hover:bg-dark-10 rounded-l-none"
             >
               <DocumentAddIcon size="xs" />
             </NavigationMenu.Link>
@@ -529,7 +529,7 @@
       </NavigationMenu.List>
     </NavigationMenu.Root>
     <div class="mx-3 mt-8 mb-2">
-      <span class="heading-compact text-muted-foreground">Recent recipes</span>
+      <span class="heading-compact text-foreground-alt">Recent recipes</span>
     </div>
 
     {#if recentlyOpened.length === 0}
@@ -544,7 +544,7 @@
               <NavigationMenu.Link
                 href="/recipes/{recipe.id}"
                 title={recipe.title}
-                class="sidenav-link h-input-mobile md:h-input hover:bg-dark-04"
+                class="sidenav-link h-input-mobile md:h-input hover:bg-dark-10"
               >
                 <span class="sidenav-link__text">{recipe.title}</span>
               </NavigationMenu.Link>
@@ -567,7 +567,7 @@
         {#if session}
           <NavigationMenu.Item>
             <NavigationMenu.Link
-              class="sidenav-link h-input-mobile md:h-input hover:bg-gray-200 dark:hover:bg-gray-800"
+              class="sidenav-link h-input-mobile md:h-input hover:bg-dark-10"
               href="/preferences"
             >
               <SettingsIcon size="xs" />
@@ -576,7 +576,7 @@
           </NavigationMenu.Item>
           <NavigationMenu.Item>
             <button
-              class="sidenav-link w-full h-input-mobile md:h-input hover:bg-gray-200 dark:hover:bg-gray-800 hover:cursor-pointer"
+              class="sidenav-link w-full h-input-mobile md:h-input hover:bg-dark-10 hover:cursor-pointer"
               onclick={handleSignOut}
             >
               <LogoutIcon size="xs" />
@@ -586,7 +586,7 @@
         {:else}
           <NavigationMenu.Item>
             <NavigationMenu.Link
-              class="sidenav-link h-input-mobile md:h-input hover:bg-gray-200 dark:hover:bg-gray-800"
+              class="sidenav-link h-input-mobile md:h-input hover:bg-dark-10"
               href="/auth"
             >
               <LoginIcon size="xs" />

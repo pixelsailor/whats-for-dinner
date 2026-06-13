@@ -98,7 +98,6 @@ export const CATEGORY_TAGS = {
 
 // Create a case-insensitive lookup map
 const ALL_TAGS = Object.values(CATEGORY_TAGS).flat();
-// const TAG_LOOKUP = new Map(ALL_TAGS.map((tag) => [tag.toLowerCase(), tag]));
 
 export const RecipeRootSchema = z.object({
   title: z
@@ -146,12 +145,12 @@ export const RecipeSchema = RecipeRootSchema.extend({
   tags: z
     .array(z.string().min(1))
     .describe(
-      `Use at least one tag from the following course tags: ${CATEGORY_TAGS.course.join(', ')}. Additional tags encouraged. Available tags include: ${ALL_TAGS.join(', ')}. DO NOT use capital letters.`
+      `Use at least one tag from the following course tags: ${CATEGORY_TAGS.course.join(', ')} and one tag describing the main ingredient (e.g. 'chicken', 'tomato', 'chocolate'). Additional tags encouraged. Available tags include: ${ALL_TAGS.join(', ')}. DO NOT use capital letters.`
     ),
   yield: z
     .string()
     .describe(
-      "Number of servings for meals (e.g. 2 to 4 servings) or volume for sauces, dressings or similar, e.g. '2 cups"
+      "Number of servings for meals (e.g. 2 to 4 servings) or volume for sauces, dressings or similar, e.g. 2 cups. Describe the yield -- don't just give a number."
     ),
   prep_time: z
     .array(z.string())
@@ -207,7 +206,7 @@ export const SavedRecipeSchema = RecipeSchema.extend({
   /** Error message from last sync attempt, if any. */
   sync_error: z.string().nullable(),
   /** History of checkout/made this today dates. */
-  checkout_history: z.array(supabaseTimestamptzSchema).nullable()
+  checkout_history: z.array(z.iso.date()).nullable()
 });
 
 /** Fields returned by {@link CloudService.getAllRecipeSummaries} for sync comparison. */

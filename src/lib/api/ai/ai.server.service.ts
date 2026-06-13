@@ -327,19 +327,23 @@ notes: ${notes}
 }
 
 /**
- * Extracts a recipe from prepared page content (ADR-017). Caller must fetch and prepare first.
- * @param url - Canonical source URL for attribution
+ * Parses a recipe from prepared page content (ADR-017). Caller must fetch and prepare first.
  * @param prepared - Server-prepared JSON-LD and/or sanitized HTML body from the page
+ * @param url - Optional canonical source URL for attribution
  * @returns Raw structured JSON string from the provider
  */
-export async function importRecipeFromURL(
-  url: string,
-  prepared: PreparedImportContent
+export async function parseRecipeFromPageContent(
+  prepared: PreparedImportContent,
+  url?: string
 ): Promise<string> {
   const instructions = `You are a recipe extraction assistant, not a recipe author.
 
-Your job is to copy the recipe from the PROVIDED PAGE CONTENT below into the required JSON shape.
-You must NOT invent, improve, substitute, or complete missing steps from general knowledge or from the URL alone.
+Your job is to parse the recipe from the PROVIDED PAGE CONTENT below into the required JSON shape.
+PROVIDED PAGE CONTENT may take different forms, including:
+- Plain text
+- Markdown
+- HTML
+- A combination of the above
 
 Source priority within the provided content:
 1. PRIMARY SOURCE block (JSON-LD Recipe data) when present.
@@ -347,11 +351,14 @@ Source priority within the provided content:
 
 Extraction rules:
 - title, ingredients, and instructions must come only from the provided content blocks, not from the URL path or your memory of a dish with a similar name.
-- Preserve ingredient quantities, units, and order; light normalization only (e.g. trim whitespace, unify list markers to markdown "- ").
+- Preserve ingredient quantities, units, and order; light normalization only (e.g. trim whitespace, unify list markers to markdown "- "). You may group ingredients into subheadings if prudent.
 - Preserve step order and wording; you may renumber for markdown "1. 2. 3." but do not merge, split, or rewrite steps unless the source is clearly one combined step.
+- Ambigious or vague instructions may be clarified or expanded upon provided the original source is preserved.
 - description and short_description: use only text present in the provided content.
 - yield, prep_time, cook_time: copy from the provided content when present; do not guess typical values for the dish.
+- notes may be taken from anywhere in the provided content, including narrative, comments, and notes. You may also add your own notes to the recipe if warranted.
 - tags: infer only from explicit labels in the provided content; do not tag from guesswork.
+- remove first-person narrative and pronouns from the provided content -- reword as necessary to make the recipe more objective.
 - Ignore ads, comments, related recipes, navigation, and author bios if they appear in supplemental body HTML.
 
 ${formatInstructions}
@@ -365,6 +372,60 @@ ${prepared.primaryBlock || '(none)'}
 --- SUPPLEMENTAL BODY (sanitized HTML) ---
 ${prepared.sanitizedBodyContent || '(none)'}
 --- END PAGE CONTENT ---`;
+
+  try {
+    const openai = getOpenAI();
+    const response = await openai.responses.create({
+      model: 'gpt-5.4-mini',
+      instructions,
+      input,
+      text: {
+        format: zodTextFormat(RecipeSchema, 'import')
+      }
+    });
+
+    return response.output_text;
+  } catch (err) {
+    console.error('OpenAI API error:', err);
+    throw err;
+  }
+}
+
+/**
+ * Parses a recipe from provided text content.
+ * @param text - Provided text content
+ * @returns Raw structured JSON string from the provider
+ */
+export async function parseRecipeFromText(text: string): Promise<string> {
+  const instructions = `You are a recipe extraction assistant, not a recipe author.
+
+Your job is to parse the recipe from the PROVIDED TEXT CONTENT below into the required JSON shape.
+PROVIDED TEXT CONTENT may take different forms, including:
+- Plain text
+- Markdown
+- HTML
+- A combination of the above
+
+Extraction rules:
+- title, ingredients, and instructions must come only from the provided content blocks, not from the URL path or your memory of a dish with a similar name.
+- Preserve ingredient quantities, units, and order; light normalization only (e.g. trim whitespace, unify list markers to markdown "- "). You may group ingredients into subheadings if prudent.
+- Preserve step order and wording; you may renumber for markdown "1. 2. 3." but do not merge, split, or rewrite steps unless the source is clearly one combined step.
+- Ambigious or vague instructions may be clarified or expanded upon provided the original source is preserved.
+- description and short_description: use only text present in the provided content.
+- yield, prep_time, cook_time: copy from the provided content when present; do not guess typical values for the dish.
+- notes may be taken from anywhere in the provided content, including narrative, comments, and notes. You may also add your own notes to the recipe if warranted.
+- tags: infer only from explicit labels in the provided content; do not tag from guesswork.
+- remove first-person narrative and pronouns from the provided content -- reword as necessary to make the recipe more objective.
+- Ignore ads, comments, related recipes, navigation, and author bios if they appear in supplemental body HTML.
+
+${formatInstructions}
+`;
+
+  const input = `Provided Text Content: ${text}
+
+--- PROVIDED TEXT CONTENT ---
+${text || '(none)'}
+--- END TEXT CONTENT ---`;
 
   try {
     const openai = getOpenAI();

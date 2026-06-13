@@ -12,13 +12,15 @@
   };
 
   let {
-    class: klass,
+    class: klassProp,
     open = $bindable(false),
     children,
     tooltip,
     triggerProps = {},
     ...buttonProps
   }: Props = $props();
+
+  let klass = $derived(clsx('button', klassProp));
 </script>
 
 <!--
@@ -37,7 +39,7 @@ Includes built-in tooltip support. A `Tooltip.Provider` is required in the paren
 -->
 
 {#snippet button()}
-  <Button.Root class={clsx('button', klass)} {...buttonProps}>
+  <Button.Root {...buttonProps} class={klass}>
     {@render children?.()}
   </Button.Root>
 {/snippet}
@@ -48,9 +50,9 @@ Includes built-in tooltip support. A `Tooltip.Provider` is required in the paren
       {#snippet child({ props })}
         <Button.Root
           {...props}
-          class={clsx('button', klass)}
           aria-label={tooltip}
           {...buttonProps}
+          class={klass}
         >
           {@render children?.()}
         </Button.Root>

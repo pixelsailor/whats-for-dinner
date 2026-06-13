@@ -1,12 +1,7 @@
 <script lang="ts">
   import SvelteMarkdown from '@humanspeak/svelte-markdown';
-  import {
-    getLocalTimeZone,
-    parseDate,
-    parseTime,
-    today
-  } from '@internationalized/date';
-  import { getContext, onDestroy, onMount, untrack } from 'svelte';
+  import { getLocalTimeZone, parseDate, today } from '@internationalized/date';
+  import { getContext, onDestroy, untrack } from 'svelte';
   import { slide } from 'svelte/transition';
   import { toast } from 'svelte-sonner';
   import { Button, DropdownMenu } from 'bits-ui';
@@ -44,6 +39,7 @@
   const lastOpenedDelay = 1 * 1000;
   /** The amount of time to wait before updating the recipe's checkout history */
   const checkoutDelay = 4 * 60 * 1000;
+  /** We use just the date to make comparisons easier */
   const todaytz = today(getLocalTimeZone());
 
   let { data, form } = $props();
@@ -304,25 +300,6 @@
         recipe = { ...recipe, ...assistantResponseData.recipe };
       }
       waiting = false;
-
-      // 	// clone the snapshot to avoid "DataCloneError" in `saveModifiedRecipe()`
-      // 	const originalRecipe = structuredClone($state.snapshot(recipe)) as SavedRecipe;
-
-      // 	try {
-      // 		recipe = JSON.parse(message) as SavedRecipe;
-      // 		toast.dismiss();
-      // 		toast.success(`"${recipe.title}" has unsaved changes`, {
-      // 			duration: Number.POSITIVE_INFINITY,
-      // 			// action: {
-      // 			// 	label: 'Save changes',
-      // 			// 	onClick: () => saveModifiedRecipe(originalRecipe)
-      // 			// }
-      // 		});
-      // 	} catch (err) {
-      // 		console.error(err);
-      // 		toast.error('There was a problem parsing the recipe JSON');
-      // 	}
-      // }
     } else if (form && form.error) {
       waiting = false;
       console.error(form.error);

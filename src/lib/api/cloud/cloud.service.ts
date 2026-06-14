@@ -198,7 +198,8 @@ export class CloudService {
 
     if (error) throw error;
 
-    return parseCloudRecipe(data);
+    // return parseCloudRecipe(data);
+    return data;
   }
 
   /**

@@ -356,6 +356,7 @@ Extraction rules:
 - Ambigious or vague instructions may be clarified or expanded upon provided the original source is preserved.
 - description and short_description: use only text present in the provided content.
 - yield, prep_time, cook_time: copy from the provided content when present; do not guess typical values for the dish.
+- Prep and cook times should be converted to minutes. Do not include hyphens, dashes, or other separators. Ranges should be an array of two numbers.
 - notes may be taken from anywhere in the provided content, including narrative, comments, and notes. You may also add your own notes to the recipe if warranted.
 - tags: infer only from explicit labels in the provided content; do not tag from guesswork.
 - remove first-person narrative and pronouns from the provided content -- reword as necessary to make the recipe more objective.
@@ -413,6 +414,7 @@ Extraction rules:
 - Ambigious or vague instructions may be clarified or expanded upon provided the original source is preserved.
 - description and short_description: use only text present in the provided content.
 - yield, prep_time, cook_time: copy from the provided content when present; do not guess typical values for the dish.
+- Prep and cook times should be converted to minutes. Do not include hyphens, dashes, or other separators. Ranges should be an array of two numbers.
 - notes may be taken from anywhere in the provided content, including narrative, comments, and notes. You may also add your own notes to the recipe if warranted.
 - tags: infer only from explicit labels in the provided content; do not tag from guesswork.
 - remove first-person narrative and pronouns from the provided content -- reword as necessary to make the recipe more objective.

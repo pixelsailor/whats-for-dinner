@@ -169,7 +169,7 @@
   });
   let promptHeight = $derived(promptRef?.clientHeight ?? 0);
 
-  let lastFormMessage: string | undefined = undefined;
+  // let lastFormMessage: string | undefined = undefined;
 
   /**
    * Track when the recipe object reference changes (not when properties change).
@@ -350,7 +350,7 @@
   function toggleLastPreparedDate() {
     if (!recipe) return;
 
-    let checkoutHistory: string[] | null = null;
+    let checkoutHistory: string[] | null;
     if (iMadeThisToday) {
       // User reverts their indication of making this today
       iMadeThisToday = false;
@@ -368,7 +368,7 @@
       if (checkoutTimer) clearTimeout(checkoutTimer);
       checkoutTimer = null;
     }
-    recipe.checkout_history = checkoutHistory;
+    recipe.checkout_history = checkoutHistory ?? [];
     saveChanges(true, { checkout_history: checkoutHistory });
   }
 
@@ -655,6 +655,7 @@
                 {#if hasCloudStorageAccess && syncService}
                   <DropdownMenu.Item
                     textValue="Sync recipe"
+                    class="rounded-button text-primary data-highlighted:bg-primary/10 flex h-10 items-center py-3 pr-1.5 pl-3 text-sm font-medium ring-0! ring-transparent! select-none focus-visible:outline-none"
                     onclick={() => syncRecipe(recipe!.id)}
                   >
                     Sync recipe
@@ -728,11 +729,12 @@
             }}
           >
             <input
-              class="grow border-none bg-gray-100 p-1 placeholder:text-gray-500 dark:bg-gray-900 dark:placeholder:text-gray-400"
+              class="textinput grow bg-transparent! border-none shadow-none"
               type="text"
               name="input"
               bind:value={promptInput}
               placeholder="Make changes or ask a recipe related question"
+              autocomplete="off"
             />
             <input type="hidden" name="recipe" bind:value={recipeJson} />
             <Button.Root

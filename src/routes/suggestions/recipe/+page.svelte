@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { getLocalTimeZone, today } from '@internationalized/date';
   import { Button } from 'bits-ui';
   import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
@@ -295,27 +296,21 @@
     if (!recipe) return;
     app.status = 'loading';
 
-    let candidate: SavedRecipe | undefined = undefined;
+    let candidate: SavedRecipe = createSavedRecipe(recipe as FullRecipe);
 
     if (hasCloudStorageAccess && cloudService) {
       try {
-        // Avoid destructuring 'recipe_id' as it may not exist; remove it safely if present
-        const { recipe_id, ...rest } = recipe as Record<string, unknown>;
-        const recipeToUpload = { ...rest } as FullRecipe;
-        candidate = await cloudService.uploadLocalRecipe(recipeToUpload);
+        let response = await cloudService.uploadLocalRecipe(candidate);
 
-        await db.recipes.put(candidate);
+        await db.recipes.put(response);
         if (id) {
-          await db.suggestions.update(id, { recipe_id: candidate.id });
+          await db.suggestions.update(id, { recipe_id: response.id });
         }
         toast.success('Recipe saved');
-        goto(resolve(`/recipes/${candidate.id}`), { replaceState: true });
+        goto(resolve(`/recipes/${response.id}`), { replaceState: true });
       } catch (err) {
         console.error('Cloud save failed; continuing locally', err);
-        candidate = createSavedRecipe(
-          recipe as FullRecipe,
-          err instanceof Error ? err.message : 'Unknown sync error'
-        );
+        candidate.sync_error = err instanceof Error ? err.message : 'Unknown sync error';
         await db.recipes.put(candidate);
         if (id) {
           await db.suggestions.update(id, { recipe_id: candidate.id });
@@ -325,7 +320,6 @@
         app.status = 'idle';
       }
     } else {
-      candidate = createSavedRecipe(recipe as FullRecipe);
       await db.recipes.put(candidate);
       if (id) {
         await db.suggestions.update(id, { recipe_id: candidate.id });
@@ -337,6 +331,7 @@
 
   function createSavedRecipe(recipe: FullRecipe, error?: string): SavedRecipe {
     const now = new Date().toISOString();
+    const todaytz = today(getLocalTimeZone());
     const fullRecipe = {
       ...recipe,
       created_at: now,
@@ -354,7 +349,7 @@
       shared_id: null,
       last_synced_at: null,
       parent_id: null,
-      checkout_history: [now]
+      checkout_history: [todaytz.toString()]
     };
     if ('recipe_id' in fullRecipe) {
       delete fullRecipe.recipe_id;

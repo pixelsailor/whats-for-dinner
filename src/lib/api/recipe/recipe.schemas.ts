@@ -154,13 +154,11 @@ export const RecipeSchema = RecipeRootSchema.extend({
     ),
   prep_time: z
     .array(z.string())
-    .nullable()
     .describe(
       'Preparation time in minutes, may include marinating or chilling. Use a second value for a range, e.g. "10-15 minutes" is represented as ["10", "15"]'
     ),
   cook_time: z
     .array(z.string())
-    .nullable()
     .describe(
       'Cooking time in minutes. Use a second value for a range, e.g. "10-15 minutes" is represented as ["10", "15"]'
     ),

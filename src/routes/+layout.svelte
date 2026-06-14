@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { NavigationMenu, Tooltip } from 'bits-ui';
+  import { Tooltip } from 'bits-ui';
   import { onMount, setContext } from 'svelte';
   import { get } from 'svelte/store';
   import { Toaster, toast } from 'svelte-sonner';
@@ -17,29 +17,20 @@
     type SyncPlan,
     SyncService
   } from '$lib/api/cloud';
-  import { MIN_DESKTOP_SIZE } from '$lib/constants';
   import { recentlyOpenedStore } from '$lib/stores/recipes';
   import { networkStore } from '$lib/stores/network';
-  import { AppBar } from '$lib/ui/AppBar';
+  import Asidenav from '$lib/ui/asidenav/asidenav.svelte';
   import Button from '$lib/ui/button.svelte';
   import Dialog from '$lib/ui/Dialog.svelte';
-  import RecipesIcon from '$lib/ui/icons/RecipesIcon.svelte';
-  import CollapseSidenavIcon from '$lib/ui/icons/CollapseSidenavIcon.svelte';
-  import ChatbotIcon from '$lib/ui/icons/ChatbotIcon.svelte';
-  import SettingsIcon from '$lib/ui/icons/SettingsIcon.svelte';
-  import OpenPanelLeftIcon from '$lib/ui/icons/OpenPanelLeftIcon.svelte';
-  import LogoutIcon from '$lib/ui/icons/LogoutIcon.svelte';
-  import LoginIcon from '$lib/ui/icons/LoginIcon.svelte';
   import type { SavedRecipe } from '$lib/api/recipe/recipe.types';
   import { resetSyncStore, syncStore, updateSyncStore } from '$lib/stores/sync';
-  import DocumentAddIcon from '$lib/ui/icons/DocumentAddIcon.svelte';
-  import TimeIcon from '$lib/ui/icons/Time.svelte';
-
   import '../app.css';
 
   type Layout =
     | 'mobile--collapsed'
     | 'mobile--expanded'
+    | 'desktop-narrow--collapsed'
+    | 'desktop-narrow--expanded'
     | 'desktop--collapsed'
     | 'desktop--expanded';
 
@@ -60,7 +51,7 @@
   /**
    * Viewport helper for responsive layout.
    *
-   * Monitors window width and updates the device and layout state.
+   * Monitors window width and updates the device and layout state. A "mobile" `device` setting puts the sidenav in a "detached" state.
    *
    * @example
    * ```typescript
@@ -72,7 +63,7 @@
    */
   class Viewport {
     #width = $state(0);
-    #device = $state<'desktop' | 'mobile'>('desktop');
+    #device = $state<'desktop' | 'desktop-narrow' | 'mobile'>('desktop');
     #nav = $state<'collapsed' | 'expanded'>('expanded');
     #layout = $state<Layout>('desktop--expanded');
 
@@ -81,13 +72,17 @@
     }
     set width(val) {
       this.#width = val;
-      this.device = this.#width < MIN_DESKTOP_SIZE ? 'mobile' : 'desktop';
+      this.device = this.#width < 640 ? 'mobile' : this.#width < 1024 ? 'desktop-narrow' : 'desktop';
+
+      if (this.#width < 1024) {
+        this.nav = 'collapsed';
+      }
     }
 
     get device() {
       return this.#device;
     }
-    set device(val: 'desktop' | 'mobile') {
+    set device(val: 'desktop' | 'desktop-narrow' | 'mobile') {
       this.#device = val;
       this.nav = val === 'mobile' ? 'collapsed' : 'expanded';
     }
@@ -127,11 +122,6 @@
   let wasOnline = $state(browser ? navigator.onLine : true);
 
   let recentlyOpened = $derived($recentlyOpenedStore.data ?? []);
-
-  async function handleSignOut() {
-    await supabase.auth.signOut();
-    invalidate('supabase:auth');
-  }
 
   async function verifySessionAndSignOutIfExpired() {
     if (!session) {
@@ -220,10 +210,6 @@
 
     wasOnline = online;
   });
-
-  function toggleSidenav() {
-    vp.nav = vp.nav === 'expanded' ? 'collapsed' : 'expanded';
-  }
 
   async function runSync(userId: string) {
     if (!network.online) {
@@ -465,140 +451,6 @@
     value ? new Date(value).toLocaleString() : 'Never synced';
 </script>
 
-{#snippet sidenav()}
-  <AppBar.Root disableMobileNav>
-    <div class="ml-1">
-      <Button href="/" class="text icon">
-        <ChatbotIcon size="sm" />
-      </Button>
-    </div>
-    <AppBar.Text primary="" />
-    <AppBar.End>
-      <div class="mr-4">
-        <Button
-          class="text icon"
-          onclick={toggleSidenav}
-          tooltip="Minimize navigation panel"
-        >
-          <CollapseSidenavIcon size="sm" />
-        </Button>
-      </div>
-    </AppBar.End>
-  </AppBar.Root>
-
-  <div class="w-full overflow-x-hidden px-2">
-    <NavigationMenu.Root orientation="vertical">
-      <NavigationMenu.List>
-        {#if session}
-          <NavigationMenu.Item>
-            <NavigationMenu.Link
-              href="/"
-              class="sidenav-link h-input-mobile md:h-input hover:bg-dark-10"
-            >
-              <ChatbotIcon size="xs" />
-              <span class="sidenav-link__text">What's For Dinner?</span>
-            </NavigationMenu.Link>
-          </NavigationMenu.Item>
-        {/if}
-        <NavigationMenu.Item>
-          <NavigationMenu.Link
-            href="/recommendations"
-            class="sidenav-link h-input-mobile md:h-input hover:bg-dark-10"
-          >
-            <TimeIcon size="xs" ariaLabel="Recommendations" />
-            <span class="sidenav-link__text">Recommendations</span>
-          </NavigationMenu.Link>
-        </NavigationMenu.Item>
-        <NavigationMenu.Item class="rounded-button hover:bg-dark-04">
-          <div class="button-group">
-            <NavigationMenu.Link
-              href="/recipes"
-              class="sidenav-link flex-grow h-input-mobile md:h-input hover:bg-dark-10 rounded-r-none"
-            >
-              <RecipesIcon size="xs" />
-              <span class="sidenav-link__text">My Recipes</span>
-            </NavigationMenu.Link>
-            <NavigationMenu.Link
-              href="/recipes/new"
-              class="sidenav-link flex-none min-content h-input-mobile md:h-input hover:bg-dark-10 rounded-l-none"
-            >
-              <DocumentAddIcon size="xs" />
-            </NavigationMenu.Link>
-          </div>
-        </NavigationMenu.Item>
-      </NavigationMenu.List>
-    </NavigationMenu.Root>
-    <div class="mx-3 mt-8 mb-2">
-      <span class="heading-compact text-foreground-alt">Recent recipes</span>
-    </div>
-
-    {#if recentlyOpened.length === 0}
-      <p class="helper-text m-3 italic">
-        Your recently viewed recipes will appear here.
-      </p>
-    {:else if recentlyOpened.length > 0}
-      <NavigationMenu.Root orientation="vertical">
-        <NavigationMenu.List>
-          {#each recentlyOpened as recipe (recipe.id)}
-            <NavigationMenu.Item>
-              <NavigationMenu.Link
-                href="/recipes/{recipe.id}"
-                title={recipe.title}
-                class="sidenav-link h-input-mobile md:h-input hover:bg-dark-10"
-              >
-                <span class="sidenav-link__text">{recipe.title}</span>
-              </NavigationMenu.Link>
-            </NavigationMenu.Item>
-          {/each}
-        </NavigationMenu.List>
-      </NavigationMenu.Root>
-    {/if}
-    {#if !network.online}
-      <div
-        class="mt-6 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-500 dark:bg-amber-950 dark:text-amber-100"
-      >
-        Offline mode: cloud sync and AI features are temporarily disabled.
-      </div>
-    {/if}
-  </div>
-  <div class="absolute bottom-0 left-0 w-full p-2">
-    <NavigationMenu.Root orientation="vertical">
-      <NavigationMenu.List>
-        {#if session}
-          <NavigationMenu.Item>
-            <NavigationMenu.Link
-              class="sidenav-link h-input-mobile md:h-input hover:bg-dark-10"
-              href="/preferences"
-            >
-              <SettingsIcon size="xs" />
-              <span class="sidenav-link__text">Preferences</span>
-            </NavigationMenu.Link>
-          </NavigationMenu.Item>
-          <NavigationMenu.Item>
-            <button
-              class="sidenav-link w-full h-input-mobile md:h-input hover:bg-dark-10 hover:cursor-pointer"
-              onclick={handleSignOut}
-            >
-              <LogoutIcon size="xs" />
-              <span class="sidenav-link__text">{session.user.email}</span>
-            </button>
-          </NavigationMenu.Item>
-        {:else}
-          <NavigationMenu.Item>
-            <NavigationMenu.Link
-              class="sidenav-link h-input-mobile md:h-input hover:bg-dark-10"
-              href="/auth"
-            >
-              <LoginIcon size="xs" />
-              <span class="sidenav-link__text">Log in</span>
-            </NavigationMenu.Link>
-          </NavigationMenu.Item>
-        {/if}
-      </NavigationMenu.List>
-    </NavigationMenu.Root>
-  </div>
-{/snippet}
-
 <!-- Update the viewport width when the window is resized -->
 <svelte:window bind:innerWidth={vp.width} />
 
@@ -606,9 +458,12 @@
   <Tooltip.Provider>
     <div class="layout-container flex h-full w-full flex-row">
       <div
-        class="relative w-0 flex-none"
-        style:width={vp.layout === 'desktop--collapsed'
-          ? 'calc(4rem + 1px)'
+        class={[
+          'nav-container relative',
+          vp.device === 'mobile' ? 'w-0' : ''
+        ]}
+        style:width={vp.layout === 'desktop--collapsed' || vp.layout.includes('desktop-narrow')
+          ? 'calc(3.25rem + 1px)'
           : vp.layout === 'desktop--expanded'
             ? 'calc(18rem + 1px)'
             : ''}
@@ -619,53 +474,20 @@
             <div
               class="h-full w-2xs bg-background-alt border-border shadow-md dark:border-gray-700 dark:bg-gray-900"
             >
-              {@render sidenav()}
-            </div>
-          </div>
-        {:else if vp.layout === 'mobile--collapsed'}
-          <!-- Layout when mobile sidenav is collapsed/hidden -->
-        {:else if vp.layout === 'desktop--collapsed'}
-          <!-- Layout when desktop sidenav is minimized -->
-          <div
-            class="fixed h-full min-h-screen w-min flex-none border-r border-border bg-background-alt"
-          >
-            <AppBar.Root>
-              <AppBar.Start>
-                <div class="ml-1">
-                  <Button
-                    class="text icon"
-                    onclick={toggleSidenav}
-                    tooltip="Toggle side-nav"
-                  >
-                    <OpenPanelLeftIcon size="xs" />
-                  </Button>
-                </div>
-              </AppBar.Start>
-            </AppBar.Root>
-            <div class="flex flex-col gap-2 p-1">
-              <Button href="/" class="text icon" tooltip="Home">
-                <ChatbotIcon size="xs" />
-              </Button>
-              <Button href="/recipes" class="text icon" tooltip="My Recipes">
-                <RecipesIcon size="xs" />
-              </Button>
-            </div>
-            <div class="fixed bottom-0 px-1 py-2">
-              <Button
-                href="/preferences"
-                class="text icon"
-                tooltip="Preferences"
-              >
-                <SettingsIcon size="xs" />
-              </Button>
+              <Asidenav {session} {recentlyOpened} {network} {supabase} />
             </div>
           </div>
         {:else}
           <!-- Standard desktop Layout with sidenav expanded -->
           <div
-            class="fixed h-full min-h-screen w-2xs flex-none border-r border-border bg-background-alt shadow-xs"
+            class={[
+              'h-dvh flex-none border-r border-border bg-background-alt',
+              vp.device === 'desktop' ? 'fixed' : 'absolute z-10',
+              vp.nav === 'expanded' ? 'w-2xs' : 'w-fit',
+              vp.layout === 'desktop-narrow--expanded' ? 'shadow-lg' : 'shadow-xs'
+            ]}
           >
-            {@render sidenav()}
+            <Asidenav {session} {recentlyOpened} {network} {supabase} />
           </div>
         {/if}
       </div>

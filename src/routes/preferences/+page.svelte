@@ -5,9 +5,9 @@
   import { enhance } from '$app/forms';
 
   import type { ViewState } from '$lib/types';
-  // import { AppBar } from '$lib/ui/AppBar';
+  import { AppBar } from '$lib/ui/AppBar';
   import Button from '$lib/ui/button.svelte';
-  // import PageHeader from '$lib/ui/PageHeader.svelte';
+  import PageHeader from '$lib/ui/PageHeader.svelte';
   import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
   import Select from '$lib/ui/Select.svelte';
   import type {
@@ -192,9 +192,9 @@
   }
 </script>
 
-<!-- <PageHeader>
+<PageHeader>
   <AppBar.Root />
-</PageHeader> -->
+</PageHeader>
 
 <div class="mx-auto max-w-5xl px-4 py-8 lg:px-8">
   {#if data.loadError}

@@ -19,7 +19,7 @@
   let { session, recentlyOpened, network, supabase } = $props();
 
   const vp: Viewport = getContext('viewport');
-  
+
   async function handleSignOut() {
     await supabase.auth.signOut();
     invalidate('supabase:auth');
@@ -32,38 +32,38 @@
 
 <div class="flex flex-col justify-between h-full">
   {#if vp.nav === 'expanded'}
-  <AppBar.Root disableMobileNav>
-    <div class="ml-2.5">
-      <Button href="/" class="text icon">
-        <ChatbotIcon size="sm" />
-      </Button>
-    </div>
-    <AppBar.End>
-      <div class="mr-5.5">
+    <AppBar.Root disableMobileNav>
+      <div class="ml-2.5">
+        <Button href="/" class="text icon">
+          <ChatbotIcon size="sm" />
+        </Button>
+      </div>
+      <AppBar.End>
+        <div class="mr-5.5">
+          <Button
+            class="text icon"
+            onclick={toggleSidenav}
+            tooltip="Minimize navigation panel"
+          >
+            <CollapseSidenavIcon size="sm" />
+          </Button>
+        </div>
+      </AppBar.End>
+    </AppBar.Root>
+  {:else}
+    <AppBar.Root disableMobileNav>
+      <div class="ml-2.5">
         <Button
           class="text icon"
           onclick={toggleSidenav}
-          tooltip="Minimize navigation panel"
+          tooltip="Toggle side-nav"
         >
-          <CollapseSidenavIcon size="sm" />
+          <OpenPanelLeftIcon size="xs" />
         </Button>
       </div>
-    </AppBar.End>
-  </AppBar.Root>
-  {:else}
-  <AppBar.Root disableMobileNav>
-    <div class="ml-2.5">
-      <Button
-        class="text icon"
-        onclick={toggleSidenav}
-        tooltip="Toggle side-nav"
-      >
-        <OpenPanelLeftIcon size="xs" />
-      </Button>
-    </div>
-  </AppBar.Root>
+    </AppBar.Root>
   {/if}
-  
+
   <div class="w-full overflow-x-hidden px-2 grow overflow-y-auto">
     <NavigationMenu.Root orientation="vertical">
       <NavigationMenu.List>
@@ -114,12 +114,12 @@
         </NavigationMenu.Item>
       </NavigationMenu.List>
     </NavigationMenu.Root>
-  
+
     {#if vp.nav === 'expanded'}
       <div class="mx-3 mt-8 mb-2">
         <span class="heading-compact text-foreground-alt">Recent recipes</span>
       </div>
-  
+
       {#if recentlyOpened.length === 0}
         <p class="helper-text m-3 italic">
           Your recently viewed recipes will appear here.

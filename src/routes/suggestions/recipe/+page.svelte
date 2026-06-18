@@ -310,7 +310,8 @@
         goto(resolve(`/recipes/${response.id}`), { replaceState: true });
       } catch (err) {
         console.error('Cloud save failed; continuing locally', err);
-        candidate.sync_error = err instanceof Error ? err.message : 'Unknown sync error';
+        candidate.sync_error =
+          err instanceof Error ? err.message : 'Unknown sync error';
         await db.recipes.put(candidate);
         if (id) {
           await db.suggestions.update(id, { recipe_id: candidate.id });

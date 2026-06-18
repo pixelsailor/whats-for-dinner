@@ -209,7 +209,12 @@ Example with `control` (requires `FormGroup`):
     {onfocus}
     required={requiredText ? true : requiredProp ? true : undefined}
     {disabled}
-    class={['textinput', 'textinput--outlined', 'body-medium', invalid ? 'invalid' : '']}
+    class={[
+      'textinput',
+      'textinput--outlined',
+      'body-medium',
+      invalid ? 'invalid' : ''
+    ]}
     {...inputProps}
   />
   {#if helperText || errorMessage}

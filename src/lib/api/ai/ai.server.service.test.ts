@@ -59,9 +59,7 @@ describe('importRecipeFromURL', () => {
       '--- PRIMARY SOURCE (JSON-LD Recipe; prefer this) ---'
     );
     expect(call.input).toContain('Weeknight Pasta');
-    expect(call.input).toContain(
-      '--- SUPPLEMENTAL BODY (sanitized HTML) ---'
-    );
+    expect(call.input).toContain('--- SUPPLEMENTAL BODY (sanitized HTML) ---');
     expect(call.input).toContain('<article>');
     expect(call.input).not.toMatch(/^The URL is:/m);
   });

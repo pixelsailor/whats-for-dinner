@@ -17,11 +17,11 @@
 
   let textinput = $state('');
 
-  let viewstate = $state<('ask' | 'help')>('ask');
+  let viewstate = $state<'ask' | 'help'>('ask');
 
   // let action = $derived(viewstate === 'ask' ? '/recipes?/asksaim' : '?/help');
 
-  let apistate = $state<('idle' | 'loading' | 'success' | 'error')>('idle');
+  let apistate = $state<'idle' | 'loading' | 'success' | 'error'>('idle');
 
   let network = $derived($networkStore);
   let aiCapability = $derived(
@@ -53,24 +53,37 @@
   let helpContent = $state<string>('');
 </script>
 
-<div class="help-drawer__content sticky top-0 bg-background-alt h-dvh flex flex-col">
-  <div class="help-drawer-content__header h-16 px-2 flex flex-row justify-end items-center flex-none">
-    <Button class="text icon" aria-label="Close" onclick={() => open = false}>
+<div
+  class="help-drawer__content sticky top-0 bg-background-alt h-dvh flex flex-col"
+>
+  <div
+    class="help-drawer-content__header h-16 px-2 flex flex-row justify-end items-center flex-none"
+  >
+    <Button class="text icon" aria-label="Close" onclick={() => (open = false)}>
       <CloseIcon size="sm" />
     </Button>
   </div>
   {#if canUseAI}
-    <div class="help-drawer-content__body p-2 flex flex-col justify-start grow overflow-y-auto">
+    <div
+      class="help-drawer-content__body p-2 flex flex-col justify-start grow overflow-y-auto"
+    >
       <!-- <SvelteMarkdown source={{}} /> -->
     </div>
-    <div class="help-drawer-content__footer p-2 h-16 flex flex-none items-center">
-      <form class="w-full" method="POST" action="?/asksaim" use:enhance={(cancel) => {
-        console.log('send the saim question');
-        
-        return async ({ result, update }) => {
-          //
-        };
-      }}>
+    <div
+      class="help-drawer-content__footer p-2 h-16 flex flex-none items-center"
+    >
+      <form
+        class="w-full"
+        method="POST"
+        action="?/asksaim"
+        use:enhance={(cancel) => {
+          console.log('send the saim question');
+
+          return async ({ result, update }) => {
+            //
+          };
+        }}
+      >
         <div class="input-group">
           <div class="icon-wrapper ml-2">
             <ChatbotIcon size="sm" />
@@ -90,14 +103,16 @@
         </div>
       </form>
     </div>
-    {:else if aiRestrictionMessage}
-      <div class="help-drawer-content__body p-6 flex flex-col justify-center grow">
-        <div
-          class="mt-6 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-500 dark:bg-amber-950 dark:text-amber-100"
-        >
-          {aiRestrictionMessage}
-        </div>
+  {:else if aiRestrictionMessage}
+    <div
+      class="help-drawer-content__body p-6 flex flex-col justify-center grow"
+    >
+      <div
+        class="mt-6 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-500 dark:bg-amber-950 dark:text-amber-100"
+      >
+        {aiRestrictionMessage}
       </div>
+    </div>
   {/if}
 </div>
 

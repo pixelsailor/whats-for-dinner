@@ -72,7 +72,12 @@
     }
     set width(val) {
       this.#width = val;
-      this.device = this.#width < 640 ? 'mobile' : this.#width < 1024 ? 'desktop-narrow' : 'desktop';
+      this.device =
+        this.#width < 640
+          ? 'mobile'
+          : this.#width < 1024
+            ? 'desktop-narrow'
+            : 'desktop';
 
       if (this.#width < 1024) {
         this.nav = 'collapsed';
@@ -458,11 +463,9 @@
   <Tooltip.Provider>
     <div class="layout-container flex h-dvh w-full flex-row">
       <div
-        class={[
-          'nav-container relative',
-          vp.device === 'mobile' ? 'w-0' : ''
-        ]}
-        style:width={vp.layout === 'desktop--collapsed' || vp.layout.includes('desktop-narrow')
+        class={['nav-container relative', vp.device === 'mobile' ? 'w-0' : '']}
+        style:width={vp.layout === 'desktop--collapsed' ||
+        vp.layout.includes('desktop-narrow')
           ? 'calc(3.25rem + 1px)'
           : vp.layout === 'desktop--expanded'
             ? 'calc(18rem + 1px)'
@@ -484,7 +487,9 @@
               'h-full border-r border-border bg-background-alt',
               vp.device === 'desktop' ? 'fixed' : 'absolute z-10',
               vp.nav === 'expanded' ? 'w-2xs' : 'w-fit',
-              vp.layout === 'desktop-narrow--expanded' ? 'shadow-lg' : 'shadow-xs'
+              vp.layout === 'desktop-narrow--expanded'
+                ? 'shadow-lg'
+                : 'shadow-xs'
             ]}
           >
             <Asidenav {session} {recentlyOpened} {network} {supabase} />

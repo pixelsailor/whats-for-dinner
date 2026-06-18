@@ -456,7 +456,7 @@
 
 <QueryClientProvider client={queryClient}>
   <Tooltip.Provider>
-    <div class="layout-container flex h-full w-full flex-row">
+    <div class="layout-container flex h-dvh w-full flex-row">
       <div
         class={[
           'nav-container relative',
@@ -481,7 +481,7 @@
           <!-- Standard desktop Layout with sidenav expanded -->
           <div
             class={[
-              'h-dvh flex-none border-r border-border bg-background-alt',
+              'h-full border-r border-border bg-background-alt',
               vp.device === 'desktop' ? 'fixed' : 'absolute z-10',
               vp.nav === 'expanded' ? 'w-2xs' : 'w-fit',
               vp.layout === 'desktop-narrow--expanded' ? 'shadow-lg' : 'shadow-xs'
@@ -493,12 +493,10 @@
       </div>
 
       <main
-        class="main-content body relative h-full min-h-screen w-full flex-1"
+        class="main-content body relative h-full min-h-screen w-full flex-1 overflow-x-hidden"
       >
         {@render children()}
       </main>
-
-      <div class="saim-drawer"></div>
     </div>
   </Tooltip.Provider>
 

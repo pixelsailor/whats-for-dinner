@@ -183,9 +183,9 @@
   }
 
   /** Force sync the recipe store to the server */
-  function syncRecipeStore() {
-    console.log('syncRecipeStore');
-  }
+  // function syncRecipeStore() {
+  //   console.log('syncRecipeStore');
+  // }
 
   /** Move a recipe to the trash */
   async function deleteRecipe(id: string, title: string) {
@@ -252,24 +252,14 @@
       </p>
     </div>
   {:else if $recipesStore.data}
-    <h1 class="display-small mb-8">My Recipes</h1>
-    <div class="my-12 grid w-full grid-cols-3 gap-4">
+    <h1 class="display-small mb-12">My Recipes</h1>
+    <div class="my-4 grid w-full grid-cols-3 gap-4">
       <TextInput
         name="keyword-search"
         labelText="Search titles"
         bind:value={search}
         onblur={syncFiltersToUrl}
       />
-      <!-- <div class="form-field">
-        <label for="keyword-search" class="label-large">Search titles</label>
-        <input
-          type="text"
-          id="keyword-search"
-          class="textinput body-medium"
-          bind:value={search}
-          onblur={syncFiltersToUrl}
-        />
-      </div> -->
       <div class="form-field">
         <Label.Root for="tag-filter" class="label-large"
           >Filter by tags</Label.Root

@@ -1,38 +1,41 @@
 <script lang="ts">
-  import SvelteMarkdown from '@humanspeak/svelte-markdown';
+  // import SvelteMarkdown from '@humanspeak/svelte-markdown';
   import { getLocalTimeZone, parseDate, today } from '@internationalized/date';
-  import { getContext, onDestroy, untrack } from 'svelte';
-  import { slide } from 'svelte/transition';
+  import { onDestroy, untrack } from 'svelte';
+  // import { slide } from 'svelte/transition';
   import { toast } from 'svelte-sonner';
-  import { Button, DropdownMenu } from 'bits-ui';
+  import { DropdownMenu } from 'bits-ui';
 
-  import { enhance } from '$app/forms';
+  // import { enhance } from '$app/forms';
   import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
   import { page } from '$app/state';
 
-  import type { RecipeAssistanceResponse } from '$lib/api/ai';
+  // import type { RecipeAssistanceResponse } from '$lib/api/ai';
   import { CloudService, SyncService } from '$lib/api/cloud';
   import type { SavedRecipe } from '$lib/api/recipe';
   import { db } from '$lib/db';
-  import { getRecipeStore } from '$lib/stores/recipes';
-  import type { ViewState, Viewport } from '$lib/types';
+  import type { ViewState } from '$lib/types';
+  // import { setRecipeContext } from '../recipe-context';
 
   import { AppBar } from '$lib/ui/AppBar';
+  import Button from '$lib/ui/button.svelte';
   import FavoriteIcon from '$lib/ui/icons/FavoriteIcon.svelte';
   import FavoriteFilledIcon from '$lib/ui/icons/FavoriteFilledIcon.svelte';
   import PageHeader from '$lib/ui/PageHeader.svelte';
   import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
-  import Prompt from '$lib/ui/Prompt.svelte';
-  import CloseIcon from '$lib/ui/icons/CloseIcon.svelte';
+  // import HelpDrawer from '$lib/ui/help-drawer/help-drawer.svelte';
+  // import Prompt from '$lib/ui/Prompt.svelte';
+  // import CloseIcon from '$lib/ui/icons/CloseIcon.svelte';
+  // import ChatbotIcon from '$lib/ui/icons/ChatbotIcon.svelte';
   import KebabIcon from '$lib/ui/icons/KebabIcon.svelte';
   import TrashIcon from '$lib/ui/icons/TrashIcon.svelte';
   import Recipe from '$lib/ui/Recipe.svelte';
   import { networkStore } from '$lib/stores/network';
-  import { deriveAICapability } from '$lib/api/auth/auth.capability';
+  // import { deriveAICapability } from '$lib/api/auth/auth.capability';
   import CalendarHeatMapIcon from '$lib/ui/icons/CalendarHeatMapIcon.svelte';
 
-  const vp: Viewport = getContext('viewport');
+  // const vp: Viewport = getContext('viewport');
 
   /** CONSTANTS */
   /** The amount of time to wait before marking the recipe as opened */
@@ -42,42 +45,46 @@
   /** We use just the date to make comparisons easier */
   const todaytz = today(getLocalTimeZone());
 
-  let { data, form } = $props();
+  let { data } = $props();
 
   let app = $state({
     status: 'loading' as ViewState,
     error: ''
   });
-  let waiting = $state(false);
+  // let waiting = $state(false);
 
-  let currentUserId = $state<string | undefined>(undefined);
-  let cloudService: CloudService | undefined = $state(undefined);
-  let syncService: SyncService | undefined = $state(undefined);
+  let currentUserId = $derived(data.user?.id);
+  let cloudService: CloudService | undefined = $derived(
+    currentUserId ? new CloudService(data.supabase, currentUserId) : undefined
+  );
+  let syncService: SyncService | undefined = $derived(
+    cloudService ? new SyncService(cloudService) : undefined
+  );
 
   let network = $derived($networkStore);
-  let aiCapability = $derived(
-    deriveAICapability({
-      session: data.session,
-      permissions: data.permissions,
-      featureFlags: data.featureFlags,
-      online: network.online
-    })
-  );
-  let canUseAI = $derived(aiCapability.canUseAI);
-  let aiRestrictionMessage = $derived.by(() => {
-    switch (aiCapability.reason) {
-      case 'offline':
-        return 'You are offline. Reconnect to ask follow-up questions.';
-      case 'disabled':
-        return 'AI recipe assistance is unavailable in this build.';
-      case 'unauthenticated':
-        return 'Log in to ask for recipe adjustments.';
-      case 'unauthorized':
-        return 'Your account does not include AI recipe assistance.';
-      default:
-        return '';
-    }
-  });
+  // let aiCapability = $derived(
+  //   deriveAICapability({
+  //     session: data.session,
+  //     permissions: data.permissions,
+  //     featureFlags: data.featureFlags,
+  //     online: network.online
+  //   })
+  // );
+  // let canUseAI = $derived(aiCapability.canUseAI);
+  // let aiRestrictionMessage = $derived.by(() => {
+  //   switch (aiCapability.reason) {
+  //     case 'offline':
+  //       return 'You are offline. Reconnect to ask follow-up questions.';
+  //     case 'disabled':
+  //       return 'AI recipe assistance is unavailable in this build.';
+  //     case 'unauthenticated':
+  //       return 'Log in to ask for recipe adjustments.';
+  //     case 'unauthorized':
+  //       return 'Your account does not include AI recipe assistance.';
+  //     default:
+  //       return '';
+  //   }
+  // });
 
   let hasCloudStorageAccess = $derived(
     data.permissions?.cloudSync.allowed ?? false
@@ -85,9 +92,29 @@
   // let hasAIAssistanceAccess = $derived(data.permissions?.aiAssistedRecipe.allowed ?? false);
 
   let path = $derived(page.params.id as string);
+  let isShared = $derived(data.isShared);
+  let id = $derived(data.recipeId);
 
-  let isShared = $derived(path.startsWith('shared/'));
-  let id = $derived(isShared ? path.split('/')[1] : path);
+  /** Optimistic patches are scoped to the layout snapshot version they were created from. */
+  let optimisticRecipeVersion = $state<string | null>(null);
+  let optimisticRecipeChanges = $state<Partial<SavedRecipe> | null>(null);
+
+  /** Detail-session source of truth for the rendered recipe. */
+  let workingRecipe = $derived.by<SavedRecipe | null>(() => {
+    const loadedRecipe = data.recipe;
+    if (!loadedRecipe) return null;
+    if (
+      optimisticRecipeVersion !== loadedRecipe.updated_at ||
+      !optimisticRecipeChanges
+    ) {
+      return loadedRecipe;
+    }
+
+    return {
+      ...loadedRecipe,
+      ...optimisticRecipeChanges
+    };
+  });
 
   /** ---------------------------------------------------------------------------------------------
    * Local state -- Variables are reset when the recipe changes
@@ -107,67 +134,30 @@
   /** Whether the user has indicated they did not make this recipe today -- disables `checkoutTimer` */
   let iDidntMakeThisToday = $state(false);
 
-  let promptInput = $state<string>();
+  // let helpDrawerOpen = $state(false);
 
-  let conversationMsg = $state<string>();
+  // let promptInput = $state<string>();
 
-  let recipeStore = $derived.by(() => {
-    if (!id) return undefined;
+  // let conversationMsg = $state<string>();
 
-    if (isShared) {
-      throw new Error('Shared recipes not yet supported');
-    } else {
-      return getRecipeStore(id);
-    }
-  });
-
-  type RecipeStoreValue = {
-    data: SavedRecipe | null;
-    loading: boolean;
-    error: Error | null;
-  };
-
-  /** Current live-query snapshot (subscribed manually to avoid `$recipeStore` usage) */
-  let recipeStoreValue = $state<RecipeStoreValue>({
-    data: null,
-    loading: true,
-    error: null
-  });
-
-  /** Subscribe to the active recipe store */
-  $effect(() => {
-    const store = recipeStore;
-    if (!store) {
-      recipeStoreValue = { data: null, loading: true, error: null };
-      return;
-    }
-
-    const unsubscribe = store.subscribe((value) => {
-      recipeStoreValue = value;
-    });
-
-    return () => unsubscribe();
-  });
-
-  /** The current recipe from the store */
-  let recipe = $derived<SavedRecipe | undefined>(
-    recipeStoreValue.data ?? undefined
-  );
+  /** The recipe rendered by the detail page during this visit. */
+  let recipe = $derived<SavedRecipe | undefined>(workingRecipe ?? undefined);
+  let recipeLoading = $derived(!isShared && !data.recipe);
 
   /** Responsible for passing the recipe to the FormData */
-  let recipeJson = $derived(recipe ? JSON.stringify(recipe) : '');
+  // let recipeJson = $derived(recipe ? JSON.stringify(recipe) : '');
 
   /** The last date the recipe was opened. ISO string format: "2026-01-05T00:00:00+00:00" */
   let lastCheckoutDateTime = $derived(
     recipe?.checkout_history?.[recipe?.checkout_history.length - 1] ?? undefined
   );
 
-  let promptRef = $state<HTMLElement>();
-  let left = $derived.by(() => {
-    if (vp.device === 'mobile') return '0';
-    return vp.nav === 'expanded' ? 'calc(18rem + 1px)' : 'calc(3.75rem + 1px)';
-  });
-  let promptHeight = $derived(promptRef?.clientHeight ?? 0);
+  // let promptRef = $state<HTMLElement>();
+  // let left = $derived.by(() => {
+  //   if (vp.device === 'mobile') return '0';
+  //   return vp.nav === 'expanded' ? 'calc(18rem + 1px)' : 'calc(3.75rem + 1px)';
+  // });
+  // let promptHeight = $derived(promptRef?.clientHeight ?? 0);
 
   // let lastFormMessage: string | undefined = undefined;
 
@@ -235,23 +225,15 @@
     }
     checkoutTimer = window.setTimeout(async () => {
       try {
-        const currentRecipe = untrack(() =>
-          recipe ? ($state.snapshot(recipe) as SavedRecipe) : undefined
-        );
+        const currentRecipe = untrack(() => workingRecipe);
+        if (!currentRecipe) return;
+
         const checkoutHistory = [
-          ...(currentRecipe?.checkout_history ?? []),
+          ...(currentRecipe.checkout_history ?? []),
           todaytz.toString()
         ];
 
-        if (hasCloudStorageAccess && syncService && currentRecipe) {
-          const openedRecipe: SavedRecipe = {
-            ...currentRecipe,
-            checkout_history: checkoutHistory
-          };
-          await syncService.uploadRecipeAndSyncLocal(openedRecipe);
-        } else {
-          await db.recipes.update(id, { checkout_history: checkoutHistory });
-        }
+        await applyRecipeChange({ checkout_history: checkoutHistory }, true);
         iMadeThisToday = true;
       } catch (err) {
         console.error('Error updating last_opened:', err);
@@ -261,51 +243,30 @@
     }, checkoutDelay);
   });
 
-  /**
-   * Manage services for cloud and sync operations.
-   *
-   * This effect is triggered when the user is logged in or logged out.
-   * Use `$effect` with caution: updating the `cloudService` or `syncService` will trigger
-   * a re-render, which will cause a loop.
-   */
-  $effect(() => {
-    const userId = data.user?.id;
-
-    if (userId && userId !== currentUserId) {
-      cloudService = new CloudService(data.supabase, userId);
-      syncService = new SyncService(cloudService);
-      currentUserId = userId;
-    } else if (!userId && currentUserId) {
-      cloudService = undefined;
-      syncService = undefined;
-      currentUserId = undefined;
-    }
-  });
-
   onDestroy(() => {
     if (checkoutTimer) clearTimeout(checkoutTimer);
     if (markAsOpenedTimer) clearTimeout(markAsOpenedTimer);
   });
 
   // React to user prompts
-  $effect(() => {
-    if (form && form.error === undefined) {
-      const assistantResponseData = JSON.parse(
-        form.message
-      ) as RecipeAssistanceResponse;
-      if (assistantResponseData?.answer) {
-        conversationMsg = assistantResponseData.answer;
-      }
-      if (assistantResponseData?.recipe && recipe) {
-        recipe = { ...recipe, ...assistantResponseData.recipe };
-      }
-      waiting = false;
-    } else if (form && form.error) {
-      waiting = false;
-      console.error(form.error);
-      toast.error(`${form.error}`);
-    }
-  });
+  // $effect(() => {
+  //   if (form && form.error === undefined) {
+  //     const assistantResponseData = JSON.parse(
+  //       form.message
+  //     ) as RecipeAssistanceResponse;
+  //     if (assistantResponseData?.answer) {
+  //       conversationMsg = assistantResponseData.answer;
+  //     }
+  //     if (assistantResponseData?.recipe && recipe) {
+  //       recipe = { ...recipe, ...assistantResponseData.recipe };
+  //     }
+  //     waiting = false;
+  //   } else if (form && form.error) {
+  //     waiting = false;
+  //     console.error(form.error);
+  //     toast.error(`${form.error}`);
+  //   }
+  // });
 
   /**
    * Manually push the current recipe to the cloud.
@@ -341,25 +302,25 @@
    */
   function toggleFavorite() {
     if (!recipe) return;
-    saveChanges(true, {
+    void applyRecipeChange({
       is_favorite: recipe.is_favorite === true ? false : true
     });
   }
 
   /** Revert the user's indication of whether they made this today */
   function toggleLastPreparedDate() {
-    if (!recipe) return;
+    if (!workingRecipe) return;
 
     let checkoutHistory: string[] | null;
     if (iMadeThisToday) {
       // User reverts their indication of making this today
       iMadeThisToday = false;
       iDidntMakeThisToday = true;
-      checkoutHistory = recipe.checkout_history?.slice(0, -1) ?? null;
+      checkoutHistory = workingRecipe.checkout_history?.slice(0, -1) ?? null;
     } else {
       // User indicates they made this today
       checkoutHistory = [
-        ...(recipe.checkout_history ?? []),
+        ...(workingRecipe.checkout_history ?? []),
         todaytz.toString()
       ];
       iMadeThisToday = true;
@@ -368,8 +329,37 @@
       if (checkoutTimer) clearTimeout(checkoutTimer);
       checkoutTimer = null;
     }
-    recipe.checkout_history = checkoutHistory ?? [];
-    saveChanges(true, { checkout_history: checkoutHistory });
+    void applyRecipeChange({ checkout_history: checkoutHistory });
+  }
+
+  /**
+   * Applies an optimistic detail-session change and persists it without reloading layout data.
+   * @param changes - Partial recipe fields to apply
+   * @param disableToast - Whether to suppress successful save toasts
+   */
+  async function applyRecipeChange(
+    changes: Partial<SavedRecipe>,
+    disableToast: boolean = true
+  ): Promise<void> {
+    if (!workingRecipe) return;
+
+    const updatedAt = new Date().toISOString();
+    const persistedChanges: Partial<SavedRecipe> = {
+      ...changes,
+      updated_at: updatedAt
+    };
+
+    const baseVersion = data.recipe?.updated_at ?? workingRecipe.updated_at;
+    const existingChanges =
+      optimisticRecipeVersion === baseVersion ? optimisticRecipeChanges : null;
+
+    optimisticRecipeVersion = baseVersion;
+    optimisticRecipeChanges = {
+      ...(existingChanges ?? {}),
+      ...persistedChanges
+    };
+
+    await saveChanges(disableToast, persistedChanges);
   }
 
   /**
@@ -386,17 +376,17 @@
     disableToast: boolean = false,
     changes?: Partial<SavedRecipe>
   ) {
-    if (!recipe) return;
+    if (!workingRecipe) return;
     app.status = 'loading';
 
     if (hasCloudStorageAccess && syncService) {
       try {
         // Ensure entire recipe is included if the recipe isn't synced.
         // Unsynced recipes may not exist in the cloud yet; using PATCH/UPDATE can 406.
-        if (recipe.synced) {
+        if (workingRecipe.synced) {
           const candidate: Partial<SavedRecipe> & { id: string } = changes
-            ? { ...changes, id: recipe.id }
-            : $state.snapshot(recipe);
+            ? { ...changes, id: workingRecipe.id }
+            : $state.snapshot(workingRecipe);
           const response =
             await syncService.updateRecipeAndSyncLocal(candidate);
           if (!response.success) {
@@ -404,7 +394,7 @@
             return;
           }
         } else {
-          const snapshot = $state.snapshot(recipe) as SavedRecipe;
+          const snapshot = $state.snapshot(workingRecipe) as SavedRecipe;
           const fullCandidate = (
             changes ? { ...snapshot, ...changes } : snapshot
           ) as SavedRecipe;
@@ -425,14 +415,16 @@
     } else {
       try {
         const candidate: Partial<SavedRecipe> & { id: string } = changes
-          ? { ...changes, id: recipe.id }
-          : $state.snapshot(recipe);
-        await db.recipes.update(recipe.id, candidate);
+          ? { ...changes, id: workingRecipe.id }
+          : $state.snapshot(workingRecipe);
+        await db.recipes.update(workingRecipe.id, candidate);
         if (!disableToast) {
           toast.success('Recipe saved');
         }
       } catch (err) {
         toast.error(err instanceof Error ? err.message : 'Unknown error');
+      } finally {
+        app.status = 'idle';
       }
     }
   }
@@ -504,7 +496,10 @@
           return;
         }
 
-        await saveChanges(true, { last_opened: new Date().toISOString() });
+        await applyRecipeChange(
+          { last_opened: new Date().toISOString() },
+          true
+        );
         markedAsOpenedRecipeId = timerId;
       } catch (err) {
         console.error('Error marking recipe as opened:', err);
@@ -516,70 +511,6 @@
 
   /** Open a date picker to update the last prepared date */
   // function updateLastPreparedDate() {}
-
-  /**
-   * Convert a AI generated time string to minutes
-   *
-   * Example: "10-15 minutes" -> ["10", "15"]
-   * Example: "10 minutes" -> ["10"]
-   * Example: "10 hours" -> ["600"]
-   * Example: "10 hours 10 minutes" -> ["610"]
-   * Example: "10 minutes to 1 hour 10 minutes" -> ["10", "70"]
-   * Example: "0h 10m" -> ["10"]
-   * Example: "1:25" -> ["85"]
-   *
-   * The original AI generated recipes lacked a definitive structure for time related fields.
-   * This function parses the string and returns the time in minutes.
-   *
-   * @param value - The time string to convert
-   * @returns The time in minutes. Tuples are returned for ranges.
-   */
-  // function convertAiTime(value: string | undefined): string[] {
-  //   if (!value) return ['0'];
-
-  //   const ALPHA_RX = /^[a-zA-Z]+$/;
-  //   const HOURS_RX = /(\d+)\s?h|(\d+):/g;
-  //   const MINUTES_RX = /(\d+)\s?m|\d+:(\d+)/g;
-
-  //   let isRange = false;
-  //   let isHours = false;
-
-  //   let times: string[] = [];
-
-  //   if (value.includes('-') || value.includes('to')) {
-  //     isRange = true;
-  //   }
-
-  //   if (isRange) {
-  //     // Handle ranges with a single unit of time, e.g. "10-15 minutes"
-  //     if (value.includes('-')) {
-  //       if (value.includes('hours')) isHours = true;
-  //       value.split('-').forEach((time) => {
-  //         if (!ALPHA_RX.test(time)) {
-  //           times.push(isHours ? `${time} * 60` : `${time}`);
-  //         } else {
-  //           let hours = parseInt(HOURS_RX.exec(time)?.[1] ?? '0');
-  //           let minutes = parseInt(MINUTES_RX.exec(time)?.[1] ?? '0');
-  //           times.push((hours * 60 + minutes).toString());
-  //         }
-  //       });
-  //     } else {
-  //       // Handle ranges with two units of time, e.g. "45 minutes to 1 hour 10 minutes"
-  //       value.split('to').forEach((time) => {
-  //         let hours = parseInt(HOURS_RX.exec(time)?.[1] ?? '0');
-  //         let minutes = parseInt(MINUTES_RX.exec(time)?.[1] ?? '0');
-  //         times.push((hours * 60 + minutes).toString());
-  //       });
-  //     }
-  //   } else {
-  //     let hours = parseInt(HOURS_RX.exec(value)?.[1] ?? '0');
-  //     let minutes = parseInt(MINUTES_RX.exec(value)?.[1] ?? '0');
-  //     times.push((hours * 60 + minutes).toString());
-  //   }
-
-  //   console.log('convertAiTime', value, times);
-  //   return times;
-  // }
 </script>
 
 <PageHeader>
@@ -597,8 +528,8 @@
 						<CloudBackupIcon size="xs" />
 					</PxlIconButton>
 				{/if} -->
-        <Button.Root
-          class="button icon text"
+        <Button
+          class="icon text"
           aria-label="I made this today"
           onclick={() => {
             toggleLastPreparedDate();
@@ -608,9 +539,9 @@
             size="xs"
             class={iMadeThisToday ? 'currentColor' : 'text-dark-40'}
           />
-        </Button.Root>
-        <Button.Root
-          class="button icon text"
+        </Button>
+        <Button
+          class="icon text"
           aria-label={recipe?.is_favorite
             ? 'Remove from favorites'
             : 'Add to favorites'}
@@ -621,18 +552,18 @@
           {:else}
             <FavoriteIcon size="xs" />
           {/if}
-        </Button.Root>
+        </Button>
         <DropdownMenu.Root>
           <DropdownMenu.Trigger>
             {#snippet child({ props })}
-              <Button.Root
+              <Button
                 {...props}
                 type="button"
                 class="button icon text"
                 aria-label="Recipe actions"
               >
                 <KebabIcon size="xs" />
-              </Button.Root>
+              </Button>
             {/snippet}
           </DropdownMenu.Trigger>
           <DropdownMenu.Portal>
@@ -682,77 +613,44 @@
   </AppBar.Root>
 </PageHeader>
 
-<article
-  class="mx-auto max-w-5xl px-4 py-8 lg:px-8"
-  style:padding-bottom={`calc(${promptHeight}px + 1.5rem)`}
->
-  {#if recipeStoreValue.loading}
+<!-- <div class="flex flex-row">
+  <div class="flex flex-col grow relative"> -->
+<article class="mx-auto max-w-5xl px-4 py-8 lg:px-8">
+  {#if isShared}
+    <div class="mx-auto grid w-full max-w-3xl place-content-center gap-6">
+      <h1 class="fluid-heading-05">Shared recipes are not supported yet.</h1>
+    </div>
+  {:else if recipeLoading}
     <div class="absolute inset-0 grid place-content-center">
       <ProgressSpinner size="lg" />
     </div>
-  {:else if recipeStoreValue.error}
-    <div class="mx-auto grid w-full max-w-3xl place-content-center gap-6">
-      <h1 class="fluid-heading-05">Ah donkey-spittle! There was a problem.</h1>
-      <p class="flex items-center gap-3">
-        <span class="fluid-heading-03">{recipeStoreValue.error.name}</span><span
-          >|</span
-        ><span>{recipeStoreValue.error?.message}</span>
-      </p>
-    </div>
   {:else if recipe}
     <Recipe {recipe} />
-    {#if canUseAI}
-      <div class="fixed right-0 bottom-0 px-4" style:left bind:this={promptRef}>
-        <Prompt>
-          {#if conversationMsg}
-            <div
-              class="flex flex-row items-start gap-2"
-              transition:slide={{ duration: 500, axis: 'y' }}
-            >
-              <div class="markdown mb-4 self-center text-sm">
-                <SvelteMarkdown source={conversationMsg} />
-              </div>
-              <Button.Root
-                class="button text icon"
-                title="Clear"
-                onclick={() => (conversationMsg = '')}
-              >
-                <CloseIcon size="xs" />
-              </Button.Root>
-            </div>
-          {/if}
-          <form
-            class="flex w-full flex-row gap-2"
-            method="POST"
-            use:enhance={() => {
-              waiting = true;
-            }}
-          >
-            <input
-              class="textinput grow bg-transparent! border-none shadow-none"
-              type="text"
-              name="input"
-              bind:value={promptInput}
-              placeholder="Make changes or ask a recipe related question"
-              autocomplete="off"
-            />
-            <input type="hidden" name="recipe" bind:value={recipeJson} />
-            <Button.Root
-              type="submit"
-              disabled={waiting || !promptInput?.trim()}
-              class="button text narrow"
-            >
-              {waiting ? 'Thinking...' : 'Submit'}
-            </Button.Root>
-          </form>
-        </Prompt>
-      </div>
-    {:else if aiRestrictionMessage}
-      <div
-        class="mt-6 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-500 dark:bg-amber-950 dark:text-amber-100"
-      >
-        {aiRestrictionMessage}
-      </div>
-    {/if}
   {/if}
 </article>
+<!-- {#if !helpDrawerOpen}
+      <div
+        class="drawer-trigger sticky bottom-8 z-10 flex justify-end px-8 pointer-events-none"
+      >
+        <div class="button-wrapper bg-background rounded-full">
+          <Button
+            class="icon rounded-full! h-11! w-11! shadow-md hover:shadow-md! pointer-events-auto"
+            tooltip="Ask Saim"
+            aria-label="Ask Saim."
+            onclick={() => (helpDrawerOpen = !helpDrawerOpen)}
+          >
+            <ChatbotIcon size="sm" />
+          </Button>
+        </div>
+      </div>
+    {/if}
+  </div>
+  <div
+    class={[
+      'help-drawer-container relative transition-all duration-300 ease-in-out will-change-transform',
+      helpDrawerOpen ? 'w-md' : 'w-0'
+    ]}
+  >
+    <HelpDrawer bind:open={helpDrawerOpen} {data} />
+  </div>
+</div> -->

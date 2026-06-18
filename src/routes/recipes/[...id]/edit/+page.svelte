@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { toast } from 'svelte-sonner';
 
-  import { goto } from '$app/navigation';
+  import { goto, invalidate } from '$app/navigation';
   import { resolve } from '$app/paths';
   import { page } from '$app/state';
 
@@ -14,7 +14,8 @@
   } from '$lib/api/recipe';
   import type { ZodIssue } from 'zod';
   import { db } from '$lib/db';
-  import { getRecipeStore } from '$lib/stores/recipes';
+
+  import { recipeInvalidateKey } from '../recipe-route';
 
   import { AppBar } from '$lib/ui/AppBar';
   import Button from '$lib/ui/button.svelte';
@@ -30,66 +31,22 @@
   let availableTags = $state<SelectOption[]>([]);
 
   let pathParam = $derived(page.params.id as string);
-  let isShared = $derived(pathParam.startsWith('shared/'));
-  let id = $derived(isShared ? pathParam.split('/')[1]! : pathParam);
+  let isShared = $derived(data.isShared);
+  let id = $derived(data.recipeId);
+  let recipe = $derived<SavedRecipe | undefined>(data.recipe ?? undefined);
+  let recipeLoading = $derived(!isShared && !data.recipe);
 
   let hasCloudStorageAccess = $derived(
     data.permissions?.cloudSync.allowed ?? false
   );
 
-  let currentUserId = $state<string | undefined>(undefined);
-  let cloudService: CloudService | undefined = $state(undefined);
-  let syncService: SyncService | undefined = $state(undefined);
-
-  let recipeStore = $derived.by(() => {
-    if (!id) return undefined;
-    if (isShared) return undefined;
-    return getRecipeStore(id);
-  });
-
-  type RecipeStoreValue = {
-    data: SavedRecipe | null;
-    loading: boolean;
-    error: Error | null;
-  };
-
-  let recipeStoreValue = $state<RecipeStoreValue>({
-    data: null,
-    loading: true,
-    error: null
-  });
-
-  $effect(() => {
-    const store = recipeStore;
-    if (!store) {
-      recipeStoreValue = { data: null, loading: false, error: null };
-      return;
-    }
-
-    const unsubscribe = store.subscribe((value) => {
-      recipeStoreValue = value;
-    });
-
-    return () => unsubscribe();
-  });
-
-  let recipe = $derived<SavedRecipe | undefined>(
-    recipeStoreValue.data ?? undefined
+  let currentUserId = $derived(data.user?.id);
+  let cloudService: CloudService | undefined = $derived(
+    currentUserId ? new CloudService(data.supabase, currentUserId) : undefined
   );
-
-  $effect(() => {
-    const userId = data.user?.id;
-
-    if (userId && userId !== currentUserId) {
-      cloudService = new CloudService(data.supabase, userId);
-      syncService = new SyncService(cloudService);
-      currentUserId = userId;
-    } else if (!userId && currentUserId) {
-      cloudService = undefined;
-      syncService = undefined;
-      currentUserId = undefined;
-    }
-  });
+  let syncService: SyncService | undefined = $derived(
+    cloudService ? new SyncService(cloudService) : undefined
+  );
 
   let recipeTitle = $state('');
   let shortDescription = $state('');
@@ -265,6 +222,7 @@
       }
       status = 'saved';
       toast.success('Recipe saved');
+      await invalidate(recipeInvalidateKey(data.recipeId));
       await goto(resolve('/recipes/[...id]', { id: pathParam }));
     } catch (err) {
       status = 'error';
@@ -302,19 +260,9 @@
       </p>
       <Button type="button" onclick={cancelEdit}>Back to recipe</Button>
     </div>
-  {:else if recipeStoreValue.loading}
+  {:else if recipeLoading}
     <div class="grid min-h-[40vh] place-content-center">
       <ProgressSpinner size="lg" />
-    </div>
-  {:else if recipeStoreValue.error}
-    <div class="mx-auto grid w-full max-w-3xl gap-4">
-      <h1 class="display-small mb-4">Something went wrong</h1>
-      <p class="helper-text flex flex-wrap items-center gap-2">
-        <span class="font-medium">{recipeStoreValue.error.name}</span>
-        <span>|</span>
-        <span>{recipeStoreValue.error.message}</span>
-      </p>
-      <Button type="button" onclick={cancelEdit}>Back</Button>
     </div>
   {:else if recipe}
     <form method="POST" class="form" onsubmit={saveRecipe}>
@@ -331,12 +279,10 @@
           label="Recipe title"
           required
           autocomplete="off"
-          error={validationErrors.errors?.title}
         />
         <Textinput
           name="short_description"
           bind:value={shortDescription}
-          error={validationErrors.errors?.shortDescription}
           label="Short description"
           autocomplete="off"
           helperText="Shown in recipe list and search results."

@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { Button } from 'bits-ui';
   import { toast } from 'svelte-sonner';
 
   import { CloudService, SyncService } from '$lib/api/cloud';
@@ -7,6 +6,7 @@
 
   import { deletedRecipesStore } from '$lib/stores/recipes';
   import { AppBar } from '$lib/ui/AppBar';
+  import Button from '$lib/ui/button.svelte';
   import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
   import RevertIcon from '$lib/ui/icons/RevertIcon.svelte';
   import TrashIcon from '$lib/ui/icons/TrashIcon.svelte';
@@ -123,6 +123,10 @@
   };
 </script>
 
+<svelte:head>
+  <title>What's for dinner? | Trash bin</title>
+</svelte:head>
+
 <PageHeader>
   <AppBar.Root>
     <!-- <AppBar.Text primary="Trash Bin" /> -->
@@ -133,14 +137,14 @@
         </div>
       {/if}
       {#if $deletedRecipesStore.data && $deletedRecipesStore.data.length}
-        <Button.Root
+        <Button
           onclick={deleteAll}
           class="button text narrow danger"
           title="Permanently delete all recipes"
         >
           <TrashIcon size="xs" />
           <span>Empty trash</span>
-        </Button.Root>
+        </Button>
       {/if}
     </AppBar.End>
   </AppBar.Root>

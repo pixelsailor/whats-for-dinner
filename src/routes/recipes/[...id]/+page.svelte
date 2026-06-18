@@ -513,6 +513,10 @@
   // function updateLastPreparedDate() {}
 </script>
 
+<svelte:head>
+  <title>What's for dinner? | {recipe?.title || 'Recipe'}</title>
+</svelte:head>
+
 <PageHeader>
   <AppBar.Root>
     <AppBar.Text primary={recipe?.title || ''} />

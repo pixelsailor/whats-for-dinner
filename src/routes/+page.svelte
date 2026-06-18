@@ -59,6 +59,10 @@
   }
 </script>
 
+<svelte:head>
+  <title>What's for dinner?</title>
+</svelte:head>
+
 <div
   class="mx-auto flex h-screen max-w-5xl items-center px-4 lg:px-8"
   style:height={app.view === 'suggestions' ? 'auto' : ''}

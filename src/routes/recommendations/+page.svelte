@@ -43,6 +43,10 @@
   }
 </script>
 
+<svelte:head>
+  <title>What's for dinner? | Recommendations</title>
+</svelte:head>
+
 <div
   class="grid"
   style:height={$unsortedRecipesStore.data ? 'auto' : '100vh'}

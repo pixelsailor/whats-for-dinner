@@ -210,6 +210,10 @@
   }
 </script>
 
+<svelte:head>
+  <title>What's for dinner? | My Recipes</title>
+</svelte:head>
+
 <PageHeader>
   <AppBar.Root>
     <AppBar.Text primary="My Recipes" />

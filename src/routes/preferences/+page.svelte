@@ -192,6 +192,10 @@
   }
 </script>
 
+<svelte:head>
+  <title>What's for dinner? | Preferences</title>
+</svelte:head>
+
 <PageHeader>
   <AppBar.Root />
 </PageHeader>

@@ -1,7 +1,6 @@
 <script lang="ts">
   import SvelteMarkdown from '@humanspeak/svelte-markdown';
   import { enhance } from '$app/forms';
-  // import type { PageProps } from './$types';
 
   import { deriveAICapability } from '$lib/api/auth/auth.capability';
   import { networkStore } from '$lib/stores/network';
@@ -9,17 +8,21 @@
   import Button from '$lib/ui/button.svelte';
   import ChatbotIcon from '$lib/ui/icons/ChatbotIcon.svelte';
   import CloseIcon from '$lib/ui/icons/CloseIcon.svelte';
+  import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
   import '../../../app.css';
 
-  let { data, open = $bindable() } = $props();
+  /** Single turn in the ask-Saim conversation thread. */
+  type ChatMessage = {
+    id: string;
+    role: 'user' | 'assistant';
+    content: string;
+  };
 
-  // let recipeContext = getContext('recipe');
+  let { data, open = $bindable() } = $props();
 
   let textinput = $state('');
 
   let viewstate = $state<'ask' | 'help'>('ask');
-
-  // let action = $derived(viewstate === 'ask' ? '/recipes?/asksaim' : '?/help');
 
   let apistate = $state<'idle' | 'loading' | 'success' | 'error'>('idle');
 
@@ -48,10 +51,52 @@
     }
   });
 
-  let conversationThread = $state([]);
+  let conversationThread = $state<ChatMessage[]>([]);
+  let submitError = $state('');
+  let threadBody = $state<HTMLDivElement | null>(null);
+  let lastRecipeId = $state<string | undefined>(undefined);
 
-  let helpContent = $state<string>('');
+  let recipeJson = $derived(
+    data.recipe ? JSON.stringify(data.recipe) : ''
+  );
+
+  /**
+   * Creates a stable id for a chat message row.
+   * @returns Random UUID string
+   */
+  function createMessageId(): string {
+    return crypto.randomUUID();
+  }
+
+  $effect(() => {
+    const recipeId = data.recipe?.id;
+    if (recipeId === undefined || recipeId === lastRecipeId) {
+      return;
+    }
+    lastRecipeId = recipeId;
+    conversationThread = [];
+    submitError = '';
+    apistate = 'idle';
+  });
+
+  $effect(() => {
+    const messageCount = conversationThread.length;
+    const loading = apistate === 'loading';
+
+    if (threadBody && (messageCount > 0 || loading)) {
+      threadBody.scrollTop = threadBody.scrollHeight;
+    }
+  });
 </script>
+
+<!--
+@component
+Side drawer for asking Saim cooking questions about the current recipe.
+
+- Renders a scrollable conversation when `viewstate` is `ask` and AI is available.
+- Assistant replies are rendered as markdown via `SvelteMarkdown`.
+- Posts to the current page `asksaim` form action with recipe JSON context.
+-->
 
 <div
   class="help-drawer__content sticky top-0 bg-background-alt h-dvh flex flex-col"
@@ -63,11 +108,38 @@
       <CloseIcon size="sm" />
     </Button>
   </div>
-  {#if canUseAI}
+  {#if canUseAI && viewstate === 'ask'}
     <div
+      bind:this={threadBody}
       class="help-drawer-content__body p-2 flex flex-col justify-start grow overflow-y-auto"
     >
-      <!-- <SvelteMarkdown source={{}} /> -->
+      {#if conversationThread.length === 0 && apistate !== 'loading'}
+        <p class="text-sm text-muted-foreground">
+          Ask a question about this recipe.
+        </p>
+      {/if}
+      {#each conversationThread as message (message.id)}
+        {#if message.role === 'user'}
+          <p class="text-sm my-2">{message.content}</p>
+        {:else}
+          <div class="markdown text-sm my-2">
+            <SvelteMarkdown source={message.content} />
+          </div>
+        {/if}
+      {/each}
+      {#if apistate === 'loading'}
+        <div class="my-2 flex items-center gap-2">
+          <ProgressSpinner size="xs" />
+          <span class="text-sm">Saim is thinking…</span>
+        </div>
+      {/if}
+      {#if submitError}
+        <div
+          class="mt-2 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-500 dark:bg-amber-950 dark:text-amber-100"
+        >
+          {submitError}
+        </div>
+      {/if}
     </div>
     <div
       class="help-drawer-content__footer p-2 h-16 flex flex-none items-center"
@@ -76,11 +148,54 @@
         class="w-full"
         method="POST"
         action="?/asksaim"
-        use:enhance={(cancel) => {
-          console.log('send the saim question');
+        use:enhance={({ cancel }) => {
+          const question = textinput.trim();
 
-          return async ({ result, update }) => {
-            //
+          if (!question || !recipeJson || apistate === 'loading') {
+            cancel();
+            return;
+          }
+
+          conversationThread = [
+            ...conversationThread,
+            {
+              id: createMessageId(),
+              role: 'user',
+              content: question
+            }
+          ];
+          textinput = '';
+          apistate = 'loading';
+          submitError = '';
+
+          return async ({ result }) => {
+            if (result.type === 'success') {
+              const answer = result.data?.answer;
+
+              if (typeof answer === 'string' && answer.length > 0) {
+                conversationThread = [
+                  ...conversationThread,
+                  {
+                    id: createMessageId(),
+                    role: 'assistant',
+                    content: answer
+                  }
+                ];
+                apistate = 'idle';
+              } else {
+                submitError = 'Saim returned an empty response.';
+                apistate = 'error';
+              }
+            } else if (result.type === 'failure') {
+              const failureData = result.data as { error?: string } | undefined;
+              submitError =
+                failureData?.error ??
+                'Unable to get a response. Please try again.';
+              apistate = 'error';
+            } else {
+              submitError = 'Unable to get a response. Please try again.';
+              apistate = 'error';
+            }
           };
         }}
       >
@@ -90,14 +205,21 @@
           </div>
           <label for="textinput" class="sr-only">Ask Saim a question</label>
           <input
+            id="textinput"
             type="text"
             class="textinput"
             name="help_input"
             bind:value={textinput}
             placeholder="Ask Saim a question..."
+            disabled={apistate === 'loading'}
           />
-          <!-- <input type="hidden" name="recipe" value={recipeContext} /> -->
-          <Button type="submit" class="text narrow" aria-label="Send">
+          <input type="hidden" name="recipe" value={recipeJson} />
+          <Button
+            type="submit"
+            class="text narrow"
+            aria-label="Send"
+            disabled={apistate === 'loading' || !textinput.trim()}
+          >
             <span>Ask</span>
           </Button>
         </div>

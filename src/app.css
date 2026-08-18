@@ -99,6 +99,8 @@
   --foreground-alt: var(--mauve-700); /* secondary foreground color */
   --muted: oklch(from var(--mauve-400) l c h / 0.2); /* muted background color -- used for disabled buttons, etc. */
   --muted-foreground: oklch(from var(--mauve-900) l c h / 0.6); /* muted foreground color -- used for placeholder text, disabled buttons, etc. */
+  --primary: var(--mauve-900);
+  --primary-foreground: var(--white);
   --accent: AccentColor;
   --accent-foreground: AccentColorText;
   --dark: var(--mauve-500);
@@ -170,6 +172,8 @@
     --background-alt: var(--mauve-900);
     --foreground: var(--mauve-50);
     --foreground-alt: var(--mauve-400);
+    --primary: var(--mauve-50);
+    --primary-foreground: var(--mauve-900);
     --muted: oklch(from var(--mauve-700) l c h / 0.3);
     --muted-foreground: oklch(from var(--mauve-50) l c h / 0.7);
     --dark: var(--mauve-300);
@@ -211,6 +215,8 @@
   --color-background-alt: var(--background-alt);
   --color-foreground: var(--foreground);
   --color-foreground-alt: var(--foreground-alt);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-dark: var(--dark);

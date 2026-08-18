@@ -18,7 +18,7 @@
   }
 
   &.primary {
-    @apply bg-dark text-dark-foreground hover:bg-dark/80;
+    @apply bg-primary text-primary-foreground hover:bg-primary/80;
   }
 
   &.warn {

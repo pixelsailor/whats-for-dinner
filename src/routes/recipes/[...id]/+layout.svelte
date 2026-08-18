@@ -25,7 +25,7 @@
       >
         <div class="button-wrapper bg-background rounded-full">
           <Button
-            class="icon rounded-full! h-11! w-11! shadow-md hover:shadow-md! pointer-events-auto"
+            class="primary icon rounded-full! h-11! w-11! shadow-md hover:shadow-md! pointer-events-auto"
             tooltip="Ask Saim"
             aria-label="Ask Saim."
             onclick={() => (helpDrawerOpen = !helpDrawerOpen)}

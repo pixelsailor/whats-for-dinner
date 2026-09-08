@@ -14,6 +14,12 @@
   // import type { RecipeAssistanceResponse } from '$lib/api/ai';
   import { CloudService, SyncService } from '$lib/api/cloud';
   import type { SavedRecipe } from '$lib/api/recipe';
+  import {
+    checkoutHistoryNeedsNormalization,
+    isoDateToday,
+    normalizeCheckoutHistory,
+    toIsoDate
+  } from '$lib/api/recipe';
   import { db } from '$lib/db';
   import type { ViewState } from '$lib/types';
   // import { setRecipeContext } from '../recipe-context';
@@ -127,6 +133,8 @@
   let markAsOpenedAttempts = $state(0);
   /** Tracks which route recipe id we've initialized local state for (guards against invalidation loops) */
   let initializedRecipeRouteId: string | null = null;
+  /** Tracks which recipe id already had checkout_history date normalization attempted */
+  let normalizedCheckoutHistoryRecipeId: string | null = null;
   /** Timer used to update the recipe's checkout history after a short delay */
   let checkoutTimer: number | null = null;
   /** Whether the user has indicated they made this recipe today */
@@ -147,10 +155,12 @@
   /** Responsible for passing the recipe to the FormData */
   // let recipeJson = $derived(recipe ? JSON.stringify(recipe) : '');
 
-  /** The last date the recipe was opened. ISO string format: "2026-01-05T00:00:00+00:00" */
-  let lastCheckoutDateTime = $derived(
-    recipe?.checkout_history?.[recipe?.checkout_history.length - 1] ?? undefined
-  );
+  /** The last checkout date as ISO-8601 `YYYY-MM-DD`, when history exists */
+  let lastCheckoutDate = $derived.by(() => {
+    const raw = recipe?.checkout_history?.at(-1);
+    if (raw === undefined) return undefined;
+    return toIsoDate(raw) ?? undefined;
+  });
 
   // let promptRef = $state<HTMLElement>();
   // let left = $derived.by(() => {
@@ -179,6 +189,7 @@
     iDidntMakeThisToday = false;
     markedAsOpenedRecipeId = null;
     markAsOpenedAttempts = 0;
+    normalizedCheckoutHistoryRecipeId = null;
 
     app.status = 'loading';
     if (checkoutTimer) {
@@ -205,16 +216,23 @@
     // Recipe loaded successfully
     app.status = 'idle';
 
+    // Mini-migration: persist ISO-8601 dates (`YYYY-MM-DD`) so cloud sync can validate checkout_history.
+    if (normalizedCheckoutHistoryRecipeId !== currentRecipeId) {
+      normalizedCheckoutHistoryRecipeId = currentRecipeId;
+      if (checkoutHistoryNeedsNormalization(recipe.checkout_history)) {
+        void applyRecipeChange(
+          { checkout_history: recipe.checkout_history },
+          true
+        );
+        return;
+      }
+    }
+
     // If the user has indicated they didn't make this today, don't update the checkout history
     if (iDidntMakeThisToday) return;
 
-    // If the recipe was last opened today, set the iMadeThisToday flag and return
-    // Because CalendarDate is a date-only object, we need to compare the date portion of the ISO string
-    const lastCheckoutDate = lastCheckoutDateTime?.split('T')[0] ?? undefined;
-    if (
-      lastCheckoutDate &&
-      parseDate(lastCheckoutDate).toString() === todaytz.toString()
-    ) {
+    // If the recipe was last checked out today, set the iMadeThisToday flag and return
+    if (lastCheckoutDate === isoDateToday()) {
       iMadeThisToday = true;
       return;
     }
@@ -230,7 +248,7 @@
 
         const checkoutHistory = [
           ...(currentRecipe.checkout_history ?? []),
-          todaytz.toString()
+          isoDateToday()
         ];
 
         await applyRecipeChange({ checkout_history: checkoutHistory }, true);
@@ -321,7 +339,7 @@
       // User indicates they made this today
       checkoutHistory = [
         ...(workingRecipe.checkout_history ?? []),
-        todaytz.toString()
+        isoDateToday()
       ];
       iMadeThisToday = true;
       iDidntMakeThisToday = false;
@@ -348,6 +366,12 @@
       ...changes,
       updated_at: updatedAt
     };
+
+    if ('checkout_history' in persistedChanges) {
+      persistedChanges.checkout_history = normalizeCheckoutHistory(
+        persistedChanges.checkout_history
+      );
+    }
 
     const baseVersion = data.recipe?.updated_at ?? workingRecipe.updated_at;
     const existingChanges =

@@ -205,7 +205,7 @@ export const SavedRecipeSchema = RecipeSchema.extend({
   last_synced_at: supabaseTimestamptzSchema.nullable(),
   /** Error message from last sync attempt, if any. */
   sync_error: z.string().nullable(),
-  /** History of checkout/made this today dates. */
+  /** History of checkout/made this today dates as ISO-8601 calendar dates (`YYYY-MM-DD`), no timestamp. */
   checkout_history: z.array(z.iso.date()).nullable()
 });
 

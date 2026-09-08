@@ -2,7 +2,7 @@
 
 ## Overview
 
-The recipe module under `src/lib/api/recipe/` holds **Zod schemas and inferred types** for saved recipes and related shapes. It does **not** include a `recipe.service.ts`.
+The recipe module under `src/lib/api/recipe/` holds **Zod schemas, inferred types, and pure helpers** for saved recipes and related shapes. It does **not** include a `recipe.service.ts`.
 
 Local recipe data is owned by **Dexie** ([ADR-002](../../../../adrs/ADR-002-local-data-ownership.md)). Reads and reactive subscriptions live in **`src/lib/stores/`** (for example [`recipes.ts`](../../stores/recipes.ts)). Durable writes are performed via **`db`** from routes, form actions, or store/db helpers—not through this API folder.
 
@@ -10,11 +10,12 @@ Remote backup, sync, and sharing use [`../cloud/`](../cloud/README.md) (`CloudSe
 
 ## Layout
 
-| File                | Role                                            |
-| ------------------- | ----------------------------------------------- |
-| `recipe.schemas.ts` | Zod validation for recipe entities and payloads |
-| `recipe.types.ts`   | `z.infer` types from schemas                    |
-| `index.ts`          | Public barrel (schemas + types only)            |
+| File                | Role                                                   |
+| ------------------- | ------------------------------------------------------ |
+| `recipe.schemas.ts` | Zod validation for recipe entities and payloads        |
+| `recipe.types.ts`   | `z.infer` types from schemas                           |
+| `recipe.model.ts`   | Pure helpers (checkout-history ISO date normalization) |
+| `index.ts`          | Public barrel (schemas, types, and model helpers)      |
 
 ## By design: no `*.service.ts`
 

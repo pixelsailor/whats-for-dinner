@@ -172,7 +172,8 @@
             >
               <LogoutIcon size="xs" />
               {#if vp.nav === 'expanded'}
-                <span class="sidenav-link__text">{session.user.email}</span>
+                <span class="sidenav-link__text user-email">{session.user.email}</span>
+                <span class="sidenav-link__text logout">Log out</span>
               {/if}
             </button>
           </NavigationMenu.Item>
@@ -193,3 +194,19 @@
     </NavigationMenu.Root>
   </div>
 </div>
+
+<style>
+  .sidenav-link .sidenav-link__text.logout {
+    display: none;
+  }
+
+  .sidenav-link:hover,
+  .sidenav-link:focus {
+    .sidenav-link__text.logout {
+      display: block;
+    }
+    .sidenav-link__text.user-email {
+      display: none;
+    }
+  }
+</style>

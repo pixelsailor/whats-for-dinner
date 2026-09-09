@@ -180,9 +180,9 @@ Side drawer for asking Saim cooking questions about the current recipe.
       {/if}
       {#each conversationThread as message (message.id)}
         {#if message.role === 'user'}
-          <p class="text-sm my-2">{message.content}</p>
+          <p class="text-sm my-2 bg-blue-500 text-white p-2 rounded-md">{message.content}</p>
         {:else}
-          <div class="markdown text-sm my-2">
+          <div class="markdown text-sm my-2 bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-gray-100 p-2 rounded-md">
             <SvelteMarkdown source={message.content} />
           </div>
         {/if}

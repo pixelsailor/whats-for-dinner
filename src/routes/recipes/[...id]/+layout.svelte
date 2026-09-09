@@ -2,18 +2,10 @@
   import Button from '$lib/ui/button.svelte';
   import HelpDrawer from '$lib/ui/help-drawer/help-drawer.svelte';
   import ChatbotIcon from '$lib/ui/icons/ChatbotIcon.svelte';
-  // import { createContext, getContext, setContext } from 'svelte';
 
   let { children, data } = $props();
 
   let helpDrawerOpen = $state(false);
-
-  let helpContext = $state<string>('');
-
-  function openHelpDrawer() {
-    // setContext('')
-    helpDrawerOpen = true;
-  }
 </script>
 
 <div class="flex flex-row w-full">

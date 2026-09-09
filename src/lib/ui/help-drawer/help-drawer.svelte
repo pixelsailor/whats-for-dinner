@@ -33,7 +33,7 @@
   let { data, open = $bindable() } = $props();
 
   let textinput = $state('');
-
+  let textinputRef = $state<HTMLInputElement | null>(null);
   let viewstate = $state<'ask' | 'help'>('ask');
 
   let network = $derived($networkStore);
@@ -92,6 +92,12 @@
       conversationId && acceptedRecipeJson && recipeJson !== acceptedRecipeJson
     )
   );
+
+  $effect(() => {
+    if (textinputRef && open) {
+      textinputRef.focus();
+    }
+  });
 
   /**
    * Creates a stable id for a chat message row.
@@ -281,6 +287,7 @@ Side drawer for asking Saim cooking questions about the current recipe.
           </div>
           <label for="textinput" class="sr-only">Ask Saim a question</label>
           <input
+            bind:this={textinputRef}
             id="textinput"
             type="text"
             class="textinput"
@@ -288,6 +295,7 @@ Side drawer for asking Saim cooking questions about the current recipe.
             bind:value={textinput}
             placeholder="Ask Saim a question..."
             disabled={apistate === 'loading'}
+            autocomplete="off"
           />
           <input type="hidden" name="recipe" value={recipeJson} />
           <input type="hidden" name="conversation_id" value={conversationId} />

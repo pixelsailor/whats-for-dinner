@@ -8,7 +8,7 @@
   import CloseIcon from './icons/CloseIcon.svelte';
 
   type Props = Dialog.RootProps & {
-    buttonText?: string;
+    hideCloseButton?: boolean;
     title: Snippet;
     description: Snippet;
     actions?: Snippet;
@@ -20,8 +20,8 @@
   let {
     open = $bindable(false),
     children,
-    buttonText,
     contentProps,
+    hideCloseButton = false,
     title,
     description,
     actions,
@@ -110,7 +110,8 @@ See [ui-bits Dialog](https://ui-bits.dev/docs/components/dialog/llms.txt) for mo
 
       {#if actions}
         {@render actions()}
-      {:else}
+      {/if}
+      {#if !hideCloseButton}
         <Dialog.Close
           class="button icon text absolute! right-2 top-4"
           aria-label="Close dialog"

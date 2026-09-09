@@ -11,9 +11,16 @@ import {
   sanitizePromptInput
 } from '$lib/api/ai/ai.model';
 import {
+  AskSaimActionResultSchema,
+  AskSaimFormSchema,
+  SaimConversationContextSchema
+} from '$lib/api/ai/ai.schemas';
+import {
   OPENAI_DISABLED_ERROR,
+  SaimConversationContextError,
   askCookingQuestion
 } from '$lib/api/ai/ai.server.service';
+import { SavedRecipeSchema } from '$lib/api/recipe';
 
 /**
  * Handles the `asksaim` form action: answers a cooking question in recipe context.
@@ -22,8 +29,9 @@ import {
  */
 export async function askSaimAction({
   request,
-  locals
-}: Pick<RequestEvent, 'request' | 'locals'>) {
+  locals,
+  url
+}: Pick<RequestEvent, 'request' | 'locals' | 'url'>) {
   const { session, permissions } = locals;
 
   if (!session) {
@@ -37,27 +45,69 @@ export async function askSaimAction({
   }
 
   const formData = await request.formData();
-  const question = sanitizePromptInput(
-    (formData.get('help_input') as string) ?? ''
-  );
-  const recipe = (formData.get('recipe') as string) ?? '';
+  const rawConversationId = formData.get('conversation_id');
+  const parsedForm = AskSaimFormSchema.safeParse({
+    conversationId:
+      typeof rawConversationId === 'string' && rawConversationId.length > 0
+        ? rawConversationId
+        : undefined,
+    question: formData.get('help_input'),
+    recipe: formData.get('recipe'),
+    recipeContextChanged: formData.get('recipe_context_changed') === 'true'
+  });
 
+  if (!parsedForm.success) {
+    return fail(400, { error: 'Invalid cooking-assistance request' });
+  }
+
+  const question = sanitizePromptInput(parsedForm.data.question);
   if (!question) {
     return fail(400, { error: 'A question is required' });
   }
 
-  if (!recipe) {
-    return fail(400, { error: 'Recipe context is required' });
+  let recipeJson: unknown;
+  try {
+    recipeJson = JSON.parse(parsedForm.data.recipe);
+  } catch {
+    return fail(400, { error: 'Recipe context is invalid' });
+  }
+
+  const parsedRecipe = SavedRecipeSchema.safeParse(recipeJson);
+  if (!parsedRecipe.success) {
+    return fail(400, { error: 'Recipe context is invalid' });
+  }
+
+  const parsedContext = SaimConversationContextSchema.safeParse({
+    pathname: url.pathname,
+    recipe: parsedRecipe.data,
+    userId: session.user.id
+  });
+  if (!parsedContext.success) {
+    return fail(400, { error: 'Recipe page context is invalid' });
   }
 
   try {
-    const raw = await askCookingQuestion(question, recipe);
-    const answer = parseAssistanceAnswer(raw);
+    const result = await askCookingQuestion({
+      question,
+      context: parsedContext.data,
+      conversationId: parsedForm.data.conversationId,
+      recipeContextChanged: parsedForm.data.recipeContextChanged
+    });
+    const answer = parseAssistanceAnswer(result.outputText);
 
-    return { answer };
+    return AskSaimActionResultSchema.parse({
+      answer,
+      conversationId: result.conversationId
+    });
   } catch (err) {
     if (err instanceof AiParseError) {
       return fail(502, { error: err.message });
+    }
+
+    if (err instanceof SaimConversationContextError) {
+      return fail(409, {
+        error: 'This Saim conversation no longer matches the current recipe.'
+      });
     }
 
     if (err instanceof Error && err.message === OPENAI_DISABLED_ERROR) {

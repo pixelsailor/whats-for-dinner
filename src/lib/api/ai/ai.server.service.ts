@@ -27,6 +27,8 @@ import {
 } from './ai.model';
 import { PromptContextEnum } from './ai.types';
 import type {
+  AskCookingQuestionInput,
+  AskCookingQuestionResult,
   LegacyRecipeAddendumResponse,
   LegacyRecipeAssistanceResponse,
   LegacyRecipeDetailResponse,
@@ -36,6 +38,14 @@ import type {
 
 export const OPENAI_DISABLED_ERROR = 'OPENAI_DISABLED';
 export const OPENAI_INVALID_KEY_FORMAT_ERROR = 'OPENAI_INVALID_KEY_FORMAT';
+
+/** Raised when a supplied Conversation is not bound to the active user, recipe, and page. */
+export class SaimConversationContextError extends Error {
+  constructor() {
+    super('SAIM_CONVERSATION_CONTEXT_MISMATCH');
+    this.name = 'SaimConversationContextError';
+  }
+}
 
 const formatInstructions = `Formatting Guidelines:
 - Use clean, readable Markdown **within** the 'ingredients', 'instructions', and 'notes' strings.
@@ -217,17 +227,80 @@ Here is the user's modification request:
   }
 }
 
+const SAIM_CONVERSATION_PURPOSE = 'saim_recipe_assistance';
+
 /**
- * Ask OpenAI for conversational cooking help related to an existing recipe.
- * May be a modification request or seeking general cooking advice.
- * @param question - User question
- * @param recipeJson - Serialized recipe context
- * @returns Raw structured JSON string from the provider
+ * Serializes only the culinary recipe fields needed by Saim.
+ * @param input - Validated recipe and page context
+ * @param updated - Whether this replaces an earlier recipe snapshot
+ * @returns Developer message for the OpenAI Conversation
+ */
+function createSaimRecipeContextMessage(
+  input: AskCookingQuestionInput,
+  updated: boolean
+): string {
+  const recipe = RecipeSchema.parse(input.context.recipe);
+  const contextLabel = updated
+    ? 'The recipe on the current page has been updated. Use this latest snapshot from now on.'
+    : 'Use this recipe as the context for this conversation.';
+
+  return `${contextLabel}
+Page: ${input.context.pathname}
+
+Recipe JSON:
+\`\`\`json
+${JSON.stringify(recipe)}
+\`\`\``;
+}
+
+/**
+ * Returns metadata that binds a provider Conversation to one Saim page session.
+ * @param input - Validated recipe, page, and user context
+ * @returns OpenAI-compatible string metadata
+ */
+function createSaimConversationMetadata(
+  input: AskCookingQuestionInput
+): Record<string, string> {
+  return {
+    purpose: SAIM_CONVERSATION_PURPOSE,
+    user_id: input.context.userId,
+    recipe_id: input.context.recipe.id,
+    page_path: input.context.pathname
+  };
+}
+
+/**
+ * Verifies that an existing Conversation belongs to the active Saim context.
+ * @param metadata - Provider metadata from the retrieved Conversation
+ * @param input - Active recipe, page, and user context
+ * @throws {SaimConversationContextError} When any binding does not match
+ */
+function assertSaimConversationMetadata(
+  metadata: unknown,
+  input: AskCookingQuestionInput
+): void {
+  const expected = createSaimConversationMetadata(input);
+
+  if (
+    typeof metadata !== 'object' ||
+    metadata === null ||
+    Object.entries(expected).some(
+      ([key, value]) => (metadata as Record<string, unknown>)[key] !== value
+    )
+  ) {
+    throw new SaimConversationContextError();
+  }
+}
+
+/**
+ * Ask OpenAI for stateful cooking help related to the recipe on the active page.
+ * @param input - Question and the user/recipe/page context for a new or existing Conversation
+ * @returns Structured provider output and the bound Conversation id
+ * @throws {SaimConversationContextError} When a supplied Conversation has different metadata
  */
 export async function askCookingQuestion(
-  question: string,
-  recipeJson: string
-): Promise<string> {
+  input: AskCookingQuestionInput
+): Promise<AskCookingQuestionResult> {
   const instructions = `
 You are a helpful, experienced culinary assistant.
 Keep responses concise, friendly, and informative.
@@ -235,29 +308,55 @@ Only alter the recipe if asked to do so. If unsure, respond with the answer then
 Do NOT change the recipe format or structure unless asked to do so.
 `;
 
-  const input = `
-The user has asked: ${question}
-
----
-
-This is the recipe in JSON format:
-
-\`\`\`json
-${recipeJson}
-\`\`\`
-`;
-
   const openai = getOpenAI();
+  let conversationId = input.conversationId;
+
+  if (conversationId) {
+    const conversation = await openai.conversations.retrieve(conversationId);
+    assertSaimConversationMetadata(conversation.metadata, input);
+  } else {
+    const conversation = await openai.conversations.create({
+      metadata: createSaimConversationMetadata(input),
+      items: [
+        {
+          type: 'message',
+          role: 'developer',
+          content: createSaimRecipeContextMessage(input, false)
+        }
+      ]
+    });
+    conversationId = conversation.id;
+  }
+
+  const responseInput = input.recipeContextChanged
+    ? [
+        {
+          type: 'message' as const,
+          role: 'developer' as const,
+          content: createSaimRecipeContextMessage(input, true)
+        },
+        {
+          type: 'message' as const,
+          role: 'user' as const,
+          content: input.question
+        }
+      ]
+    : input.question;
+
   const response = await openai.responses.create({
     model: 'gpt-5.4-mini',
     instructions,
-    input,
+    conversation: conversationId,
+    input: responseInput,
     text: {
       format: zodTextFormat(RecipeAssistanceOutputSchema, 'assistance')
     }
   });
 
-  return response.output_text;
+  return {
+    outputText: response.output_text,
+    conversationId
+  };
 }
 
 /**
@@ -494,11 +593,10 @@ export async function requestRecipeModificationsWithContext(
  * Form action and `/api/recipes` assistance handler.
  */
 export async function askCookingQuestionWithContext(
-  question: string,
-  recipeJson: string
+  input: AskCookingQuestionInput
 ): Promise<LegacyRecipeAssistanceResponse> {
-  const raw = await askCookingQuestion(question, recipeJson);
-  const answer = parseAssistanceAnswer(raw);
+  const result = await askCookingQuestion(input);
+  const answer = parseAssistanceAnswer(result.outputText);
   return [PromptContextEnum.ASSISTANCE, answer];
 }
 

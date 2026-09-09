@@ -12,7 +12,7 @@
 
 import { z } from 'zod';
 
-import { RecipeSchema } from '../recipe';
+import { RecipeSchema, SavedRecipeSchema } from '../recipe';
 
 /**
  * OpenAI structured output schema for a recipe suggestion.
@@ -49,6 +49,36 @@ export const RecipeAssistanceOutputSchema = z.object({
     .nullable()
     .describe('The recipe with any modifications made by the user.')
 });
+
+/** Validated page and recipe ownership context for an OpenAI Conversation. */
+export const SaimConversationContextSchema = z
+  .object({
+    pathname: z.string().min(1).max(512),
+    recipe: SavedRecipeSchema,
+    userId: z.uuid()
+  })
+  .strict();
+
+/** Normalized fields accepted by the Saim form action. */
+export const AskSaimFormSchema = z
+  .object({
+    conversationId: z
+      .string()
+      .regex(/^conv_[A-Za-z0-9_-]+$/)
+      .optional(),
+    question: z.string().min(1),
+    recipe: z.string().min(1),
+    recipeContextChanged: z.boolean()
+  })
+  .strict();
+
+/** Successful Saim form-action payload returned to the help drawer. */
+export const AskSaimActionResultSchema = z
+  .object({
+    answer: z.string().min(1),
+    conversationId: z.string().regex(/^conv_[A-Za-z0-9_-]+$/)
+  })
+  .strict();
 
 /** Full recipe JSON from OpenAI (detail, revision, addendum). */
 export const RecipeDetailResponseSchema = RecipeSchema;

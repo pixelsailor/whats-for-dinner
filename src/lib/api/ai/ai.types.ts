@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Defines inferred contracts for AI routes and Saim conversations.
+ * @module lib/api/ai/ai.types
+ */
+
 import { z } from 'zod';
 
 import type { Recipe } from '$lib/api/recipe';
@@ -6,9 +11,12 @@ import type { ApiResponse } from '$lib/api/common';
 
 import type {
   AiSuggestionSchema,
+  AskSaimActionResultSchema,
+  AskSaimFormSchema,
   RecipeAddendumResponseSchema,
   RecipeAssistanceOutputSchema,
-  RecipeSuggestionsResponseSchema
+  RecipeSuggestionsResponseSchema,
+  SaimConversationContextSchema
 } from './ai.schemas';
 
 export type { ApiResponse };
@@ -58,6 +66,31 @@ export type SuggestedRecipeResponse = Recipe;
 export type RecipeAssistanceResponse = z.infer<
   typeof RecipeAssistanceOutputSchema
 >;
+
+/** Normalized client fields submitted to the Saim form action. */
+export type AskSaimForm = z.infer<typeof AskSaimFormSchema>;
+
+/** Recipe, page, and user identity bound to a Saim conversation. */
+export type SaimConversationContext = z.infer<
+  typeof SaimConversationContextSchema
+>;
+
+/** Successful Saim action response used by the help drawer. */
+export type AskSaimActionResult = z.infer<typeof AskSaimActionResultSchema>;
+
+/** Inputs needed to create or continue recipe-scoped cooking assistance. */
+export type AskCookingQuestionInput = {
+  question: string;
+  context: SaimConversationContext;
+  conversationId?: string;
+  recipeContextChanged?: boolean;
+};
+
+/** Provider output plus the Conversation resource that retained the turn. */
+export type AskCookingQuestionResult = {
+  outputText: string;
+  conversationId: string;
+};
 
 /** Legacy tuple responses for `/api/recipes` and form actions. */
 export type LegacyRecipeSuggestionsResponse = OpenAiTupleResponse<

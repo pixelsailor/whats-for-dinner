@@ -1,6 +1,8 @@
 <script lang="ts">
   import SvelteMarkdown from '@humanspeak/svelte-markdown';
+  import { tick } from 'svelte';
   import { enhance } from '$app/forms';
+  import { page } from '$app/state';
 
   import { deriveAICapability } from '$lib/api/auth/auth.capability';
   import { networkStore } from '$lib/stores/network';
@@ -18,13 +20,21 @@
     content: string;
   };
 
+  /** Page-local state for one recipe-scoped Saim conversation. */
+  type ConversationSession = {
+    context: string;
+    id: string;
+    acceptedRecipeJson: string;
+    thread: ChatMessage[];
+    error: string;
+    apiState: 'idle' | 'loading' | 'error';
+  };
+
   let { data, open = $bindable() } = $props();
 
   let textinput = $state('');
 
   let viewstate = $state<'ask' | 'help'>('ask');
-
-  let apistate = $state<'idle' | 'loading' | 'success' | 'error'>('idle');
 
   let network = $derived($networkStore);
   let aiCapability = $derived(
@@ -51,13 +61,36 @@
     }
   });
 
-  let conversationThread = $state<ChatMessage[]>([]);
-  let submitError = $state('');
+  let conversationSession = $state<ConversationSession>({
+    context: '',
+    id: '',
+    acceptedRecipeJson: '',
+    thread: [],
+    error: '',
+    apiState: 'idle'
+  });
   let threadBody = $state<HTMLDivElement | null>(null);
-  let lastRecipeId = $state<string | undefined>(undefined);
 
-  let recipeJson = $derived(
-    data.recipe ? JSON.stringify(data.recipe) : ''
+  let recipeJson = $derived(data.recipe ? JSON.stringify(data.recipe) : '');
+  let pageContext = $derived(
+    data.recipe?.id ? `${page.url.pathname}:${data.recipe.id}` : ''
+  );
+  let activeConversationSession = $derived(
+    conversationSession.context === pageContext
+      ? conversationSession
+      : undefined
+  );
+  let conversationThread = $derived(activeConversationSession?.thread ?? []);
+  let conversationId = $derived(activeConversationSession?.id ?? '');
+  let acceptedRecipeJson = $derived(
+    activeConversationSession?.acceptedRecipeJson ?? ''
+  );
+  let submitError = $derived(activeConversationSession?.error ?? '');
+  let apistate = $derived(activeConversationSession?.apiState ?? 'idle');
+  let recipeContextChanged = $derived(
+    Boolean(
+      conversationId && acceptedRecipeJson && recipeJson !== acceptedRecipeJson
+    )
   );
 
   /**
@@ -68,25 +101,45 @@
     return crypto.randomUUID();
   }
 
-  $effect(() => {
-    const recipeId = data.recipe?.id;
-    if (recipeId === undefined || recipeId === lastRecipeId) {
-      return;
+  /**
+   * Starts empty client state when the active recipe or page changes.
+   */
+  function ensureActiveConversationSession(): void {
+    if (conversationSession.context !== pageContext) {
+      conversationSession = {
+        context: pageContext,
+        id: '',
+        acceptedRecipeJson: '',
+        thread: [],
+        error: '',
+        apiState: 'idle'
+      };
     }
-    lastRecipeId = recipeId;
-    conversationThread = [];
-    submitError = '';
-    apistate = 'idle';
-  });
+  }
 
-  $effect(() => {
-    const messageCount = conversationThread.length;
-    const loading = apistate === 'loading';
+  /**
+   * Keeps a reference to the scrollable thread without `bind:this`.
+   * @param node - Conversation thread container
+   * @returns Cleanup callback for the attachment
+   */
+  function attachThreadBody(node: HTMLDivElement): () => void {
+    threadBody = node;
+    return () => {
+      if (threadBody === node) {
+        threadBody = null;
+      }
+    };
+  }
 
-    if (threadBody && (messageCount > 0 || loading)) {
+  /**
+   * Scrolls the conversation after Svelte renders the latest turn.
+   */
+  async function scrollThreadToEnd(): Promise<void> {
+    await tick();
+    if (threadBody) {
       threadBody.scrollTop = threadBody.scrollHeight;
     }
-  });
+  }
 </script>
 
 <!--
@@ -95,7 +148,8 @@ Side drawer for asking Saim cooking questions about the current recipe.
 
 - Renders a scrollable conversation when `viewstate` is `ask` and AI is available.
 - Assistant replies are rendered as markdown via `SvelteMarkdown`.
-- Posts to the current page `asksaim` form action with recipe JSON context.
+- Keeps the OpenAI Conversation id in page memory and resets it on recipe/page navigation.
+- Posts changed recipe snapshots with the next question so follow-ups use current context.
 -->
 
 <div
@@ -104,13 +158,13 @@ Side drawer for asking Saim cooking questions about the current recipe.
   <div
     class="help-drawer-content__header h-16 px-2 flex flex-row justify-end items-center flex-none"
   >
-    <Button class="text icon" aria-label="Close" onclick={() => (open = false)}>
+    <Button class="text icon" aria-label="Close" onclick={() => (open = !open)}>
       <CloseIcon size="sm" />
     </Button>
   </div>
   {#if canUseAI && viewstate === 'ask'}
     <div
-      bind:this={threadBody}
+      {@attach attachThreadBody}
       class="help-drawer-content__body p-2 flex flex-col justify-start grow overflow-y-auto"
     >
       {#if conversationThread.length === 0 && apistate !== 'loading'}
@@ -150,14 +204,17 @@ Side drawer for asking Saim cooking questions about the current recipe.
         action="?/asksaim"
         use:enhance={({ cancel }) => {
           const question = textinput.trim();
+          const submittedRecipeJson = recipeJson;
+          const submittedPageContext = pageContext;
 
-          if (!question || !recipeJson || apistate === 'loading') {
+          if (!question || !submittedRecipeJson || apistate === 'loading') {
             cancel();
             return;
           }
 
-          conversationThread = [
-            ...conversationThread,
+          ensureActiveConversationSession();
+          conversationSession.thread = [
+            ...conversationSession.thread,
             {
               id: createMessageId(),
               role: 'user',
@@ -165,36 +222,55 @@ Side drawer for asking Saim cooking questions about the current recipe.
             }
           ];
           textinput = '';
-          apistate = 'loading';
-          submitError = '';
+          conversationSession.apiState = 'loading';
+          conversationSession.error = '';
+          void scrollThreadToEnd();
 
           return async ({ result }) => {
+            if (conversationSession.context !== submittedPageContext) {
+              return;
+            }
+
             if (result.type === 'success') {
               const answer = result.data?.answer;
+              const returnedConversationId = result.data?.conversationId;
 
-              if (typeof answer === 'string' && answer.length > 0) {
-                conversationThread = [
-                  ...conversationThread,
+              if (
+                typeof answer === 'string' &&
+                answer.length > 0 &&
+                typeof returnedConversationId === 'string' &&
+                returnedConversationId.length > 0
+              ) {
+                conversationSession.thread = [
+                  ...conversationSession.thread,
                   {
                     id: createMessageId(),
                     role: 'assistant',
                     content: answer
                   }
                 ];
-                apistate = 'idle';
+                conversationSession.id = returnedConversationId;
+                conversationSession.acceptedRecipeJson = submittedRecipeJson;
+                conversationSession.apiState = 'idle';
+                void scrollThreadToEnd();
               } else {
-                submitError = 'Saim returned an empty response.';
-                apistate = 'error';
+                conversationSession.error = 'Saim returned an empty response.';
+                conversationSession.apiState = 'error';
               }
             } else if (result.type === 'failure') {
               const failureData = result.data as { error?: string } | undefined;
-              submitError =
+              conversationSession.error =
                 failureData?.error ??
                 'Unable to get a response. Please try again.';
-              apistate = 'error';
+              if (result.status === 409) {
+                conversationSession.id = '';
+                conversationSession.acceptedRecipeJson = '';
+              }
+              conversationSession.apiState = 'error';
             } else {
-              submitError = 'Unable to get a response. Please try again.';
-              apistate = 'error';
+              conversationSession.error =
+                'Unable to get a response. Please try again.';
+              conversationSession.apiState = 'error';
             }
           };
         }}
@@ -214,6 +290,12 @@ Side drawer for asking Saim cooking questions about the current recipe.
             disabled={apistate === 'loading'}
           />
           <input type="hidden" name="recipe" value={recipeJson} />
+          <input type="hidden" name="conversation_id" value={conversationId} />
+          <input
+            type="hidden"
+            name="recipe_context_changed"
+            value={recipeContextChanged ? 'true' : 'false'}
+          />
           <Button
             type="submit"
             class="text narrow"

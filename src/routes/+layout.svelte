@@ -506,7 +506,7 @@
   </Tooltip.Provider>
 
   <!-- Cloud sync dialog -->
-  <Dialog bind:open={openCloudSyncDialog}>
+  <Dialog bind:open={openCloudSyncDialog} hideCloseButton>
     {#snippet title()}
       {#if syncDialogMode === 'first-sync'}
         <h1>Sync recipes to the cloud?</h1>

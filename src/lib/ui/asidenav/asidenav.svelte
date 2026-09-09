@@ -15,10 +15,15 @@
   import TimeIcon from '$lib/ui/icons/Time.svelte';
   import { AppBar } from '../AppBar';
   import type { Viewport } from '$lib/types';
+  import Dialog from '../Dialog.svelte';
+  import LoginForm from '../login-form/login-form.svelte';
 
   let { session, recentlyOpened, network, supabase } = $props();
 
   const vp: Viewport = getContext('viewport');
+
+  let openLoginDialog = $state(false);
+  let loginFormStatus = $state<'idle' | 'progress' | 'invalid'>('invalid');
 
   async function handleSignOut() {
     await supabase.auth.signOut();
@@ -179,21 +184,31 @@
           </NavigationMenu.Item>
         {:else}
           <NavigationMenu.Item>
-            <NavigationMenu.Link
-              class="sidenav-link h-input-mobile md:h-input hover:bg-dark-10"
-              href="/auth"
-            >
+            <button class="sidenav-link w-full h-input-mobile md:h-input hover:bg-dark-10 hover:cursor-pointer" onclick={() => (openLoginDialog = true)}>
               <LoginIcon size="xs" />
               {#if vp.nav === 'expanded'}
                 <span class="sidenav-link__text">Log in</span>
               {/if}
-            </NavigationMenu.Link>
+            </button>
           </NavigationMenu.Item>
         {/if}
       </NavigationMenu.List>
     </NavigationMenu.Root>
   </div>
 </div>
+
+<Dialog bind:open={openLoginDialog}>
+  {#snippet title()}
+    <h1>Log in</h1>
+  {/snippet}
+  {#snippet description()}
+    <p>Log in to your account to continue.</p>
+  {/snippet}
+  <LoginForm bind:status={loginFormStatus} onSuccess={() => (openLoginDialog = false)} />
+  {#snippet actions()}
+    <Button type="submit" class="primary" form="login-form" disabled={loginFormStatus === 'progress' || loginFormStatus === 'invalid'}>Log in</Button>
+  {/snippet}
+</Dialog>
 
 <style>
   .sidenav-link .sidenav-link__text.logout {

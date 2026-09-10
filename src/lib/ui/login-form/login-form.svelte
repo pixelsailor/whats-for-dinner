@@ -7,7 +7,11 @@
   import TextInput from '$lib/ui/text-input/text-input.svelte';
 
   // eslint-disable-next-line no-useless-assignment
-  let { id = 'login-form', status = $bindable('invalid'), onSuccess } = $props();
+  let {
+    id = 'login-form',
+    status = $bindable('invalid'),
+    onSuccess
+  } = $props();
 
   let loginError = $state('');
 
@@ -48,7 +52,7 @@
         await applyAction(result);
         handleOnSuccess();
       }
-    }
+    };
   }}
 >
   {#if loginError}

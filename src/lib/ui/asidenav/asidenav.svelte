@@ -177,14 +177,19 @@
             >
               <LogoutIcon size="xs" />
               {#if vp.nav === 'expanded'}
-                <span class="sidenav-link__text user-email">{session.user.email}</span>
+                <span class="sidenav-link__text user-email"
+                  >{session.user.email}</span
+                >
                 <span class="sidenav-link__text logout">Log out</span>
               {/if}
             </button>
           </NavigationMenu.Item>
         {:else}
           <NavigationMenu.Item>
-            <button class="sidenav-link w-full h-input-mobile md:h-input hover:bg-dark-10 hover:cursor-pointer" onclick={() => (openLoginDialog = true)}>
+            <button
+              class="sidenav-link w-full h-input-mobile md:h-input hover:bg-dark-10 hover:cursor-pointer"
+              onclick={() => (openLoginDialog = true)}
+            >
               <LoginIcon size="xs" />
               {#if vp.nav === 'expanded'}
                 <span class="sidenav-link__text">Log in</span>
@@ -204,9 +209,18 @@
   {#snippet description()}
     <p>Log in to your account to continue.</p>
   {/snippet}
-  <LoginForm bind:status={loginFormStatus} onSuccess={() => (openLoginDialog = false)} />
+  <LoginForm
+    bind:status={loginFormStatus}
+    onSuccess={() => (openLoginDialog = false)}
+  />
   {#snippet actions()}
-    <Button type="submit" class="primary" form="login-form" disabled={loginFormStatus === 'progress' || loginFormStatus === 'invalid'}>Log in</Button>
+    <Button
+      type="submit"
+      class="primary"
+      form="login-form"
+      disabled={loginFormStatus === 'progress' || loginFormStatus === 'invalid'}
+      >Log in</Button
+    >
   {/snippet}
 </Dialog>
 

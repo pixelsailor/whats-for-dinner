@@ -38,7 +38,8 @@ const mockedGreeting = vi.mocked(getGreeting);
 const createPageData = (): App.PageData => ({
   session: null,
   permissions: {
-    cloudSync: { allowed: false },
+    cloudRead: { allowed: false },
+    cloudWrite: { allowed: false },
     aiAssistedRecipe: { allowed: true }
   },
   featureFlags: {

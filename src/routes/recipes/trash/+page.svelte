@@ -19,8 +19,8 @@
   let cloudService: CloudService | undefined = $state(undefined);
   let syncService: SyncService | undefined = $state(undefined);
 
-  let hasCloudStorageAccess = $derived(
-    data.permissions?.cloudSync.allowed ?? false
+  let hasCloudWriteAccess = $derived(
+    data.permissions?.cloudWrite.allowed ?? false
   );
 
   let app = $state({
@@ -60,7 +60,7 @@
   const restoreRecipe = async (id: string) => {
     if (!id) return;
     app.status = 'loading';
-    if (hasCloudStorageAccess && syncService) {
+    if (hasCloudWriteAccess && syncService) {
       const response = await syncService.updateRecipeAndSyncLocal({
         id,
         deleted_at: undefined
@@ -84,7 +84,7 @@
   const deleteRecipe = async (id: string) => {
     if (!id) return;
     app.status = 'loading';
-    if (hasCloudStorageAccess && syncService) {
+    if (hasCloudWriteAccess && syncService) {
       const response = await syncService.deleteRecipeAndSyncLocal(id);
       if (!response.success) {
         toast.error(
@@ -107,7 +107,7 @@
     const all = $deletedRecipesStore.data?.map((recipe) => recipe.id);
     if (!all?.length) return;
     app.status = 'loading';
-    if (hasCloudStorageAccess && syncService) {
+    if (hasCloudWriteAccess && syncService) {
       const response = await syncService.deleteDeletedRecipesAndSyncLocal(all);
       if (!response.success) {
         toast.error(

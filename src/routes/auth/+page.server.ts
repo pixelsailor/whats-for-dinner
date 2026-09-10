@@ -67,7 +67,8 @@ export const actions: Actions = {
 
       setSessionPermissions(cookies, {
         ai_assistance: hasPermission(profile, 'ai_assistance'),
-        cloud_storage: hasPermission(profile, 'cloud_storage')
+        read_cloud: hasPermission(profile, 'read_cloud'),
+        write_cloud: hasPermission(profile, 'write_cloud')
       });
     } catch (profileError) {
       console.error(

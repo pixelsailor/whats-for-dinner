@@ -92,8 +92,8 @@
   //   }
   // });
 
-  let hasCloudStorageAccess = $derived(
-    data.permissions?.cloudSync.allowed ?? false
+  let hasCloudWriteAccess = $derived(
+    data.permissions?.cloudWrite.allowed ?? false
   );
   // let hasAIAssistanceAccess = $derived(data.permissions?.aiAssistedRecipe.allowed ?? false);
 
@@ -292,7 +292,7 @@
    */
   async function syncRecipe(recipeId: string) {
     if (!recipe || recipe.id !== recipeId) return;
-    if (!hasCloudStorageAccess || !syncService) {
+    if (!hasCloudWriteAccess || !syncService) {
       toast.error('Cloud sync is not available for your account.');
       return;
     }
@@ -403,7 +403,7 @@
     if (!workingRecipe) return;
     app.status = 'loading';
 
-    if (hasCloudStorageAccess && syncService) {
+    if (hasCloudWriteAccess && syncService) {
       try {
         // Ensure entire recipe is included if the recipe isn't synced.
         // Unsynced recipes may not exist in the cloud yet; using PATCH/UPDATE can 406.
@@ -462,7 +462,7 @@
   const deleteRecipe = async (id: string) => {
     if (!id) return;
     const now = new Date().toISOString();
-    if (hasCloudStorageAccess && syncService) {
+    if (hasCloudWriteAccess && syncService) {
       const response = await syncService.updateRecipeAndSyncLocal({
         id,
         deleted_at: now
@@ -551,7 +551,7 @@
             <ProgressSpinner size="xs" />
           </div>
         {/if}
-        <!-- {#if hasCloudStorageAccess && syncService && network.online}
+        <!-- {#if hasCloudWriteAccess && syncService && network.online}
 					<PxlIconButton aria-label="Sync recipe" tooltip="Sync recipe" onclick={() => saveRecipeToCloud(recipe!)}>
 						<CloudBackupIcon size="xs" />
 					</PxlIconButton>
@@ -611,7 +611,7 @@
                     </a>
                   {/snippet}
                 </DropdownMenu.Item>
-                {#if hasCloudStorageAccess && syncService}
+                {#if hasCloudWriteAccess && syncService}
                   <DropdownMenu.Item
                     textValue="Sync recipe"
                     class="rounded-button text-primary data-highlighted:bg-primary/10 flex h-10 items-center py-3 pr-1.5 pl-3 text-sm font-medium ring-0! ring-transparent! select-none focus-visible:outline-none"

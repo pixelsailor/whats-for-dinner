@@ -26,7 +26,8 @@ import {
  * Cloud Service
  *
  * Handles cloud backup and synchronization of recipes and shared recipes.
- * Cloud Services are only available to authorized users with the `cloud_storage` permission.
+ * Cloud Services are only available to authorized users with `read_cloud` and/or `write_cloud` permission.
+ * Callers must check those flags before invoking mutate vs download paths; RLS remains the remote authority.
  *
  * Any time a recipe is uploaded or downloaded, the `last_synced_at` timestamp must be updated.
  *
@@ -40,7 +41,7 @@ import {
  *
  * export const load: PageServerLoad = async ({ locals: { supabase, permissions, safeGetSession } }) => {
  *   const { user } = await safeGetSession();
- *   if (!user || !permissions?.cloud_storage) {
+ *   if (!user || (!permissions?.read_cloud && !permissions?.write_cloud)) {
  *     return { error: 'Unauthorized' };
  *   }
  *   const cloudService = new CloudService(supabase, user.id);

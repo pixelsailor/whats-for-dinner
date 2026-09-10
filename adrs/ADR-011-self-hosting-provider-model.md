@@ -90,11 +90,11 @@ User-supplied provider configuration is **device-local** by default and **never*
 
 ### 4. Permission semantics under self-hosting
 
-`permissions.ai_assistance` and `permissions.cloud_storage` ([`src/lib/api/auth/auth.permissions.ts`](../src/lib/api/auth/auth.permissions.ts)) are checks against **WFD-managed Supabase entitlements**. They were intended as gating for **WFD-paid features**, not as a global "is AI available?" flag.
+`permissions.ai_assistance`, `permissions.read_cloud`, and `permissions.write_cloud` ([`src/lib/api/auth/auth.permissions.ts`](../src/lib/api/auth/auth.permissions.ts)) are checks against **WFD-managed Supabase entitlements**. They were intended as gating for **WFD-paid features**, not as a global "is AI available?" flag.
 
 - A request that arrives with valid **personal AI provider** configuration **must not** be rejected solely because `permissions.ai_assistance` is false. The check should become "is **this request's** AI access allowed?" — true when either WFD-managed permission is granted **or** a validated personal provider config is present.
 - A request that uses the **WFD-managed default** AI provider (no personal config) keeps today's behavior: `ai_assistance` permission required.
-- The same pattern applies to `cloud_storage`: a session pointed at a user-hosted Supabase project must not require WFD-side `cloud_storage` permission to use that user-hosted backup. WFD-managed cloud features still gate on `cloud_storage`.
+- The same pattern applies to `read_cloud` / `write_cloud`: a session pointed at a user-hosted Supabase project must not require WFD-side cloud entitlements to use that user-hosted backup. WFD-managed cloud features still gate on `read_cloud` (download/list) and `write_cloud` (upload/mutate).
 - **Anonymous self-hosting:** A user with no WFD account but a personal AI provider must still be able to drive AI suggestion and full-recipe flows. Suggestions remain transient-local ([ADR-003](ADR-003-ai-suggestion-lifecycle.md)); the Dexie comment that ties suggestion storage to authenticated users is **drift** under this ADR (recorded as a gap below).
 
 ### 5. Validation and safety boundaries are non-negotiable
@@ -173,7 +173,7 @@ The client must treat **absent** capabilities as feature-off (hide or disable), 
 ## Enforcement rules
 
 - **Cursor / agent rules:** The backlog **Rule: Self-hosting compatibility** in [`docs/adr-and-rules-todo.md`](../docs/adr-and-rules-todo.md) should cite this ADR alongside [ADR-004](ADR-004-account-and-cloud-enhancement-model.md) and [ADR-007](ADR-007-ai-provider-contract.md). The future **Rule: Supabase enhancement boundary** and **Rule: AI integration boundary** should similarly require new code to read capability flags rather than assume a single managed provider.
-- **Code / architecture:** New AI/cloud code must (a) call only same-origin server routes from the client, (b) tolerate `featureFlags.ai === false` and `featureFlags.cloud === false`, (c) declare its required capability subset, and (d) avoid reading `permissions.ai_assistance` / `permissions.cloud_storage` as the **sole** signal that AI/cloud is unavailable — pair the permission check with the capability flag once both are wired.
+- **Code / architecture:** New AI/cloud code must (a) call only same-origin server routes from the client, (b) tolerate `featureFlags.ai === false` and `featureFlags.cloud === false`, (c) declare its required capability subset, and (d) avoid reading `permissions.ai_assistance` / `permissions.read_cloud` / `permissions.write_cloud` as the **sole** signal that AI/cloud is unavailable — pair the permission check with the capability flag once both are wired.
 - **When to revisit:** First implementation of a personal AI key flow; introduction of a non-OpenAI-compatible provider; introduction of a non-Supabase cloud backend; replacement of Supabase Auth.
 
 ## Supersession notes

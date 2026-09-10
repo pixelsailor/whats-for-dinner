@@ -29,7 +29,7 @@ export type Permission = {
  * Values must match columns in the `user_profiles` table.
  */
 /** @deprecated Prefer permissions from Supabase user profiles (`locals.permissions`). */
-export type PolicyName = 'ai_assistance' | 'cloud_storage';
+export type PolicyName = 'ai_assistance' | 'read_cloud' | 'write_cloud';
 
 /**
  * Result of a feature permission check.

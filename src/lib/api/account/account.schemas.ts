@@ -50,8 +50,15 @@ export const UserProfileSchema = z.object({
   user_id: z.uuid(),
   /** Whether the user has access to AI assisted recipe generation. */
   ai_assistance: z.boolean(),
-  /** Whether the user has access to cloud storage. */
-  cloud_storage: z.boolean(),
+  /** Whether the user may list/download remote recipes into Dexie. */
+  read_cloud: z.boolean(),
+  /** Whether the user may upload, update, soft-delete, restore, or purge cloud recipes. */
+  write_cloud: z.boolean(),
+  /**
+   * Legacy monolithic cloud entitlement; unused by application gating.
+   * @deprecated Prefer {@link UserProfileSchema}'s `read_cloud` / `write_cloud`. Remove when the Supabase column is dropped.
+   */
+  cloud_storage: z.boolean().optional().nullable(),
   /**
    * Legacy jsonb on `user_profiles`; unused — do not read or write in application code.
    * @deprecated Remove when the Supabase column is dropped.

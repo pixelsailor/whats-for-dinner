@@ -10,6 +10,7 @@
   import { browser } from '$app/environment';
   import { invalidate } from '$app/navigation';
 
+  import { deriveCloudCapability } from '$lib/api/auth';
   import {
     CloudService,
     type ConflictResolution,
@@ -17,13 +18,13 @@
     type SyncPlan,
     SyncService
   } from '$lib/api/cloud';
-  import { recentlyOpenedStore } from '$lib/stores/recipes';
+  import type { SavedRecipe } from '$lib/api/recipe/recipe.types';
   import { networkStore } from '$lib/stores/network';
+  import { recentlyOpenedStore } from '$lib/stores/recipes';
+  import { resetSyncStore, syncStore, updateSyncStore } from '$lib/stores/sync';
   import Asidenav from '$lib/ui/asidenav/asidenav.svelte';
   import Button from '$lib/ui/button.svelte';
   import Dialog from '$lib/ui/Dialog.svelte';
-  import type { SavedRecipe } from '$lib/api/recipe/recipe.types';
-  import { resetSyncStore, syncStore, updateSyncStore } from '$lib/stores/sync';
   import '../app.css';
 
   type Layout =
@@ -47,6 +48,15 @@
   let { children, data } = $props();
   let { session, supabase } = $derived(data);
   let network = $derived($networkStore);
+  let cloudCapability = $derived(
+    deriveCloudCapability({
+      session,
+      permissions: data.permissions,
+      online: network.online
+    })
+  );
+  let canReadCloud = $derived(cloudCapability.canReadCloud);
+  let canWriteCloud = $derived(cloudCapability.canWriteCloud);
 
   /**
    * Viewport helper for responsive layout.
@@ -217,7 +227,7 @@
   });
 
   async function runSync(userId: string) {
-    if (!network.online) {
+    if (!network.online || (!canReadCloud && !canWriteCloud)) {
       return;
     }
 
@@ -271,6 +281,12 @@
     }
 
     if (plan.scenario === 'first-sync') {
+      // Local recipes + empty cloud: upload requires write_cloud.
+      if (!canWriteCloud) {
+        updateSyncStore({ status: 'complete' });
+        syncing = false;
+        return;
+      }
       updateSyncStore({ status: 'awaiting-confirmation' });
       syncDialogMode = 'first-sync';
       openCloudSyncDialog = true;
@@ -278,9 +294,19 @@
     }
 
     if (plan.scenario === 'download-only') {
+      if (!canReadCloud) {
+        updateSyncStore({ status: 'complete' });
+        syncing = false;
+        return;
+      }
       await performDownload(plan.cloudOnly, syncService, {
         withCancelToast: true
       });
+      const afterDownload = get(syncStore);
+      if (afterDownload.cancelRequested || afterDownload.status === 'error') {
+        return;
+      }
+      finishSync();
       return;
     }
 
@@ -308,10 +334,10 @@
 
   async function syncNonConflicts(plan: SyncPlan, syncService: SyncService) {
     updateSyncStore({ status: 'syncing' });
-    if (plan.localOnly.length > 0) {
+    if (canWriteCloud && plan.localOnly.length > 0) {
       await performUpload(plan.localOnly, syncService);
     }
-    if (plan.cloudOnly.length > 0) {
+    if (canReadCloud && plan.cloudOnly.length > 0) {
       await performDownload(plan.cloudOnly, syncService);
     }
     finishSync();
@@ -321,7 +347,7 @@
     recipes: SavedRecipe[],
     syncService: SyncService
   ) {
-    if (!recipes.length) return;
+    if (!canWriteCloud || !recipes.length) return;
     await syncService.uploadRecipes(recipes);
     updateSyncStore((state) => ({
       ...state,
@@ -373,7 +399,7 @@
   }
 
   async function handleFirstSyncConfirm() {
-    if (!syncPlan || !session?.user) return;
+    if (!canWriteCloud || !syncPlan || !session?.user) return;
     updateSyncStore({ status: 'syncing' });
     openCloudSyncDialog = false;
     const syncService = new SyncService(
@@ -385,6 +411,9 @@
 
   async function resolveCurrentConflict(action: 'upload' | 'download') {
     if (!currentConflict || !session) return;
+    if (action === 'upload' && !canWriteCloud) return;
+    if (action === 'download' && !canReadCloud) return;
+
     const syncService = new SyncService(
       new CloudService(supabase, session.user.id)
     );
@@ -408,10 +437,10 @@
     if (conflictQueue.length === 0 && syncPlan) {
       openCloudSyncDialog = false;
       updateSyncStore({ status: 'syncing' });
-      if (syncPlan.localOnly.length > 0) {
+      if (canWriteCloud && syncPlan.localOnly.length > 0) {
         await performUpload(syncPlan.localOnly, syncService);
       }
-      if (syncPlan.cloudOnly.length > 0) {
+      if (canReadCloud && syncPlan.cloudOnly.length > 0) {
         await performDownload(syncPlan.cloudOnly, syncService);
       }
       finishSync();
@@ -429,10 +458,18 @@
     syncService: SyncService
   ) {
     if (!conflicts.length) return;
-    await syncService.resolveConflictsAutomatically(conflicts);
 
-    const uploads = conflicts.filter((item) => item.action === 'upload').length;
-    const downloads = conflicts.filter(
+    const allowed = conflicts.filter((item) => {
+      if (item.action === 'upload') return canWriteCloud;
+      if (item.action === 'download') return canReadCloud;
+      return false;
+    });
+    if (!allowed.length) return;
+
+    await syncService.resolveConflictsAutomatically(allowed);
+
+    const uploads = allowed.filter((item) => item.action === 'upload').length;
+    const downloads = allowed.filter(
       (item) => item.action === 'download'
     ).length;
     updateSyncStore((state) => ({
@@ -445,7 +482,7 @@
     }));
 
     toast.success(
-      `Automatically resolved ${conflicts.length} conflict${conflicts.length === 1 ? '' : 's'}`
+      `Automatically resolved ${allowed.length} conflict${allowed.length === 1 ? '' : 's'}`
     );
   }
 
@@ -565,14 +602,18 @@
         </div>
       {:else if syncDialogMode === 'per-recipe' && currentConflict}
         <div class="flex flex-col gap-2">
-          <Button
-            class="text"
-            onclick={() => resolveCurrentConflict('download')}
-            >Download cloud version</Button
-          >
-          <Button onclick={() => resolveCurrentConflict('upload')}
-            >Upload device version</Button
-          >
+          {#if canReadCloud}
+            <Button
+              class="text"
+              onclick={() => resolveCurrentConflict('download')}
+              >Download cloud version</Button
+            >
+          {/if}
+          {#if canWriteCloud}
+            <Button onclick={() => resolveCurrentConflict('upload')}
+              >Upload device version</Button
+            >
+          {/if}
         </div>
       {:else}
         <Button class="text" onclick={() => (openCloudSyncDialog = false)}

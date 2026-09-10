@@ -99,7 +99,8 @@ For TanStack specifics, see **[`docs/tanstack-query.md`](../../../docs/tanstack-
 Accessing API services and models requires authorized user permissions. Anonymous/offline users (those without an auth account) do not have access to any remote APIs. _Permissions_ are located in the `user_profiles` supabase table. _User profiles and permissions are not stored locally_.
 
 - **User Profiles**: Available to all authorized users
-- **Cloud Recipe Management**: Requires `cloud_storage` permissions
+- **Cloud recipe download / list**: Requires `read_cloud` permission
+- **Cloud recipe upload / mutate**: Requires `write_cloud` permission
 - **AI Assisted Recipes**: Requires `ai_assistance` permissions
 
 ## API Service Domains

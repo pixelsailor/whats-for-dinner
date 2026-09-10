@@ -2,7 +2,6 @@
   import type { Snippet } from 'svelte';
   import { Dialog, Separator, type WithoutChild } from 'bits-ui';
   import clsx from 'clsx';
-  import type { ClassValue } from 'clsx';
 
   import '../../app.css';
   import CloseIcon from './icons/CloseIcon.svelte';

@@ -74,8 +74,8 @@
     }
   });
 
-  let hasCloudStorageAccess = $derived(
-    data.permissions?.cloudSync.allowed ?? false
+  let hasCloudWriteAccess = $derived(
+    data.permissions?.cloudWrite.allowed ?? false
   );
 
   // =============================================================================
@@ -298,7 +298,7 @@
 
     let candidate: SavedRecipe = createSavedRecipe(recipe as FullRecipe);
 
-    if (hasCloudStorageAccess && cloudService) {
+    if (hasCloudWriteAccess && cloudService) {
       try {
         let response = await cloudService.uploadLocalRecipe(candidate);
 

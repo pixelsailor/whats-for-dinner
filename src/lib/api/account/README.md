@@ -6,7 +6,7 @@ The Account API service layer provides user profile and preferences management i
 
 **Key features**
 
-- User permission flags (`ai_assistance`, `cloud_storage`) on `user_profiles`
+- User permission flags (`ai_assistance`, `read_cloud`, `write_cloud`) on `user_profiles`
 - User recipe preferences on `user_preferences`
 
 ## Public database tables
@@ -22,10 +22,12 @@ Permission flags for signed-in users. Read via `AccountService.getUserProfile()`
 | created_at    | `timestamptz` | x        | now()              |
 | updated_at    | `timestamptz` | √        |                    |
 | ai_assistance | `boolean`     | x        | false              |
-| cloud_storage | `boolean`     | x        | false              |
+| read_cloud    | `boolean`     | x        | false              |
+| write_cloud   | `boolean`     | x        | false              |
+| cloud_storage | `boolean`     | √        | false              |
 | preferences   | `jsonb`       | x        | {}                 |
 
-**Legacy column:** `preferences` jsonb is **deprecated and unused**. Live preference data is in `user_preferences`. Dropping the column is a Supabase migration (not tracked here).
+**Legacy columns:** `cloud_storage` and `preferences` jsonb are **deprecated and unused** by app gating. Live preference data is in `user_preferences`. Dropping those columns is a Supabase migration (not tracked here).
 
 ### `user_preferences`
 

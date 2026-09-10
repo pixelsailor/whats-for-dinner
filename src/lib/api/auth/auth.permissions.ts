@@ -27,7 +27,8 @@ function isPermissionFlags(value: unknown): value is PermissionFlags {
   const flags = value as Record<string, unknown>;
   return (
     typeof flags.ai_assistance === 'boolean' &&
-    typeof flags.cloud_storage === 'boolean'
+    typeof flags.read_cloud === 'boolean' &&
+    typeof flags.write_cloud === 'boolean'
   );
 }
 
@@ -54,7 +55,7 @@ export function getSessionPermissions(
 /**
  * Persists permission flags in the httpOnly session cookie after login.
  * @param cookies - SvelteKit response cookies
- * @param permissions - Profile-derived `ai_assistance` and `cloud_storage` flags
+ * @param permissions - Profile-derived `ai_assistance`, `read_cloud`, and `write_cloud` flags
  */
 export function setSessionPermissions(
   cookies: Cookies,

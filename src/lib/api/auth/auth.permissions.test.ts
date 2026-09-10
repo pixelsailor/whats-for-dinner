@@ -27,7 +27,11 @@ function createCookieJar(): Cookies & { jar: Map<string, string> } {
 describe('session permission cookies', () => {
   it('round-trips valid permission flags', () => {
     const cookies = createCookieJar();
-    const flags = { ai_assistance: true, cloud_storage: false };
+    const flags = {
+      ai_assistance: true,
+      read_cloud: false,
+      write_cloud: false
+    };
 
     setSessionPermissions(cookies, flags);
 
@@ -55,11 +59,22 @@ describe('session permission cookies', () => {
     expect(getSessionPermissions(cookies)).toBeNull();
   });
 
+  it('returns null for legacy cloud_storage-only shape', () => {
+    const cookies = createCookieJar();
+    cookies.jar.set(
+      'wfd-permissions',
+      JSON.stringify({ ai_assistance: true, cloud_storage: true })
+    );
+
+    expect(getSessionPermissions(cookies)).toBeNull();
+  });
+
   it('clears the permission cookie', () => {
     const cookies = createCookieJar();
     setSessionPermissions(cookies, {
       ai_assistance: true,
-      cloud_storage: true
+      read_cloud: true,
+      write_cloud: true
     });
 
     clearSessionPermissions(cookies);

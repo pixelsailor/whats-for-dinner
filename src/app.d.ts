@@ -14,18 +14,24 @@ declare global {
       }>;
       session: Session | null;
       supabase: SupabaseClient;
-      permissions: { ai_assistance: boolean; cloud_storage: boolean } | null;
+      permissions: {
+        ai_assistance: boolean;
+        read_cloud: boolean;
+        write_cloud: boolean;
+      } | null;
     }
     interface PageData {
       session: Session | null;
       user?: User | null;
       permissions?: {
-        cloudSync: PolicyResult;
+        cloudRead: PolicyResult;
+        cloudWrite: PolicyResult;
         aiAssistedRecipe: PolicyResult;
       };
       permissionFlags?: {
         ai_assistance: boolean;
-        cloud_storage: boolean;
+        read_cloud: boolean;
+        write_cloud: boolean;
       } | null;
       featureFlags?: {
         openai: boolean;

@@ -138,8 +138,11 @@ export function parseUserPreferencesResponseRows(
   );
 }
 
-/** Boolean permission columns on `user_profiles`. */
-export type ProfilePermissionFlag = 'ai_assistance' | 'cloud_storage';
+/** Boolean permission columns on `user_profiles` used for app gating. */
+export type ProfilePermissionFlag =
+  | 'ai_assistance'
+  | 'read_cloud'
+  | 'write_cloud';
 
 /**
  * Returns true when the profile grants the given permission flag.

@@ -69,8 +69,8 @@
    * Fallback: if using Supabase, these would be attached to user records in 'profiles'.
    * This mechanism assumes local-first/offline by default.
    */
-  let hasCloudStorageAccess = $derived(
-    data.permissions?.cloudSync.allowed ?? false
+  let hasCloudWriteAccess = $derived(
+    data.permissions?.cloudWrite.allowed ?? false
   );
   let preferences = $derived<UserPreferencesResponse | null>(
     data.preferences ?? null
@@ -302,7 +302,7 @@
   async function _persistRecipe(recipe: Recipe): Promise<SavedRecipe> {
     const localRecipe = _createSavedRecipe(recipe);
 
-    if (hasCloudStorageAccess && cloudService) {
+    if (hasCloudWriteAccess && cloudService) {
       try {
         const cloudRecipe = await cloudService.uploadLocalRecipe(localRecipe);
         await db.recipes.add(cloudRecipe);

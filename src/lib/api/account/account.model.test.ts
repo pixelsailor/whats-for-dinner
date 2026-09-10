@@ -12,7 +12,8 @@ const sampleProfile = {
   id: '550e8400-e29b-41d4-a716-446655440000',
   user_id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
   ai_assistance: true,
-  cloud_storage: false,
+  read_cloud: false,
+  write_cloud: false,
   preferences: {}
 };
 
@@ -96,6 +97,7 @@ describe('parseUserPreferencesUpdate', () => {
 describe('hasPermission', () => {
   it('returns true only when the flag is strictly true', () => {
     expect(hasPermission(sampleProfile, 'ai_assistance')).toBe(true);
-    expect(hasPermission(sampleProfile, 'cloud_storage')).toBe(false);
+    expect(hasPermission(sampleProfile, 'read_cloud')).toBe(false);
+    expect(hasPermission(sampleProfile, 'write_cloud')).toBe(false);
   });
 });

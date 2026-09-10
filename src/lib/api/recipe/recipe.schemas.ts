@@ -179,7 +179,7 @@ export const SavedRecipeSchema = RecipeSchema.extend({
   created_at: supabaseTimestamptzSchema,
   /** Update timestamp. Automatically set by supabase trigger functions. */
   updated_at: supabaseTimestamptzSchema.nullable(),
-  /** Optional archived timestamp. Cloud backup: Recipe is not saved locally. Requires cloud_storage permission. */
+  /** Optional archived timestamp. Cloud backup: Recipe is not saved locally. Requires `write_cloud` permission to mutate. */
   archived: supabaseTimestamptzSchema.nullable(),
   /** Optional deletion timestamp. */
   deleted_at: supabaseTimestamptzSchema.nullable(),

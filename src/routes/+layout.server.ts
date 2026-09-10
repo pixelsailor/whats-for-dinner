@@ -8,7 +8,8 @@ export const load: LayoutServerLoad = async ({ locals, cookies, depends }) => {
   const permissionFlags = locals.permissions ?? null;
 
   const permissions = {
-    cloudSync: { allowed: permissionFlags?.cloud_storage ?? false },
+    cloudRead: { allowed: permissionFlags?.read_cloud ?? false },
+    cloudWrite: { allowed: permissionFlags?.write_cloud ?? false },
     aiAssistedRecipe: { allowed: permissionFlags?.ai_assistance ?? false }
   };
 

@@ -1,15 +1,16 @@
 ## Auth Flow with Permission Storage
 
 - Login is handled in `src/routes/auth/+page.server.ts` via `supabase.auth.signInWithPassword`.
-- After a successful login, we fetch the Supabase `user_profiles` row using `AccountService` and derive `ai_assistance` / `cloud_storage` with `hasPermission(profile, …)` from `$lib/api/account/account.model`.
+- After a successful login, we fetch the Supabase `user_profiles` row using `AccountService` and derive `ai_assistance` / `read_cloud` / `write_cloud` with `hasPermission(profile, …)` from `$lib/api/account/account.model`.
 - These permission flags are stored in a session cookie (`wfd-permissions`) for reuse across requests.
 
 ### Session Cookie Details
 
 - Name: `wfd-permissions`
-- Shape: `{ ai_assistance: boolean; cloud_storage: boolean }`
+- Shape: `{ ai_assistance: boolean; read_cloud: boolean; write_cloud: boolean }`
 - Options: `httpOnly`, `sameSite: 'lax'`, `secure` (in production), `path: '/'`, `maxAge: 7 days`
 - Utilities live in `$lib/api/auth/auth.permissions.ts` (`getSessionPermissions`, `setSessionPermissions`, `clearSessionPermissions`).
+- Old cookies that only contain `cloud_storage` fail the type guard and yield `permissions: null` until the user signs in again.
 
 ### Server Locals and Page Data
 

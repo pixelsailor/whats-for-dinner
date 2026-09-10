@@ -36,8 +36,8 @@
   let recipe = $derived<SavedRecipe | undefined>(data.recipe ?? undefined);
   let recipeLoading = $derived(!isShared && !data.recipe);
 
-  let hasCloudStorageAccess = $derived(
-    data.permissions?.cloudSync.allowed ?? false
+  let hasCloudWriteAccess = $derived(
+    data.permissions?.cloudWrite.allowed ?? false
   );
 
   let currentUserId = $derived(data.user?.id);
@@ -203,7 +203,7 @@
     };
 
     try {
-      if (hasCloudStorageAccess && syncService) {
+      if (hasCloudWriteAccess && syncService) {
         if (recipe.synced) {
           const candidate: Partial<SavedRecipe> & { id: string } = {
             ...parsed.data,

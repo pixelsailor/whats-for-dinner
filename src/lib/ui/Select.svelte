@@ -88,7 +88,7 @@ _Reference: bits-ui [Select](https://bits-ui.com/docs/components/select/llms.txt
     bind:this={containerRef}
   >
     <Select.Trigger
-      class="inline-flex w-[296px] flex-auto cursor-pointer touch-none items-center border border-none text-sm transition-colors select-none rounded-input"
+      class="rounded-input inline-flex w-[296px] flex-auto cursor-pointer touch-none items-center border border-none text-sm transition-colors select-none"
     >
       <div class="flex flex-row flex-wrap gap-1">
         {#if restProps.type === 'multiple'}
@@ -166,7 +166,7 @@ _Reference: bits-ui [Select](https://bits-ui.com/docs/components/select/llms.txt
           {#if item.items}
             <Select.Group>
               <Select.GroupHeading
-                class="label-medium px-2 py-1 text-foreground-alt uppercase bg-dark-04/50"
+                class="label-medium text-foreground-alt bg-dark-04/50 px-2 py-1 uppercase"
               >
                 {item.label}
               </Select.GroupHeading>
@@ -175,7 +175,7 @@ _Reference: bits-ui [Select](https://bits-ui.com/docs/components/select/llms.txt
                   value={subItem.value}
                   label={subItem.label}
                   disabled={subItem.disabled}
-                  class="rounded data-highlighted:bg-dark-04 flex h-input-mobile md:h-input w-full cursor-pointer items-center pr-1.5 pl-3 body-medium outline-hidden select-none data-disabled:opacity-50"
+                  class="data-highlighted:bg-dark-04 h-input-mobile md:h-input body-medium flex w-full cursor-pointer items-center rounded pr-1.5 pl-3 outline-hidden select-none data-disabled:opacity-50"
                 >
                   {#snippet children({ selected })}
                     <span class="w-min grow truncate">{subItem.label}</span>
@@ -193,7 +193,7 @@ _Reference: bits-ui [Select](https://bits-ui.com/docs/components/select/llms.txt
               value={item.value}
               label={item.label}
               disabled={item.disabled}
-              class="rounded data-highlighted:bg-dark-04 flex h-input-mobile md:h-input w-full cursor-pointer items-center pr-1.5 pl-3 body-medium outline-hidden select-none data-disabled:opacity-50"
+              class="data-highlighted:bg-dark-04 h-input-mobile md:h-input body-medium flex w-full cursor-pointer items-center rounded pr-1.5 pl-3 outline-hidden select-none data-disabled:opacity-50"
             >
               {#snippet children({ selected })}
                 <span class="w-min grow truncate">{item.label}</span>

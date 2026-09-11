@@ -23,12 +23,16 @@ import { readable } from 'svelte/store';
 import { db } from '$lib/db';
 import type { SavedRecipe } from '$lib/api/recipe';
 import { createLiveQueryStore } from './_utils';
+import {
+  type LastOpenedSeenMap,
+  type RecentRecipeListItem,
+  reconcileRecentRecipes
+} from './recent-recipes-reconcile';
 
 /** Returns all active recipes sorted by title */
 export const recipesStore = createLiveQueryStore(async () => {
   const all = (await db.recipes.toArray()) as unknown as
-    | SavedRecipe[]
-    | undefined;
+    SavedRecipe[] | undefined;
   if (!all) {
     return [];
   }
@@ -38,8 +42,7 @@ export const recipesStore = createLiveQueryStore(async () => {
 
 export const unsortedRecipesStore = createLiveQueryStore(async () => {
   const all = (await db.recipes.toArray()) as unknown as
-    | SavedRecipe[]
-    | undefined;
+    SavedRecipe[] | undefined;
   if (!all) {
     return [];
   }
@@ -69,8 +72,7 @@ export const getRecipeStore = (id: string) =>
 /** Returns recipes that have been deleted */
 export const deletedRecipesStore = createLiveQueryStore(async () => {
   const all = (await db.recipes.toArray()) as unknown as
-    | SavedRecipe[]
-    | undefined;
+    SavedRecipe[] | undefined;
   if (!all) {
     return [];
   }
@@ -96,26 +98,50 @@ export const recentlyOpened = readable<SavedRecipe[]>([], (recipes) => {
       .filter((r) => r.deleted_at == null)
       .sort(
         (a, b) =>
-          new Date(b.last_opened).getTime() - new Date(a.last_opened).getTime()
+          new Date(b.last_opened ?? 0).getTime() -
+          new Date(a.last_opened ?? 0).getTime()
       )
       .slice(0, 9);
   }).subscribe(recipes);
   return () => subscription.unsubscribe();
 });
 
-/** Returns the 10 most recently opened recipes */
-export const recentlyOpenedStore = createLiveQueryStore(async () => {
-  const all = (await db.recipes.toArray()) as unknown as
-    | SavedRecipe[]
-    | undefined;
-  if (!all) {
-    return [];
+let recentRecipesStableList: RecentRecipeListItem[] = [];
+let recentRecipesLastSeenLastOpened: LastOpenedSeenMap = new Map();
+let recentRecipesIsFirstSnapshot = true;
+
+/** Returns the most recently opened recipes with stable ordering after first load. */
+export const recentlyOpenedStore = readable<{
+  data: RecentRecipeListItem[] | null;
+  loading: boolean;
+  error: Error | null;
+}>(
+  {
+    data: null,
+    loading: true,
+    error: null
+  },
+  (set) => {
+    const subscription = liveQuery(async () => {
+      const all = (await db.recipes.toArray()) as unknown as
+        SavedRecipe[] | undefined;
+      return all ?? [];
+    }).subscribe({
+      next: (catalog) => {
+        const result = reconcileRecentRecipes(
+          recentRecipesStableList,
+          catalog,
+          recentRecipesLastSeenLastOpened,
+          recentRecipesIsFirstSnapshot
+        );
+        recentRecipesStableList = result.list;
+        recentRecipesLastSeenLastOpened = result.lastSeenLastOpenedById;
+        recentRecipesIsFirstSnapshot = false;
+        set({ data: result.list, loading: false, error: null });
+      },
+      error: (error) => set({ data: null, loading: false, error })
+    });
+
+    return () => subscription.unsubscribe();
   }
-  return all
-    .filter((r) => r.deleted_at == null)
-    .sort(
-      (a, b) =>
-        new Date(b.last_opened).getTime() - new Date(a.last_opened).getTime()
-    )
-    .slice(0, 9);
-});
+);

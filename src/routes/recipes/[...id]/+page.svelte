@@ -1,6 +1,5 @@
 <script lang="ts">
   // import SvelteMarkdown from '@humanspeak/svelte-markdown';
-  import { getLocalTimeZone, parseDate, today } from '@internationalized/date';
   import { onDestroy, untrack } from 'svelte';
   // import { slide } from 'svelte/transition';
   import { toast } from 'svelte-sonner';
@@ -12,7 +11,11 @@
   import { page } from '$app/state';
 
   // import type { RecipeAssistanceResponse } from '$lib/api/ai';
-  import { CloudService, SyncService } from '$lib/api/cloud';
+  import {
+    CloudService,
+    SyncService,
+    markLastOpenedLocally
+  } from '$lib/api/cloud';
   import type { SavedRecipe } from '$lib/api/recipe';
   import {
     checkoutHistoryNeedsNormalization,
@@ -44,12 +47,8 @@
   // const vp: Viewport = getContext('viewport');
 
   /** CONSTANTS */
-  /** The amount of time to wait before marking the recipe as opened */
-  const lastOpenedDelay = 1 * 1000;
   /** The amount of time to wait before updating the recipe's checkout history */
   const checkoutDelay = 4 * 60 * 1000;
-  /** We use just the date to make comparisons easier */
-  const todaytz = today(getLocalTimeZone());
 
   let { data } = $props();
 
@@ -125,12 +124,8 @@
   /** ---------------------------------------------------------------------------------------------
    * Local state -- Variables are reset when the recipe changes
    * -------------------------------------------------------------------------------------------- */
-  /** Timer used to update the recipe's last_opened after a short delay */
-  let markAsOpenedTimer: number | null = null;
   /** Tracks the last recipe id that was successfully marked as opened (per component lifetime) */
   let markedAsOpenedRecipeId = $state<string | null>(null);
-  /** Small bounded retry counter if recipe isn't loaded when timer fires */
-  let markAsOpenedAttempts = $state(0);
   /** Tracks which route recipe id we've initialized local state for (guards against invalidation loops) */
   let initializedRecipeRouteId: string | null = null;
   /** Tracks which recipe id already had checkout_history date normalization attempted */
@@ -188,7 +183,6 @@
     iMadeThisToday = false;
     iDidntMakeThisToday = false;
     markedAsOpenedRecipeId = null;
-    markAsOpenedAttempts = 0;
     normalizedCheckoutHistoryRecipeId = null;
 
     app.status = 'loading';
@@ -196,12 +190,17 @@
       clearTimeout(checkoutTimer);
       checkoutTimer = null;
     }
-    if (markAsOpenedTimer) {
-      clearTimeout(markAsOpenedTimer);
-      markAsOpenedTimer = null;
+  });
+
+  /** Write last_opened locally as soon as the route recipe is available. */
+  $effect(() => {
+    const routeId = id;
+    const currentRecipe = recipe;
+    if (!routeId || !currentRecipe || currentRecipe.id !== routeId) {
+      return;
     }
 
-    markAsOpened();
+    void markAsOpened();
   });
 
   /**
@@ -263,7 +262,6 @@
 
   onDestroy(() => {
     if (checkoutTimer) clearTimeout(checkoutTimer);
-    if (markAsOpenedTimer) clearTimeout(markAsOpenedTimer);
   });
 
   // React to user prompts
@@ -479,58 +477,22 @@
     }
   };
 
-  /** Update the recipe's last_opened timestamp */
-  function markAsOpened() {
+  /** Update the recipe's last_opened timestamp locally without content sync. */
+  async function markAsOpened() {
     const routeId = untrack(() => id);
     if (!routeId) return;
 
-    // Hard guard: only mark opened once per route id (per view), regardless of subsequent edits/updates.
     if (markedAsOpenedRecipeId === routeId) return;
 
-    // Important: do NOT clear/reschedule if already scheduled. This prevents loops caused by recipe updates.
-    if (markAsOpenedTimer) return;
+    const currentRecipe = untrack(() => recipe);
+    if (!currentRecipe || currentRecipe.id !== routeId) return;
 
-    // We want to throttle this to prevent edge cases that could cause the `recipe.id` to change,
-    // triggering a loop of updates.
-    markAsOpenedTimer = window.setTimeout(async () => {
-      try {
-        const timerId = untrack(() => id);
-        if (!timerId) return;
-
-        // If the recipe still isn't available when the timer fires, retry briefly (bounded).
-        const timerRecipe = untrack(() => recipe);
-        if (!timerRecipe) {
-          if (markAsOpenedAttempts < 5) {
-            markAsOpenedAttempts += 1;
-            markAsOpenedTimer = null;
-            window.setTimeout(markAsOpened, 250);
-          }
-          return;
-        }
-        if (timerRecipe.id !== timerId) return;
-
-        // Soft guard: if already opened today, mark as done and stop (prevents daily background writes).
-        const lastOpenedDate =
-          timerRecipe.last_opened?.split('T')[0] ?? undefined;
-        if (
-          lastOpenedDate &&
-          parseDate(lastOpenedDate).toString() === todaytz.toString()
-        ) {
-          markedAsOpenedRecipeId = timerId;
-          return;
-        }
-
-        await applyRecipeChange(
-          { last_opened: new Date().toISOString() },
-          true
-        );
-        markedAsOpenedRecipeId = timerId;
-      } catch (err) {
-        console.error('Error marking recipe as opened:', err);
-      } finally {
-        markAsOpenedTimer = null;
-      }
-    }, lastOpenedDelay);
+    try {
+      await markLastOpenedLocally(currentRecipe.id, new Date().toISOString());
+      markedAsOpenedRecipeId = routeId;
+    } catch (err) {
+      console.error('Error marking recipe as opened:', err);
+    }
   }
 
   /** Open a date picker to update the last prepared date */

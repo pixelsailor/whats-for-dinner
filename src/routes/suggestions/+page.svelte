@@ -222,8 +222,7 @@
     const raw = suggestionsResult.data as unknown;
     let requestId = Date.now();
     let suggestionsPayload:
-      | { title: string; short_description: string }[]
-      | null = null;
+      { title: string; short_description: string }[] | null = null;
 
     if (
       raw &&

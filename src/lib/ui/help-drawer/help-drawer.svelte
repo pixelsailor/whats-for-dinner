@@ -159,10 +159,10 @@ Side drawer for asking Saim cooking questions about the current recipe.
 -->
 
 <div
-  class="help-drawer__content sticky top-0 bg-background-alt h-dvh flex flex-col"
+  class="help-drawer__content bg-background-alt sticky top-0 flex h-dvh flex-col"
 >
   <div
-    class="help-drawer-content__header h-16 px-2 flex flex-row justify-end items-center flex-none"
+    class="help-drawer-content__header flex h-16 flex-none flex-row items-center justify-end px-2"
   >
     <Button class="text icon" aria-label="Close" onclick={() => (open = !open)}>
       <CloseIcon size="sm" />
@@ -171,21 +171,21 @@ Side drawer for asking Saim cooking questions about the current recipe.
   {#if canUseAI && viewstate === 'ask'}
     <div
       {@attach attachThreadBody}
-      class="help-drawer-content__body p-2 flex flex-col justify-start grow overflow-y-auto"
+      class="help-drawer-content__body flex grow flex-col justify-start overflow-y-auto p-2"
     >
       {#if conversationThread.length === 0 && apistate !== 'loading'}
-        <p class="text-sm text-muted-foreground">
+        <p class="text-muted-foreground text-sm">
           Ask a question about this recipe.
         </p>
       {/if}
       {#each conversationThread as message (message.id)}
         {#if message.role === 'user'}
-          <p class="text-sm my-2 bg-blue-500 text-white p-2 rounded-md">
+          <p class="my-2 rounded-md bg-blue-500 p-2 text-sm text-white">
             {message.content}
           </p>
         {:else}
           <div
-            class="markdown text-sm my-2 bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-gray-100 p-2 rounded-md"
+            class="markdown my-2 rounded-md bg-gray-100 p-2 text-sm text-gray-900 dark:bg-gray-900 dark:text-gray-100"
           >
             <SvelteMarkdown source={message.content} />
           </div>
@@ -206,7 +206,7 @@ Side drawer for asking Saim cooking questions about the current recipe.
       {/if}
     </div>
     <div
-      class="help-drawer-content__footer p-2 h-16 flex flex-none items-center"
+      class="help-drawer-content__footer flex h-16 flex-none items-center p-2"
     >
       <form
         class="w-full"
@@ -321,7 +321,7 @@ Side drawer for asking Saim cooking questions about the current recipe.
     </div>
   {:else if aiRestrictionMessage}
     <div
-      class="help-drawer-content__body p-6 flex flex-col justify-center grow"
+      class="help-drawer-content__body flex grow flex-col justify-center p-6"
     >
       <div
         class="mt-6 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-500 dark:bg-amber-950 dark:text-amber-100"

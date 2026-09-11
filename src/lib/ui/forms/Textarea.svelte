@@ -65,8 +65,7 @@ A textarea component incorporating a label and wrapping form field.
       'textarea textarea--outlined body-medium border-border-input',
       error ? 'border-destructive' : ''
     ]}
-    {...restProps}
-  ></textarea>
+    {...restProps}></textarea>
   <div class="helper-text-container">
     {#if helperText && !error}
       <span class="helper-text">{@html helperText}</span>

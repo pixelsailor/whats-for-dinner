@@ -112,7 +112,7 @@ See [ui-bits Dialog](https://ui-bits.dev/docs/components/dialog/llms.txt) for mo
       {/if}
       {#if !hideCloseButton}
         <Dialog.Close
-          class="button icon text absolute! right-2 top-4"
+          class="button icon text absolute! top-4 right-2"
           aria-label="Close dialog"
         >
           <CloseIcon size="sm" />

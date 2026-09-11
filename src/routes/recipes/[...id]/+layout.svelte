@@ -8,16 +8,16 @@
   let helpDrawerOpen = $state(false);
 </script>
 
-<div class="flex flex-row w-full">
-  <div class="flex flex-col grow relative min-h-dvh">
+<div class="flex w-full flex-row">
+  <div class="relative flex min-h-dvh grow flex-col">
     {@render children()}
     {#if !helpDrawerOpen}
       <div
-        class="drawer-trigger sticky bottom-8 z-10 flex justify-end px-8 pointer-events-none"
+        class="drawer-trigger pointer-events-none sticky bottom-8 z-10 flex justify-end px-8"
       >
         <div class="button-wrapper bg-background rounded-full">
           <Button
-            class="primary icon rounded-full! h-11! w-11! shadow-md hover:shadow-md! pointer-events-auto"
+            class="primary icon pointer-events-auto h-11! w-11! rounded-full! shadow-md hover:shadow-md!"
             tooltip="Ask Saim"
             aria-label="Ask Saim."
             onclick={() => (helpDrawerOpen = !helpDrawerOpen)}

@@ -447,7 +447,7 @@
         helperText={markdownHelperText}
         disabled={status === 'saving'}
       ></Textarea>
-      <hr class="my-8 border-line" />
+      <hr class="border-line my-8" />
       <Button
         type="submit"
         class="primary narrow"

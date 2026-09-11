@@ -2,6 +2,7 @@
   import { NavigationMenu } from 'bits-ui';
   import { getContext } from 'svelte';
   import { invalidate } from '$app/navigation';
+  import { page } from '$app/state';
 
   import Button from '$lib/ui/button.svelte';
   import RecipesIcon from '$lib/ui/icons/RecipesIcon.svelte';
@@ -22,6 +23,31 @@
 
   const vp: Viewport = getContext('viewport');
 
+  /**
+   * Returns recipe id from /recipes/{id} or /recipes/shared/{id}.
+   * @param pathname - Current document pathname
+   */
+  function deriveOpenRecipeId(pathname: string): string | null {
+    const sharedMatch = /^\/recipes\/shared\/([^/]+)$/.exec(pathname);
+    if (sharedMatch) {
+      return sharedMatch[1];
+    }
+
+    const recipeMatch = /^\/recipes\/([^/]+)$/.exec(pathname);
+    if (!recipeMatch) {
+      return null;
+    }
+
+    const recipeId = recipeMatch[1];
+    if (recipeId === 'new') {
+      return null;
+    }
+
+    return recipeId;
+  }
+
+  let openRecipeId = $derived(deriveOpenRecipeId(page.url.pathname));
+
   let openLoginDialog = $state(false);
   let loginFormStatus = $state<'idle' | 'progress' | 'invalid'>('invalid');
 
@@ -35,7 +61,7 @@
   }
 </script>
 
-<div class="flex flex-col justify-between h-full">
+<div class="flex h-full flex-col justify-between">
   {#if vp.nav === 'expanded'}
     <AppBar.Root disableMobileNav>
       <div class="ml-2.5">
@@ -69,7 +95,7 @@
     </AppBar.Root>
   {/if}
 
-  <div class="w-full overflow-x-hidden px-2 grow overflow-y-auto">
+  <div class="w-full grow overflow-x-hidden overflow-y-auto px-2">
     <NavigationMenu.Root orientation="vertical">
       <NavigationMenu.List>
         {#if session}
@@ -89,7 +115,7 @@
           <div class="button-group">
             <NavigationMenu.Link
               href="/recipes"
-              class="sidenav-link flex-grow h-input-mobile md:h-input hover:bg-dark-10 rounded-r-none"
+              class="sidenav-link h-input-mobile md:h-input hover:bg-dark-10 flex-grow rounded-r-none"
             >
               <RecipesIcon size="xs" />
               {#if vp.nav === 'expanded'}
@@ -99,7 +125,7 @@
             {#if vp.nav === 'expanded'}
               <NavigationMenu.Link
                 href="/recipes/new"
-                class="sidenav-link flex-none min-content h-input-mobile md:h-input hover:bg-dark-10 rounded-l-none"
+                class="sidenav-link min-content h-input-mobile md:h-input hover:bg-dark-10 flex-none rounded-l-none"
               >
                 <DocumentAddIcon size="xs" />
               </NavigationMenu.Link>
@@ -137,7 +163,8 @@
                 <NavigationMenu.Link
                   href="/recipes/{recipe.id}"
                   title={recipe.title}
-                  class="sidenav-link h-input-mobile md:h-input hover:bg-dark-10"
+                  active={recipe.id === openRecipeId}
+                  class="sidenav-link h-input-mobile md:h-input hover:bg-dark-10 data-[active]:bg-dark-10"
                 >
                   <span class="sidenav-link__text">{recipe.title}</span>
                 </NavigationMenu.Link>
@@ -172,7 +199,7 @@
           </NavigationMenu.Item>
           <NavigationMenu.Item>
             <button
-              class="sidenav-link w-full h-input-mobile md:h-input hover:bg-dark-10 hover:cursor-pointer"
+              class="sidenav-link h-input-mobile md:h-input hover:bg-dark-10 w-full hover:cursor-pointer"
               onclick={handleSignOut}
             >
               <LogoutIcon size="xs" />
@@ -187,7 +214,7 @@
         {:else}
           <NavigationMenu.Item>
             <button
-              class="sidenav-link w-full h-input-mobile md:h-input hover:bg-dark-10 hover:cursor-pointer"
+              class="sidenav-link h-input-mobile md:h-input hover:bg-dark-10 w-full hover:cursor-pointer"
               onclick={() => (openLoginDialog = true)}
             >
               <LoginIcon size="xs" />

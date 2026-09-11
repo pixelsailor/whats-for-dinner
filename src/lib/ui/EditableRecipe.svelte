@@ -279,8 +279,7 @@
               bind:value={recipe.short_description}
               onblur={handleBlur}
               oninput={handleTextareaInput}
-              placeholder="Enter short description..."
-            ></textarea>
+              placeholder="Enter short description..."></textarea>
             <div class="button-group">
               <Button
                 cue="filled"
@@ -328,8 +327,7 @@
             onkeydown={handleTextareaKeydown}
             onblur={handleBlur}
             oninput={handleTextareaInput}
-            placeholder="Enter recipe description..."
-          ></textarea>
+            placeholder="Enter recipe description..."></textarea>
           <div class="button-group">
             <Button
               cue="filled"
@@ -391,8 +389,7 @@
           onkeydown={handleTextareaKeydown}
           onblur={handleBlur}
           oninput={handleTextareaInput}
-          placeholder="Enter ingredients in markdown format..."
-        ></textarea>
+          placeholder="Enter ingredients in markdown format..."></textarea>
         <div class="button-group">
           <Button
             cue="filled"
@@ -513,8 +510,7 @@
           onkeydown={handleTextareaKeydown}
           onblur={handleBlur}
           oninput={handleTextareaInput}
-          placeholder="Enter notes in markdown format..."
-        ></textarea>
+          placeholder="Enter notes in markdown format..."></textarea>
         <div class="button-group">
           <Button
             cue="filled"

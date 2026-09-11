@@ -279,7 +279,7 @@
       <div class="form-field">
         <Label.Root for="sort-order" class="label-large">Sort by</Label.Root>
         <div
-          class="body-medium textinput textinput--outlined p-0! flex flex-row flex-nowrap items-stretch"
+          class="body-medium textinput textinput--outlined flex flex-row flex-nowrap items-stretch p-0!"
         >
           <BitsSelect.Root
             type="single"
@@ -331,7 +331,7 @@
                 <BitsSelect.Viewport class="p-1">
                   {#each sortOptions as option, i (i + option.value)}
                     <BitsSelect.Item
-                      class="rounded data-highlighted:bg-dark-04 flex h-input-mobile md:h-input w-full cursor-pointer items-center py-3 pr-1.5 pl-3 text-sm outline-hidden select-none data-disabled:opacity-50"
+                      class="data-highlighted:bg-dark-04 h-input-mobile md:h-input flex w-full cursor-pointer items-center rounded py-3 pr-1.5 pl-3 text-sm outline-hidden select-none data-disabled:opacity-50"
                       value={option.value}
                       label={option.label}
                     >

@@ -60,7 +60,7 @@ Includes built-in tooltip support. A `Tooltip.Provider` is required in the paren
     </Tooltip.Trigger>
     <Tooltip.Portal>
       <Tooltip.Content
-        class="helper-text rounded-sm border border-gray-600 bg-gray-600/80 px-2 py-1 text-gray-50 shadow-sm dark:border-gray-300 dark:bg-gray-300/80 dark:text-gray-900 z-100"
+        class="helper-text z-100 rounded-sm border border-gray-600 bg-gray-600/80 px-2 py-1 text-gray-50 shadow-sm dark:border-gray-300 dark:bg-gray-300/80 dark:text-gray-900"
       >
         <Tooltip.Arrow class="text-gray-600 dark:text-gray-300" />
         {tooltip}

@@ -1,6 +1,12 @@
 export { CloudService } from './cloud.service';
 export { SyncService } from './sync.service';
 export {
+  flushPendingLastOpened,
+  getPendingLastOpenedIds,
+  markLastOpenedLocally,
+  startLastOpenedBatchSync
+} from './last-opened-pending';
+export {
   createAnonymousCloudClient,
   getDefaultAnonymousCloudClientConfig
 } from './cloud.client';

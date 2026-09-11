@@ -196,9 +196,7 @@ Example with `control` (requires `FormGroup`):
     required={requiredText ? true : requiredProp ? true : undefined}
     {disabled}
     class={['textinput', 'body-medium', className, invalid ? 'invalid' : '']}
-    {...inputProps}
-  >
-  </textarea>
+    {...inputProps}></textarea>
   {#if helperText || errorMessage}
     <div class="helper-text-container">
       {#if helperText && !errorMessage}

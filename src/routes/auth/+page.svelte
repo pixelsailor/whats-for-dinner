@@ -44,10 +44,10 @@
         submitting = true;
       }}
     >
-      <h1 class="p-0 headline-small">Log In</h1>
+      <h1 class="headline-small p-0">Log In</h1>
       {#if loginError}
         <div
-          class="banner alert-5 bg-red-100 rounded border border-red-300 p-2"
+          class="banner alert-5 rounded border border-red-300 bg-red-100 p-2"
           role="alert"
         >
           <div class="banner-icon">

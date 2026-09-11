@@ -57,7 +57,7 @@
 >
   {#if loginError}
     <div
-      class="banner alert-5 bg-red-100 rounded border border-red-300 p-2 text-black"
+      class="banner alert-5 rounded border border-red-300 bg-red-100 p-2 text-black"
       role="alert"
     >
       <div class="banner-icon">

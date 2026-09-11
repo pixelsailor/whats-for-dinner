@@ -1,0 +1,127 @@
+{
+  "manifest_version": "2.0.0",
+  "task_id": "recent-recipes-behavior",
+  "objective": "Stabilize Recent Recipes after first load (insert-only, title/delete updates only), write last_opened locally immediately on every open without bumping updated_at or calling cloud immediately, batch-sync pending last_opened every 30s only when pending is non-empty, cap list at 15, and highlight the open recipe in the sidenav. Source design: /home/cxiius/.cursor/plans/recent_recipes_behavior_e76f145e.plan.md",
+  "status": "complete",
+  "current_agent": "orchestrator",
+  "pipeline": [
+    "planner",
+    "builder",
+    "tester",
+    "validator"
+  ],
+  "risk_tier": {
+    "level": "medium",
+    "rationale": "Touches Dexie SoT (ADR-002), sync pending/batch behavior (ADR-005), offline-first local writes (ADR-001/ADR-004), and layout/sidenav UI. Sync/Dexie work defaults to at least medium; full pipeline required.",
+    "skipped_stages": []
+  },
+  "gate_status": {
+    "gate_0_intake": "passed",
+    "gate_1_requirements": "passed",
+    "gate_2_plan": "passed",
+    "gate_3_build": "passed",
+    "gate_4_tests": "passed",
+    "gate_5_validation": "passed",
+    "gate_6_human_approval": "passed"
+  },
+  "completed_stages": [
+    {
+      "agent": "planner",
+      "completed_at": "2026-09-11T21:15:42Z",
+      "output_artifacts": [
+        "plan.md",
+        "acceptance-criteria.md",
+        "test-matrix.md"
+      ],
+      "summary": "Froze Cursor plan into 4-phase plan.md, 31 ACs, planned UNIT test-matrix; no open questions."
+    },
+    {
+      "agent": "builder",
+      "completed_at": "2026-09-11T21:19:53Z",
+      "output_artifacts": [
+        "build-log.md"
+      ],
+      "summary": "Phases 1\u20134: reconciler store, local last_opened, 30s batch flush, sidenav active highlight; format pass; lint/check clean on touched paths."
+    },
+    {
+      "agent": "tester",
+      "completed_at": "2026-09-11T21:28:30Z",
+      "output_artifacts": [
+        "test-report.md",
+        "test-matrix.md"
+      ],
+      "summary": "14/14 in-scope UNIT tests green; full suite has pre-existing failures outside scope; COMP/OFFL manual for Validator."
+    },
+    {
+      "agent": "validator",
+      "completed_at": "2026-09-11T21:36:14Z",
+      "output_artifacts": [
+        "validation-report.md"
+      ],
+      "summary": "PASS_WITH_NOTES \u2014 no required remediations; residual AC-27 aria-current evidence and manual OFFL/COMP checks."
+    }
+  ],
+  "loop_count": 0,
+  "max_loops": 2,
+  "rework_count": 0,
+  "rework_history": [],
+  "session_counts": {
+    "orchestrator": 2,
+    "planner": 1,
+    "builder": 1,
+    "tester": 1,
+    "validator": 1
+  },
+  "command_evidence": [
+    {
+      "stage": "builder",
+      "at": "2026-09-11T21:19:53Z",
+      "commands": [
+        {
+          "cmd": "pnpm run format",
+          "result": "pass"
+        },
+        {
+          "cmd": "pnpm run lint",
+          "result": "fail_project_wide_preexisting_touched_paths_clean"
+        },
+        {
+          "cmd": "pnpm run check",
+          "result": "fail_project_wide_preexisting_touched_paths_clean"
+        }
+      ]
+    },
+    {
+      "stage": "tester",
+      "at": "2026-09-11T21:28:30Z",
+      "commands": [
+        {
+          "cmd": "pnpm exec vitest run --project server (2 new specs)",
+          "result": "pass_14_tests"
+        },
+        {
+          "cmd": "pnpm run test",
+          "result": "fail_preexisting_out_of_scope"
+        }
+      ]
+    },
+    {
+      "stage": "validator",
+      "at": "2026-09-11T21:36:14Z",
+      "commands": [],
+      "verdict": "PASS_WITH_NOTES"
+    }
+  ],
+  "locked_artifacts": [],
+  "flags": [
+    "commit_declined"
+  ],
+  "human_approval": {
+    "status": "approved_with_conditions",
+    "approved_at": "2026-09-11T22:22:18Z",
+    "approver": "human",
+    "conditions": "Accept Validator PASS_WITH_NOTES residuals: manual OFFL/COMP smoke not executed in-run; AC-27 aria-current relies on bits-ui active prop without explicit markup assertion; project-wide lint/check/test failures remain pre-existing/out of scope.",
+    "notes": "Human: looks good. approved. Explicitly declined git commit."
+  },
+  "source_plan": "/home/cxiius/.cursor/plans/recent_recipes_behavior_e76f145e.plan.md"
+}

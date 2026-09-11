@@ -16,7 +16,10 @@
     type ConflictResolution,
     type SyncConflict,
     type SyncPlan,
-    SyncService
+    SyncService,
+    flushPendingLastOpened,
+    getPendingLastOpenedIds,
+    startLastOpenedBatchSync
   } from '$lib/api/cloud';
   import type { SavedRecipe } from '$lib/api/recipe/recipe.types';
   import { networkStore } from '$lib/stores/network';
@@ -138,6 +141,32 @@
 
   let recentlyOpened = $derived($recentlyOpenedStore.data ?? []);
 
+  function createSyncServiceForUser(): SyncService | null {
+    const userId = session?.user?.id;
+    if (!userId) {
+      return null;
+    }
+
+    return new SyncService(new CloudService(supabase, userId));
+  }
+
+  function flushPendingLastOpenedIfNeeded() {
+    if (getPendingLastOpenedIds().size === 0) {
+      return;
+    }
+
+    const syncService = createSyncServiceForUser();
+    if (!syncService) {
+      return;
+    }
+
+    void flushPendingLastOpened({
+      syncService,
+      canWriteCloud,
+      online: network.online
+    });
+  }
+
   async function verifySessionAndSignOutIfExpired() {
     if (!session) {
       return;
@@ -155,6 +184,12 @@
   }
 
   onMount(() => {
+    const stopLastOpenedBatchSync = startLastOpenedBatchSync({
+      getSyncService: createSyncServiceForUser,
+      getCanWriteCloud: () => canWriteCloud,
+      getOnline: () => network.online
+    });
+
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, newSession) => {
         if (
@@ -175,6 +210,7 @@
     function onVisibilityChange() {
       if (document.visibilityState === 'visible' && session) {
         void verifySessionAndSignOutIfExpired();
+        flushPendingLastOpenedIfNeeded();
       }
     }
 
@@ -185,6 +221,7 @@
     }
 
     return () => {
+      stopLastOpenedBatchSync();
       authListener.subscription.unsubscribe();
       document.removeEventListener('visibilitychange', onVisibilityChange);
     };
@@ -221,6 +258,10 @@
 
     if (online && !wasOnline && userId && !syncing) {
       void runSync(userId);
+    }
+
+    if (online && !wasOnline) {
+      flushPendingLastOpenedIfNeeded();
     }
 
     wasOnline = online;
@@ -512,7 +553,7 @@
           <!-- Layout when mobile sidenav is expanded -->
           <div class="sidebar fixed inset-0 z-10 backdrop-blur-md">
             <div
-              class="h-full w-2xs bg-background-alt border-border shadow-md dark:border-gray-700 dark:bg-gray-900"
+              class="bg-background-alt border-border h-full w-2xs shadow-md dark:border-gray-700 dark:bg-gray-900"
             >
               <Asidenav {session} {recentlyOpened} {network} {supabase} />
             </div>
@@ -521,7 +562,7 @@
           <!-- Standard desktop Layout with sidenav expanded -->
           <div
             class={[
-              'h-full border-r border-border bg-background-alt',
+              'border-border bg-background-alt h-full border-r',
               vp.device === 'desktop' ? 'fixed' : 'absolute z-10',
               vp.nav === 'expanded' ? 'w-2xs' : 'w-fit',
               vp.layout === 'desktop-narrow--expanded'

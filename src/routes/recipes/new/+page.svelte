@@ -176,38 +176,75 @@
   }) {
     let { formData, cancel } = input;
 
-    /** If AI assistance is not enabled, cancel the form submission and continue to save the recipe locally */
-    if (!useAiAssistance) cancel();
-
     let recipe = {} as Recipe;
+    const multiValueKeys = new Set(['prep_time', 'cook_time', 'tags']);
 
-    /** Sanitize the form data */
+    /**
+     * Sanitize scalar fields in place. Do not `FormData#set` multi-value keys —
+     * that replaces every entry for the name and drops all but the last value.
+     */
     formData.forEach((value, key) => {
-      if (typeof value === 'string') {
-        const cleanValue = DOMPurify.sanitize(value.toString().trim());
-        formData.set(key, cleanValue);
-        (recipe as unknown as Record<string, string>)[key] = cleanValue;
-      }
+      if (typeof value !== 'string' || multiValueKeys.has(key)) return;
+      const cleanValue = DOMPurify.sanitize(value.toString().trim());
+      formData.set(key, cleanValue);
+      (recipe as unknown as Record<string, string>)[key] = cleanValue;
     });
 
-    /** Add the arrays back that DOMPurify skipped */
-    recipe.prep_time = formData.getAll('prep_time') as string[];
-    recipe.cook_time = formData.getAll('cook_time') as string[];
-    recipe.tags = formData.getAll('tags') as string[];
+    const sanitizeAll = (key: string): string[] =>
+      formData
+        .getAll(key)
+        .filter((value): value is string => typeof value === 'string')
+        .map((value) => DOMPurify.sanitize(value.trim()));
+
+    recipe.prep_time = sanitizeAll('prep_time');
+    recipe.cook_time = sanitizeAll('cook_time');
+    // Prefer bound select state so all chosen tags are kept even if FormData is incomplete
+    recipe.tags =
+      tags.length > 0
+        ? tags.map((tag) => DOMPurify.sanitize(tag.trim())).filter(Boolean)
+        : sanitizeAll('tags');
+
+    /**
+     * Without AI, cancel the server action and persist locally in this submit
+     * handler. `use:enhance` returns early after `cancel()` and never invokes
+     * a returned callback — so local save must happen here.
+     */
+    if (!useAiAssistance) {
+      cancel();
+      status = 'saving';
+      try {
+        const savedRecipe = await _persistRecipe(recipe);
+        status = 'saved';
+        toast.success('Recipe saved');
+        goto(resolve(`/recipes/${savedRecipe.id}`), { replaceState: true });
+      } catch (err) {
+        console.error('Local recipe save failed', err);
+        status = 'error';
+        toast.error('Failed to save recipe');
+      }
+      return;
+    }
+
+    status = 'saving';
 
     return async ({ result }: { result: ActionResult<SavedRecipe> }) => {
       if (result.type === 'success' && result.data) {
         recipe = result.data;
-      } else if (result.type === 'error') {
+      } else if (result.type === 'error' || result.type === 'failure') {
         status = 'error';
-        // toast.error(result.error || 'Failed to save recipe');
         toast.error('AI assistance failed. Recipe will be saved as is.');
       }
 
-      const savedRecipe = await _persistRecipe(recipe);
-      status = 'saved';
-      toast.success('Recipe saved');
-      goto(resolve(`/recipes/${savedRecipe.id}`), { replaceState: true });
+      try {
+        const savedRecipe = await _persistRecipe(recipe);
+        status = 'saved';
+        toast.success('Recipe saved');
+        goto(resolve(`/recipes/${savedRecipe.id}`), { replaceState: true });
+      } catch (err) {
+        console.error('Recipe save failed', err);
+        status = 'error';
+        toast.error('Failed to save recipe');
+      }
     };
   }
 

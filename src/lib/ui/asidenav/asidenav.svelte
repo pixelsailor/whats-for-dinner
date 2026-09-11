@@ -85,17 +85,6 @@
             </NavigationMenu.Link>
           </NavigationMenu.Item>
         {/if}
-        <NavigationMenu.Item>
-          <NavigationMenu.Link
-            href="/recommendations"
-            class="sidenav-link h-input-mobile md:h-input hover:bg-dark-10"
-          >
-            <TimeIcon size="xs" ariaLabel="Recommendations" />
-            {#if vp.nav === 'expanded'}
-              <span class="sidenav-link__text">Recommendations</span>
-            {/if}
-          </NavigationMenu.Link>
-        </NavigationMenu.Item>
         <NavigationMenu.Item class="rounded-button hover:bg-dark-04">
           <div class="button-group">
             <NavigationMenu.Link
@@ -116,6 +105,17 @@
               </NavigationMenu.Link>
             {/if}
           </div>
+        </NavigationMenu.Item>
+        <NavigationMenu.Item>
+          <NavigationMenu.Link
+            href="/recommendations"
+            class="sidenav-link h-input-mobile md:h-input hover:bg-dark-10"
+          >
+            <TimeIcon size="xs" ariaLabel="Recommendations" />
+            {#if vp.nav === 'expanded'}
+              <span class="sidenav-link__text">Recommendations</span>
+            {/if}
+          </NavigationMenu.Link>
         </NavigationMenu.Item>
       </NavigationMenu.List>
     </NavigationMenu.Root>

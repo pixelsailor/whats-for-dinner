@@ -2,7 +2,7 @@
  * @fileoverview Supabase auth client wrapper for sign-in and session validation.
  * @module lib/api/auth/auth.service
  */
-import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Session, SupabaseClient } from '@supabase/supabase-js';
 import type { ValidatedSession } from './auth.types';
 
 /**
@@ -57,15 +57,69 @@ export class AuthService {
   }
 
   /**
-   * Clears locally cached auth state when JWT validation fails but getSession still returns data.
+   * Clears locally cached auth state when JWT validation fails or session has expired.
    */
   async clearStaleSession(): Promise<void> {
-    const {
-      data: { session }
-    } = await this.supabase.auth.getSession();
+    try {
+      await this.supabase.auth.signOut({ scope: 'local' });
+    } catch {
+      try {
+        await this.supabase.auth.signOut();
+      } catch {
+        // Ignore failure during local clearance
+      }
+    }
+  }
 
-    if (session) {
-      await this.supabase.auth.signOut();
+  /**
+   * Validates the session. If the session has expired or is invalid:
+   * - If online, attempts a token refresh via `getUser()`.
+   * - If refresh fails, or if offline, cleanly signs out locally and clears stale state.
+   *
+   * @param currentSession - Optional session to validate. If omitted, uses current Supabase session.
+   * @returns `true` if session is valid or refreshed; `false` if expired or unauthenticated.
+   */
+  async validateOrSignOut(currentSession?: Session | null): Promise<boolean> {
+    let session = currentSession;
+    if (session === undefined) {
+      const { data } = await this.supabase.auth.getSession();
+      session = data.session;
+    }
+
+    if (!session) {
+      return false;
+    }
+
+    const isExpired = session.expires_at
+      ? session.expires_at * 1000 <= Date.now()
+      : false;
+
+    if (!isExpired) {
+      return true;
+    }
+
+    // Access token is expired. If offline, cannot refresh -> sign out locally.
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      await this.clearStaleSession();
+      return false;
+    }
+
+    // Online: attempt to validate/refresh user session
+    try {
+      const {
+        data: { user },
+        error
+      } = await this.supabase.auth.getUser();
+
+      if (error || !user) {
+        await this.clearStaleSession();
+        return false;
+      }
+
+      return true;
+    } catch {
+      await this.clearStaleSession();
+      return false;
     }
   }
 }

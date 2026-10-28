@@ -17,6 +17,7 @@ Curated upstream docs for the WFD stack. For in-repo architecture and agent rule
 
 - [Dexie + Svelte tutorial](https://dexie.org/docs/Tutorial/Svelte)
 - [Dexie `liveQuery`](https://dexie.org/docs/liveQuery/) — WFD patterns: [`.cursor/rules/local-data-dexie-ownership.mdc`](../.cursor/rules/local-data-dexie-ownership.mdc), [ADR-002](../adrs/ADR-002-local-data-ownership.md)
+- **Single-user browser database limitation**: See [GAP-026](./readme-adr-alignment-gaps.md#gap-026) regarding Dexie single-database architecture and future multi-user profile isolation.
 
 ## Cloud and remote data
 

@@ -185,6 +185,16 @@ Suggested fields (adapt as needed):
 - **Notes:** Remediated 2026-05-31 via `src/lib/api/recipe-import/` and route orchestration per ADR-017.
 - **Owner:** —
 
+### GAP-026
+
+- **Status:** Open (Documented limitation / Future feature candidate)
+- **Severity:** Minor
+- **Source:** [ADR-001](../adrs/ADR-001-product-operating-model.md); [ADR-002](../adrs/ADR-002-local-data-ownership.md); [ADR-004](../adrs/ADR-004-account-and-cloud-enhancement-model.md)
+- **Observed:** The entire application is restricted to a single browser-level Dexie database (`MealDexie` in `src/lib/db.ts`) and one active set of Supabase credentials per browser. Signing out (or session expiration while away) cleanly revokes cloud sync and AI privileges in the UI, but does not isolate local recipe data between different user accounts on the same device.
+- **Expected:** Documented limitation for single-user browsers. In future iterations, multi-user support or tenant isolation in Dexie (e.g. scoping recipes per `owner_id` or separating databases per account) should allow distinct local recipe books.
+- **Notes:** Signing out when session expires is safe and preserves offline functionality, but switching between multiple accounts on a shared browser shares local Dexie storage.
+- **Owner:** —
+
 ---
 
 ## Deferred / investigated

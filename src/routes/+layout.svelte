@@ -8,9 +8,13 @@
   // import { SvelteQueryDevtools } from '@tanstack/svelte-query-devtools';
 
   import { browser } from '$app/environment';
-  import { invalidate } from '$app/navigation';
+  import { afterNavigate, invalidate } from '$app/navigation';
 
-  import { deriveCloudCapability } from '$lib/api/auth';
+  import {
+    AuthService,
+    createReturnWatcher,
+    deriveCloudCapability
+  } from '$lib/api/auth';
   import {
     CloudService,
     type ConflictResolution,
@@ -167,18 +171,14 @@
     });
   }
 
-  async function verifySessionAndSignOutIfExpired() {
+  async function checkSessionValidity() {
     if (!session) {
       return;
     }
 
-    const {
-      data: { user },
-      error
-    } = await supabase.auth.getUser();
-
-    if (error || !user) {
-      await supabase.auth.signOut();
+    const authService = new AuthService(supabase);
+    const isValid = await authService.validateOrSignOut(session);
+    if (!isValid) {
       invalidate('supabase:auth');
     }
   }
@@ -207,14 +207,14 @@
       }
     );
 
-    function onVisibilityChange() {
-      if (document.visibilityState === 'visible' && session) {
-        void verifySessionAndSignOutIfExpired();
-        flushPendingLastOpenedIfNeeded();
+    const stopWatcher = createReturnWatcher({
+      onReturn: () => {
+        if (session) {
+          void checkSessionValidity();
+          flushPendingLastOpenedIfNeeded();
+        }
       }
-    }
-
-    document.addEventListener('visibilitychange', onVisibilityChange);
+    });
 
     if (session?.user) {
       runSync(session.user.id);
@@ -223,8 +223,19 @@
     return () => {
       stopLastOpenedBatchSync();
       authListener.subscription.unsubscribe();
-      document.removeEventListener('visibilitychange', onVisibilityChange);
+      stopWatcher();
     };
+  });
+
+  afterNavigate(({ to }) => {
+    if (session) {
+      const isExpired = session.expires_at
+        ? session.expires_at * 1000 <= Date.now()
+        : false;
+      if (isExpired || to?.url.pathname === '/recommendations') {
+        void checkSessionValidity();
+      }
+    }
   });
 
   $effect(() => {
@@ -237,17 +248,15 @@
       return;
     }
 
-    const timer = setTimeout(
-      () => {
-        void verifySessionAndSignOutIfExpired();
-      },
-      Math.max(expiresAt * 1000 - Date.now() + 1000, 0)
-    );
+    const delay = Math.max(expiresAt * 1000 - Date.now() + 500, 0);
+    const timer = setTimeout(() => {
+      void checkSessionValidity();
+    }, delay);
 
     return () => clearTimeout(timer);
   });
 
-  /** Re-run cloud sync when the browser reconnects after being offline. */
+  /** Re-run cloud sync and session verification when the browser reconnects after being offline. */
   $effect(() => {
     if (!browser) {
       return;
@@ -255,6 +264,10 @@
 
     const online = network.online;
     const userId = session?.user?.id;
+
+    if (online && !wasOnline && session) {
+      void checkSessionValidity();
+    }
 
     if (online && !wasOnline && userId && !syncing) {
       void runSync(userId);
@@ -499,7 +512,6 @@
     syncService: SyncService
   ) {
     if (!conflicts.length) return;
-
     const allowed = conflicts.filter((item) => {
       if (item.action === 'upload') return canWriteCloud;
       if (item.action === 'download') return canReadCloud;

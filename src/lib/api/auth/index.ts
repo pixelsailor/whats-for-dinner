@@ -8,3 +8,4 @@ export * from './auth.permissions';
 export * from './auth.types';
 export * from './auth.schemas';
 export * from './auth.service';
+export * from './auth.watcher';

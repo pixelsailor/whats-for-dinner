@@ -137,8 +137,12 @@
 
   let openCloudSyncDialog = $state(false);
   let syncDialogMode = $state<'none' | 'first-sync' | 'per-recipe'>('none');
-  let syncPlan = $state<SyncPlan | null>(null);
-  let conflictQueue = $state<SyncConflict[]>([]);
+  /**
+   * Sync plan data is handed to Dexie (`put`/`bulkPut`) and IndexedDB's structured clone cannot
+   * serialize Svelte's deep `$state` proxies, so these must be `$state.raw`.
+   */
+  let syncPlan = $state.raw<SyncPlan | null>(null);
+  let conflictQueue = $state.raw<SyncConflict[]>([]);
   let currentConflict = $derived(conflictQueue[0] ?? null);
   let syncing = $state(false);
   let wasOnline = $state(browser ? navigator.onLine : true);
@@ -471,7 +475,18 @@
     const syncService = new SyncService(
       new CloudService(supabase, session.user.id)
     );
-    await syncService.resolveConflict(currentConflict, action);
+    try {
+      await syncService.resolveConflict(currentConflict, action);
+    } catch (err) {
+      console.error('Failed to resolve sync conflict', err);
+      const message =
+        err instanceof Error ? err.message : 'Failed to resolve conflict';
+      updateSyncStore({ status: 'error', message });
+      toast.error(`Could not resolve conflict: ${message}`);
+      openCloudSyncDialog = false;
+      syncing = false;
+      return;
+    }
     conflictQueue = conflictQueue.slice(1);
     updateSyncStore((state) => ({
       ...state,

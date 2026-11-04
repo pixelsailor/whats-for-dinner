@@ -279,13 +279,17 @@ export class SyncService {
    *
    * @param conflict - The conflict to resolve.
    * @param action - The action to take.
+   * @throws When an upload fails. The failure is also persisted on the local row as `sync_error`.
    */
   async resolveConflict(
     conflict: SyncConflict,
     action: 'upload' | 'download'
   ): Promise<void> {
     if (action === 'upload') {
-      await this.uploadRecipes([conflict.local]);
+      const response = await this.syncRecipeToCloud(conflict.local);
+      if (!response.success) {
+        throw new Error(response.error?.message ?? 'Cloud upload failed');
+      }
     } else {
       await this.downloadRecipes([conflict.cloud]);
     }

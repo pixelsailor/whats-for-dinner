@@ -195,6 +195,26 @@ Suggested fields (adapt as needed):
 - **Notes:** Signing out when session expires is safe and preserves offline functionality, but switching between multiple accounts on a shared browser shares local Dexie storage.
 - **Owner:** —
 
+### GAP-027
+
+- **Status:** Open
+- **Severity:** Minor
+- **Source:** [README](../README.md) — _Offline-first_; [ADR-010](../adrs/ADR-010-offline-cache-and-service-worker.md); related to **GAP-009**
+- **Observed:** The service worker caches documents **per full URL** (network-first, `data-cache-*`). A hard reload or direct visit **while offline** to a URL variant that was never fetched as a document fails with a browser error page, even though the client-side app and Dexie data could render it. Confirmed on a production build: offline `/calendar?month=2026-12` (reached only by in-app navigation) and offline `/recipes?sort=created_at` both fail; bare `/calendar`, `/recipes`, and previously loaded `/calendar?month=…` URLs load. In-app (client-side) navigation works offline.
+- **Expected:** Once the shell is warm, query-string variants of a cached route (`/calendar?month=…`, `/recipes?sort=…`) should load offline from the cached route document, with data read from Dexie.
+- **Notes:** Found during calendar-page validation. A likely fix is a navigation fallback in `src/service-worker.js` (match the cached document ignoring the search string, or fall back to a cached app shell) — needs its own plan and ADR-010 review. Not caused by the calendar; documented in [`docs/calendar/README.md`](./calendar/README.md).
+- **Owner:** —
+
+### GAP-028
+
+- **Status:** Open (accepted exception; layout overhaul planned)
+- **Severity:** Minor
+- **Source:** [ADR-014](../adrs/ADR-014-semantic-html-and-accessibility.md); calendar-page AC-16 (waived below 640 px by the maintainer)
+- **Observed:** Below 640 px the root layout renders the collapsed side-rail as an `absolute` overlay (`vp.layout === 'mobile--collapsed'` falls into the desktop `<aside>` branch in `src/routes/+layout.svelte`) while `.nav-container` is `w-0`, so the rail covers the left ~57 px of every page. `/recipes` is clipped the same way; on `/calendar` the whole Sunday column is hidden at 320 and 375 px.
+- **Expected:** Content should not be hidden behind the rail; each page's `AppBar` already provides a "Show navigation" button on mobile.
+- **Notes:** Deliberately not fixed in the calendar change: phones are not a primary target (tablets and laptops are) and a layout overhaul is expected. Probable fix: do not render the rail for `mobile--collapsed`. Do not add per-page padding workarounds (they would double-offset after the layout fix).
+- **Owner:** —
+
 ---
 
 ## Deferred / investigated

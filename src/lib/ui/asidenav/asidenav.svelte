@@ -12,6 +12,7 @@
   import OpenPanelLeftIcon from '$lib/ui/icons/OpenPanelLeftIcon.svelte';
   import LogoutIcon from '$lib/ui/icons/LogoutIcon.svelte';
   import LoginIcon from '$lib/ui/icons/LoginIcon.svelte';
+  import CalendarIcon from '$lib/ui/icons/CalendarIcon.svelte';
   import DocumentAddIcon from '$lib/ui/icons/DocumentAddIcon.svelte';
   import TimeIcon from '$lib/ui/icons/Time.svelte';
   import { AppBar } from '../AppBar';
@@ -47,6 +48,7 @@
   }
 
   let openRecipeId = $derived(deriveOpenRecipeId(page.url.pathname));
+  let onCalendar = $derived(page.url.pathname === '/calendar');
 
   let openLoginDialog = $state(false);
   let loginFormStatus = $state<'idle' | 'progress' | 'invalid'>('invalid');
@@ -140,6 +142,19 @@
             <TimeIcon size="xs" ariaLabel="Recommendations" />
             {#if vp.nav === 'expanded'}
               <span class="sidenav-link__text">Recommendations</span>
+            {/if}
+          </NavigationMenu.Link>
+        </NavigationMenu.Item>
+        <NavigationMenu.Item>
+          <NavigationMenu.Link
+            href="/calendar"
+            active={onCalendar}
+            aria-label={vp.nav === 'expanded' ? undefined : 'Calendar'}
+            class="sidenav-link h-input-mobile md:h-input hover:bg-dark-10 data-[active]:bg-dark-10"
+          >
+            <CalendarIcon size="xs" />
+            {#if vp.nav === 'expanded'}
+              <span class="sidenav-link__text">Calendar</span>
             {/if}
           </NavigationMenu.Link>
         </NavigationMenu.Item>

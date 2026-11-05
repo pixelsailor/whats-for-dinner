@@ -65,7 +65,7 @@ For each of the four roadmap features below, the **envelope** in this section is
 | **Cloud dependency**       | **None.** Calendar is fully usable anonymously and offline. Sync of `checkout_history` is governed by [ADR-005](ADR-005-sync-and-conflict-resolution.md); calendar does not introduce new sync semantics.                    |
 | **Required capabilities**  | None.                                                                                                                                                                                                                        |
 | **Future sharing**         | Out of scope; requires a successor ADR if calendar becomes a shareable surface.                                                                                                                                              |
-| **Deeper design home**     | `docs/calendar/...` (to be created when the feature is scheduled).                                                                                                                                                           |
+| **Deeper design home**     | [`docs/calendar/README.md`](../docs/calendar/README.md).                                                                                                                                                                     |
 
 ### B. URL recipe import
 

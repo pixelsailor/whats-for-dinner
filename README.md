@@ -93,6 +93,7 @@ Detailed guidance should live near the code it governs. Use the top-level README
 - [`src/lib/api/README.md`](./src/lib/api/README.md): API service layer organization.
 - [`src/lib/ui/README.md`](./src/lib/ui/README.md): UI component library guidance.
 - [`src/lib/stores/README.md`](./src/lib/stores/README.md): Store patterns and local data flow.
+- [`docs/calendar/README.md`](./docs/calendar/README.md): Calendar page design, data flow, URL contract, and performance measurements.
 - [`docs/suggestions-architecture.md`](./docs/suggestions-architecture.md): Suggestions system architecture.
 - [`docs/suggestions-flow.md`](./docs/suggestions-flow.md): Suggestions user flow.
 - [`docs/adr-and-rules-todo.md`](./docs/adr-and-rules-todo.md): ADR, Cursor rule, and workflow governance backlog.

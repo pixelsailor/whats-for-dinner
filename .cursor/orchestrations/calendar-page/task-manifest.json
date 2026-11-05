@@ -1,0 +1,298 @@
+{
+  "manifest_version": "2.0.0",
+  "task_id": "calendar-page",
+  "objective": "Add a /calendar page that shows one month at a time as a classic day grid (weekday header, numbered days), lists each recipe made on each day (from checkout_history) as single-line truncated pills that link to /recipes/{id}, is responsive, and has month/year navigation. No popups, no Supabase/cloud table.",
+  "status": "complete",
+  "current_agent": "orchestrator",
+  "pipeline": [
+    "planner",
+    "builder",
+    "tester",
+    "validator"
+  ],
+  "risk_tier": {
+    "level": "medium",
+    "rationale": "New route plus sidenav entry. Read path designed with a measured escalation ladder (A derived index -> E1 multi-entry index -> E2 table) so ADR-002/ADR-005/ADR-012 impact is deferred unless triggered. Responsive/a11y-sensitive UI (ADR-014).",
+    "skipped_stages": []
+  },
+  "gate_status": {
+    "gate_0_intake": "passed",
+    "gate_1_requirements": "passed",
+    "gate_2_plan": "passed",
+    "gate_3_build": "passed",
+    "gate_4_tests": "passed",
+    "gate_5_validation": "passed",
+    "gate_6_human_approval": "passed"
+  },
+  "completed_stages": [
+    {
+      "agent": "planner",
+      "completed_at": "2026-11-04T00:00:00Z",
+      "output_artifacts": [
+        "plan.md",
+        "acceptance-criteria.md",
+        "test-matrix.md"
+      ],
+      "summary": "Plan approved by human; D1 resolved A-first with E1/E2 escalation ladder."
+    },
+    {
+      "agent": "builder",
+      "completed_at": "2026-11-05T18:32:21Z",
+      "output_artifacts": [
+        "build-log.md"
+      ],
+      "summary": "Phases 1-5: pure model, slim-index store, /calendar route + UI, sidenav link, docs. 227 tests passing (1 human-skipped); E1 trigger not fired; AC-16 waived <640px by human."
+    },
+    {
+      "agent": "tester",
+      "completed_at": "2026-11-05T19:02:23Z",
+      "output_artifacts": [
+        "test-report.md",
+        "test-matrix.md"
+      ],
+      "summary": "118 calendar tests (75 server, 43 browser); full suite 250 passed, 1 expected fail, 1 skipped. Every AC mapped. One defect found (DEF-1: pill height 20px < 24px WCAG 2.2 AA target-size) pinned with it.fails, not fixed."
+    },
+    {
+      "agent": "validator",
+      "completed_at": "2026-11-05T19:23:22Z",
+      "output_artifacts": [
+        "validation-report.md"
+      ],
+      "summary": "PASS_WITH_NOTES. 0 ACs not met; AC-16 (human-waived <640px) and AC-32 partial. Independently re-ran suite (253 passed, 1 skipped), TZ runs, axe (0 violations in main), offline/logged-out and service-worker matrix. Found offline caveat for uncached month URLs (pre-existing SW per-URL cache)."
+    }
+  ],
+  "loop_count": 0,
+  "max_loops": 2,
+  "rework_count": 0,
+  "rework_history": [],
+  "session_counts": {
+    "orchestrator": 1,
+    "planner": 1,
+    "builder": 1,
+    "tester": 1,
+    "validator": 1
+  },
+  "command_evidence": [
+    {
+      "stage": "builder",
+      "phase": 1,
+      "commands": [
+        {
+          "cmd": "TZ={UTC,America/Los_Angeles,Pacific/Auckland} pnpm exec vitest run --project server src/lib/api/calendar",
+          "result": "pass_57_tests_each"
+        },
+        {
+          "cmd": "pnpm exec eslint src/lib/api/calendar",
+          "result": "pass"
+        },
+        {
+          "cmd": "pnpm exec prettier --check src/lib/api/calendar",
+          "result": "pass"
+        },
+        {
+          "cmd": "pnpm run check",
+          "result": "fail_project_wide_preexisting_touched_paths_clean"
+        }
+      ]
+    },
+    {
+      "stage": "builder",
+      "phase": 2,
+      "commands": [
+        {
+          "cmd": "pnpm exec vitest run --project server src/lib/stores/calendar src/lib/api/calendar",
+          "result": "pass_63_tests"
+        },
+        {
+          "cmd": "pnpm exec vitest run --project client src/lib/stores/calendar (unsandboxed)",
+          "result": "pass_1_test_real_dexie"
+        },
+        {
+          "cmd": "pnpm exec eslint src/lib/stores/calendar*.ts src/lib/api/calendar",
+          "result": "pass"
+        },
+        {
+          "cmd": "pnpm run check",
+          "result": "fail_project_wide_preexisting_touched_paths_clean"
+        }
+      ]
+    },
+    {
+      "stage": "builder",
+      "phase": 3,
+      "commands": [
+        {
+          "cmd": "pnpm run test",
+          "result": "pass_222_passed_1_skipped"
+        },
+        {
+          "cmd": "pnpm exec vitest run --project client src/lib/ui/calendar",
+          "result": "pass_20_tests"
+        },
+        {
+          "cmd": "pnpm exec eslint (calendar files)",
+          "result": "pass"
+        },
+        {
+          "cmd": "pnpm run build",
+          "result": "pass"
+        },
+        {
+          "cmd": "pnpm run check",
+          "result": "fail_project_wide_preexisting_touched_paths_clean"
+        },
+        {
+          "cmd": "pnpm run lint",
+          "result": "fail_project_wide_preexisting_touched_paths_clean"
+        }
+      ]
+    },
+    {
+      "stage": "builder",
+      "phase": 4,
+      "commands": [
+        {
+          "cmd": "pnpm run test",
+          "result": "pass_227_passed_1_skipped"
+        },
+        {
+          "cmd": "pnpm exec vitest run --project client src/lib/ui/asidenav",
+          "result": "pass_5_tests"
+        },
+        {
+          "cmd": "pnpm exec eslint (touched paths)",
+          "result": "pass"
+        },
+        {
+          "cmd": "pnpm run check",
+          "result": "fail_project_wide_preexisting_touched_paths_clean"
+        }
+      ]
+    },
+    {
+      "stage": "builder",
+      "phase": 5,
+      "commands": [
+        {
+          "cmd": "TZ={UTC,America/Los_Angeles,Pacific/Auckland} vitest --project server src/lib/api/calendar src/lib/stores/calendar",
+          "result": "pass_68_tests_each"
+        },
+        {
+          "cmd": "pnpm run test",
+          "result": "pass_227_passed_1_skipped"
+        },
+        {
+          "cmd": "pnpm run build",
+          "result": "pass"
+        },
+        {
+          "cmd": "pnpm run check",
+          "result": "fail_project_wide_preexisting_touched_paths_clean"
+        },
+        {
+          "cmd": "offline + logged-out browser run (production build)",
+          "result": "pass_zero_network_requests_beyond_static_assets"
+        }
+      ]
+    },
+    {
+      "stage": "tester",
+      "commands": [
+        {
+          "cmd": "pnpm run test (x3)",
+          "result": "pass_250_passed_1_expected_fail_1_skipped"
+        },
+        {
+          "cmd": "TZ={UTC,America/Los_Angeles,Pacific/Auckland} vitest --project server src/lib/api/calendar src/lib/stores/calendar",
+          "result": "pass_75_tests_each"
+        },
+        {
+          "cmd": "vitest --project client (calendar routes/ui/asidenav/stores) x5",
+          "result": "pass_42_each"
+        },
+        {
+          "cmd": "boundary-test mutation check (temp forbidden import)",
+          "result": "fails_as_intended_2_tests"
+        },
+        {
+          "cmd": "axe-core 4.14 vs production build (manual, one-off)",
+          "result": "1_calendar_defect_target_size"
+        },
+        {
+          "cmd": "pnpm run check",
+          "result": "fail_project_wide_preexisting_touched_paths_clean"
+        }
+      ]
+    },
+    {
+      "stage": "builder_remediation",
+      "defect": "DEF-1",
+      "commands": [
+        {
+          "cmd": "vitest --project client src/lib/ui/calendar/MonthGrid (old it.fails test, after fix)",
+          "result": "fails_as_designed_confirming_fix"
+        },
+        {
+          "cmd": "pnpm run test",
+          "result": "pass_253_passed_1_skipped"
+        },
+        {
+          "cmd": "axe-core 4.14 vs rebuilt production bundle, main only, 4 widths",
+          "result": "0_violations_pills_24px"
+        },
+        {
+          "cmd": "pnpm run check",
+          "result": "fail_project_wide_preexisting_touched_paths_clean"
+        }
+      ]
+    },
+    {
+      "stage": "validator",
+      "at": "2026-11-05T19:23:22Z",
+      "commands": [
+        {
+          "cmd": "pnpm run test",
+          "result": "pass_253_passed_1_skipped"
+        },
+        {
+          "cmd": "TZ={UTC,America/Los_Angeles,Pacific/Auckland} vitest --project server src/lib/api/calendar src/lib/stores/calendar",
+          "result": "pass_75_each"
+        },
+        {
+          "cmd": "vitest json reporter per file (client 45, server 75)",
+          "result": "pass_120_tests"
+        },
+        {
+          "cmd": "axe-core 4.14 vs production build, main only, 768/1024/1280/1920",
+          "result": "0_violations"
+        },
+        {
+          "cmd": "service-worker offline matrix (preview build)",
+          "result": "warm_urls_load_uncached_urls_fail_preexisting_behavior"
+        },
+        {
+          "cmd": "pnpm run check / eslint . / prettier --check .",
+          "result": "fail_project_wide_preexisting_touched_paths_clean"
+        }
+      ],
+      "verdict": "PASS_WITH_NOTES"
+    }
+  ],
+  "locked_artifacts": [],
+  "flags": [
+    "decision_D1_resolved_A_first_escalate_on_measurement",
+    "human_exception_mobile_layout_AC16_waived_below_640px",
+    "DEF-1_fixed_and_verified",
+    "validator_pass_with_notes",
+    "human_approved",
+    "commit_requested_local_only",
+    "do_not_push"
+  ],
+  "human_approval": {
+    "status": "approved",
+    "approved_at": "2026-11-05T19:31:33Z",
+    "approver": "human",
+    "conditions": null,
+    "notes": "Approved. Residual risks accepted as documented (AC-16 waiver <640px, AC-32 partial, offline caveat for uncached month URLs, first-render budget ambiguity, manual evidence for AC-20/21/37). Follow-ups recorded: GAP-027, GAP-028 in docs/readme-adr-alignment-gaps.md and the Follow-ups table in docs/calendar/README.md. Commit all changes to the current branch (feature-calendar); do not push."
+  }
+}

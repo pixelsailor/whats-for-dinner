@@ -17,6 +17,7 @@
 
   import { AppBar } from '$lib/ui/AppBar';
   import DocumentAddIcon from '$lib/ui/icons/DocumentAddIcon.svelte';
+  import FavoriteFilledIcon from '$lib/ui/icons/FavoriteFilledIcon.svelte';
   import TrashIcon from '$lib/ui/icons/TrashIcon.svelte';
   import PageHeader from '$lib/ui/PageHeader.svelte';
   import ProgressSpinner from '$lib/ui/ProgressSpinner.svelte';
@@ -385,6 +386,16 @@
             >
           </span>
           <span class="listitem__end">
+            {#if recipe.is_favorite === true}
+              <span
+                class="text-muted flex"
+                role="img"
+                aria-label="Favorite"
+                title="Favorite"
+              >
+                <FavoriteFilledIcon size="xs" />
+              </span>
+            {/if}
             <Button
               class="text icon"
               aria-label="Delete recipe"

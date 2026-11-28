@@ -1,15 +1,12 @@
-import adapter from '@sveltejs/adapter-netlify';
+import adapter from '@sveltejs/adapter-cloudflare';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
 const config = {
   preprocess: vitePreprocess(),
   kit: {
-    adapter: adapter({
-      // runtime: 'edge',
-    }),
-    experimental: {
-      remoteFunctions: true
-    }
+    adapter: adapter(),
+    // runtime: 'edge',
+    experimental: { remoteFunctions: true }
   },
   compilerOptions: {
     runes: true,

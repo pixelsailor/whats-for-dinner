@@ -1,0 +1,44 @@
+{
+  "manifest_version": "2.0.0",
+  "task_id": "issue-46-recipe-chat-updates",
+  "objective": "Restore the ability for the Saim chatbot on the recipe detail page to propose and apply recipe updates from chat. Updates are held as unsaved working state with a one-level undo toast, persisted to Dexie/sync only on explicit Save, guarded against navigation loss, and always generated with the user's preferences. Source: GitHub issue pixelsailor/whats-for-dinner#46.",
+  "status": "in_progress",
+  "current_agent": "planner",
+  "pipeline": ["planner", "builder", "tester", "validator"],
+  "risk_tier": {
+    "level": "large",
+    "rationale": "Touches AI provider boundary (ADR-007), structured output and schema contracts (ADR-008), local recipe persistence and sync write path (ADR-002, ADR-005), and new navigation/offline-sensitive UI state on the detail page.",
+    "skipped_stages": []
+  },
+  "gate_status": {
+    "gate_0_intake": "passed",
+    "gate_1_requirements": "pending",
+    "gate_2_plan": "pending",
+    "gate_3_build": "pending",
+    "gate_4_tests": "pending",
+    "gate_5_validation": "pending",
+    "gate_6_human_approval": "pending"
+  },
+  "completed_stages": ["orchestrator"],
+  "loop_count": 0,
+  "max_loops": 2,
+  "rework_count": 0,
+  "rework_history": [],
+  "session_counts": {
+    "orchestrator": 1,
+    "planner": 1,
+    "builder": 0,
+    "tester": 0,
+    "validator": 0
+  },
+  "command_evidence": [],
+  "locked_artifacts": [],
+  "flags": [],
+  "human_approval": {
+    "status": "pending",
+    "approved_at": null,
+    "approver": null,
+    "conditions": null,
+    "notes": null
+  }
+}
